@@ -23,7 +23,6 @@ endif()
 # Set compiler flags.
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fdiagnostics-color -lpthread -lm")
 
-
 # Set build-type specific flags
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("Build mode: debug.")

@@ -7,6 +7,7 @@
 #include <linux/spi/spidev.h>
 #include <errno.h>
 #include <unistd.h>
+#include <cmath>
 
 #include <iostream>
 #include <cstring>
