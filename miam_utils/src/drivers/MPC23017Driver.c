@@ -1,6 +1,6 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
-#include "MiAMEurobot/drivers/MPC23017Driver.h"
+#include "miam_utils/drivers/MPC23017Driver.h"
 #include <stdio.h>
 
 bool mpc_init(MPC *mpc, I2CAdapter *adapter, unsigned int const& address)

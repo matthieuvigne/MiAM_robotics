@@ -16,7 +16,7 @@
     #include <iostream>
     #include <cmath>
     #include <deque>
-    #include "MiAMEurobot/Metronome.h"
+    #include "miam_utils/Metronome.h"
 
     // Constant parameters.
     #define DEBUGGING_BUFFER_LENGTH 2000

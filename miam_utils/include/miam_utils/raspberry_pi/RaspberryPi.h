@@ -6,8 +6,8 @@
 /// \copyright GNU GPLv3
 #ifndef RPI_EUROBOT_DRIVER
 #define RPI_EUROBOT_DRIVER
-    #include "MiAMEurobot/drivers/I2C-Wrapper.h"
-    #include "MiAMEurobot/raspberry_pi/RPiGPIO.h"
+    #include "miam_utils/drivers/I2C-Wrapper.h"
+    #include "miam_utils/raspberry_pi/RPiGPIO.h"
     #include <string>
 
     extern const std::string RPI_SPI_00; ///<  First SPI port.

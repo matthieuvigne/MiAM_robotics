@@ -9,7 +9,7 @@
 /// \copyright GNU GPLv3
 #ifndef IMU_DRIVER_H
     #define IMU_DRIVER_H
-    #include "MiAMEurobot/drivers/I2C-Wrapper.h"
+    #include "miam_utils/drivers/I2C-Wrapper.h"
 
     /// IMU structure.
     typedef struct {

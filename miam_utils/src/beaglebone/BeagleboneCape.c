@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <fstream>
 
-#include "MiAMEurobot/beaglebone/BeagleboneCape.h"
-#include "MiAMEurobot/beaglebone/BBBGpio.h"
+#include "miam_utils/beaglebone/BeagleboneCape.h"
+#include "miam_utils/beaglebone/BBBGpio.h"
 
 // See header directly for documentation of these constants.
 const std::string SPI_0 = "/dev/spidev1.0";

@@ -9,7 +9,7 @@
 /// \copyright GNU GPLv3
 #ifndef TCS3472_DRIVER
     #define TCS3472_DRIVER
-    #include "MiAMEurobot/drivers/I2C-Wrapper.h"
+    #include "miam_utils/drivers/I2C-Wrapper.h"
 
     /// Color sensor structure.
     typedef struct {

@@ -7,7 +7,7 @@
 /// \copyright GNU GPLv3
 #ifndef PCA9635_DRIVER
     #define PCA9635_DRIVER
-    #include "MiAMEurobot/drivers/I2C-Wrapper.h"
+    #include "miam_utils/drivers/I2C-Wrapper.h"
 
     /// Led driver structure.
     typedef struct {

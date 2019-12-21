@@ -1,6 +1,6 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
-#include "MiAMEurobot/beaglebone/BBBGpio.h"
+#include "miam_utils/beaglebone/BBBGpio.h"
 
 #include <fstream>
 #include <string>

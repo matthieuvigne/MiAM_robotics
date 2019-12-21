@@ -1,6 +1,6 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
-#include "MiAMEurobot/drivers/PCA9635Driver.h"
+#include "miam_utils/drivers/PCA9635Driver.h"
 
 #define LEDOUTOFFSET 0x14
 #define PWMOFFSET 2

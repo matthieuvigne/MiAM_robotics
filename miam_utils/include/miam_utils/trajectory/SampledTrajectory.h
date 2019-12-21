@@ -5,7 +5,7 @@
 #ifndef MIAM_TRAJECTORY_SAMPLED_TRAJECTORY
 #define MIAM_TRAJECTORY_SAMPLED_TRAJECTORY
 
-    #include "MiAMEurobot/trajectory/Trajectory.h"
+    #include "miam_utils/trajectory/Trajectory.h"
     #include <vector>
 
     namespace miam{

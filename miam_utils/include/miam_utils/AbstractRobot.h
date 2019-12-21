@@ -5,10 +5,10 @@
 #ifndef ABSTRACT_ROBOT_H
      #define ABSTRACT_ROBOT_H
 
-    #include "MiAMEurobot/trajectory/DrivetrainKinematics.h"
-    #include "MiAMEurobot/trajectory/RobotPosition.h"
-    #include "MiAMEurobot/trajectory/Trajectory.h"
-    #include "MiAMEurobot/drivers/L6470Driver.h"
+    #include "miam_utils/trajectory/DrivetrainKinematics.h"
+    #include "miam_utils/trajectory/RobotPosition.h"
+    #include "miam_utils/trajectory/Trajectory.h"
+    #include "miam_utils/drivers/L6470Driver.h"
 
     #include <memory>
     #include <vector>

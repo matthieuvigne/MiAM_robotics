@@ -7,7 +7,7 @@
 /// \copyright GNU GPLv3
 #ifndef LCD_DRIVER_H
     #define LCD_DRIVER_H
-    #include "MiAMEurobot/drivers/MPC23017Driver.h"
+    #include "miam_utils/drivers/MPC23017Driver.h"
 
     ///< Mapping of board buttons.
     typedef enum

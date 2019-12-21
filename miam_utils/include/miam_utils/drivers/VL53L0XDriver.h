@@ -7,7 +7,7 @@
 /// \copyright GNU GPLv3
 #ifndef VL53L0X_DRIVER_H
     #define VL53L0X_DRIVER_H
-    #include "MiAMEurobot/drivers/I2C-Wrapper.h"
+    #include "miam_utils/drivers/I2C-Wrapper.h"
 
     ///< VL53L0X class
     class VL53L0X{

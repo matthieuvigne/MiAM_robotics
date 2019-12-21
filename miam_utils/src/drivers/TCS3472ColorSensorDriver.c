@@ -1,6 +1,6 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
-#include "MiAMEurobot/drivers/TCS3472ColorSensorDriver.h"
+#include "miam_utils/drivers/TCS3472ColorSensorDriver.h"
 #include <math.h>
 #include <stdio.h>
 #include <unistd.h>

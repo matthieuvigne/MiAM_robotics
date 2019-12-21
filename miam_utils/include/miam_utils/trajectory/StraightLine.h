@@ -5,8 +5,8 @@
 #ifndef MIAM_TRAJECTORY_STRAIGHT_LINE
 #define MIAM_TRAJECTORY_STRAIGHT_LINE
 
-    #include "MiAMEurobot/trajectory/Trajectory.h"
-    #include "MiAMEurobot/trajectory/Trapezoid.h"
+    #include "miam_utils/trajectory/Trajectory.h"
+    #include "miam_utils/trajectory/Trapezoid.h"
 
     namespace miam{
         namespace trajectory{

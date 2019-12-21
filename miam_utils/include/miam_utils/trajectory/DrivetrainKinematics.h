@@ -9,7 +9,7 @@
 #ifndef MIAM_DRIVETRAIN_KINEMATICS
 #define MIAM_DRIVETRAIN_KINEMATICS
 
-    #include "MiAMEurobot/trajectory/RobotPosition.h"
+    #include "miam_utils/trajectory/RobotPosition.h"
 
     /// \brief Class to represent base speed.
     class BaseSpeed

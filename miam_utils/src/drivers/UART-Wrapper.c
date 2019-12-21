@@ -1,6 +1,6 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
-#include "MiAMEurobot/drivers/UART-Wrapper.h"
+#include "miam_utils/drivers/UART-Wrapper.h"
 
 #include <fcntl.h>
 #include <unistd.h>

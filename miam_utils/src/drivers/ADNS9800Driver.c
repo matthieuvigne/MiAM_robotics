@@ -1,8 +1,8 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
-#include "MiAMEurobot/drivers/ADNS9800Driver.h"
-#include "MiAMEurobot/drivers/ADNS9800Firmware.h"
-#include "MiAMEurobot/drivers/SPI-Wrapper.h"
+#include "miam_utils/drivers/ADNS9800Driver.h"
+#include "miam_utils/drivers/ADNS9800Firmware.h"
+#include "miam_utils/drivers/SPI-Wrapper.h"
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>

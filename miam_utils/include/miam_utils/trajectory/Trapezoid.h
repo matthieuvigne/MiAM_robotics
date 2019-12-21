@@ -4,7 +4,7 @@
 /// \copyright GNU GPLv3
 #ifndef MIAM_TRAJECTORY_TRAPEZOID
 #define MIAM_TRAJECTORY_TRAPEZOID
-    #include "MiAMEurobot/trajectory/Trajectory.h"
+    #include "miam_utils/trajectory/Trajectory.h"
 
     namespace miam{
         namespace trajectory{

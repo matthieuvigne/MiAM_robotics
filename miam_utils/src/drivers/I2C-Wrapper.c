@@ -1,6 +1,6 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
-#include "MiAMEurobot/drivers/I2C-Wrapper.h"
+#include "miam_utils/drivers/I2C-Wrapper.h"
 
 #include <unistd.h>
 #include <fcntl.h>

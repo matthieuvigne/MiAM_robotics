@@ -1,6 +1,6 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
-#include "MiAMEurobot/drivers/IMUDriver.h"
+#include "miam_utils/drivers/IMUDriver.h"
 #include <stdio.h>
 #include <math.h>
 

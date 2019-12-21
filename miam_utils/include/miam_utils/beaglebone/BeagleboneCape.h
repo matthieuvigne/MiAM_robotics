@@ -9,7 +9,7 @@
 #ifndef BBB_CAPE
 #define BBB_CAPE
 
-    #include "MiAMEurobot/drivers/I2C-Wrapper.h"
+    #include "miam_utils/drivers/I2C-Wrapper.h"
     #include <string>
 
     #define CAPE_N_ANALOG 7

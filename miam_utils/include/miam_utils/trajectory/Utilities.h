@@ -5,8 +5,8 @@
 #ifndef MIAM_TRAJECTORY_UTILITIES
 #define MIAM_TRAJECTORY_UTILITIES
 
-    #include "MiAMEurobot/trajectory/Trajectory.h"
-    #include "MiAMEurobot/trajectory/ArcCircle.h"
+    #include "miam_utils/trajectory/Trajectory.h"
+    #include "miam_utils/trajectory/ArcCircle.h"
     #include <vector>
     #include <memory>
 

@@ -1,0 +1,18 @@
+Doxygen main page
+
+/// \mainpage
+/// MiAMEurobot is a library developped to ease the use of an ARM-based linux SBC for Eurobot. This library aims to target both Beaglebone Black and Raspberry Pi.
+/// This project was started in 2017, for the participation of the team "MiAM" (a team of French alumni from two engineering schools,
+/// Ecole des Mines and Arts et Metiers) to Eurobot 2018, though it inherits from previous participations in this competition.
+///
+///
+/// This library is a general purpose library, that cover many basic needs on the high-level code: interface with GPIO and serial port, sensor and motor drivers, some basic algorithms and features
+/// Historically, this library was written in C, but has now been extended to C++ (though many C parts remain).
+///
+///
+/// The code is separated in several folders:
+///	- beaglebone: subfolder containing files specific to the Beaglebone Black: serial port definition, GPIO access.
+///	- raspberry_pi: subfolder containing files specific to the Raspberry Pi: serial port definition, GPIO access.
+///	- drivers: sensor and motor drivers. Helpers for I2C and serial communication are also included.
+///	- trajectory: definition of a trajectory for the robot, and classes to generate specific ones: line, arc...
+///	- root folder: this folder contains generic files and algorithms: a kalman-like filter for localisation, a timer handler, a logging interface...
