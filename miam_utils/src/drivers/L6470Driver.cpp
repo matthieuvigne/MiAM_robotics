@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <cmath>
 
 // Register definition and utility function for parameter length.
 #include "L6470Registers.h"
