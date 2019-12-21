@@ -46,7 +46,6 @@
 #define PINB_MOTOR_2 5
 #define DIRECTION_MOTOR_2 8
 
-
 /// Send power to the motor, normalized between -1 and 1 (-1: full reverse, 0: stop, 1: full forward).
 void moveMotor(int motor_id, float motorPower)
 {
@@ -58,15 +57,20 @@ void moveMotor(int motor_id, float motorPower)
   bool motorDirection = motorPower > 0;
 
   
-  if (motor_id == 0) {
+  if (motor_id == 0)
+  {
     digitalWrite(DIRECTION_MOTOR_0, motorDirection);
     PWM_MOTOR_0 = floor(abs(motorPower) * ICR1);
-  } else if (motor_id == 1) {
+  }
+  else if (motor_id == 1)
+  {
     digitalWrite(DIRECTION_MOTOR_1, motorDirection);
     PWM_MOTOR_1 = floor(abs(motorPower) * ICR1);
-  } else {
+  }
+  else
+  {
     digitalWrite(DIRECTION_MOTOR_2, motorDirection);
-    //PWM_MOTOR_2 = floor(abs(motorPower) * ICR1); TODO
+    PWM_MOTOR_2 = floor(abs(motorPower) * 255);
   }
 }
 
@@ -121,6 +125,7 @@ ISR(PCINT0_vect)
 unsigned long last_time = 0;
 int last_encoder_count_0 = 0;
 int last_encoder_count_1 = 0;
+int last_encoder_count_2 = 0;
 
 void setup() 
 {
@@ -208,17 +213,28 @@ void setup()
   // ICR1A = 1600
   // OCR1A = 160
 
+  TCCR2A = 0b10000011;
+  // TCCR2A |= (1 << WGM21);
+  // Set to CTC Mode
+  // TIMSK2 |= (1 << OCIE2A);
+  //Set interrupt on compare match
+  TCCR2B |= (1 << CS20);
+  // set prescaler to 64 and starts PWM
+  // OCR2A = 127;
+
   last_time = micros();
   last_encoder_count_0 = 0;
   last_encoder_count_1 = 0;
+  last_encoder_count_2 = 0;
 }
 
 
-float reference_velocity = -1000;
+float reference_velocity = 0;
 float Kp = 1.0 / 90000.0;
 float Ki = 1.0 / 5000.0;
 float integral_error_0 = 0;
 float integral_error_1 = 0;
+float integral_error_2 = 0;
 
 float dt = 100;
 
@@ -248,8 +264,9 @@ void loop()
 
   float velocity_0 = (encoderCount_0 - last_encoder_count_0) / time_since_last;
   float velocity_1 = (encoderCount_1 - last_encoder_count_1) / time_since_last;
-    
-  
+  float velocity_2 = (encoderCount_2 - last_encoder_count_2) / time_since_last;
+
+  // Block for motor 0
   {
      
     last_time = current_time;
@@ -265,6 +282,7 @@ void loop()
     //moveMotor(0.5);
   }
 
+  // Block for motor 1
   {
     last_time = current_time;
     last_encoder_count_1 = encoderCount_1;
@@ -279,9 +297,29 @@ void loop()
     //moveMotor(0.5);
   }
 
+  // Block for motor 2
+  {
+    last_time = current_time;
+    last_encoder_count_2 = encoderCount_2;
+  
+    float error = (velocity_2 - reference_velocity);
+    integral_error_2 += error * time_since_last;
+    
+    float target = - Kp * error - Ki * integral_error_2;
+    
+    // TODO: do motor velocity servoing...
+    moveMotor(2, target);
+    //moveMotor(0.5);
+  }
+
   // Send the current encoder position to the Arduino.
   // TODO: replace this by velocity output instead of position output.
-  Serial.println(String(reference_velocity) + " " + String(velocity_0) + " " + String(velocity_1));
+  // Serial.println(reference_velocity + " " + velocity_0 + " " + velocity_1);
+  Serial.println("Velocity:\n");
+  Serial.println(reference_velocity);
+  Serial.println(velocity_0);
+  Serial.println(velocity_1);
+  Serial.println(velocity_2);
 
   // Read serial port to see if we have new user input.
   while (Serial.available())
@@ -298,6 +336,7 @@ void loop()
       // Reset integral when a new target is received
       integral_error_0 = 0;
       integral_error_1 = 0;
+      integral_error_2 = 0;
     }
   }
   
