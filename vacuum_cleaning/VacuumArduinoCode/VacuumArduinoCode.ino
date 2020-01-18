@@ -241,6 +241,12 @@ float dt = 100;
 // User input parsing
 String userInput = "";
 
+boolean lastWasFF=false;
+unsigned const int MESSAGE_LENGTH=6;
+unsigned char message[MESSAGE_LENGTH];
+int positionInMessage;
+int TargetVelocity[3];
+
 
 //
 //void loop() 
@@ -272,7 +278,7 @@ void loop()
     last_time = current_time;
     last_encoder_count_0 = encoderCount_0;
   
-    float error = (velocity_0 - reference_velocity);
+    float error = (velocity_0 - TargetVelocity[0]);
     integral_error_0 += error * time_since_last;
     
     float target = - Kp * error - Ki * integral_error_0;
@@ -287,7 +293,7 @@ void loop()
     last_time = current_time;
     last_encoder_count_1 = encoderCount_1;
   
-    float error = (velocity_1 - reference_velocity);
+    float error = (velocity_1 - TargetVelocity[1]);
     integral_error_1 += error * time_since_last;
     
     float target = - Kp * error - Ki * integral_error_1;
@@ -302,7 +308,7 @@ void loop()
     last_time = current_time;
     last_encoder_count_2 = encoderCount_2;
   
-    float error = (velocity_2 - reference_velocity);
+    float error = (velocity_2 - TargetVelocity[2]);
     integral_error_2 += error * time_since_last;
     
     float target = - Kp * error - Ki * integral_error_2;
@@ -315,30 +321,66 @@ void loop()
   // Send the current encoder position to the Arduino.
   // TODO: replace this by velocity output instead of position output.
   // Serial.println(reference_velocity + " " + velocity_0 + " " + velocity_1);
-  Serial.println("Velocity:\n");
-  Serial.println(reference_velocity);
-  Serial.println(velocity_0);
-  Serial.println(velocity_1);
-  Serial.println(velocity_2);
+//  Serial.println("Velocity:\n");
+//  Serial.println(reference_velocity);
+//  Serial.println(Mot1_velocity_velocity);
+//  Serial.println(Mot2);
+//  Serial.println(Mot3);
+
+// If it's a 0xFF, and if the previous byte was also a 0xFF, a new message starts.
+
 
   // Read serial port to see if we have new user input.
-  while (Serial.available())
-  {
-    char c = Serial.read();
-    if (isDigit(c)) 
-      userInput += c;
-    if (c == '-' && userInput == "")
-      userInput = "-";
-    if (c == '\n') 
+
+while (Serial.available())
+{
+//     Serial.println(positionInMessage);
+     unsigned char lastData = Serial.read();
+//     Serial.println(int(lastData));
+if(lastData == 0xFF && lastWasFF)
+    positionInMessage = 0;
+else
+{
+    lastWasFF = lastData == 0xFF;
+
+    // If we are currently reading a message, add it to the buffer.
+    if(positionInMessage > -1)
     {
-      reference_velocity = userInput.toInt();
-      userInput = "";
-      // Reset integral when a new target is received
-      integral_error_0 = 0;
-      integral_error_1 = 0;
-      integral_error_2 = 0;
+        message[positionInMessage] = lastData;
+        positionInMessage ++;
     }
-  }
+    // If the end of a message was reached, decode it.
+    if(positionInMessage == MESSAGE_LENGTH)
+    {
+        // Reset status.
+        lastWasFF = false;
+        positionInMessage = -1;
+
+//        // Verify checksum.
+//        // Sum of previous bytes must be equal to the checksum.
+//        uint8_t checksum = 0;
+//        for(int i = 0; i < MESSAGE_LENGTH - 1; i++)
+//            checksum += buffer[i];
+//        if(checksum != buffer[MESSAGE_LENGTH - 1])
+//        {
+//            #ifdef DEBUG
+//                printf("[uCListener] Invalid checksum, refusing packet\n");
+//            #endif
+//        }
+       TargetVelocity[0]=message[0]+ (message[1]<<8) - 16384;
+       TargetVelocity[1]=message[2]+ (message[3]<<8) - 16384;
+       TargetVelocity[2]=message[4]+ (message[5]<<8) - 16384;
+       
+
+    }
+}
+
+}
+//  Serial.println("Velocity:\n");
+//  Serial.println(reference_velocity);
+  Serial.println(TargetVelocity[0]);
+  Serial.println(TargetVelocity[1]);
+  Serial.println(TargetVelocity[2]);
   
   delay(dt);
 }
