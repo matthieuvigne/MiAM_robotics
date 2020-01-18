@@ -1,73 +1,78 @@
+/// \file trajectory/ThreeWheelsKinematics.hpp
+/// \brief Implements the kinematics of an omnidirectional robot built with three omniwheels.
 #ifndef MIAM_THREE_WHEELS_KINEMATICS_HPP
 #define MIAM_THREE_WHEELS_KINEMATICS_HPP
 
 #include "miam_utils/trajectory/RobotPosition.h"
 
-class ThreeWheelsKinematics {
+    namespace omni
+    {
+        /// \brief Spatial velocity of the robot center (linear velocity in m/s, angular velocity in rad/s).
+        struct BaseSpeed
+        {
+            BaseSpeed()
+            : angular_velocity_(0.),
+              linear_velocity_x_(0.),
+              linear_velocity_y_(0.)
+            {}
 
-public:
+            BaseSpeed(
+              double const& angular_velocity,
+              double const& linear_velocity_x,
+              double const& linear_velocity_y)
+            : angular_velocity_(angular_velocity),
+              linear_velocity_x_(linear_velocity_x),
+              linear_velocity_y_(linear_velocity_y)
+            {}
 
-  struct BaseSpeed
-  {
-    BaseSpeed()
-    : angular_velocity_(0.),
-      linear_velocity_x_(0.),
-      linear_velocity_y_(0.)
-    {}
+            double angular_velocity_;   ///< Angular velocity, rad/s.
+            double linear_velocity_x_;  ///< Linear velocity, m/s.
+            double linear_velocity_y_;  ///< Linear velocity, m/s.
+        };
 
-    BaseSpeed(
-      double const& angular_velocity,
-      double const& linear_velocity_x,
-      double const& linear_velocity_y)
-    : angular_velocity_(angular_velocity),
-      linear_velocity_x_(linear_velocity_x),
-      linear_velocity_y_(linear_velocity_y)
-    {}
+        /// \brief Angular velocity of each wheel, in rad/s.
+        struct WheelSpeed
+        {
+            WheelSpeed()
+            : wheelSpeed_{0, 0, 0}
+            {}
 
-    double angular_velocity_;
-    double linear_velocity_x_;
-    double linear_velocity_y_;
-  };
-  
-  struct WheelSpeed
-  {
-    WheelSpeed()
-    : wheel1_(0.),
-      wheel2_(0.),
-      wheel3_(0.)
-    {}
+            WheelSpeed(
+              double const& wheel1,
+              double const& wheel2,
+              double const& wheel3)
+            : wheelSpeed_{wheel1, wheel2, wheel3}
+            {}
 
-    WheelSpeed(
-      double const& wheel1,
-      double const& wheel2,
-      double const& wheel3)
-    : wheel1_(wheel1),
-      wheel2_(wheel2),
-      wheel3_(wheel3)
-    {}
+            double wheelSpeed_[3];  ///< Wheel velocity, rad/s
+        };
+        
+        /// \brief Kinematics of the omnidirectional base.
+        class ThreeWheelsKinematics 
+        {
+            public:
+              ThreeWheelsKinematics() = delete;
+              ThreeWheelsKinematics(double const& length, double const& wheelRadius);
 
-    double wheel1_;
-    double wheel2_;
-    double wheel3_;
-  };
+            public:
+              /// \brief Forward kinematic model
+              /// \details Convert from wheel speed to base speed.
+              ///
+              /// \param[in] wheelSpeed Input wheel speed.
+              /// \return Corresponding base speed.
+              BaseSpeed forwardKinematics(WheelSpeed const& wheelSpeed) const;
 
-public:
+              /// \brief Inverse kinematic model
+              /// \details Convert from base speed to wheel speed.
+              ///
+              /// \param[in] baseSpeed Input base speed.
+              /// \return Corresponding wheel speed.
+              WheelSpeed inverseKinematics(BaseSpeed const& baseSpeed) const;
 
-  ThreeWheelsKinematics() = delete;
-  ThreeWheelsKinematics(double const& length);
+            private:
+              double length_; ///< Radius of the robot: distance from center of the robot to the wheel, in m.
+              double wheelRadius_; ///< Radius of the wheel, in m.
 
-public:
-
-  /// \brief Forward kinematic model
-  BaseSpeed forwardKinematics(WheelSpeed const& speed) const;
-
-  /// \brief Inverse kinematic model
-  WheelSpeed inverseKinematics(BaseSpeed const& speed) const;
-
-private:
-
-  double length_; ///< Lenght from center to wheel
-
-}; // class ThreeWheelsKinematics
-
+            }; // class ThreeWheelsKinematics
+        }
 #endif // MIAM_THREE_WHEELS_KINEMATICS_HPP

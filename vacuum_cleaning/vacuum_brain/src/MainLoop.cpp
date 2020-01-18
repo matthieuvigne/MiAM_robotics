@@ -31,8 +31,8 @@ int main(int argc, char **argv)
     // Init raspberry serial ports and GPIO.
     //~ RPi_enablePorts();
     // Configure CTRL+C signal.
-    signal(SIGINT, killCode);
-    signal(SIGTERM, killCode);
+    //~ signal(SIGINT, killCode);
+    //~ signal(SIGTERM, killCode);
     
     // Init com with arduino
     
@@ -49,8 +49,8 @@ int main(int argc, char **argv)
     double currentTime = 0;
     double lastTime = 0;
     
-    ThreeWheelsKinematics::BaseSpeed targetSpeed;
-    ThreeWheelsKinematics kinematics(0.10);
+    omni::BaseSpeed targetSpeed;
+    omni::ThreeWheelsKinematics kinematics(0.10, 0.05);
     
     while (true)
     {
@@ -61,36 +61,32 @@ int main(int argc, char **argv)
         double dt = currentTime - lastTime;
         lastTime = currentTime;
         
-        targetSpeed = ThreeWheelsKinematics::BaseSpeed(0.0,0.0,0.5 * std::sin(currentTime));
-        ThreeWheelsKinematics::WheelSpeed targetWheelSpeed = kinematics.inverseKinematics(targetSpeed);
-        //~ int wheelspeed = 1000 + 16384;
-        int wheelspeed = int((targetWheelSpeed.wheel1_ / 0.05) * 3600 / 2.0 / 3.14159) + 16384;
-        std::cout << "Wheel1: " << targetWheelSpeed.wheel1_ << std::endl;
-        //~ std::cout << "Wheel2: " << targetWheelSpeed.wheel2_ << std::endl;
-        //~ std::cout << "Wheel3: " << targetWheelSpeed.wheel3_ << std::endl;
-        //~ std::cout << "WheelSpeed1: " << wheelspeed << std::endl;
-
+        targetSpeed = omni::BaseSpeed(0.5 * std::sin(currentTime),0.0, 0.0);
+        omni::WheelSpeed targetWheelSpeed = kinematics.inverseKinematics(targetSpeed);
+        std::cout << targetWheelSpeed.wheelSpeed_[0] << std::endl;
+        
+        int wheelspeed = int(targetWheelSpeed.wheelSpeed_[0] * 3600 / 2.0 / 3.14159) + 16384;
+        std::cout << "here" << currentTime << std::endl;
+        
         unsigned char message[9];
         message[0] = 0xFF;
         message[1] = 0xFF;
         message[2] = wheelspeed & 0xFF;
         message[3] = (wheelspeed >> 8) & 0xFF;
-        wheelspeed = int((targetWheelSpeed.wheel2_ / 0.05) * 3600 / 2.0 / 3.14159) + 16384;
-        //~ std::cout << "WheelSpeed2: " << wheelspeed << std::endl;
-
+        
+        wheelspeed = int(targetWheelSpeed.wheelSpeed_[1] * 3600 / 2.0 / 3.14159) + 16384;
         message[4] = wheelspeed & 0xFF;
         message[5] = (wheelspeed >> 8) & 0xFF;
-        wheelspeed = int((targetWheelSpeed.wheel3_ / 0.05) * 3600 / 2.0 / 3.14159) + 16384;
-        //~ std::cout << "WheelSpeed3: " << wheelspeed << std::endl;
-
+        wheelspeed = int(targetWheelSpeed.wheelSpeed_[2] * 3600 / 2.0 / 3.14159) + 16384;
         message[6] = wheelspeed & 0xFF;
         message[7] = (wheelspeed >> 8) & 0xFF;
         message[8] = 0;
-        for(int i=2; i<8; i++) message[8] += message[i];
+        for(int i = 2; i < 8; i++)
+            message[8] += message[i];
+        std::cout << "Writing..." << metronome.getElapsedTime() << std::endl;
         write(port, message, 9);
-        for(int i = 0; i < 9; i++)
-            std::cout << int(message[i]) << std::endl;
-
+        std::cout << "Write done" << metronome.getElapsedTime() << std::endl;
+    
         // Log
         logger.setData(LOGGER_TIME, currentTime);
         logger.writeLine();

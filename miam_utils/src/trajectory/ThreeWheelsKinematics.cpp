@@ -1,55 +1,55 @@
 #include "miam_utils/trajectory/ThreeWheelsKinematics.hpp"
 #include <cmath>
 
-//======================================================================
-// Constructors
-//======================================================================
-
-ThreeWheelsKinematics::ThreeWheelsKinematics(
-  double const& length)
-: length_(length)
-{}
-
-//======================================================================
-// Public functions
-//======================================================================
-
-ThreeWheelsKinematics::BaseSpeed ThreeWheelsKinematics::forwardKinematics(
-  WheelSpeed const& wheel_speed) const
+namespace omni
 {
-  BaseSpeed base_speed;
+    //======================================================================
+    // Constructors
+    //======================================================================
+    ThreeWheelsKinematics::ThreeWheelsKinematics(double const& length, double const& wheelRadius): 
+        length_(length),
+        wheelRadius_(wheelRadius)
+    {
+    }
 
-  base_speed.angular_velocity_ =  (wheel_speed.wheel1_ +
-    wheel_speed.wheel2_ + wheel_speed.wheel3_) / this->length_;
+    //======================================================================
+    // Public functions
+    //======================================================================
 
-  base_speed.linear_velocity_y_ = - (wheel_speed.wheel1_ +
-    base_speed.angular_velocity_ * this->length_);
+    BaseSpeed ThreeWheelsKinematics::forwardKinematics(WheelSpeed const& wheelSpeed) const
+    {
+      BaseSpeed baseSpeed;
 
-  base_speed.linear_velocity_x_ = (wheel_speed.wheel3_ - 
-    wheel_speed.wheel2_) / std::sqrt(3);
+      baseSpeed.angular_velocity_ =  wheelRadius_ * (wheelSpeed.wheelSpeed_[0] +
+        wheelSpeed.wheelSpeed_[1] + wheelSpeed.wheelSpeed_[2]) / length_;
 
-  return base_speed;
+      baseSpeed.linear_velocity_y_ = - (wheelRadius_ * wheelSpeed.wheelSpeed_[0] +
+        baseSpeed.angular_velocity_ * this->length_);
+
+      baseSpeed.linear_velocity_x_ = (wheelRadius_ * wheelSpeed.wheelSpeed_[2] - 
+        wheelSpeed.wheelSpeed_[1]) / std::sqrt(3);
+
+      return baseSpeed;
+    }
+
+
+    WheelSpeed ThreeWheelsKinematics::inverseKinematics(BaseSpeed const& baseSpeed) const
+    {
+        WheelSpeed wheelSpeed;
+
+        wheelSpeed.wheelSpeed_[0] = - baseSpeed.linear_velocity_y_ -
+            baseSpeed.angular_velocity_ * this->length_;
+
+        wheelSpeed.wheelSpeed_[1] = 0.5 * (baseSpeed.linear_velocity_y_ -
+            std::sqrt(3) * baseSpeed.linear_velocity_x_) -
+            baseSpeed.angular_velocity_ * this->length_;
+
+        wheelSpeed.wheelSpeed_[2] = 0.5 * (baseSpeed.linear_velocity_y_ +
+            std::sqrt(3) * baseSpeed.linear_velocity_x_) -
+            baseSpeed.angular_velocity_ * this->length_;
+
+        for(int i = 0; i < 3; i++)
+            wheelSpeed.wheelSpeed_[i] /= wheelRadius_;
+        return wheelSpeed;
+    }
 }
-
-//----------------------------------------------------------------------
-
-ThreeWheelsKinematics::WheelSpeed ThreeWheelsKinematics::inverseKinematics(
-  BaseSpeed const& base_speed) const
-{
-  WheelSpeed wheel_speed;
-
-  wheel_speed.wheel1_ = - base_speed.linear_velocity_y_ -
-    base_speed.angular_velocity_ * this->length_;
-
-  wheel_speed.wheel2_ = 0.5 * (base_speed.linear_velocity_y_ -
-    std::sqrt(3) * base_speed.linear_velocity_x_) -
-      base_speed.angular_velocity_ * this->length_;
-
-  wheel_speed.wheel3_ = 0.5 * (base_speed.linear_velocity_y_ +
-    std::sqrt(3) * base_speed.linear_velocity_x_) -
-      base_speed.angular_velocity_ * this->length_;
-
-  return wheel_speed;
-}
-
-//======================================================================
