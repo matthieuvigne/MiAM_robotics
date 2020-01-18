@@ -9,7 +9,7 @@ set(PROJECT_DESCRIPTION "Code for an inverted pendulum robot")
 set(CMAKE_CXX_COMPILER "g++")
 
 # Set C++ compiler flags.
-set(CMAKE_CXX_FLAGS "-Wall -Wno-psabi -fdiagnostics-color -pthread")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wno-psabi -fdiagnostics-color -pthread")
 
 # Set build-type specific flags
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
