@@ -10,7 +10,7 @@
      #define ARDUINOSLAVE_H
 
     ///< Global includes
-    #include <miam_utils/MiAMEurobot.h>
+    #include <miam_utils/miam_utils.h>
     
     class ArduinoListener{
         public:
@@ -39,9 +39,26 @@
             /// \return Pointer to the kinematics object.
             omni::ThreeWheelsKinematics *getKinematics();
       
+      
+        void uCListener_listenerThread();
+        void uCListener_writerThread();
+        
       private:
         omni::ThreeWheelsKinematics kinematics_;
+        omni::BaseSpeed currentTarget_;
+        
+        omni::WheelSpeed currentWheelSpeed_;
+        
         bool isInitialized_;
+        int port_;
+        
+        Metronome metronome_listener;
+        Metronome metronome_writer;
+        double currentTime_listener;
+        double lastTime_listener;
+        double currentTime_writer;
+        double lastTime_writer;
+        
         
     };
  #endif

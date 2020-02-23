@@ -51,7 +51,7 @@
         class ThreeWheelsKinematics 
         {
             public:
-              ThreeWheelsKinematics() = delete;
+              ThreeWheelsKinematics() {}; // = delete
               ThreeWheelsKinematics(double const& length, double const& wheelRadius);
 
             public:

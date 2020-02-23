@@ -19,6 +19,7 @@
     #include <miam_utils/trajectory/StraightLine.h>
     #include <miam_utils/trajectory/Utilities.h>
     #include <miam_utils/trajectory/DrivetrainKinematics.h>
+    #include <miam_utils/trajectory/ThreeWheelsKinematics.hpp>
 
     #include <miam_utils/drivers/ADNS9800Driver.h>
     #include <miam_utils/drivers/L6470Driver.h>
