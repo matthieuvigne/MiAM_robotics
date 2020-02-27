@@ -3,30 +3,24 @@
 
 namespace omni
 {
-    //======================================================================
-    // Constructors
-    //======================================================================
-    ThreeWheelsKinematics::ThreeWheelsKinematics(double const& length, double const& wheelRadius): 
-        length_(length),
+    ThreeWheelsKinematics::ThreeWheelsKinematics(double const& robotRadius, double const& wheelRadius): 
+        robotRadius_(robotRadius),
         wheelRadius_(wheelRadius)
     {
     }
 
-    //======================================================================
-    // Public functions
-    //======================================================================
 
     BaseSpeed ThreeWheelsKinematics::forwardKinematics(WheelSpeed const& wheelSpeed) const
     {
       BaseSpeed baseSpeed;
 
-      baseSpeed.angular_velocity_ =  wheelRadius_ * (wheelSpeed.wheelSpeed_[0] +
-        wheelSpeed.wheelSpeed_[1] + wheelSpeed.wheelSpeed_[2]) / length_;
+      baseSpeed.omega_ =  wheelRadius_ * (wheelSpeed.wheelSpeed_[0] +
+        wheelSpeed.wheelSpeed_[1] + wheelSpeed.wheelSpeed_[2]) / robotRadius_;
 
-      baseSpeed.linear_velocity_y_ = - (wheelRadius_ * wheelSpeed.wheelSpeed_[0] +
-        baseSpeed.angular_velocity_ * this->length_);
+      baseSpeed.vy_ = - (wheelRadius_ * wheelSpeed.wheelSpeed_[0] +
+        baseSpeed.omega_ * robotRadius_);
 
-      baseSpeed.linear_velocity_x_ = (wheelRadius_ * wheelSpeed.wheelSpeed_[2] - 
+      baseSpeed.vx_ = (wheelRadius_ * wheelSpeed.wheelSpeed_[2] - 
         wheelSpeed.wheelSpeed_[1]) / std::sqrt(3);
 
       return baseSpeed;
@@ -37,17 +31,17 @@ namespace omni
     {
         WheelSpeed wheelSpeed;
 
-        wheelSpeed.wheelSpeed_[0] = - baseSpeed.linear_velocity_y_ -
-            baseSpeed.angular_velocity_ * this->length_;
+        wheelSpeed.wheelSpeed_[0] = - baseSpeed.vy_ -
+            baseSpeed.omega_ * robotRadius_;
 
-        wheelSpeed.wheelSpeed_[1] = 0.5 * (baseSpeed.linear_velocity_y_ -
-            std::sqrt(3) * baseSpeed.linear_velocity_x_) -
-            baseSpeed.angular_velocity_ * this->length_;
+        wheelSpeed.wheelSpeed_[1] = 0.5 * (baseSpeed.vy_ -
+            std::sqrt(3) * baseSpeed.vx_) -
+            baseSpeed.omega_ * robotRadius_;
 
-        wheelSpeed.wheelSpeed_[2] = 0.5 * (baseSpeed.linear_velocity_y_ +
-            std::sqrt(3) * baseSpeed.linear_velocity_x_) -
-            baseSpeed.angular_velocity_ * this->length_;
-
+        wheelSpeed.wheelSpeed_[2] = 0.5 * (baseSpeed.vy_ +
+            std::sqrt(3) * baseSpeed.vx_) -
+            baseSpeed.omega_ * robotRadius_;
+        
         for(int i = 0; i < 3; i++)
             wheelSpeed.wheelSpeed_[i] /= wheelRadius_;
         return wheelSpeed;

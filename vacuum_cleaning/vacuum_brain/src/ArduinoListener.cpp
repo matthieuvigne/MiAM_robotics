@@ -10,126 +10,107 @@
 #include <mutex>
 #include <thread>
 
+#include <math.h>
+
 //~ #include <cmath>
 
 #include <iostream>
 
 
-double const LOOP_PERIOD = 0.010;
 
 
-
-// Global variables: a uCData struct protected by a mutex.
-std::mutex uCMutex;
-
-
-ArduinoListener::ArduinoListener() :
-    metronome_listener(LOOP_PERIOD * 1e9),
-    metronome_writer(LOOP_PERIOD * 1e9),
-    
-    currentTime_listener(0),
-    lastTime_listener(0),
-
-    currentTime_writer(0),
-    lastTime_writer(0)
-    {
+ArduinoListener::ArduinoListener(omni::ThreeWheelsKinematics const& kinematics, int const& encoderResolution) :
+    kinematics_(kinematics),
+    port_(-1),
+    mutex_(),
+    SI_TO_TICKS(encoderResolution / 2.0 / M_PI)
+{
+    // EmptySI_TO_TICKS
 }
 
-bool ArduinoListener::intialize(
-    omni::ThreeWheelsKinematics const& kinematics, 
-    std::string const& portName
-    ) {
+
+bool ArduinoListener::initialize(std::string const& portName) 
+{
+    // If already initialize (i.e. a thread is already running), don't allow for a new configuration.
+    //~ if (isInitialized_)
+        //~ return false;
+        
+    port_ = uart_open(portName, B115200);
     
-    kinematics_ = kinematics;
-    int port = uart_open(portName, B115200);
-    
-    if (port < 0) {
+    if (port_ < 0) 
+    {
         // Error
         return false;
     }
     
-    port_ = port;
-    
-    // Start the listening thread.
-    std::thread listenerThread(&ArduinoListener::uCListener_listenerThread, this);
-    listenerThread.detach();
-    
-    // Start the writing thread.
-    std::thread writingThread(&ArduinoListener::uCListener_writerThread, this);
-    writingThread.detach();
+    // Start the communication thread.
+    std::thread thread(&ArduinoListener::communicationThread, this);
+    thread.detach();
     
     return true; 
 }
 
 
-void ArduinoListener::setTarget(omni::BaseSpeed const& targetBaseSpeed) {
-    currentTarget_ = targetBaseSpeed;
+void ArduinoListener::setTarget(omni::BaseSpeed const& targetBaseSpeed)
+{
+    mutex_.lock();
+    targetWheelSpeed_ = kinematics_.inverseKinematics(targetBaseSpeed);
+    mutex_.unlock();
 }
 
 
-omni::BaseSpeed ArduinoListener::getCurrentSpeed() {
-    uCMutex.lock();
+omni::BaseSpeed ArduinoListener::getCurrentSpeed() 
+{
+    mutex_.lock();
     omni::WheelSpeed currentWheelSpeed = currentWheelSpeed_;
-    uCMutex.unlock();
+    mutex_.unlock();
     return kinematics_.forwardKinematics(currentWheelSpeed);
 }
 
-omni::ThreeWheelsKinematics *ArduinoListener::getKinematics() {
+
+omni::ThreeWheelsKinematics *ArduinoListener::getKinematics() 
+{
     return &kinematics_;
 }
 
 
-void ArduinoListener::uCListener_listenerThread() {
-    // Init data structure.
-    // TODO
+double const TARGET_UPDATE_PERIOD = 0.004; // Time increment to send new target, in s.
 
-    //~ while(true)
-    //~ {
-        //~ WheelSpeed currentWheelSpeed;
-        
-        //~ // Read wheel speed
-        
-        //~ // Save speed
-        //~ uCMutex.lock();
-        //~ currentWheelSpeed_ = currentWheelSpeed;
-        //~ uCMutex.unlock();
-    //~ }
-}
-
-void ArduinoListener::uCListener_writerThread() {
-    
-    while (true)
+void ArduinoListener::communicationThread() 
+{
+    // Init
+    // Metronome object: simple wrapper for getting current time.
+    Metronome timer(0.1);
+    double lastWriteTime = 0.0;
+    while(true)
     {
-        // Wait for next tick.
-        lastTime_writer = currentTime_writer;
-        metronome_writer.wait();
-        currentTime_writer = metronome_writer.getElapsedTime();
-        lastTime_writer = currentTime_writer;
-        
-        unsigned char message[9];
-        
-        // Conversion
-        omni::WheelSpeed targetWheelSpeed = kinematics_.inverseKinematics(currentTarget_);
-        
-        // Write
-        message[0] = 0xFF;
-        message[1] = 0xFF;
-        int wheelspeed = int(targetWheelSpeed.wheelSpeed_[0] * 3600 / 2.0 / 3.14159) + 16384;
-        message[2] = wheelspeed & 0xFF;
-        message[3] = (wheelspeed >> 8) & 0xFF;
-        wheelspeed = int(targetWheelSpeed.wheelSpeed_[1] * 3600 / 2.0 / 3.14159) + 16384;
-        message[4] = wheelspeed & 0xFF;
-        message[5] = (wheelspeed >> 8) & 0xFF;
-        wheelspeed = int(targetWheelSpeed.wheelSpeed_[2] * 3600 / 2.0 / 3.14159) + 16384;
-        message[6] = wheelspeed & 0xFF;
-        message[7] = (wheelspeed >> 8) & 0xFF;
-        message[8] = 0;
-        for(int i = 2; i < 8; i++)
-            message[8] += message[i];
-        write(port_, message, 9);
+        double time = timer.getElapsedTime();
+        if (time - lastWriteTime > TARGET_UPDATE_PERIOD)
+        {
+            // Send message to Arduino.
+            unsigned char message[9];
+            // Header
+            message[0] = 0xFF;
+            message[1] = 0xFF;
+            for(int i = 0; i < 3; i++)
+            {
+                int wheelspeed = int(targetWheelSpeed_.wheelSpeed_[i] * SI_TO_TICKS) + 16384;
+                message[2 + 2 * i] = wheelspeed & 0xFF;
+                message[3 + 2 * i] = (wheelspeed >> 8) & 0xFF;
+            }
+            // Checksum
+            message[8] = 0;
+            for(int i = 2; i < 8; i++)
+                message[8] += message[i];
+            // Send message
+            write(port_, message, 9);
+            lastWriteTime = time;
+            
+            // Flush port...
+        }
     }
-    
 }
+
 
 
 //~ // Global variables: a uCData struct protected by a mutex.

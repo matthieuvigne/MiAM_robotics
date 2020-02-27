@@ -14,16 +14,18 @@
     
     class ArduinoListener{
         public:
-            /// \brief Default constructor.
-            ArduinoListener();
-            
-            /// \brief Initialize object and start background thread on the given port.
+            /// \brief Constructor.
             ///
             /// \param[in] kinematics Kinematics of the current robot.
+            /// \param[in] encoderResolution Resolution of encoders, for conversion from SI to encoder ticks.
+            ArduinoListener(omni::ThreeWheelsKinematics const& kinematics, int const& encoderResolution);
+            
+            /// \brief Initialize communication with Arduino and start background thread on success.
+            ///
             /// \param[in] portName Name of the port where the arduino is connect.
             ///
             /// \return True if connection with Arduino was successful, false otherwise.
-            bool intialize(omni::ThreeWheelsKinematics const& kinematics, std::string const& portName);
+            bool initialize( std::string const& portName);
             
             /// \brief Set target speed of motors.
             ///
@@ -38,27 +40,17 @@
             /// \brief Get kinematics of the robot.
             /// \return Pointer to the kinematics object.
             omni::ThreeWheelsKinematics *getKinematics();
-      
-      
-        void uCListener_listenerThread();
-        void uCListener_writerThread();
-        
+    
       private:
-        omni::ThreeWheelsKinematics kinematics_;
-        omni::BaseSpeed currentTarget_;
+        void communicationThread();  ///< Thread handling communication with Arduino.
         
-        omni::WheelSpeed currentWheelSpeed_;
+        int port_; ///< Port on which the Arduino is connected.
+        omni::ThreeWheelsKinematics kinematics_; ///< Kinematics of the robot.
+        omni::WheelSpeed targetWheelSpeed_; ///< Target speed.
+        omni::WheelSpeed currentWheelSpeed_; ///< Current angular
+        double SI_TO_TICKS; ///< Convertion from SI units (rad/s) to ticks/s
         
-        bool isInitialized_;
-        int port_;
-        
-        Metronome metronome_listener;
-        Metronome metronome_writer;
-        double currentTime_listener;
-        double lastTime_listener;
-        double currentTime_writer;
-        double lastTime_writer;
-        
+        std::mutex mutex_; ///< Mutex, for thread safety.
         
     };
  #endif
