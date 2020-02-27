@@ -1,137 +1,123 @@
 /*
- * Template for the motor control exercise.
- * 
- * Setup: a DC motor is connected to pin 2 of the Arduino through a RC-Servo -> DC motor control.
- * This means that motor input is a RC servo signal.
- * An quadrature encoder with resolution 360 ticks/turn is mounted on the motor, and plugged in port 6 and 7.
- * 
- * The first objective is to servo the motor to a fixed speed, 500 ticks /s.
- * The next step is then to servo the motor at a user-defined speed, through the serial port.
- * 
- * This template gives the encoder reading code, and the motor communication framework. The rest is up to you...
- *  
- */
+   Motor control code for the Arduino.
+
+   The arduino is responsible for handling the three motors, the three encoders, and performing communication with the Raspberry.
+   Encoder reading is done using interrupts ; likewise, timers are used to generate a steady signal for the motors.
+
+  To make things a bit easier, here is the pinout for the Arduino Uno, with pin position mapping the Diymore Arduino
+
+       B5 B4 B3 B2 B1 B0
+       13 12 11 10  9  8 
+       -- -- -- -- -- --
+  C0 14|               | 7 D7
+  C1 15|               | 6 D6
+  C2 16|               | 5 D5
+  C3 17|               | 4 D4
+  C4 18|               | 3 D3
+  C5 19|               | 2 D2
+       |               | 1 D1 TX
+       |               | 0 D0 RX
 
 
-// Interrupt-based encoder counter, see EncoderReading for more details.
+*/
 
+/////////////////////////////////////////////////////////
+// Pinout.
+/////////////////////////////////////////////////////////
 
-//=============================================================
-// MOTORS PINS
-//=============================================================
 
 // Motor 0
-// Pin 9 OCR1A
-#define PWM_MOTOR_0 OCR1A
-// Encoder 0
-// Pin 14 (A4) -> A, pin 15 (A5) -> B
-// (PC0 PC1)
-#define PINA_MOTOR_0 0
-#define PINB_MOTOR_0 1
-#define DIRECTION_MOTOR_0 16
+#define PWM_MOTOR_0 OCR1A    // PWM: OCR1A, pin 9
+#define DIRECTION_MOTOR_0 16 // Direction: pin 16
+// Encoder pin IDs correspond to ID in pin port.
+// Here using port Port C
+#define PINA_ENCODER_0 0     //C0 -> 14
+#define PINB_ENCODER_0 1     //C1 -> 15
 
 // Motor 1
-// Pin 10 OCR1B
-#define PWM_MOTOR_1 OCR1B
-// Pin 
-// Encoder 1
-// Pin 5 -> A pin 6 -> B direction -> 7
-// (PD6 PD7)
-#define PINA_MOTOR_1 5
-#define PINB_MOTOR_1 6
-#define DIRECTION_MOTOR_1 7
+#define PWM_MOTOR_1 OCR1B    // PWM: OCR1B, pin 10
+#define DIRECTION_MOTOR_1 7  // Direction: pin 7
+#define PINA_ENCODER_1 4     //B4 ->12
+#define PINB_ENCODER_1 5     //B5 ->13
 
 // Motor 2
-// Pin 11 OCR2A
-#define PWM_MOTOR_2 OCR2A
-// Encoder 2
-// Pin 12 -> A pin 13 -> B
-// (PB4 PB5)
-#define PINA_MOTOR_2 4
-#define PINB_MOTOR_2 5
-#define DIRECTION_MOTOR_2 8
+#define PWM_MOTOR_2 OCR2A    // PWM: ORC2A -> pin 11
+#define DIRECTION_MOTOR_2 8  // Direction: pin 8
+#define PINA_ENCODER_2 5     //D5 -> 5
+#define PINB_ENCODER_2 6     //D6 -> 6
 
-//=============================================================
-// MOTOR VARIABLES
-//=============================================================
 
-// Time
-float dt = 10;
-unsigned long lastTime = 0;
+
+/////////////////////////////////////////////////////////
+// Global variables.
+/////////////////////////////////////////////////////////
 
 // Encoder reading
 int encoderCount[3] = {0, 0, 0};
 int lastEncoderCount[3] = {0, 0, 0};
 bool oldB[3] = {false, false, false};
 
-// User input parsing
-String userInput = "";
-
 // Messages
-boolean lastWasFF=false;
-unsigned const int MESSAGE_LENGTH=7;
+#define MESSAGE_LENGTH 7
+boolean lastWasFF = false;
 unsigned char message[MESSAGE_LENGTH];
 int positionInMessage;
 
 // Motor states
-int targetVelocity[3];
-float velocity[3];
+int targetVelocity[3] = {0, 0, 0};
 
 // Controllers
 float integralError[3] = {0., 0., 0.};
 float const Kp[3] = {10.0 / 90000.0, 10.0 / 90000.0, 10.0 / 90000.0};
 float const Ki[3] = {10.0 / 5000.0, 10.0 / 5000.0, 10.0 / 5000.0};
 
-//=============================================================
-// INTERRUPTS
-//=============================================================
+// Define period of the control loop, in ms.
+#define CONTROL_PERIOD_MS 5
 
-// This variable stores the current value of the encoder.
-// Note: as we count up, the int may overflow! With the current encoder, this happens after 91 turns.
+/////////////////////////////////////////////////////////
+// Encoder reading interrupt.
+/////////////////////////////////////////////////////////
+// Encoder 0
 ISR(PCINT1_vect)
 {
   // First, we read the status of channel A.
   // We don't use digitalRead, which is way too long, but instead directly read the value of the register.
-  bool currentA = PINC & (1 << PINA_MOTOR_0);
+  bool currentA = PINC & (1 << PINA_ENCODER_0);
   // The direction of the encoder is given by comparing the current A channel and the old value of the B channel.
   encoderCount[0] += (oldB[0] ^ currentA ? 1 : -1);
   // Finally, we update the old value of the B channel.
-  oldB[0] =  PINC & (1 << PINB_MOTOR_0);
-  
-  //Serial.println("Interrupt 0");
+  oldB[0] =  PINC & (1 << PINB_ENCODER_0);
 }
 
+// Encoder 1
 ISR(PCINT2_vect)
 {
   // First, we read the status of channel A.
   // We don't use digitalRead, which is way too long, but instead directly read the value of the register.
-  bool currentA = PIND & (1 << PINA_MOTOR_1);
+  bool currentA = PIND & (1 << PINA_ENCODER_2);
   // The direction of the encoder is given by comparing the current A channel and the old value of the B channel.
-  encoderCount[1] += (oldB[1] ^ currentA ? 1 : -1);
+  encoderCount[2] += (oldB[2] ^ currentA ? 1 : -1);
   // Finally, we update the old value of the B channel.
-  oldB[1] =  PIND & (1 << PINB_MOTOR_1);
-
-  //Serial.println("Interrupt 1");
+  oldB[2] =  PIND & (1 << PINB_ENCODER_2);
 }
 
+// Encoder 2
 ISR(PCINT0_vect)
 {
   // First, we read the status of channel A.
   // We don't use digitalRead, which is way too long, but instead directly read the value of the register.
-  bool currentA = PINB & (1 << PINA_MOTOR_2);
+  bool currentA = PINB & (1 << PINA_ENCODER_1);
   // The direction of the encoder is given by comparing the current A channel and the old value of the B channel.
-  encoderCount[2] += (oldB[2] ^ currentA ? 1 : -1);
+  encoderCount[1] += (oldB[1] ^ currentA ? 1 : -1);
   // Finally, we update the old value of the B channel.
-  oldB[2] =  PINB & (1 << PINB_MOTOR_2);
-  
-  //Serial.println("Interrupt 2");
+  oldB[1] =  PINB & (1 << PINB_ENCODER_1);
 }
 
-//=============================================================
-// FUNCTIONS
-//=============================================================
+/////////////////////////////////////////////////////////
+// Motor control.
+/////////////////////////////////////////////////////////
 
-/// Send power to the motor, normalized between -1 and 1 (-1: full reverse, 0: stop, 1: full forward).
+// Send power to a motor, along a normalized scale between -1 and 1 (-1: full reverse, 0: stop, 1: full forward).
 void moveMotor(int motor_id, float motorPower)
 {
   if (motorPower < -1)
@@ -141,7 +127,7 @@ void moveMotor(int motor_id, float motorPower)
 
   bool motorDirection = motorPower > 0;
 
-  
+
   if (motor_id == 0)
   {
     digitalWrite(DIRECTION_MOTOR_0, motorDirection);
@@ -155,64 +141,103 @@ void moveMotor(int motor_id, float motorPower)
   else
   {
     digitalWrite(DIRECTION_MOTOR_2, motorDirection);
-    PWM_MOTOR_2 = floor(abs(motorPower) * 255);
+    PWM_MOTOR_2 = (abs(motorPower) * 255);
   }
 }
 
-void applyTarget(int motor_id, float time_since_last)
+// Control loop
+// This function is called at a fixed frequency, every 2ms.
+ISR(TIMER0_COMPA_vect) 
 {
-  velocity[motor_id] = (encoderCount[motor_id] - lastEncoderCount[motor_id]) / time_since_last;
-  lastEncoderCount[motor_id] = encoderCount[motor_id];
+  static unsigned char controlIteration = 0;
+  static unsigned long lastTime = micros();
+  static float velocity[3];
+  
+  controlIteration ++;
+  if (controlIteration == CONTROL_PERIOD_MS)
+  {
+    unsigned long currentTime = micros();
+  
+    float dt = (float)(currentTime - lastTime) / 1e6;
+    lastTime = currentTime;
+    Serial.println(1000 * dt);
+    controlIteration = 0;
+    for (int i = 0; i < 3; i++)
+    {
+      // Compute current velocity.
+      velocity[i] = (encoderCount[i] - lastEncoderCount[i]) / dt;
+      lastEncoderCount[i] = encoderCount[i];
+  
+      // Run PI controller
+      float error = (velocity[i] - targetVelocity[i]);
+      integralError[i]  += error * dt;
+      float u = - Kp[i] * error - Ki[i] * integralError[i];
+  
+      moveMotor(i, u);
+    }
+  
+    // Send data
+    Serial.write(0xFF);
+    Serial.write(0xFF);
+    // Compute checksum
+    uint8_t checksum = 0;
+    for (int i = 0; i < 3; i++)
+    {
+      // Send velocity, use its 2s complement with 2^15
+      int velocityInt = (1 << 15) - int(velocity[i]);
+      Serial.write((velocityInt >> 8) & 0xFF);
+      Serial.write(velocityInt & 0xFF);
+      checksum += (velocityInt >> 8) & 0xFF;
+      checksum += velocityInt & 0xFF;
+    }
+    Serial.write(checksum);
+  }
 
-  float error = (velocity[motor_id] - targetVelocity[motor_id]);
-  integralError[motor_id]  += error * time_since_last;
-    
-  float target = - Kp[motor_id] * error - Ki[motor_id] * integralError[motor_id];
-    
-  // TODO: do motor velocity servoing...
-  moveMotor(motor_id, target);
+  
 }
 
 //=============================================================
 // SETUP + MAIN LOOP
 //=============================================================
 
-void setup() 
+void setup()
 {
+  // Disable all interrupts during config.
+  cli();
   // Setup serial communication with the PC.
   Serial.begin(115200);
 
-  // Setup direction
+  // Setup direction pin
   pinMode(DIRECTION_MOTOR_0, OUTPUT);
   pinMode(DIRECTION_MOTOR_1, OUTPUT);
   pinMode(DIRECTION_MOTOR_2, OUTPUT);
-  
+
   // Setup encoder 0
   pinMode(14, INPUT);
   pinMode(15, INPUT);
   PCMSK1 = 0x00;
-  PCMSK1 |= 1 << PINA_MOTOR_0;
-  PCMSK1 |= 1 << PINB_MOTOR_0;
-  digitalWrite(14,HIGH);
-  digitalWrite(15,HIGH);
- 
+  PCMSK1 |= 1 << PINA_ENCODER_0;
+  PCMSK1 |= 1 << PINB_ENCODER_0;
+  digitalWrite(14, HIGH);
+  digitalWrite(15, HIGH);
+
   // Setup encoder 1
   pinMode(5, INPUT);
   pinMode(6, INPUT);
   PCMSK2 = 0x00;
-  PCMSK2 |= 1 << PINA_MOTOR_1;
-  PCMSK2 |= 1 << PINB_MOTOR_1;
-  digitalWrite(5,HIGH);
-  digitalWrite(6,HIGH);
+  PCMSK2 |= 1 << PINA_ENCODER_1;
+  PCMSK2 |= 1 << PINB_ENCODER_1;
+  digitalWrite(5, HIGH);
+  digitalWrite(6, HIGH);
 
-   // Setup encoder 2
+  // Setup encoder 2
   pinMode(12, INPUT);
   pinMode(13, INPUT);
   PCMSK0 = 0x00;
-  PCMSK0 |= 1 << PINA_MOTOR_2;
-  PCMSK0 |= 1 << PINB_MOTOR_2;
-  digitalWrite(12,HIGH);
-  digitalWrite(13,HIGH);
+  PCMSK0 |= 1 << PINA_ENCODER_2;
+  PCMSK0 |= 1 << PINB_ENCODER_2;
+  digitalWrite(12, HIGH);
+  digitalWrite(13, HIGH);
 
   // Activate all interrupts
   PCICR = 0b111;
@@ -236,7 +261,7 @@ void setup()
   // - first, changing how high the counter goes. Instead of counting up to 65535, we can decide to loop before: this is determined by the ICR1 register.
   // - second, we can choose at what speed the timer goes up. This timer is directly connected to the 16Mhz oscillator on the Arduino board. However, we can choose a
   // multiplicative coefficient, called a prescaler, to devide this frequency by a certain power of two. This is done using the TCCR1 register.
-  // Basically ICR1 allows for small, almost continuous change in the frequency, whereas the prescaler is useful for brutal variations. Note that a low value of 
+  // Basically ICR1 allows for small, almost continuous change in the frequency, whereas the prescaler is useful for brutal variations. Note that a low value of
   // ICR1 means less resolution (because OCR1A has to be smaller than ICR1), so it's important to choose the right prescaler to have maximum range.
   // Finally, OC1A and OC1B can have different duty cycle, through the OCR1A and OCR1B registers, but they share the same frequency (which is suitable for most cases,
   // motor control for instance).
@@ -272,57 +297,44 @@ void setup()
   // set prescaler to 64 and starts PWM
   // OCR2A = 127;
 
-  lastTime = micros();
   lastEncoderCount[0] = 0;
   lastEncoderCount[1] = 0;
   lastEncoderCount[2] = 0;
+
+  PWM_MOTOR_0 = 0;
+  PWM_MOTOR_1 = 0;
+  PWM_MOTOR_2 = 0;
+
+  // Generate time-based interrupt every ms.
+  TIMSK0 = (1 << OCIE0A) | (1 << TOV0);
+  
+  // Enable all interrupts.
+  sei();
 }
 
-void loop() 
+
+
+void loop()
 {
-  unsigned long currentTime = micros();
-
-  float timeSinceLast = (float)(currentTime - lastTime) / 1e6;
-  //Serial.println(timeSinceLast);
-  applyTarget(0, timeSinceLast);
-  applyTarget(1, timeSinceLast);
-  applyTarget(2, timeSinceLast);
-  lastTime = currentTime;
-
-  // Send the current encoder position to the Arduino.
-  // TODO: replace this by velocity output instead of position output.
-  // Serial.println(reference_velocity + " " + velocity_0 + " " + velocity_1);
-//  Serial.println("Velocity:\n");
-//  Serial.println(reference_velocity);
-//  Serial.println(Mot1_velocity_velocity);
-//  Serial.println(Mot2);
-//  Serial.println(Mot3);
-
-// If it's a 0xFF, and if the previous byte was also a 0xFF, a new message starts.
-
-
-  // Read serial port to see if we have new user input.
-
-while (Serial.available())
-{
-//     Serial.println(positionInMessage);
-     unsigned char lastData = Serial.read();
-//     Serial.println(int(lastData));
-if(lastData == 0xFF && lastWasFF)
-    positionInMessage = 0;
-else
-{
-    lastWasFF = lastData == 0xFF;
-
-    // If we are currently reading a message, add it to the buffer.
-    if(positionInMessage > -1)
+  // Read message from host.
+  while (Serial.available())
+  {
+    unsigned char lastData = Serial.read();
+    if (lastData == 0xFF && lastWasFF)
+      positionInMessage = 0;
+    else
     {
+      lastWasFF = lastData == 0xFF;
+
+      // If we are currently reading a message, add it to the buffer.
+      if (positionInMessage > -1)
+      {
         message[positionInMessage] = lastData;
         positionInMessage ++;
-    }
-    // If the end of a message was reached, decode it.
-    if(positionInMessage == MESSAGE_LENGTH)
-    {
+      }
+      // If the end of a message was reached, decode it.
+      if (positionInMessage == MESSAGE_LENGTH)
+      {
         // Reset status.
         lastWasFF = false;
         positionInMessage = -1;
@@ -330,29 +342,24 @@ else
         // Verify checksum.
         // Sum of previous bytes must be equal to the checksum.
         unsigned char checksum = 0;
-        for(int i = 0; i < MESSAGE_LENGTH - 1; i++)
-            checksum += message[i];
-        if(checksum != message[MESSAGE_LENGTH - 1])
+        for (int i = 0; i < MESSAGE_LENGTH - 1; i++)
+          checksum += message[i];
+        if (checksum != message[MESSAGE_LENGTH - 1])
         {
-          Serial.println("[uCListener] Invalid checksum, refusing packet\n");
+          // Invalid message, simply discard it.
         }
         else
         {
-         targetVelocity[0]=(unsigned int)(message[0]+ (message[1]<<8)) - 16384;
-         targetVelocity[1]=(unsigned int)(message[2]+ (message[3]<<8)) - 16384;
-         targetVelocity[2]=(unsigned int)(message[4]+ (message[5]<<8)) - 16384;
-         Serial.println(targetVelocity[0]);
-         Serial.println(targetVelocity[1]);
-         Serial.println(targetVelocity[2]);
-         Serial.println(" ");
-      }  
-   }
-}
-
-}
-//  Serial.println("Velocity:\n");
-//  Serial.println(reference_velocity);
-
+          // Decode message from host.
+          // Message is send by adding an offset of 16384 to it.
+          targetVelocity[0] = (unsigned int)(message[0] + (message[1] << 8)) - 16384;
+          targetVelocity[1] = (unsigned int)(message[2] + (message[3] << 8)) - 16384;
+          targetVelocity[2] = (unsigned int)(message[4] + (message[5] << 8)) - 16384;
+        }
+      }
+    }
+  }
   
-  delay(dt);
+  delay(2);
+  
 }
