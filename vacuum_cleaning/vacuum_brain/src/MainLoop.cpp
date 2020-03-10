@@ -21,21 +21,10 @@ double const LOOP_PERIOD = 0.010;
 
 int const ENCODER_RESOLUTION = 3600; // Encoder resolution
 
-// Stop motor before exit.
-void killCode(int x)
-{
-    //~ sendCommandToMotors(0.0, 0.0);
-    exit(0);
-}
-
-
 int main(int argc, char **argv)
 {
     // Init raspberry serial ports and GPIO.
     //~ RPi_enablePorts();
-    // Configure CTRL+C signal.
-    signal(SIGINT, killCode);
-    signal(SIGTERM, killCode);
     
     // Create kinematics object representing the robot.
     omni::ThreeWheelsKinematics kinematics(0.10, 0.05);
@@ -45,7 +34,13 @@ int main(int argc, char **argv)
     
     // Init communication with arduino
     ArduinoListener arduino(kinematics, ENCODER_RESOLUTION);
-    arduino.initialize("/dev/ttyACM0");
+    bool isArduinoInit = arduino.initialize("/dev/ttyACM0");
+    
+    if (!isArduinoInit)
+    {
+        std::cout << "Failed to init communication with Arduion" << std::endl;
+        exit(0);
+    }
     
     // Configure and start main loop.
     Metronome metronome(LOOP_PERIOD * 1e9);
@@ -62,7 +57,7 @@ int main(int argc, char **argv)
         double dt = currentTime - lastTime;
         lastTime = currentTime;
         
-        targetSpeed = omni::BaseSpeed(0.5 * std::sin(currentTime), 0.0, 0.0);
+        targetSpeed = omni::BaseSpeed(0.0, 0.2 * std::sin(currentTime), 0.0);
         
         arduino.setTarget(targetSpeed);
         currentSpeed = arduino.getCurrentSpeed();
@@ -78,12 +73,13 @@ int main(int argc, char **argv)
         
         targetWheelSpeed = kinematics.inverseKinematics(targetSpeed);
         currentWheelSpeed = kinematics.inverseKinematics(currentSpeed);
-        logger.setData(LOGGER_TARGET_WHEEL_VELOCITY_1, targetWheelSpeed.wheelSpeed_[0]);
-        logger.setData(LOGGER_TARGET_WHEEL_VELOCITY_2, targetWheelSpeed.wheelSpeed_[1]);
-        logger.setData(LOGGER_TARGET_WHEEL_VELOCITY_3, targetWheelSpeed.wheelSpeed_[2]);
-        logger.setData(LOGGER_CURRENT_WHEEL_VELOCITY_1, currentWheelSpeed.wheelSpeed_[0]);
-        logger.setData(LOGGER_CURRENT_WHEEL_VELOCITY_2, currentWheelSpeed.wheelSpeed_[1]);
-        logger.setData(LOGGER_CURRENT_WHEEL_VELOCITY_3, currentWheelSpeed.wheelSpeed_[2]);
+        
+        logger.setData(LOGGER_TARGET_WHEEL_VELOCITY_1, targetWheelSpeed.w_[0]);
+        logger.setData(LOGGER_TARGET_WHEEL_VELOCITY_2, targetWheelSpeed.w_[1]);
+        logger.setData(LOGGER_TARGET_WHEEL_VELOCITY_3, targetWheelSpeed.w_[2]);
+        logger.setData(LOGGER_CURRENT_WHEEL_VELOCITY_1, currentWheelSpeed.w_[0]);
+        logger.setData(LOGGER_CURRENT_WHEEL_VELOCITY_2, currentWheelSpeed.w_[1]);
+        logger.setData(LOGGER_CURRENT_WHEEL_VELOCITY_3, currentWheelSpeed.w_[2]);
         logger.writeLine();
     }
     return 0;

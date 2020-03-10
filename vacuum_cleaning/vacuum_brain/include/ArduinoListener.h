@@ -48,7 +48,8 @@
         omni::ThreeWheelsKinematics kinematics_; ///< Kinematics of the robot.
         omni::WheelSpeed targetWheelSpeed_; ///< Target speed.
         omni::WheelSpeed currentWheelSpeed_; ///< Current angular
-        double SI_TO_TICKS; ///< Convertion from SI units (rad/s) to ticks/s
+        double SI_TO_TICKS_; ///< Convertion from SI units (rad/s) to ticks/s
+        double lastWriteTime_; ///< Sime since last write to Arduino, for controlling write frequency.
         
         std::mutex mutex_; ///< Mutex, for thread safety.
         
