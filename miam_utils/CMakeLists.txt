@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 #Configure project
 project(miam_utils VERSION 2.4.0)
@@ -16,6 +16,8 @@ if(CROSS_COMPILE)
     set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
     set(LIBRARY_NAME ${PROJECT_NAME}_arm)
 else()
+    # Add unit test only if not cross-compiling
+    add_subdirectory(unit)
     set(CMAKE_CXX_COMPILER "g++")
     set(LIBRARY_NAME ${PROJECT_NAME})
 endif()

@@ -11,9 +11,9 @@ namespace omni
     struct BaseSpeed
     {
         BaseSpeed()
-        : omega_(0.),
-          vx_(0.),
-          vy_(0.)
+        : vx_(0.),
+          vy_(0.),
+          omega_(0.)
         {}
 
         BaseSpeed(
@@ -34,17 +34,17 @@ namespace omni
     struct WheelSpeed
     {
         WheelSpeed()
-        : wheelSpeed_{0, 0, 0}
+        : w_{0, 0, 0}
         {}
 
         WheelSpeed(
           double const& wheel1,
           double const& wheel2,
           double const& wheel3)
-        : wheelSpeed_{wheel1, wheel2, wheel3}
+        : w_{wheel1, wheel2, wheel3}
         {}
 
-        double wheelSpeed_[3];  ///< Wheel velocity, rad/s
+        double w_[3];  ///< Wheel velocity, rad/s
     };
     
     /// \brief Kinematics of the omnidirectional base.
