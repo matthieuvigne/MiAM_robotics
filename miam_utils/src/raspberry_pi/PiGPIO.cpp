@@ -33,8 +33,20 @@
 #define GPPUD 37
 #define GPPUDCLK0 38
 
-// Pointer to GPIO register
+// PWM registers.
+#define PWM_BASE_ADDRESS (0x3F000000 + 0x20C000)
+#define CLOCK_BASE_ADDRESS (0x3F000000 + 0x101000)
+
+int const PWM_RANGE[2] = {4, 8};
+int const PWM_DATA[2] = {5, 9};
+
+#define PWM_CLK_CTRL 40
+#define PWM_CLK_DIV 41
+
+// Pointer to registers
 volatile unsigned int *gpio_register;
+volatile unsigned int *pwm_register;
+volatile unsigned int *clock_register;
 
 bool RPi_enableGPIO()
 {
@@ -62,6 +74,58 @@ bool RPi_enableGPIO()
 
     // Make gpio_register point to this address.
     gpio_register = (volatile unsigned int *)map;
+
+
+    pwm_register = (volatile unsigned int *)MAP_FAILED;
+    clock_register = (volatile unsigned int *)MAP_FAILED;
+    // Check: are we running as root ? If so, try to load PWM registers.
+    if (getuid() == 0)
+    {
+        memoryFile = open("/dev/mem", O_RDWR|O_SYNC);
+        if(memoryFile < 0)
+        {
+            #ifdef DEBUG
+                std::cout << "Error opening /dev/mem: " << errno << " " << strerror(errno) << std::endl;
+            #endif
+            return false;
+        }
+
+        // Get PWM register
+        map = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, memoryFile, PWM_BASE_ADDRESS);
+        if(map == MAP_FAILED)
+        {
+            #ifdef DEBUG
+                std::cout << "Error mapping PWM memory: " << errno << " " << strerror(errno) << std::endl;
+            #endif
+            return false;
+        }
+        pwm_register = (volatile unsigned int *)map;
+
+        // Reset pwm
+        *pwm_register = 0;
+        usleep(10);
+
+        // Get clock register
+        map = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, memoryFile, CLOCK_BASE_ADDRESS);
+        if(map == MAP_FAILED)
+        {
+            #ifdef DEBUG
+                std::cout << "Error mapping PWM memory: " << errno << " " << strerror(errno) << std::endl;
+            #endif
+            return false;
+        }
+        clock_register = (volatile unsigned int *)map;
+
+        RPi_setPWMClock(PiPWMClockFrequency::F2400kHz);
+    }
+    else
+    {
+        #ifdef DEBUG
+            std::cout << "Warning: not running as root, PWM is not available." << std::endl;
+        #endif
+    }
+
+
     return true;
 }
 
@@ -110,31 +174,68 @@ bool RPi_readGPIO(unsigned int const& gpioPin)
     return (*(gpio_register + GPLEV0) & (1 << gpioPin) ? HIGH : LOW);
 }
 
-
-int RPi_setPWM(int const& channel, int const& period_ns, int const& duty_ns)
+void RPi_setPWMClock(PiPWMClockFrequency const& frequency)
 {
-    if(channel != 0 && channel != 1)
-        return -1;
-    std::string folderName = "/sys/class/pwm/pwmchip0/pwm" + std::to_string(channel) + "/";
-    // Set period.
-    std::ofstream file;
-    file.open(folderName + "period", std::fstream::app);
-    if(!file.is_open())
-        return -1;
-    file << period_ns << std::endl;
-    file.close();
-    // Set duty cycle.
-    file.open(folderName + "duty_cycle", std::fstream::app);
-    if(!file.is_open())
-        return -1;
-    file << duty_ns << std::endl;
-    file.close();
-    // Enable.
-    file.open(folderName + "enable", std::fstream::app);
-    if(!file.is_open())
-        return -1;
-    file << "1" << std::endl;
-    file.close();
-    return 0;
+    if (pwm_register == MAP_FAILED)
+    {
+        #ifdef DEBUG
+            std::cout << "Error: PWM requires root priviledge." << std::endl;
+        #endif
+        return;
+    }
+    // Reset clock
+    *(clock_register + PWM_CLK_CTRL) = 0x5A000001;
+    usleep(100);
+    // Set scaling
+    *(clock_register + PWM_CLK_DIV) = 0x5A000000 | (frequency << 12);
+    usleep(100);
+    // Enable clock
+    *(clock_register + PWM_CLK_CTRL) = 0x5A000011;
 }
 
+void RPi_enablePWM(bool const& enableFirstChannel, bool const& enableSecondChannel)
+{
+    if (pwm_register == MAP_FAILED)
+    {
+        #ifdef DEBUG
+            std::cout << "Error: PWM requires root priviledge." << std::endl;
+        #endif
+        return;
+    }
+    // Set GPIO pins accordingly, and reset data.
+    if (enableFirstChannel)
+    {
+        int gpioPin = 12;
+        *(gpio_register + (gpioPin/10)) &=  ~( 0b111 << ((gpioPin % 10)*3));
+        *(gpio_register + (gpioPin/10)) |=  0b100 << ((gpioPin % 10)*3);
+
+        *(pwm_register + PWM_DATA[0]) = 0;
+    }
+    if (enableSecondChannel)
+    {
+        int gpioPin = 13;
+        *(gpio_register + (gpioPin/10)) &=  ~( 0b111 << ((gpioPin % 10)*3));
+        *(gpio_register + (gpioPin/10)) |= 0b100 << ((gpioPin % 10)*3);
+
+        *(pwm_register + PWM_DATA[1])= 0;
+    }
+
+    // Activate PWM  - run in MS mode since the targeted application is motor control.
+    *pwm_register = (enableFirstChannel ? 0x0081 : 0) | (enableSecondChannel ? 0x8100 : 0);
+}
+
+void RPi_setPWM(int const& channel, int const& dutyCycle, int const& periodCS)
+{
+    if (pwm_register == MAP_FAILED)
+    {
+        #ifdef DEBUG
+            std::cout << "Error: PWM requires root priviledge." << std::endl;
+        #endif
+        return;
+    }
+    if(channel != 0 && channel != 1)
+        return;
+
+    *(pwm_register + PWM_RANGE[channel]) = periodCS;
+    *(pwm_register + PWM_DATA[channel]) = dutyCycle;
+}

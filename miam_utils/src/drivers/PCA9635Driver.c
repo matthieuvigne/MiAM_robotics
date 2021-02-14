@@ -27,12 +27,11 @@ bool ledDriver_init(PCA9635 *d, I2CAdapter *adapter, unsigned char address)
     d->adapter = adapter;
     d->address = address;
     // At startup, all leds are turned off.
-    d->ledState[0] = 255;
-    d->ledState[2] = 255;
-    d->ledState[1] = 255;
-    d->ledState[3] = 255;
-    for(int x = 0; x < 16; x ++)
-        ledDriver_setLedBrightness(d, x, 0);
+    for(int i = 0; i < 4; i++)
+    {
+        d->ledState[i] = 0;
+        i2c_writeRegister(d->adapter, d->address, LEDOUTOFFSET + i, d->ledState[i]);
+    }
     // Enable driver
     return i2c_writeRegister(d->adapter, d->address, 0x80, 0x80);
 }

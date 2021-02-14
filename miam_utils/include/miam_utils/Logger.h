@@ -5,7 +5,10 @@
 #ifndef LOGGER
 #define LOGGER
     #include <vector>
-    #include <fstream>
+    #include <thread>
+    #include <mutex>
+    #include <condition_variable>
+
     /// \brief Telemetry class, for logging robot data to a csv file.
     /// \details The user specifies a list of headers and, at run time, a value for each element to log.
     ///          If no value is given, the previous value is kept.
@@ -23,10 +26,17 @@
             Logger(std::string const& filename,
                    std::string const& logName,
                    std::string const& description,
-                   std::string const& headerList);
+                   std::string const& headerList,
+                   int const& minWriteSize = 1000);
 
-            /// \brief Default constructor, does nothing.
-            Logger();
+            /// \brief Copy constructor
+            Logger(Logger const & logger);
+
+            /// \brief Start logger background thread
+            void start();
+
+            /// \brief Stop logger background thread, flushing content to file.
+            void stop();
 
             /// \brief Set data value to log.
             ///
@@ -36,9 +46,15 @@
 
             /// \brief Write last data sample (i.e. content of currentData) to the csv file.
             void writeLine();
-
         private:
-            std::ofstream logFile; ///< The log file being opened.
+            void run();
+
+            std::string filename_; ///< Logfile
+            bool isRunning_; ///< Boolean to start / stop background thread.
+
+            std::mutex mutex_;  ///< Mutex and contionnal variable: logging is done in the background.
+            std::condition_variable cond_;
+            std::vector<std::vector<double>> bufferedData_; ///< Data to flush to the logfile.
             std::vector<double> currentData_; ///< Current data to log.
     };
 

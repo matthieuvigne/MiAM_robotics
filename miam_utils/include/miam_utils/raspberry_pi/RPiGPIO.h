@@ -22,6 +22,22 @@
     }
     PiGPIOMode;
 
+    typedef enum
+    {
+      F4_6875kHz = 1,
+      F9_375kHz = 2048,
+      F18_75kHz = 1024,
+      F37_5kHz = 512,
+      F75kHz = 256,
+      F150kHz = 128,
+      F300kHz = 64,
+      F600kHz = 32,
+      F1200kHz = 16,
+      F2400kHz = 8,
+      F4800kHz = 4,
+      F9600kHz = 2
+    }PiPWMClockFrequency;
+
     /// Defines for pin direction.
     #define LOW false
     #define HIGH true
@@ -65,5 +81,25 @@
     /// \param[in] period_ns Period, in nanoseconds.
     /// \param[in] duty_ns Duty cycle, i.e. time high, in ns.
     /// \return Negative value on failre: -1 on invalid pin number, -2 on any other failure.
-    int RPi_setPWM(int const& channel, int const& period_ns, int const& duty_ns);
+    // int RPi_setPWM(int const& channel, int const& period_ns, int const& duty_ns);
+
+    /// \brief Set PWM clock frequency.
+    /// \param[in] frequency Clock frequency to use.
+    void RPi_setPWMClock(PiPWMClockFrequency const& frequency);
+
+    /// \brief Enable PWM output.
+    ///
+    /// \details channel 0 stands for GPIO 12, channel 1 for GPIO 13.
+    ///
+    /// \param[in] enableFirstChannel Enable / disable first channel (GPIO 12).
+    /// \param[in] enableSecondChannel Enable / disable second channel (GPIO 13).
+    void RPi_enablePWM(bool const& enableFirstChannel, bool const& enableSecondChannel);
+
+    /// \brief Set PWM output.
+    ///
+    /// \param[in] channel Channel number, 0 (GPIO 12) or 1 (GPIO 13).
+    /// \param[in] dutyCycle Duty cycle, from 0 to periodCS.
+    /// \param[in] periodCS Period of the signal, in number of clock samples. Use clock frequency to compute corresponding signal frequency.
+    void RPi_setPWM(int const& channel, int const& dutyCycle, int const& periodCS);
+
 #endif

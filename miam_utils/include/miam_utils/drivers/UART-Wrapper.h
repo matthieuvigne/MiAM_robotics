@@ -29,6 +29,6 @@
     /// \param[in] size Maximum amount of data to read - buffer must be at least size long.
     /// \param[in] timeoutMs Timeout in milliseconds.
     ///
-    /// \return -1 on timeout, or the same as the underlying read call
+    /// \return -1 on error, 0 on timeout, or the same as the underlying read call
     int read_timeout(int const& file, unsigned char *buffer, size_t const& size, uint const& timeoutMs);
 #endif

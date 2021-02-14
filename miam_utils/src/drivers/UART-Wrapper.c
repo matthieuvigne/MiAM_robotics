@@ -44,8 +44,12 @@ int read_timeout(int const& file, unsigned char *buffer, size_t const& size, uin
     fd_set set;
     FD_ZERO(&set);
     FD_SET(file, &set);
-
-    if(select(file + 1, &set, NULL, NULL, &timeout) > 0)
+    
+    int nFiles = select(file + 1, &set, NULL, NULL, &timeout);
+    // If there is something to read, read and return the number of bytes read.
+    if (nFiles > 0)
         return read(file, buffer, size);
-    return -1;
+    else
+        // Nothing to read: return the return value of select: 0 if timeout, -1 on error.
+        return nFiles;
 }

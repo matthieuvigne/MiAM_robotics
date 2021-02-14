@@ -68,4 +68,10 @@ namespace miam{
     {
         return lastCorrection_;
     }
+
+
+    double PID::getIntegral()
+    {
+        return integral_;
+    }
 }

@@ -34,6 +34,7 @@
                 void resetIntegral(double const& value = 0.0);
 
                 double getCorrection();
+                double getIntegral();
 
             private:
                 double Kp_; ///< Proportional gain.
