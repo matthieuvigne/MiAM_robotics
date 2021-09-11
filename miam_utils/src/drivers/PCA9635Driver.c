@@ -39,7 +39,7 @@ bool ledDriver_init(PCA9635 *d, I2CAdapter *adapter, unsigned char address)
 
 void ledDriver_setLedBrightness(PCA9635 *d, int pin, int brightness)
 {
-    if(d->adapter < 0)
+    if(d->adapter->file < 0)
         return;
     if(pin > 15 || pin < 0) return;
     if(brightness < 0)     brightness = 0;

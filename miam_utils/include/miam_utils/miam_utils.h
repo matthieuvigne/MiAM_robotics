@@ -24,7 +24,7 @@
     #include <miam_utils/drivers/ADNS9800Driver.h>
     #include <miam_utils/drivers/L6470Driver.h>
     #include <miam_utils/drivers/I2C-Wrapper.h>
-    #include <miam_utils/drivers/IMUDriver.h>
+    #include <miam_utils/drivers/IMUV5Driver.h>
     #include <miam_utils/drivers/LCDDriver.h>
     #include <miam_utils/drivers/MaestroServoDriver.h>
     #include <miam_utils/drivers/PCA9635Driver.h>
