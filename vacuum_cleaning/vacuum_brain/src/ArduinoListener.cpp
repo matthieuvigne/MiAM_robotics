@@ -30,25 +30,25 @@ ArduinoListener::ArduinoListener(omni::ThreeWheelsKinematics const& kinematics, 
 }
 
 
-bool ArduinoListener::initialize(std::string const& portName) 
+bool ArduinoListener::initialize(std::string const& portName)
 {
     // If already initialize (i.e. a thread is already running), don't allow for a new configuration.
     //~ if (isInitialized_)
         //~ return false;
-        
+
     port_ = uart_open(portName, B115200);
-    
-    if (port_ < 0) 
+
+    if (port_ < 0)
     {
         // Error
         return false;
     }
-    
+
     // Start the communication thread.
     std::thread thread(&ArduinoListener::communicationThread, this);
     thread.detach();
-    
-    return true; 
+
+    return true;
 }
 
 
@@ -62,7 +62,7 @@ void ArduinoListener::setTarget(omni::BaseSpeed const& targetBaseSpeed)
 }
 
 
-omni::BaseSpeed ArduinoListener::getCurrentSpeed() 
+omni::BaseSpeed ArduinoListener::getCurrentSpeed()
 {
     mutex_.lock();
     omni::WheelSpeed currentWheelSpeed = currentWheelSpeed_;
@@ -71,7 +71,7 @@ omni::BaseSpeed ArduinoListener::getCurrentSpeed()
 }
 
 
-omni::ThreeWheelsKinematics *ArduinoListener::getKinematics() 
+omni::ThreeWheelsKinematics *ArduinoListener::getKinematics()
 {
     return &kinematics_;
 }
@@ -79,22 +79,22 @@ omni::ThreeWheelsKinematics *ArduinoListener::getKinematics()
 
 double const TARGET_UPDATE_PERIOD = 0.004; // Time increment to send new target, in s.
 
-void ArduinoListener::communicationThread() 
+void ArduinoListener::communicationThread()
 {
     // Init
     // Metronome object: simple wrapper for getting current time.
     Metronome timer(0.1);
     lastWriteTime_ = 0.0;
-    
+
     unsigned char arduinoMessage[ARDUINO_MESSAGE_LENGTH];
     unsigned char readData[ARDUINO_MESSAGE_LENGTH + 2];
     int positionInMessage = -1;
     bool lastWasFF = false;
-    
+
     while(true)
     {
         double time = timer.getElapsedTime();
-        
+
         // Send new target to arduino.
         if (time - lastWriteTime_ > TARGET_UPDATE_PERIOD)
         {
@@ -106,7 +106,7 @@ void ArduinoListener::communicationThread()
             for(int i = 0; i < 3; i++)
             {
                 // Send target as 2s complement
-                uint16_t wheelspeed = (1 << 15) - int16_t(targetWheelSpeed_.w_[i] * SI_TO_TICKS_);
+                uint16_t wheelspeed = (1 << 14) + int16_t(targetWheelSpeed_.w_[i] * SI_TO_TICKS_);
                 message[2 + 2 * i] = wheelspeed & 0xFF;
                 message[3 + 2 * i] = (wheelspeed >> 8) & 0xFF;
             }
@@ -118,10 +118,10 @@ void ArduinoListener::communicationThread()
             write(port_, message, 9);
             lastWriteTime_ = time;
         }
-        
+
         // Read message from Arduino
         int nBytesRead = read_timeout(port_, readData, ARDUINO_MESSAGE_LENGTH + 2, 1);
-        
+
         // Process data from Arduino.
         for(int i = 0; i < nBytesRead; i++)
         {
@@ -172,8 +172,8 @@ void ArduinoListener::communicationThread()
                     }
                 }
             }
-            
-            
+
+
         }
     }
 }

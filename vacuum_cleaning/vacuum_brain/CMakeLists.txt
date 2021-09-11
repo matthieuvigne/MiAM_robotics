@@ -5,8 +5,7 @@ project(vacuum_brain)
 set(PROJECT_DESCRIPTION "Code for an inverted pendulum robot")
 
 # Set compiler to arm compiler (cross-compile)
-#~ set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
-set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
 
 # Set C++ compiler flags.
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wno-psabi -fdiagnostics-color -pthread")
@@ -24,7 +23,7 @@ endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 find_package(PkgConfig REQUIRED)
 # Look for external libraries, and link them to the project.
 unset(MIAMLIB_FOUND CACHE)
-pkg_search_module(MIAMLIB REQUIRED miam_utils>=2.4)
+pkg_search_module(MIAMLIB REQUIRED miam_utils_arm>=2.4)
 message(STATUS "Found miam_utils v." ${MIAMLIB_VERSION})
 include_directories(${MIAMLIB_INCLUDE_DIRS})
 link_directories(${MIAMLIB_LIBRARY_DIRS})
