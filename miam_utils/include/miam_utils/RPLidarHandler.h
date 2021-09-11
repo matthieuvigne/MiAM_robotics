@@ -13,6 +13,7 @@
 #ifdef USE_RPLIDAR
     #ifndef RPLIDAR_HANDLER
     #define RPLIDAR_HANDLER
+        #include <cstddef>
         #include <rplidar.h>
         #include <iostream>
         #include <cmath>

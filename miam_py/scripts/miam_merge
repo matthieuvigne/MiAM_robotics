@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+    Merge two logfiles.
+'''
+
+from miam_py import LogLoader
+import argparse
+import os
+import csv
+from collections import OrderedDict
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description = "Merge two log files")
+    parser.add_argument("first", help = "Input csv log file.")
+    parser.add_argument("second", help = "Input csv log file.")
+    parser.add_argument("-p", "--prefix", required = True,
+                        help = "Prefix for second log.")
+    parser.add_argument("-o", "--output", required = False, default = "/tmp/merge.csv",
+                        help = "Output filename.")
+    args= parser.parse_args()
+
+    # Load log file.
+    first = LogLoader(args.first)
+    second = LogLoader(args.second)
+
+    merged = OrderedDict(first.data)
+    for k in second.data:
+        merged[args.prefix + k] = second.data[k]
+
+    length = min(len(merged[k]) for k in merged)
+    # Save to csv
+    with open(args.output, 'w') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        writer.writerow(["Robot Log: merged", args.first, args.second])
+        writer.writerow(list(merged.keys()))
+        for i in range(length):
+            writer.writerow([merged[k][i] for k in merged])
+
