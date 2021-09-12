@@ -33,5 +33,7 @@ endif()
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(unit unit.cc kinematicsTest.cc)
 include_directories("../include")
-target_link_libraries(unit gtest_main miam_utils)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${RPLIDARLIB_LIBRARY_DIRS}")
+target_link_libraries(unit gtest_main miam_utils ${RPLIDARLIB_LIBRARIES})
 add_test(NAME unit COMMAND unit)
