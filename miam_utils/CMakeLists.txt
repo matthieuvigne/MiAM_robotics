@@ -8,7 +8,6 @@ set(PROJECT_DESCRIPTION "C++ utility library to use a Beaglebone Black / Raspber
 # If compiling for the current computer, _intel is appended to the library name.
 
 option(CROSS_COMPILE "True to cross compile to arm, false to compile on current platform" ON)
-option(USE_RPLIDAR "Include RPLIDAR dependancy" FALSE)
 
 # Set compiler and library name.
 
@@ -50,15 +49,13 @@ add_library(${LIBRARY_NAME} STATIC ${${PROJECT_NAME}_SOURCES})
 find_package(PkgConfig REQUIRED)
 unset(RPLIDARLIB_FOUND CACHE)
 # Link to rplidar library (take the correct version depending on wheather we are cross-compiling or not).
-if (USE_RPLIDAR)
-    if(CROSS_COMPILE AND USE_RPLIDAR)
-        pkg_search_module(RPLIDARLIB REQUIRED rplidar)
-    else()
-        pkg_search_module(RPLIDARLIB REQUIRED rplidar_intel)
-    endif()
-    message(STATUS "Found rplidar v." ${RPLIDARLIB_VERSION})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_RPLIDAR")
+if(CROSS_COMPILE)
+    pkg_search_module(RPLIDARLIB REQUIRED rplidar_arm)
+else()
+    pkg_search_module(RPLIDARLIB REQUIRED rplidar)
 endif()
+message(STATUS "Found rplidar v." ${RPLIDARLIB_VERSION})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 include_directories(${RPLIDARLIB_INCLUDE_DIRS})
 link_directories(${RPLIDARLIB_LIBRARY_DIRS})

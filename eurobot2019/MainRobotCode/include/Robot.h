@@ -20,7 +20,6 @@
     #include <miam_utils/trajectory/PointTurn.h>
     #include <miam_utils/trajectory/Utilities.h>
     #include <miam_utils/trajectory/DrivetrainKinematics.h>
-    #define USE_RPLIDAR
 	#include "miam_utils/RPLidarHandler.h"
     #include <math.h>
     #include <stdlib.h>
