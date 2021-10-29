@@ -15,7 +15,7 @@ class Viewer : public Gtk::Window
 {
     public:
         // Create the window.
-        Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade);
+        Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade, std::string const& tableImagePath);
         virtual ~Viewer();
 
         /// \brief Add a robot to the display list.

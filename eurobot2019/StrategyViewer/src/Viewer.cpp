@@ -7,7 +7,7 @@
 
 
 // Build window from Glade.
-Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
+Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade, std::string const& tableImagePath) :
     Gtk::Window(cobject),
     obstacleSize_(200),
     obstacleX_(-500),
@@ -46,7 +46,7 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     playButton->signal_toggled().connect(sigc::mem_fun(this, &Viewer::toggleReplayState));
 
     // Load images.
-    tableImage = Gdk::Pixbuf::create_from_file("./config/table.png", -1, -1);
+    tableImage = Gdk::Pixbuf::create_from_file(tableImagePath, -1, -1);
     trajectoryLength_ = 0;
 }
 

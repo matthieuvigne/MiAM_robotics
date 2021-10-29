@@ -9,5 +9,6 @@
     #include "ViewerRobot.h"
 
     void mainRobotStrategy(ViewerRobot &robot);
+    void mainRobotAgeOfBotsStrategy(ViewerRobot &robot);
     void secondaryRobotStrategy(ViewerRobot &robot);
 #endif

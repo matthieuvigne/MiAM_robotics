@@ -12,8 +12,21 @@ Glib::RefPtr<Gtk::Application> app;
 
 int main (int argc, char *argv[])
 {
+    bool isOldRobot = false;
+    if (argc > 1)
+    {
+        if (strcmp(argv[1], "old") == 0)
+            isOldRobot = true;
+        else
+        {
+            std::cout << argv[1] << std::endl;
+            std::cout << "Unknown argument. Usage: ./StrategyViewer [old]" << std::endl;
+            exit(-1);
+        }
+    }
+
     srand (time(NULL));
-    app = Gtk::Application::create(argc, argv);
+    app = Gtk::Application::create();
 
     //load main window layout from glade
     auto refBuilder = Gtk::Builder::create();
@@ -34,16 +47,23 @@ int main (int argc, char *argv[])
         std::cerr << "BuilderError: " << ex.what() << std::endl;
     }
 
-    // Create robots.
-    ViewerRobot mainRobot("./config/mainRobot.png", mainRobotStrategy);
-
-    ViewerRobot secondaryRobot("./config/secondaryRobot.png", secondaryRobotStrategy, 0, 0, 1);
-
     // Create handler.
     Viewer *viewer = nullptr;
-    refBuilder->get_widget_derived("mainWindow", viewer);
-    viewer->addRobot(mainRobot);
-    viewer->addRobot(secondaryRobot);
+    // Create robots.
+    if (isOldRobot)
+    {
+        refBuilder->get_widget_derived("mainWindow", viewer, "./config/table.png");
+        ViewerRobot mainRobot("./config/mainRobot.png", mainRobotStrategy);
+        ViewerRobot secondaryRobot("./config/secondaryRobot.png", secondaryRobotStrategy, 0, 0, 1);
+        viewer->addRobot(mainRobot);
+        viewer->addRobot(secondaryRobot);
+    }
+    else
+    {
+        refBuilder->get_widget_derived("mainWindow", viewer, "./config/tableAgeOfBots.png");
+        ViewerRobot mainRobot("./config/mainRobotAgeOfBots.png", mainRobotAgeOfBotsStrategy);
+        viewer->addRobot(mainRobot);
+    }
 
     return app->run(*viewer);
 }

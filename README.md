@@ -11,6 +11,10 @@ USB.
  - [miam_utils](./miam_utils) : a very generic C++ library for handling all low-level activities. This ranges from sensor drivers to
  basic robot functions such as PID or basic data logging. This is the base code from which other projects spawn.
  Feel free to use this code in other projects !
- 
- - [vacuum_cleaning](./vacuum_cleaning) : our current project, a vacuum-cleaning omnidirectional robot.
 
+ - [vacuum_cleaning](./vacuum_cleaning) : a tutorial project: building a vacuum-cleaning omnidirectional robot.
+
+ - [miam_py](./miam_py) : a python package for reading the robot's logs
+
+ - [eurobot2019](./eurobot2019) : main robot code for the Eurobot 2019 competition, to act as reference.
+ See original repo at [https://github.com/matthieuvigne/MiAM_eurobot2019](https://github.com/matthieuvigne/MiAM_eurobot2019).
