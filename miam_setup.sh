@@ -1,74 +1,69 @@
 #!/usr/bin/env bash
-if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run as root"
-   exit 1
-fi
+export USERHOME=$(logname)
 
 # Create tree architecture
-mkdir -p $HOME/dev/build/MiAM_robotics
-mkdir -p $HOME/dev/install/
-mkdir -p $HOME/dev/src/
-
-# Install dependancies
-apt update
-apt install -y git build-essential pkg-config cmake cmake-curses-gui g++ g++-arm-linux-gnueabihf python3 python3-venv libgtkmm-3.0-dev
+mkdir -p /home/$USERHOME/dev/build/MiAM_robotics
+mkdir -p /home/$USERHOME/dev/install/
+mkdir -p /home/$USERHOME/dev/src/
 
 # Install rplidar dependancy
-cd $HOME/dev/src/
+cd /home/$USERHOME/dev/src/
 git clone https://github.com/matthieuvigne/rplidar_sdk
-mkdir -p $HOME/dev/build/rplidar
-cd $HOME/dev/build/rplidar
-cmake $HOME/dev/src/rplidar_sdk -DCMAKE_INSTALL_PREFIX=$HOME/dev/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
+mkdir -p /home/$USERHOME/dev/build/rplidar
+cd /home/$USERHOME/dev/build/rplidar
+cmake /home/$USERHOME/dev/src/rplidar_sdk -DCMAKE_INSTALL_PREFIX=/home/$USERHOME/dev/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
 make -j4 install
-cmake $HOME/dev/src/rplidar_sdk -DCMAKE_INSTALL_PREFIX=$HOME/dev/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
+cmake /home/$USERHOME/dev/src/rplidar_sdk -DCMAKE_INSTALL_PREFIX=/home/$USERHOME/dev/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
 make -j4 install
 
 # Add path to bashrc
-echo 'export PATH=$HOME/dev/install/bin:$PATH' >> ~/.bashrc
-echo 'export PKG_CONFIG_PATH=$HOME/dev/install/lib/pkgconfig:$PKG_CONFIG_PATH' >> ~/.bashrc
-echo 'export LD_LIBRARY_PATH=$HOME/dev/install/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
+echo 'export PATH=/home/$USERHOME/dev/install/bin:$PATH' >> /home/$USERHOME/.bashrc
+echo 'export PKG_CONFIG_PATH=/home/$USERHOME/dev/install/lib/pkgconfig:$PKG_CONFIG_PATH' >> /home/$USERHOME/.bashrc
+echo 'export LD_LIBRARY_PATH=/home/$USERHOME/dev/install/lib:$LD_LIBRARY_PATH' >> /home/$USERHOME/.bashrc
 
-export PATH=$HOME/dev/install/bin:$PATH
-export PKG_CONFIG_PATH=$HOME/dev/install/lib/pkgconfig:$PKG_CONFIG_PATH
-export LD_LIBRARY_PATH=$HOME/dev/install/lib:$LD_LIBRARY_PATH
+export PATH=/home/$USERHOME/dev/install/bin:$PATH
+export PKG_CONFIG_PATH=/home/$USERHOME/dev/install/lib/pkgconfig:$PKG_CONFIG_PATH
+export LD_LIBRARY_PATH=/home/$USERHOME/dev/install/lib:$LD_LIBRARY_PATH
+
+echo $PKG_CONFIG_PATH
 
 # Clone git repo
-cd $HOME/dev/src/
+cd /home/$USERHOME/dev/src/
 git clone https://github.com/matthieuvigne/MiAM_robotics
 
 # Setup python environment
-cd $HOME/dev/install
+cd /home/$USERHOME/dev/install
 mkdir miam_venv
 python3 -m venv miam_venv
-echo 'source $HOME/dev/install/miam_venv/bin/activate' >> ~/.bashrc
-source $HOME/dev/install/miam_venv/bin/activate
+echo 'source /home/$USERHOME/dev/install/miam_venv/bin/activate' >> /home/$USERHOME/.bashrc
+source /home/$USERHOME/dev/install/miam_venv/bin/activate
 
-cd $HOME/dev/src/MiAM_robotics/miam_py
+cd /home/$USERHOME/dev/src/MiAM_robotics/miam_py
 python setup.py install
 
 # Compile and install miam_utils
-cd $HOME/dev/build/MiAM_robotics
+cd /home/$USERHOME/dev/build/MiAM_robotics
 mkdir miam_utils
 cd miam_utils
 
-cmake $HOME/dev/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=$HOME/dev/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
+cmake /home/$USERHOME/dev/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=/home/$USERHOME/dev/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
 make -j4 install
-cmake $HOME/dev/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=$HOME/dev/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
+cmake /home/$USERHOME/dev/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=/home/$USERHOME/dev/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
 make -j4 install
 
 # Compile strategy viewer
-cd $HOME/dev/build/MiAM_robotics
+cd /home/$USERHOME/dev/build/MiAM_robotics
 mkdir -p eurobot2019/StrategyViewer
 cd eurobot2019/StrategyViewer
-cmake $HOME/dev/src/MiAM_robotics/eurobot2019/StrategyViewer -DCMAKE_INSTALL_PREFIX=$HOME/dev/install/ -DCMAKE_BUILD_TYPE=Release
+cmake /home/$USERHOME/dev/src/MiAM_robotics/eurobot2019/StrategyViewer -DCMAKE_INSTALL_PREFIX=/home/$USERHOME/dev/install/ -DCMAKE_BUILD_TYPE=Release
 make -j4
 
 # Compile robot code
-cd $HOME/dev/build/MiAM_robotics
+cd /home/$USERHOME/dev/build/MiAM_robotics
 mkdir -p eurobot2019/MainRobotCode/
 cd eurobot2019/MainRobotCode/
-cmake $HOME/dev/src/MiAM_robotics/eurobot2019/MainRobotCode -DCMAKE_BUILD_TYPE=Release
+cmake /home/$USERHOME/dev/src/MiAM_robotics/eurobot2019/MainRobotCode -DCMAKE_BUILD_TYPE=Release
 make -j4
 
 
-source ~/.bashrc
+source /home/$USERHOME/.bashrc
