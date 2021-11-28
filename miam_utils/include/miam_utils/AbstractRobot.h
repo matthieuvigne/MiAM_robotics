@@ -75,7 +75,7 @@
             miam::trajectory::TrajectoryPoint trajectoryPoint_; ///< Current trajectory point.
             double currentTime_; ///< Current robot time, counted by low-level thread.
             std::vector<double> motorSpeed_; ///< Current motor speed.
-            std::vector<int> motorPosition_; ///< Current motor position.
+            std::vector<double> motorPosition_; ///< Current motor position.
 
             // Trajectory definition.
             std::vector<std::shared_ptr<miam::trajectory::Trajectory>> newTrajectories_; ///< Vector of new trajectories to follow.

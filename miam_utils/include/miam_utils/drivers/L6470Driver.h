@@ -18,6 +18,16 @@
 
     namespace miam{
 
+        enum L6470_STEP_MODE{
+            FULL=0,
+            HALF=1,
+            MICRO_4=2,
+            MICRO_8=3,
+            MICRO_16=4,
+            MICRO_32=5,
+            MICRO_64=6,
+            MICRO_128=7
+        };
         class L6470{
 
             public:
@@ -89,10 +99,16 @@
                 /// \brief Place both motors in a high impedance state, i.e the motor shaft will now spin freely.
                 void highZ();
 
+                /// \brief Set motor step mode (i.e. microstepping)
+                /// \param[in] stepMode Step mode
+                ///
+                /// \note Motor position is reset when changing step mode.
+                void setStepMode(L6470_STEP_MODE const& stepMode);
+
                 /// \brief Get current position of both motors.
                 ///
-                /// \return Vector of position of the each motor, in steps.
-                std::vector<int32_t> getPosition();
+                /// \return Vector of position of the each motor, in full steps (can be float when microstepping).
+                std::vector<double> getPosition();
 
                 /// \brief Get current motor velocity (unsigned, i.e. always positive).
                 ///
@@ -131,7 +147,8 @@
                 ///
                 /// \param[in] nSteps The number of steps to move each motor (negative means backward motion).
                 ///                   If the vector is too short, the remaining motors do not move.
-                void moveNSteps(std::vector<int32_t> nSteps);
+                ///                   This value is given in full steps (can be float when microstepping).
+                void moveNSteps(std::vector<double> nSteps);
 
 
             private:
@@ -170,6 +187,8 @@
                 int frequency_;
                 std::recursive_mutex mutex_;    ///< Mutex, for thread safety. recursive_mutex that can be locked several
                                                 /// times by the same thread: is this to prevent deadlock when sending a kill signal to the code.
+
+                double stepModeMultiplier_; ///< Number of steps in one full step.
         };
     }
 #endif

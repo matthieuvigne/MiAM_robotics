@@ -158,4 +158,8 @@ void ViewerRobot::clearScore()
 void ViewerRobot::updateScore(int const& scoreIncrement)
 {
     score_ += scoreIncrement;
+    if (!trajectory_.empty())
+    {
+        trajectory_.back().score = score_;
+    }
 }

@@ -21,7 +21,8 @@ namespace miam
     L6470::L6470():
         portName_(""),
         numberOfDevices_(0),
-        frequency_(0)
+        frequency_(0),
+        stepModeMultiplier_(1.0)
     {
 
     }
@@ -30,7 +31,8 @@ namespace miam
     L6470::L6470(std::string const& portName, int const& numberOfDevices, int const& busFrequency):
         portName_(portName),
         numberOfDevices_(std::abs(numberOfDevices)),
-        frequency_(std::abs(busFrequency))
+        frequency_(std::abs(busFrequency)),
+        stepModeMultiplier_(1.0)
     {
 
     }
@@ -41,6 +43,7 @@ namespace miam
         portName_ = l.portName_;
         numberOfDevices_ = l.numberOfDevices_;
         frequency_ = l.frequency_;
+        stepModeMultiplier_ = l.stepModeMultiplier_;
         return *this;
     }
 
@@ -74,7 +77,7 @@ namespace miam
         setParam(dSPIN_OCD_TH, dSPIN_OCD_TH_5250mA);
 
         // Set full step mode.
-        setParam(dSPIN_STEP_MODE, 0);
+        setStepMode(L6470_STEP_MODE::FULL);
         sendCommand(dSPIN_RESET_POS);
         setVelocityProfile(maxSpeed, maxAcceleration, maxAcceleration);
 
@@ -150,17 +153,26 @@ namespace miam
     }
 
 
-    std::vector<int32_t> L6470::getPosition()
+    void L6470::setStepMode(L6470_STEP_MODE const& stepMode)
     {
-        std::vector<int32_t> positions;
+        setParam(dSPIN_STEP_MODE, stepMode);
+        stepModeMultiplier_ = 2 << stepMode;
+    }
+
+
+    std::vector<double> L6470::getPosition()
+    {
+        std::vector<double> positions;
 
         std::vector<uint32_t> value = getParam(dSPIN_ABS_POS);
         for(uint i = 0; i < numberOfDevices_; i++)
         {
-            positions.push_back(value[i]);
+            int32_t v = value[i];
             // 2s complement
-            if(positions[i] > 0x1FFFFF)
-                positions[i] = positions[i] + 0xFFC00000;
+            if(v > 0x1FFFFF)
+                v = v + 0xFFC00000;
+
+            positions.push_back(v / stepModeMultiplier_);
         }
         return positions;
     }
@@ -316,7 +328,7 @@ namespace miam
     }
 
 
-    void L6470::moveNSteps(std::vector<int32_t> nSteps)
+    void L6470::moveNSteps(std::vector<double> nSteps)
     {
         std::vector<uint8_t> commands;
         std::vector<uint32_t> parameters;
@@ -334,7 +346,7 @@ namespace miam
             commands.push_back(command);
 
             // Register value.
-            uint32_t registerValue = std::abs(nSteps[i]);
+            uint32_t registerValue = static_cast<uint32_t>(std::abs(nSteps[i] * stepModeMultiplier_));
             // Clamp
             if(registerValue > 0x3FFFFF)
                 registerValue = 0x3FFFFF;

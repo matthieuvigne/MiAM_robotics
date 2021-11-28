@@ -143,6 +143,10 @@ bool Robot::initSystem()
             robot.screen_.setText("stepper motors", 1);
             robot.screen_.setLCDBacklight(255, 0, 0);
         }
+        else
+        {
+            stepperMotors_.setStepMode(miam::L6470_STEP_MODE::MICRO_128);
+        }
     }
 
     if (!isServosInit_)
@@ -179,9 +183,9 @@ bool Robot::initSystem()
 
 
     return allInitSuccessful;
-    
-    
-    
+
+
+
     //~ return true;
 }
 
@@ -316,7 +320,7 @@ void Robot::lowLevelLoop()
     bool heartbeatLed = true;
     // Loop until start of the match, then for 100 seconds after the start of the match.
     //while(!hasMatchStarted_ || (currentTime_ < 100.0 + matchStartTime_))
-    
+
     while((currentTime_ < 100.0 + matchStartTime_))
     {
         // Wait for next tick.
@@ -356,7 +360,7 @@ void Robot::lowLevelLoop()
                 // Start experiment.
                 //experiment_.start();
             }
-            
+
         }
 
         // Update arduino data.
