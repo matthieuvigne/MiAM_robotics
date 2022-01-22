@@ -16,7 +16,7 @@
 
 // Length of the message to receive from the uC.
 // The message consists of two 0xFF 0xFF bytes, then n bytes.
-#define MESSAGE_LENGTH 7
+#define MESSAGE_LENGTH 8
 
 // Encoder resolution: ticks to rad.
 const double ENCODER_RESOLUTION = 2 * M_PI / (1024 * 4);
@@ -111,6 +111,9 @@ void uCListener_listenerThread(int const& port)
                         // Potentiometer value.
                         uCMutex.lock();
                         listenerData.potentiometerPosition = (buffer[4] << 8) + buffer[5];
+                        // Right / left arm
+                        listenerData.leftArmColor = static_cast<ExcavationSquareColor>(buffer[6] & 0b11);
+                        listenerData.rightArmColor = static_cast<ExcavationSquareColor>((buffer[6] >> 2) & 0b11);
                         uCMutex.unlock();
                     }
                 }

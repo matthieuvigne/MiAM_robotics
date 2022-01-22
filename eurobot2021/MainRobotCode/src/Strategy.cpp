@@ -69,23 +69,24 @@ void matchStrategy()
 
 
 
-    robot.servos_.figurineArmSpeedHigh();
-    robot.servos_.figurineArmLow();
-    usleep(1000000 * 5);
-    robot.servos_.figurineArmHigh();
-    usleep(1000000 * 5);
-    robot.servos_.electroMagnetOn();
-    robot.servos_.figurineArmMiddle();
-    usleep(1000000 * 5);
-    robot.servos_.figurineArmSpeedLow();
-    robot.servos_.figurineArmHigh();
-    usleep(1000000 * 5);
-    robot.servos_.figurineArmMiddle();
-    usleep(1000000 * 1);
-    robot.servos_.electroMagnetOff();
-    usleep(1000000 * 2);
-    robot.servos_.figurineArmSpeedHigh();
-    robot.servos_.figurineArmHigh();
+
+    // robot.servos_.figurineArmSpeedHigh();
+    // robot.servos_.figurineArmLow();
+    // usleep(1000000 * 5);
+    // robot.servos_.figurineArmHigh();
+    // usleep(1000000 * 5);
+    // robot.servos_.electroMagnetOn();
+    // robot.servos_.figurineArmMiddle();
+    // usleep(1000000 * 5);
+    // robot.servos_.figurineArmSpeedLow();
+    // robot.servos_.figurineArmHigh();
+    // usleep(1000000 * 5);
+    // robot.servos_.figurineArmMiddle();
+    // usleep(1000000 * 1);
+    // robot.servos_.electroMagnetOff();
+    // usleep(1000000 * 2);
+    // robot.servos_.figurineArmSpeedHigh();
+    // robot.servos_.figurineArmHigh();
 
     // ////// test valve
 
@@ -97,106 +98,123 @@ void matchStrategy()
     // robot.servos_.openValve();
 
     // while (true) {
-    //     std::cout << "Allume pompe" << std::endl;
-    //     robot.servos_.turnOnPump();
-    //     usleep(1000000 * 5);
-    //     std::cout << "Ferme valve" << std::endl;
+    //     // std::cout << "Allume pompe" << std::endl;
+    //     // robot.servos_.turnOnPump();
+    //     // usleep(1000000 * 5);
+    //     robot.servos_.openTube(0);
+    //     robot.servos_.closeTube(1);
+    //     robot.servos_.closeTube(2);
     //     robot.servos_.closeValve();
-    //     usleep(1000000 * 5);
-    //     std::cout << "Arrete pompe" << std::endl;
+    //     robot.servos_.turnOnPump();
+    //     usleep(5000000);
+    //     robot.servos_.closeTube(0);
+    //     robot.servos_.closeTube(1);
+    //     robot.servos_.closeTube(2);
+    //     usleep(100000);
     //     robot.servos_.turnOffPump();
-    //     usleep(1000000 * 5);
-    //     std::cout << "Ouvre valve" << std::endl;
+    //     usleep(2000000);
     //     robot.servos_.openValve();
-    //     usleep(1000000 * 5);
+    //     usleep(2000000);
+    //     robot.servos_.openTube(0);
+    //     robot.servos_.openTube(1);
+    //     robot.servos_.openTube(2);
+    //     usleep(2000000);
     // }
 
 
+    while(true)
+    {
+
+        robot.moveRail(0.0);
+        usleep(5000000);
+        robot.moveRail(1.0);
+        usleep(5000000);
+    }
 
     // ////// test ligne droite
 
 
-    // // Create required variables.
+    // Create required variables.
     // RobotPosition targetPosition;
     // TrajectoryVector traj;
     // RobotPosition endPosition;
     // std::vector<RobotPosition> positions;
     // bool wasMoveSuccessful = true;
-    
+
     // usleep(5000000);
-    
-    
-    
+
+
+
     // targetPosition = robot.getCurrentPosition();
-    
+
     // traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition, 1000);
     // robot.setTrajectoryToFollow(traj);
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
     ////////// test succion
-    
-    
+
+
     //~ robot.moveRail(0.9);
     //~ robot.servos_.moveSuction(false);
-    
+
     //~ robot.servos_.turnOnPump();
-    
+
         //~ robot.servos_.closeTube(1);
-    
+
     //~ robot.moveRail(0.2);
-    
-    
+
+
     //~ usleep(5000000);
-    
+
     //~ robot.moveRail(0.9);
-    
-    
+
+
     //~ usleep(5000000);
-    
+
     //~ robot.servos_.moveMiddle();
-    
-    
-    
+
+
+
     //~ usleep(5000000);
-    
-    
+
+
     //~ for(int i = 0; i < 3; i++)
         //~ robot.servos_.openTube(i);
-    
-    
-    
+
+
+
     //~ robot.servos_.turnOffPump();
-    
+
     //~ usleep(500000000);
-    
-    
-    
+
+
+
     /////////////// test bras
-    
-    
+
+
     //~ robot.servos_.unfoldArms(true);
     //~ robot.servos_.unfoldArms(false);
-    
+
     //~ usleep(5000000);
-    
+
     //~ robot.servos_.foldArms();
-    
-    
-    
-    
+
+
+
+
     ////////////// test deplacement
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
     //~ robot.servos_.moveSuction(true);
     //~ usleep(5000000);
     //~ robot.servos_.moveSuction(false);
@@ -213,16 +231,16 @@ void matchStrategy()
     //~ usleep(5000000);
     //~ robot.servos_.moveSuction(false);
     //~ usleep(5000000);
-    
+
     //~ robot.servos_.turnOnPump();
-    
+
     //~ for(int i = 0; i < 2; i++)
         //~ robot.servos_.closeTube(i);
-    
-    
-    
-    
-    
+
+
+
+
+
     //~ robot.servos_.tapClose();
     //~ usleep(5000000);
     //~ robot.servos_.tapOpen();
@@ -232,18 +250,18 @@ void matchStrategy()
     //~ robot.servos_.tapOpen();
     //~ usleep(5000000);
     //~ robot.servos_.tapClose();
-    
-    
+
+
     //~ robot.servos_.turnOffPump();
-    
-    
-    
+
+
+
     //~ // Set initial position
     //~ targetPosition.x = CHASSIS_WIDTH + 75;
     //~ targetPosition.y = 1100 + CHASSIS_FRONT + 30;
     //~ targetPosition.theta = -M_PI_2;
     //~ robot.resetPosition(targetPosition, true, true, true);
-    
+
 
     //~ //**********************************************************
     //~ // Go get first atoms.
@@ -268,7 +286,7 @@ void matchStrategy()
     //~ robot.servos_.openTube(0);
     //~ robot.servos_.openTube(1);
     //~ robot.servos_.openTube(2);
-    
+
     //~ robot.moveRail(0.05);
     //~ robot.servos_.moveSuction(false);
     //robot.waitForTrajectoryFinished();

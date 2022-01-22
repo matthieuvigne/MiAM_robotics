@@ -6,10 +6,8 @@
 
 // Servo config: port defintion.
 int const SERVO_SUCTION[3] = {0, 1, 2};    // Numbered from right to left.
-int const SERVO_TUBE[3] = {6, 7, 8};
 
 int const SERVO_TAP = 12;
-int const SERVO_VERTICAL_TRANSLATION = 13;
 
 // Temporary.
 /// \brief Servo position definition.
@@ -29,18 +27,31 @@ int const VALVE_NUMBER = 17;
 int const ELECTROMAGNET_NUMBER = 17;
 int const FIGURINE_ARM_NUMBER = 9;
 
+typedef enum SERVOS{
+    VENTOUSE_DROITE = 0,
+    VENTOUSE_MILIEU = 1,
+    VENTOUSE_GAUCHE = 2,
+    VALVE = 3,
+    SERVO_VERTICAL_TRANSLATION = 16
+};
+
+int const SERVO_TUBE[3] = {VENTOUSE_DROITE, VENTOUSE_MILIEU, VENTOUSE_GAUCHE};
+
+
 ServoHandler::ServoHandler()
 {
 }
 
 
 void ServoHandler::openValve() {
-    maestro_.setPosition(VALVE_NUMBER, 1900);
+
+    maestro_.setPosition(VALVE, 0);
 }
 
 
 void ServoHandler::closeValve() {
-    maestro_.setPosition(VALVE_NUMBER, 1500);
+
+    maestro_.setPosition(VALVE, 7000);
 }
 
 
@@ -93,19 +104,15 @@ void ServoHandler::openTube(int tubeNumber)
 {
     if (tubeNumber < 0 || tubeNumber > 2)
         return;
-    maestro_.setPosition(SERVO_TUBE[tubeNumber], 1570);
+    maestro_.setPosition(SERVO_TUBE[tubeNumber], 0);
 }
 
 
 void ServoHandler::closeTube(int tubeNumber)
 {
-	switch(tubeNumber)
-	{
-		case 0: maestro_.setPosition(SERVO_TUBE[tubeNumber], 1865); break;
-		case 1: maestro_.setPosition(SERVO_TUBE[tubeNumber], 1865); break;
-		case 2: maestro_.setPosition(SERVO_TUBE[tubeNumber], 1820); break;
-		default: break;
-	}
+    if (tubeNumber < 0 || tubeNumber > 2)
+        return;
+    maestro_.setPosition(SERVO_TUBE[tubeNumber], 7000);
 }
 
 
@@ -165,7 +172,7 @@ void ServoHandler::moveMiddle()
         maestro_.setPosition(SERVO_SUCTION[0], 1700);
             maestro_.setPosition(SERVO_SUCTION[1], 1700);
         maestro_.setPosition(SERVO_SUCTION[2], 1700);
-    
+
 }
 
 

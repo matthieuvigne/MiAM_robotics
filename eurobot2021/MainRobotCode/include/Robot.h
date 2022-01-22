@@ -31,7 +31,6 @@
 
     #include "uCListener.h"
     #include "ServoHandler.h"
-    #include "Experiment.h"
     #include "LoggerFields.h"
 
     // Right and left macros, for array addressing.
@@ -239,12 +238,8 @@
             bool isServosInit_; ///< Boolean representing the initialization of the servo driving board.
             bool isArduinoInit_; ///< Boolean representing the initialization of the slave arduino board.
             bool isLidarInit_; ///< Boolean representing the initialization of the lidar.
-            bool hasExperimentStarted_; ///< Boolean defining if the experiment has successfully started.
             int score_; ///< Current robot score.
             std::mutex mutex_; ///< Mutex, for thread safety.
-
-            Experiment experiment_; ///< Experiment object.
-
 
             startupstatus startupStatus_; ///< Current startup status.
             int initMotorState_; ///< State of the motors during init.

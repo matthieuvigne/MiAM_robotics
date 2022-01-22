@@ -8,6 +8,8 @@
 
 #include "Robot.h"
 
+bool const TEST_MODE = true;
+bool const DISABLE_LIDAR = true;
 
 // Update loop frequency
 const double LOOP_PERIOD = 0.010;
@@ -15,8 +17,8 @@ const double LOOP_PERIOD = 0.010;
 const int START_SWITCH = 21;
 
 // Potentiometer
-const int MIAM_POTENTIOMETER_LOW_VALUE = 130;
-const int MIAM_POTENTIOMETER_HIGH_VALUE = 380;
+const int MIAM_POTENTIOMETER_LOW_VALUE = 45;
+const int MIAM_POTENTIOMETER_HIGH_VALUE = 250;
 const int MIAM_RAIL_TOLERANCE = 10;
 
 const int MIAM_RAIL_SERVO_ZERO_VELOCITY = 1450;
@@ -33,8 +35,6 @@ Robot::Robot():
     startupStatus_(startupstatus::INIT),
     initMotorState_(1),
     score_(5),  // Initial score: 5, for the experiment.
-    hasExperimentStarted_(false),
-    experiment_(),
     lidar_(M_PI_4),
     curvilinearAbscissa_(0.0),
     ignoreDetection_(false),
@@ -151,7 +151,7 @@ bool Robot::initSystem()
 
     if (!isServosInit_)
     {
-        isServosInit_ = servos_.init("/dev/ttyACM1");
+        isServosInit_ = servos_.init("/dev/ttyACM2");
         if (!isServosInit_)
         {
             #ifdef DEBUG
@@ -164,6 +164,8 @@ bool Robot::initSystem()
         }
     }
 
+    if (DISABLE_LIDAR)
+        isLidarInit_ = true;
     if (!isLidarInit_)
     {
         isLidarInit_ = lidar_.init("/dev/RPLIDAR");
@@ -172,8 +174,6 @@ bool Robot::initSystem()
             #ifdef DEBUG
                 std::cout << "[Robot] Failed to init communication with lidar driver." << std::endl;
             #endif
-            // Temporary: make lidar optional, robot can work without it.
-            allInitSuccessful = false;
             robot.screen_.setText("Failed to init", 0);
             robot.screen_.setText("lidar", 1);
             robot.screen_.setLCDBacklight(255, 0, 0);
@@ -202,6 +202,11 @@ bool Robot::setupBeforeMatchStart()
         bool isInit = initSystem();
         if (isInit)
         {
+            if (TEST_MODE)
+            {
+                isPlayingRightSide_ = false;
+                return true;
+            }
             startupStatus_ = startupstatus::WAITING_FOR_CABLE;
             robot.screen_.setText("Waiting for", 0);
             robot.screen_.setText("start switch", 1);
@@ -211,7 +216,6 @@ bool Robot::setupBeforeMatchStart()
                 servos_.openTube(i);
             servos_.foldArms();
             // Test motors.
-            std::cout << "here" << std::endl;
             robot.stepperMotors_.getError();
             std::vector<double> speed;
             motorSpeed_[0] = 150;
@@ -273,15 +277,8 @@ bool Robot::setupBeforeMatchStart()
             initMotorState_ = initMotorState_ % 2;
         }
 
-        // Line 1 : experiment status
-        if (experiment_.isConnected())
-            robot.screen_.setText("Xp: OK", 1);
-        else
-            robot.screen_.setText("Xp: NOT OK", 1);
-
         // If start button is pressed, return true to end startup.
-        //if (currentTime_ - matchStartTime_ > 0.5 && (RPi_readGPIO(START_SWITCH) == 1))
-        if (true)
+        if (currentTime_ - matchStartTime_ > 0.5 && (RPi_readGPIO(START_SWITCH) == 1))
         {
             robot.screen_.setText("", 0);
             robot.screen_.setText("", 1);
@@ -357,8 +354,6 @@ void Robot::lowLevelLoop()
                 // Start strategy thread.
                 strategyThread = std::thread(&matchStrategy);
                 strategyThread.detach();
-                // Start experiment.
-                //experiment_.start();
             }
 
         }
@@ -384,8 +379,15 @@ void Robot::lowLevelLoop()
         motorPosition_ = stepperMotors_.getPosition();
 
         // Update the lidar
-        nLidarPoints_ = lidar_.update();
-        coeff_ = avoidOtherRobots();
+        if (!DISABLE_LIDAR)
+        {
+            nLidarPoints_ = lidar_.update();
+            coeff_ = avoidOtherRobots();
+        }
+        else
+        {
+            coeff_ = 1.0;
+        }
         // Update leds.
         if (coeff_ == 0)
             screen_.turnOnLED(lcd::LEFT_LED);
@@ -416,17 +418,6 @@ void Robot::lowLevelLoop()
         // Get base speed
         currentBaseSpeed_ = kinematics_.forwardKinematics(instantWheelSpeedEncoder, true);
 
-        // Update lidar.
-        lidar_.update();
-
-        // Check experiment status.
-        if (!hasExperimentStarted_)
-        {
-            hasExperimentStarted_ = experiment_.hasStarted();
-            if (hasExperimentStarted_)
-                updateScore(35);
-        }
-
         // Update log.
         updateLog();
     }
@@ -434,7 +425,9 @@ void Robot::lowLevelLoop()
     std::cout << "Match end" << std::endl;
     pthread_cancel(strategyThread.native_handle());
     stopMotors();
-    lidar_.stop();
+
+    if (!DISABLE_LIDAR)
+        lidar_.stop();
 }
 
 
