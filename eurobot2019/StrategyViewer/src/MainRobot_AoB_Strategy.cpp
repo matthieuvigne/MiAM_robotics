@@ -259,3 +259,4 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     wasMoveSuccessful = robot.waitForTrajectoryFinished();
     robot.updateScore(20);
 
+}
