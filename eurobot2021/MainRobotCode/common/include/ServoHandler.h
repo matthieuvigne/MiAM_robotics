@@ -46,7 +46,7 @@
                 // Figurine speed
                 void figurineArmSpeedLow();
                 void figurineArmSpeedHigh();
-                
+
                 void moveSuction(bool high, bool moveMiddle = true);
                 void moveMiddle();
                 void moveMiddleSuctionForDrop(bool drop = false);

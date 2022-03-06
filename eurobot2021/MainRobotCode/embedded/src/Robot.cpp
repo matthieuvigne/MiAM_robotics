@@ -7,6 +7,7 @@
 #include <iomanip>
 
 #include "Robot.h"
+#include "Strategy.h"
 
 bool const TEST_MODE = true;
 bool const DISABLE_LIDAR = true;
@@ -352,7 +353,7 @@ void Robot::lowLevelLoop()
                 matchStartTime_ = currentTime_;
                 metronome.resetLag();
                 // Start strategy thread.
-                strategyThread = std::thread(&matchStrategy);
+                strategyThread = std::thread(&matchStrategy, static_cast<AbstractRobot*>(this), &servos_);
                 strategyThread.detach();
             }
 
@@ -503,11 +504,18 @@ double Robot::getMatchTime()
     return currentTime_ - matchStartTime_;
 }
 
-void Robot::updateScore(int scoreIncrement)
+void Robot::updateScore(int const& scoreIncrement)
 {
     mutex_.lock();
     score_ += scoreIncrement;
     mutex_.unlock();
     std::string text = "Score: " + std::to_string(score_);
     screen_.setText(text, 0);
+}
+
+void Robot::stopMotors()
+{
+    stepperMotors_.hardStop();
+    usleep(50000);
+    stepperMotors_.highZ();
 }

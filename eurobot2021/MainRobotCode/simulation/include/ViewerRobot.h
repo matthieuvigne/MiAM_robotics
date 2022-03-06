@@ -9,6 +9,9 @@
     #include <gtkmm.h>
     #include <iostream>
     #include <miam_utils/trajectory/Trajectory.h>
+    #include <miam_utils/AbstractRobot.h>
+
+    #include "ServoHandler.h"
 
     // Replay timestep.
     static double const TIMESTEP = 0.01;
@@ -32,12 +35,12 @@
         {}
     };
 
-    class ViewerRobot
+    class ViewerRobot: public AbstractRobot
     {
         public:
             /// \brief Constructor.
             ViewerRobot(std::string const& imageFileName,
-                        std::function<void(ViewerRobot &)> const& strategyFunction,
+                        std::function<void(AbstractRobot *, ServoHandler *)> const& strategyFunction,
                         double const& r = 1.0, double const& g = 0.0, double const& b = 0.0);
 
             /// \brief Get current robot position.
@@ -48,14 +51,14 @@
 
             /// \brief Mock trajectory following.
             /// \details Returns true on succes, false if obstacle was encounterd.
-            bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>>  trajectories) override;
+            bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories) override;
 
             /// \brief Mock trajectory following.
             /// \details Returns true on succes, false if obstacle was encounterd.
             bool waitForTrajectoryFinished() override;
 
             /// \brief Reset robot position (velocity is set to 0, this is mostly done for position reset and init).
-            void resetPosition(RobotPosition const& resetPosition, bool const& resetX = true, bool const& resetY = true, bool const& resetTheta = true);
+            void resetPosition(RobotPosition const& resetPosition, bool const& resetX = true, bool const& resetY = true, bool const& resetTheta = true) override;
 
             /// \brief Draw the robot and trajectory on the surface.
             void draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mmToCairo, int const& currentIndex);
@@ -67,7 +70,7 @@
             void padTrajectory(int const& desiredLength);
 
             ///< Function computing the strategy, for a given obstacle position.
-            std::function<void(ViewerRobot &)> const recomputeStrategyFunction_;
+            std::function<void(AbstractRobot *, ServoHandler *)> const recomputeStrategyFunction_;
 
             double obstacleX_;
             double obstacleY_;
@@ -75,6 +78,12 @@
 
             ///< Increment robot score.
             void updateScore(int const& scoreIncrement) override;
+
+            double getMatchTime() override;
+
+            void lowLevelLoop() override {};
+
+            void stopMotors() override {};
 
             ///< Reset robot score.
             void clearScore();

@@ -136,7 +136,7 @@
             /// \details This thread runs a periodic loop. At each iteration, it updates sensor values,
             ///          estimates the position of the robot on the table, and performs motor servoing.
             ///          It also logs everything in a log file.
-            void lowLevelLoop();
+            void lowLevelLoop() override;
 
             /// \brief Set a new target to the rail.
             ///
@@ -153,7 +153,9 @@
             /// \details This function increments the score then updates the display accordingly.
             ///
             /// \param[in] scoreIncrement Amount to increment the score, both positive or negative.
-            void updateScore(int scoreIncrement);
+            void updateScore(int const& scoreIncrement) override;
+
+            void stopMotors() override;
 
             // List of all system on the robot, public for easy external access (they might be moved latter on).
             ServoHandler servos_; ///< Interface for the servo driver.
@@ -210,6 +212,8 @@
             /// \param[in] dt Time since last servoing call, for PID controller.
             void updateMoveRail(double const& dt);
 
+            miam::L6470 stepperMotors_; ///< Robot driving motors.
+
             uCData microcontrollerData_; ///< Data structure containing informations from the arduino board.
             Logger logger_; ///< Logger object.
 
@@ -252,6 +256,4 @@
     };
 
     extern Robot robot;    ///< The robot instance, representing the current robot.
-
-    void matchStrategy(); ///< Robot strategy, to be run as a separate thread.
  #endif

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <limits>
 
 namespace miam{
     namespace trajectory{
@@ -44,8 +45,12 @@ namespace miam{
         double computeShortestAngle(RobotPosition startPoint, RobotPosition endPoint)
         {
             // Compute line angle.
-            double angle = std::atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x);
+            if (std::abs(endPoint.y - startPoint.y) < std::numeric_limits<double>::epsilon() && std::numeric_limits<double>::epsilon() < 0)
+            {
+                return 0;
+            }
 
+            double angle = std::atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x);
             // Return value in ]-pi, pi] of the original angle.
             return moduloTwoPi(angle - startPoint.theta);
         }
