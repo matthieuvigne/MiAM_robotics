@@ -15,9 +15,10 @@ namespace robotdimensions
 }
 
 // Robot dimension.
-double const CHASSIS_FRONT = 150.0;
-double const CHASSIS_BACK = 150.0;
+double const CHASSIS_FRONT = 115.0;
+double const CHASSIS_BACK = 121.0;
 double const CHASSIS_WIDTH = 150.0;
+double const SUCTION_CENTER = 180.0;
 
 
 void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
@@ -63,7 +64,7 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     wasMoveSuccessful = robot.waitForTrajectoryFinished();
     targetPosition = robot.getCurrentPosition();
     //Go back
-    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-180.0);
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-131.0);
     robot.setTrajectoryToFollow(traj);
     robot.updateScore(15);
     positions.clear();
@@ -84,11 +85,15 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     //**********************************************************
     // Go back to the side distributor
     //**********************************************************
-    //targetPosition = robot.getCurrentPosition();
-    //Go back
-    //traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-250.0);
-    //robot.setTrajectoryToFollow(traj);
-    //wasMoveSuccessful = robot.waitForTrajectoryFinished();
+    targetPosition = robot.getCurrentPosition();
+
+
+    std::cout << targetPosition << std::endl;
+
+    // Go back
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-250.0);
+    robot.setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot.waitForTrajectoryFinished();
 
     //**********************************************************
     // Round to the side distributor
@@ -97,12 +102,12 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     targetPosition = robot.getCurrentPosition();
     positions.push_back(targetPosition);
     //Rotate
-    targetPosition.x = 102+40+CHASSIS_WIDTH;
+    targetPosition.x = 102+40+CHASSIS_WIDTH+50;
     targetPosition.y = 500;
     positions.push_back(targetPosition);
     targetPosition.y = 800;
     positions.push_back(targetPosition);
-    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 150.0, 0.5);
     robot.setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot.waitForTrajectoryFinished();
     robot.updateScore(3); 
@@ -111,15 +116,40 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     //**********************************************************
     // Go to the display
     //**********************************************************
+
+
+    // go forward
+    targetPosition = robot.getCurrentPosition();
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition, 500.0);
+    robot.setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot.waitForTrajectoryFinished();
+
+    // then a little to the left
+    targetPosition = robot.getCurrentPosition();
+    endPosition = targetPosition;
+    endPosition.x = 100 + CHASSIS_WIDTH;
+    endPosition.y += 100;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(targetPosition,endPosition,0.0,false);
+    robot.setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot.waitForTrajectoryFinished();
+
+
+    // finally go straight
     positions.clear();
     targetPosition = robot.getCurrentPosition();
     endPosition.x = targetPosition.x ;
-    endPosition.y = 2000-40-CHASSIS_FRONT;
+    endPosition.y = 2000-40-CHASSIS_FRONT - 40;
     positions.push_back(targetPosition);
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(targetPosition,endPosition,0.0,false);
     robot.setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot.waitForTrajectoryFinished();
     robot.updateScore(15); 
+
+    // go back a little
+    targetPosition = robot.getCurrentPosition();
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-100.0);
+    robot.setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot.waitForTrajectoryFinished();
 
     //**********************************************************
     // Go to the side distributor
@@ -129,7 +159,7 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     positions.push_back(targetPosition);
     targetPosition.y = 1700 ;
     positions.push_back(targetPosition);
-    targetPosition.x = CHASSIS_FRONT + 40 ;
+    targetPosition.x = CHASSIS_FRONT + 40 + 20 ;
     positions.push_back(targetPosition);
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot.setTrajectoryToFollow(traj);
@@ -140,8 +170,8 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     // Go back to the gallery & side distributor
     //**********************************************************
     
-    targetPosition = robot.getCurrentPosition();
     //Go back
+    targetPosition = robot.getCurrentPosition();
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-1100.0);
     robot.setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot.waitForTrajectoryFinished();
@@ -150,17 +180,27 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     //**********************************************************
     // Rotate to the gallery
     //**********************************************************
+
+    double y_front_of_the_gallery = 2000- CHASSIS_FRONT - 100 - 60;
+
     positions.clear();
     targetPosition = robot.getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = 930;
+    targetPosition.y -= 150;
     positions.push_back(targetPosition);
-    targetPosition.y = 2000- CHASSIS_FRONT - 100 - 40 ;
+    targetPosition.y = y_front_of_the_gallery ;
     positions.push_back(targetPosition);
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot.setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot.waitForTrajectoryFinished();
     robot.updateScore(8); 
+
+    // go back a little
+    targetPosition = robot.getCurrentPosition();
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-100.0);
+    robot.setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot.waitForTrajectoryFinished();
 
     //**********************************************************
     // Go to the side distributor
@@ -200,14 +240,20 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     positions.clear();
     targetPosition = robot.getCurrentPosition();
     positions.push_back(targetPosition);
-    targetPosition.y = 2000- CHASSIS_FRONT - 100 - 40 ;
+    targetPosition.y = y_front_of_the_gallery ;
     positions.push_back(targetPosition);
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot.setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot.waitForTrajectoryFinished();
     robot.updateScore(9); 
+
+    // go back a little
+    targetPosition = robot.getCurrentPosition();
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-100.0);
+    robot.setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot.waitForTrajectoryFinished();
     
-         //**********************************************************
+    //**********************************************************
     // Rotate to the zone de fouille
     //**********************************************************
     positions.clear();
@@ -219,13 +265,20 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     targetPosition.x = 800;
     targetPosition.y = 450 ;
     positions.push_back(targetPosition);
-    targetPosition.x = 510 ;
-    targetPosition.y = 320 ;
+    targetPosition.x = 550 ;
+    targetPosition.y = 330 ;
     positions.push_back(targetPosition);
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot.setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot.waitForTrajectoryFinished();
     robot.updateScore(15); 
+
+
+    // go back a big little
+    targetPosition = robot.getCurrentPosition();
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-150.0);
+    robot.setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot.waitForTrajectoryFinished();
     
     //**********************************************************
     // Rotate to measure
@@ -234,7 +287,7 @@ void mainRobotAgeOfBotsStrategy(ViewerRobot &robot)
     targetPosition = robot.getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = 450;
-    targetPosition.y = CHASSIS_WIDTH + 40 ;
+    targetPosition.y = CHASSIS_WIDTH + 40 +20;
     positions.push_back(targetPosition);
     targetPosition.x = 1350;
     positions.push_back(targetPosition);
