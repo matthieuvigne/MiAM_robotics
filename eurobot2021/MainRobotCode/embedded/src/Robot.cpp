@@ -40,7 +40,8 @@ Robot::Robot():
     curvilinearAbscissa_(0.0),
     ignoreDetection_(false),
     askedForReset_(false),
-    avoidanceTimeout_(250)
+    avoidanceTimeout_(250),
+    servos_(&maestro_)
 {
     kinematics_ = DrivetrainKinematics(robotdimensions::wheelRadius,
                                       robotdimensions::wheelSpacing,

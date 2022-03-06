@@ -13,19 +13,6 @@ Glib::RefPtr<Gtk::Application> app;
 
 int main (int argc, char *argv[])
 {
-    bool isOldRobot = false;
-    if (argc > 1)
-    {
-        if (strcmp(argv[1], "old") == 0)
-            isOldRobot = true;
-        else
-        {
-            std::cout << argv[1] << std::endl;
-            std::cout << "Unknown argument. Usage: ./StrategyViewer [old]" << std::endl;
-            exit(-1);
-        }
-    }
-
     srand (time(NULL));
     app = Gtk::Application::create();
 

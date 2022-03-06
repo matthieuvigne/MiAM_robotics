@@ -48,7 +48,7 @@ bool ViewerRobot::followTrajectory(miam::trajectory::Trajectory *traj)
         viewerPoint.linearVelocity = currentPoint.linearVelocity;
         viewerPoint.angularVelocity = currentPoint.angularVelocity;
         viewerPoint.score = score_;
-
+        viewerPoint.servoState_ = servoMock_.getState();
         trajectory_.push_back(viewerPoint);
         currentTrajectoryTime += TIMESTEP;
     }
@@ -86,6 +86,7 @@ void ViewerRobot::resetPosition(RobotPosition const& resetPosition, bool const& 
         p.position.theta = resetPosition.theta;
     p.linearVelocity = 0.0;
     p.angularVelocity = 0.0;
+    p.servoState_ = servoMock_.getState();
     trajectory_.push_back(p);
 }
 
@@ -127,6 +128,40 @@ void ViewerRobot::draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mm
     cr->set_source_rgb(r_, g_, b_);
     cr->set_line_width(2.0);
     cr->stroke();
+
+    cr->set_line_width(3.0);
+    cr->set_font_size(20);
+    double const X = 3100;
+    double const Y = 700;
+    cr->save();
+    cr->translate(mmToCairo * X, mmToCairo * Y);
+
+    cr->move_to(0, 0);
+    cr->set_source_rgb(0.0, 0.0, 0.0);
+    cr->show_text("Servo state");
+
+    uint lenght = currentViewerPoint.servoState_.size();
+    for (uint i = 0; i < lenght; i++)
+    {
+        cr->move_to(0, mmToCairo * 70 * (1 + i));
+        cr->set_source_rgb(0.0, 0.0, 0.0);
+        cr->show_text(std::to_string(i));
+        cr->move_to(mmToCairo * 120, mmToCairo * 70 * (1 + i));
+        cr->set_source_rgb(1.0, 0.0, 0.0);
+        int const servoState = int(currentViewerPoint.servoState_[i]);
+        if (servoState == 0)
+        {
+            cr->set_source_rgb(1.0, 0.0, 0.0);
+            cr->show_text("OFF");
+        }
+        else
+        {
+            cr->set_source_rgb(0.0, 0.5, 0.0);
+            cr->show_text(std::to_string(servoState));
+        }
+        cr->stroke();
+    }
+    cr->restore();
 }
 
 
@@ -140,6 +175,7 @@ void ViewerRobot::padTrajectory(int const& desiredLength)
     ViewerTrajectoryPoint lastPoint = trajectory_.back();
     lastPoint.linearVelocity = 0.0;
     lastPoint.angularVelocity = 0.0;
+    lastPoint.servoState_ = servoMock_.getState();
     while(trajectory_.size() < desiredLength)
     {
         lastPoint.time += TIMESTEP;

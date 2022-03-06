@@ -187,7 +187,7 @@ void Viewer::recompute()
         r->obstacleX_ = obstacleX_;
         r->obstacleY_ = obstacleY_;
         r->obstacleSize_ = obstacleSize_;
-        r->recomputeStrategyFunction_(r, new ServoHandler());
+        r->recomputeStrategyFunction_(r, new ServoHandler(&(r->servoMock_)));
     }
     // Re-equalize time vectors.
     for(auto r : robots_)

@@ -38,55 +38,56 @@ typedef enum SERVOS{
 int const SERVO_TUBE[3] = {VENTOUSE_DROITE, VENTOUSE_MILIEU, VENTOUSE_GAUCHE};
 
 
-ServoHandler::ServoHandler()
+ServoHandler::ServoHandler(MaestroDriver *maestro):
+    maestro_(maestro)
 {
 }
 
 
 void ServoHandler::openValve() {
 
-    maestro_.setPosition(VALVE, 0);
+    maestro_->setPosition(VALVE, 0);
 }
 
 
 void ServoHandler::closeValve() {
 
-    maestro_.setPosition(VALVE, 7000);
+    maestro_->setPosition(VALVE, 7000);
 }
 
 
 void ServoHandler::electroMagnetOn() {
-    maestro_.setPosition(ELECTROMAGNET_NUMBER, 1900);
+    maestro_->setPosition(ELECTROMAGNET_NUMBER, 1900);
 }
 
 
 void ServoHandler::electroMagnetOff() {
-    maestro_.setPosition(ELECTROMAGNET_NUMBER, 1500);
+    maestro_->setPosition(ELECTROMAGNET_NUMBER, 1500);
 }
 
 
 void ServoHandler::figurineArmLow() {
-    maestro_.setPosition(FIGURINE_ARM_NUMBER, 750);
+    maestro_->setPosition(FIGURINE_ARM_NUMBER, 750);
 }
 
 
 void ServoHandler::figurineArmMiddle() {
-    maestro_.setPosition(FIGURINE_ARM_NUMBER, 1180);
+    maestro_->setPosition(FIGURINE_ARM_NUMBER, 1180);
 }
 
 
 void ServoHandler::figurineArmHigh() {
-    maestro_.setPosition(FIGURINE_ARM_NUMBER, 1500);
+    maestro_->setPosition(FIGURINE_ARM_NUMBER, 1500);
 }
 
 
 void ServoHandler::figurineArmSpeedLow() {
-    maestro_.setSpeed(FIGURINE_ARM_NUMBER, 500);
+    maestro_->setSpeed(FIGURINE_ARM_NUMBER, 500);
 }
 
 
 void ServoHandler::figurineArmSpeedHigh() {
-    maestro_.setSpeed(FIGURINE_ARM_NUMBER, 1900);
+    maestro_->setSpeed(FIGURINE_ARM_NUMBER, 1900);
 }
 
 
@@ -96,7 +97,7 @@ bool ServoHandler::init(std::string const& portName)
     RPi_setupGPIO(PUMP_PWM, PI_GPIO_OUTPUT);
     turnOffPump();
 
-    return maestro_.init(portName);
+    return maestro_->init(portName);
 }
 
 
@@ -104,7 +105,7 @@ void ServoHandler::openTube(int tubeNumber)
 {
     if (tubeNumber < 0 || tubeNumber > 2)
         return;
-    maestro_.setPosition(SERVO_TUBE[tubeNumber], 0);
+    maestro_->setPosition(SERVO_TUBE[tubeNumber], 0);
 }
 
 
@@ -112,26 +113,26 @@ void ServoHandler::closeTube(int tubeNumber)
 {
     if (tubeNumber < 0 || tubeNumber > 2)
         return;
-    maestro_.setPosition(SERVO_TUBE[tubeNumber], 7000);
+    maestro_->setPosition(SERVO_TUBE[tubeNumber], 7000);
 }
 
 
 void ServoHandler::tapOpen()
 {
-    maestro_.setPosition(SERVO_TAP, 1500);
+    maestro_->setPosition(SERVO_TAP, 1500);
 }
 
 
 void ServoHandler::tapClose()
 {
-    maestro_.setPosition(SERVO_TAP, 750);
+    maestro_->setPosition(SERVO_TAP, 750);
 }
 
 void ServoHandler::shutdownServos()
 {
 	for(int i = 0; i < 18; i++)
 	{
-		maestro_.setPosition(i, 0);
+		maestro_->setPosition(i, 0);
 		usleep(80);
 	}
 }
@@ -151,17 +152,17 @@ void ServoHandler::moveSuction(bool high, bool moveMiddle)
 {
     if(high)
     {
-        maestro_.setPosition(SERVO_SUCTION[0], 1800);
+        maestro_->setPosition(SERVO_SUCTION[0], 1800);
         if (moveMiddle)
-            maestro_.setPosition(SERVO_SUCTION[1], 1650);
-        maestro_.setPosition(SERVO_SUCTION[2], 1800);
+            maestro_->setPosition(SERVO_SUCTION[1], 1650);
+        maestro_->setPosition(SERVO_SUCTION[2], 1800);
     }
     else
     {
-        maestro_.setPosition(SERVO_SUCTION[0], 1100);
+        maestro_->setPosition(SERVO_SUCTION[0], 1100);
         if (moveMiddle)
-            maestro_.setPosition(SERVO_SUCTION[1], 1100);
-        maestro_.setPosition(SERVO_SUCTION[2], 1100);
+            maestro_->setPosition(SERVO_SUCTION[1], 1100);
+        maestro_->setPosition(SERVO_SUCTION[2], 1100);
     }
 }
 
@@ -169,64 +170,63 @@ void ServoHandler::moveSuction(bool high, bool moveMiddle)
 
 void ServoHandler::moveMiddle()
 {
-        maestro_.setPosition(SERVO_SUCTION[0], 1700);
-            maestro_.setPosition(SERVO_SUCTION[1], 1700);
-        maestro_.setPosition(SERVO_SUCTION[2], 1700);
+        maestro_->setPosition(SERVO_SUCTION[0], 1700);
+            maestro_->setPosition(SERVO_SUCTION[1], 1700);
+        maestro_->setPosition(SERVO_SUCTION[2], 1700);
 
 }
 
 
 void ServoHandler::moveSuctionForGoldDrop()
 {
-    maestro_.setPosition(SERVO_SUCTION[0], 1995);
-    maestro_.setPosition(SERVO_SUCTION[2], 1995);
+    maestro_->setPosition(SERVO_SUCTION[0], 1995);
+    maestro_->setPosition(SERVO_SUCTION[2], 1995);
 }
 
 void ServoHandler::moveMiddleSuctionForDrop(bool drop)
 {
-    maestro_.setPosition(SERVO_SUCTION[0], 2200);
+    maestro_->setPosition(SERVO_SUCTION[0], 2200);
     if (drop)
-        maestro_.setPosition(SERVO_SUCTION[1], 1725);
+        maestro_->setPosition(SERVO_SUCTION[1], 1725);
     else
-        maestro_.setPosition(SERVO_SUCTION[1], 1800);
-    maestro_.setPosition(SERVO_SUCTION[2], 2200);
+        maestro_->setPosition(SERVO_SUCTION[1], 1800);
+    maestro_->setPosition(SERVO_SUCTION[2], 2200);
 }
 
 
 void ServoHandler::moveRail(int velocity)
 {
-    maestro_.setPosition(SERVO_VERTICAL_TRANSLATION, velocity);
+    maestro_->setPosition(SERVO_VERTICAL_TRANSLATION, velocity);
 }
 
 
 void ServoHandler::foldArms()
 {
-    maestro_.setPosition(5, 850);
-    maestro_.setPosition(4, 2000);
+    maestro_->setPosition(5, 850);
+    maestro_->setPosition(4, 2000);
 }
 
 
 void ServoHandler::unfoldArms(bool isPlayingRightSide)
 {
     if (!isPlayingRightSide)
-        maestro_.setPosition(5, 1585);
+        maestro_->setPosition(5, 1585);
     else
-        maestro_.setPosition(4, 1300);
+        maestro_->setPosition(4, 1300);
 }
 
 void ServoHandler::raiseArms(bool isPlayingRightSide)
 {
     if (!isPlayingRightSide)
-        maestro_.setPosition(5, 1900);
+        maestro_->setPosition(5, 1900);
     else
-        maestro_.setPosition(4, 1000);
+        maestro_->setPosition(4, 1000);
 }
 
 void ServoHandler::moveArmForDrop(bool isPlayingRightSide)
 {
     if (!isPlayingRightSide)
-        maestro_.setPosition(5, 1715);
+        maestro_->setPosition(5, 1715);
     else
-        maestro_.setPosition(4, 1170);
+        maestro_->setPosition(4, 1170);
 }
-

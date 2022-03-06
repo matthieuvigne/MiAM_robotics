@@ -12,6 +12,7 @@
     #include <miam_utils/AbstractRobot.h>
 
     #include "ServoHandler.h"
+    #include "MaestroMock.h"
 
     // Replay timestep.
     static double const TIMESTEP = 0.01;
@@ -25,13 +26,15 @@
         double linearVelocity;
         double angularVelocity;
         int score; ///< Current robot score.
+        std::vector<double> servoState_;
 
         ViewerTrajectoryPoint():
             time(0.0),
             position(),
             linearVelocity(0.0),
             angularVelocity(0.0),
-            score(0)
+            score(0),
+            servoState_(std::vector<double>(18, 0.0))
         {}
     };
 
@@ -95,8 +98,10 @@
             }
 
             std::vector<ViewerTrajectoryPoint> trajectory_;
+            MaestroMock servoMock_;
         private:
             bool followTrajectory(miam::trajectory::Trajectory * traj); ///< Perform actual trajectory following.
+
 
             Glib::RefPtr<Gdk::Pixbuf> image_;
 

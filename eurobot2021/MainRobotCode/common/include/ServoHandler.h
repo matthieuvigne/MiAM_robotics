@@ -12,7 +12,7 @@
         {
             public:
                 /// \brief Constructor
-                ServoHandler();
+                ServoHandler(MaestroDriver *maestro);
 
                 /// \brief Initialize communication with the Maestro servo driver.
                 ///
@@ -58,7 +58,9 @@
                 void raiseArms(bool isPlayingRightSide);
                 void moveArmForDrop(bool isPlayingRightSide);
                 void moveSuctionForGoldDrop();
+
+                void setMaestro(MaestroDriver & maestro);
             private:
-                MaestroDriver maestro_;
+                MaestroDriver * maestro_;
         };
  #endif

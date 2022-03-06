@@ -159,6 +159,7 @@
 
             // List of all system on the robot, public for easy external access (they might be moved latter on).
             ServoHandler servos_; ///< Interface for the servo driver.
+            MaestroDriver maestro_;
             USBLCD screen_; ///< LCD screen and buttons.
             RPLidarHandler lidar_; ///< Lidar
 
