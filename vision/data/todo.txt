@@ -1,0 +1,92 @@
+Récupérer l'image de la caméra
+------------------------------
+- Connecter le module de caméra
+- Activer le module dans le menu de configuration de la Raspberry Pi
+- Redémarrer la Raspberry
+- Utilisation avec ligne de commande
+  * Prendre une photo : raspistill -o <filename>.png -w <width> -h <height>
+  * Prendre une vidéo : raspivid -o <filename>.h264
+- Utilisation avec l'interface OpenCV en C++ :
+  * Utiliser RaspiCam++ (mêmes développeurs que le module AruCo)
+  * Utiliser l'interface OpenCv :
+
+Vérifier comment attacher plusieurs caméras sur la Raspberry Pi
+---------------------------------------------------------------
+Plusieurs solutions : https://www.arducam.com/docs/cameras-for-raspberry-pi/multi-camera-adapter-board/introduction/
+- Raspberry Pi Compute Module : 
+https://www.amazon.fr/Waveshare-Raspberry-Development-Reference-Base-Board/dp/B08PVLH3PZ/ref=pd_sbs_1/261-6246947-6807600?pd_rd_w=zhi9g&pf_rd_p=075589f6-3852-493e-aff6-e210133e3ed2&pf_rd_r=CAV2RS6CMKTY3V2A89FR&pd_rd_r=82e2a3ec-5c71-4631-888d-e713604b62a5&pd_rd_wg=sWmWX&pd_rd_i=B08PVLH3PZ&th=1
+- Arducam Multi Camera Adapter Module (multiplexeur)
+- USB webcams -> caméra USB pour Raspberry Pi et NVIDIA :
+https://www.robotshop.com/eu/fr/camera-usb-pour-raspberry-pi-nvidia.html?gclid=Cj0KCQiA3fiPBhCCARIsAFQ8QzXqS9tuJyK1wUJ4kVpM3W8Rmki_59y01L5SA4sdx3m0ag_fp-2XW6IaAhefEALw_wcB
+=> Caméras USB semblent être la meilleure solution (en commander x2 ou x3)
+Recherche : "usb camera raspberry pi"
+- https://www.gotronic.fr/art-camera-usb-b0200-33022.htm
+Pour le placement des caméras, vérifier quelle ouverture angulaire diagonale est nécessaire pour
+avoir une vision suffisante du terrain de jeu.
+
+Ajouter un fichier pour vérifier les dépendences du module
+----------------------------------------------------------
+- TODO
+
+Quel design, interface et utilisation pour le module final ?
+------------------------------------------------------------
+- Alimentation : où mettre la batterie ?
+- Connexion Wifi avec le robot
+- Calibration des caméras
+- Détection des marqueurs dans les images
+=> Prévoir une pré-CAO avec le boîtier pour les caméras (pièce à imprimer en 3D ?)
+=> Communication uniquement en Wifi depuis le robot ou un ordinateur externe, ou bien avec
+un clavier et autres éléments extérieurs ? Le mieux serait qu'on puisse s'y connecter en Wifi
+avec le programme lancé depuis le Bios, et qu'il puisse recevoir des requêtes sous forme de
+commandes lancées par un utilisateur connecté en Wifi sur la carte.
+=> Revoir sur le réglement les spécifications de ce module.
+
+Relire les règles de conception
+-------------------------------
+Dispositif de repérage central
+- placée à 1 mètre de hauteur au-dessus de l'aire de jeu
+- tolérance 6cm au-dessus et en-dessous de la plateforme
+- déport de 6cm autorisé vers l'avant, l'arrière et le bord non partagé avec l'adversaire
+- masse inférieure à 2kg
+- épaisseur de la plateforme de fixation = 22mm
+- obligation d'un système de fixation : plateforme percée d'une rainure de 10mm de large
+  obligation d'utiliser une tige filetée de 8mm de diamètre et un écrou papillon pour sécuriser
+  le dispositif de repérage sur sa plateforme.
+- Dimensions du support de balise : 189mm de large, 200mm de profondeur avec la rainure de 10mm
+  de large au centre, 22mm d'épaisseur.
+- Déterminer également les positions des caméras en fonction de leur ouverture, de telles sortes
+  que tous les points du terrain soient visibles depuis les caméras.
+Taille des tags des robots : 7cm de côté, donc 640*480 devrait suffire.
+Balise à 430mm par rapport à l'aire de jeu.
+
+TODO
+----
+- Conception mécanique du module : fixations, disposition des caméras, batteries
+- Code pour récupérer les images des caméras, détecter les marqueurs, les trier selon les
+  informations disponibles du réglement, et appliquer les actions de traitement nécessaire,
+  puis transmettre le message par wifi (échange de sockets).
+=> Il faudrait coder un objet server à part entière, ainsi qu'un objet client dédié. Les deux
+   présenteraient des mutex à locker pour lire ou écrire sur leurs buffers. Cela permettrait une
+   interface claire.
+
+Principe de la communication par socket (TCP/IP)
+------------------------------------------------
+    Socket: Create a new communication
+    Bind: Attach a local address to a socket
+    Listen: Announce willingness to accept connections
+    Accept: Block caller until a connection request arrives
+    Connect: Actively attempt to establish a connection
+    Send: Send some data over a connection
+    Receive: Receive some data over a connection
+    Close: Release the connection
+
+Alimentation
+------------
+- Utiliser une batterie portable pour la Raspberry = plus simple
+- Préférer une seule caméra grand angle
+
+Gestion des interactions client/serveur
+---------------------------------------
+- Un seul server qui diffuse à tous les clients qui se branchent dessus. Regarder :
+  https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading/
+  
