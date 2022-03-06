@@ -213,9 +213,10 @@ bool Robot::setupBeforeMatchStart()
             robot.screen_.setText("Waiting for", 0);
             robot.screen_.setText("start switch", 1);
             robot.screen_.setLCDBacklight(255, 255, 255);
+            servos_.figurineArmLow();
             servos_.moveSuction(true);
-            for (int i = 0; i < 3; i++)
-                servos_.openTube(i);
+/*             for (int i = 0; i < 3; i++)
+                servos_.openTube(i); */
             servos_.foldArms();
             // Test motors.
             robot.stepperMotors_.getError();

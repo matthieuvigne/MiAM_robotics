@@ -23,6 +23,42 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
 {
     std::cout << "Strategy thread started." << std::endl;
 
+    //while(true) {
+
+        /* servo->ouvrirlesbrasdebugbas();
+        std::cout << "bas" << std::endl;
+        usleep(2000000);
+
+        servo->ouvrirlesbrasdebugmilieu();
+        std::cout << "milieu" << std::endl;
+        usleep(2000000);
+
+        servo->ouvrirlesbrasdebughaut();
+        std::cout << "haut" << std::endl;
+        usleep(2000000); */
+
+        /* servo->figurineArmMiddle();
+        std::cout << "milieu" << std::endl;
+        usleep(2000000); */
+/*         usleep(5000000);
+
+
+        servo->figurineArmHigh();
+        std::cout << "haut" << std::endl;
+        usleep(2000000);
+
+        servo->figurineArmLow();
+        std::cout << "bas" << std::endl;
+        usleep(2000000); */
+
+
+    //}
+    
+
+    //while(true) {
+        //std::cout << "waiting" << std::endl;
+        //usleep(100000);
+    //}
 
     // Update config.
     miam::trajectory::setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
@@ -35,7 +71,7 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
     bool wasMoveSuccessful = true;
-    robot->updateScore(2);
+    robot->updateScore(2); 
 
     // Set initial position
     targetPosition.x = CHASSIS_BACK;
@@ -44,7 +80,7 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     robot->resetPosition(targetPosition, true, true, true);
 
     //**********************************************************
-    // Go get the statue
+    // Go get the statue 
     //**********************************************************
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -77,8 +113,8 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.2);
     robot->setTrajectoryToFollow(traj);
     robot->updateScore(15);
-    robot->updateScore(15);
-
+    robot->updateScore(15); 
+    
     //**********************************************************
     // Go back to the side distributor
     //**********************************************************
@@ -107,8 +143,8 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 150.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(3);
-
+    robot->updateScore(3); 
+    
 
     //**********************************************************
     // Go to the display
@@ -140,7 +176,7 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(targetPosition,endPosition,0.0,false);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(15);
+    robot->updateScore(15); 
 
     // go back a little
     targetPosition = robot->getCurrentPosition();
@@ -161,18 +197,18 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(1);
+    robot->updateScore(1); 
 
     //**********************************************************
     // Go back to the gallery & side distributor
     //**********************************************************
-
+    
     //Go back
     targetPosition = robot->getCurrentPosition();
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-1100.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(3);
+    robot->updateScore(3); 
 
     //**********************************************************
     // Rotate to the gallery
@@ -191,7 +227,7 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(8);
+    robot->updateScore(8); 
 
     // go back a little
     targetPosition = robot->getCurrentPosition();
@@ -212,8 +248,8 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     //traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     //robot->setTrajectoryToFollow(traj);
     //wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    //robot->updateScore(15);
-
+    //robot->updateScore(15); 
+    
      //**********************************************************
     // Go to the central zone
     //**********************************************************
@@ -229,8 +265,8 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(15);
-
+    robot->updateScore(15); 
+    
      //**********************************************************
     // Rotate to the gallery
     //**********************************************************
@@ -242,14 +278,14 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(9);
+    robot->updateScore(9); 
 
     // go back a little
     targetPosition = robot->getCurrentPosition();
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-100.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
+    
     //**********************************************************
     // Rotate to the zone de fouille
     //**********************************************************
@@ -262,13 +298,13 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     targetPosition.x = 800;
     targetPosition.y = 450 ;
     positions.push_back(targetPosition);
-    targetPosition.x = 550 ;
-    targetPosition.y = 330 ;
+    targetPosition.x = 450 ;
+    targetPosition.y = 220 ;
     positions.push_back(targetPosition);
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(15);
+    robot->updateScore(15); 
 
 
     // go back a big little
@@ -276,7 +312,7 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-150.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
+    
     //**********************************************************
     // Rotate to measure
     //**********************************************************
@@ -291,8 +327,8 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(40);
-
+    robot->updateScore(40); 
+    
     //**********************************************************
     // Rotate to come back to the campment
     //**********************************************************

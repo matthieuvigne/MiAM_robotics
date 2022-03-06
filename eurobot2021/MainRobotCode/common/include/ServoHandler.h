@@ -20,12 +20,18 @@
                 /// \returns   true on success, false otherwise.
                 bool init(std::string const& portName);
 
+                void ouvrirlesbrasdebugmilieu();
+
+                void ouvrirlesbrasdebugbas();
+
+                void ouvrirlesbrasdebughaut();
+
                 // Valve control
                 void openValve();
                 void closeValve();
 
-                void openTube(int tubeNumber); ///< Open suction air tube.
-                void closeTube(int tubeNumber); ///< Close suction air tube.
+/*                 void openTube(int tubeNumber); ///< Open suction air tube.
+                void closeTube(int tubeNumber); ///< Close suction air tube. */
 
                 void tapOpen(); ///< Open air tap.
                 void tapClose(); ///< Close air tap.

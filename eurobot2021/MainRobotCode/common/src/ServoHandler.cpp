@@ -22,21 +22,29 @@ int const SP_TAP_CLOSE  = 1000;
 
 int const PUMP_PWM = 26;
 
-int const VALVE_NUMBER = 17;
+int const VALVE_RIGHT = 0;
+int const VALVE_CENTER = 1;
+int const VALVE_LEFT = 2;
 
-int const ELECTROMAGNET_NUMBER = 17;
-int const FIGURINE_ARM_NUMBER = 9;
+
+int const ELECTROMAGNET_NUMBER = 4;
+int const FIGURINE_ARM_NUMBER = 14;
 
 typedef enum SERVOS{
-    VENTOUSE_DROITE = 0,
-    VENTOUSE_MILIEU = 1,
-    VENTOUSE_GAUCHE = 2,
-    VALVE = 3,
-    SERVO_VERTICAL_TRANSLATION = 16
+    VENTOUSE_DROITE = 6,
+    VENTOUSE_MILIEU = 7,
+    VENTOUSE_GAUCHE = 8 ,
+    //VALVE = 3,
+    SERVO_VERTICAL_TRANSLATION = 9
 };
 
-int const SERVO_TUBE[3] = {VENTOUSE_DROITE, VENTOUSE_MILIEU, VENTOUSE_GAUCHE};
+//int const SERVO_TUBE[3] = {VENTOUSE_DROITE, VENTOUSE_MILIEU, VENTOUSE_GAUCHE};
 
+int const RIGHT_ARM = 10;
+int const LEFT_ARM = 12;
+
+int const RIGHT_FINGER = 11;
+int const LEFT_FINGER = 13;
 
 ServoHandler::ServoHandler(MaestroDriver *maestro):
     maestro_(maestro)
@@ -44,7 +52,39 @@ ServoHandler::ServoHandler(MaestroDriver *maestro):
 }
 
 
-void ServoHandler::openValve() {
+void ServoHandler::ouvrirlesbrasdebugmilieu() {
+
+    // maestro_->setPosition(RIGHT_ARM, 1500);
+    maestro_->setPosition(VENTOUSE_DROITE, 1500);
+    maestro_->setPosition(RIGHT_FINGER, 1500);
+    // maestro_->setPosition(VENTOUSE_MILIEU, 1500);
+    // maestro_->setPosition(VENTOUSE_GAUCHE, 1500);
+    // maestro_->setPosition(LEFT_ARM, 1500);
+}
+
+
+void ServoHandler::ouvrirlesbrasdebugbas() {
+
+    // maestro_->setPosition(RIGHT_ARM, 1980);
+    maestro_->setPosition(VENTOUSE_DROITE, 1980);
+    maestro_->setPosition(RIGHT_FINGER, 1980);
+    // maestro_->setPosition(VENTOUSE_MILIEU, 1980);
+    // maestro_->setPosition(VENTOUSE_GAUCHE, 1980);
+    // maestro_->setPosition(LEFT_ARM, 1020);
+}
+
+
+void ServoHandler::ouvrirlesbrasdebughaut() {
+
+    // maestro_->setPosition(RIGHT_ARM, 1020);
+    maestro_->setPosition(VENTOUSE_DROITE, 1020);
+    maestro_->setPosition(RIGHT_FINGER, 1020);
+    // maestro_->setPosition(VENTOUSE_MILIEU, 1020);
+    // maestro_->setPosition(VENTOUSE_GAUCHE, 1020);
+    // maestro_->setPosition(LEFT_ARM, 1980);
+}
+
+/* void ServoHandler::openValve() {
 
     maestro_->setPosition(VALVE, 0);
 }
@@ -53,8 +93,8 @@ void ServoHandler::openValve() {
 void ServoHandler::closeValve() {
 
     maestro_->setPosition(VALVE, 7000);
-}
-
+    maestro_->setPosition(VALVE, 7000);
+} */
 
 void ServoHandler::electroMagnetOn() {
     maestro_->setPosition(ELECTROMAGNET_NUMBER, 1900);
@@ -67,7 +107,7 @@ void ServoHandler::electroMagnetOff() {
 
 
 void ServoHandler::figurineArmLow() {
-    maestro_->setPosition(FIGURINE_ARM_NUMBER, 750);
+    maestro_->setPosition(FIGURINE_ARM_NUMBER, 900);
 }
 
 
@@ -77,7 +117,7 @@ void ServoHandler::figurineArmMiddle() {
 
 
 void ServoHandler::figurineArmHigh() {
-    maestro_->setPosition(FIGURINE_ARM_NUMBER, 1500);
+    maestro_->setPosition(FIGURINE_ARM_NUMBER, 1850);
 }
 
 
@@ -101,7 +141,7 @@ bool ServoHandler::init(std::string const& portName)
 }
 
 
-void ServoHandler::openTube(int tubeNumber)
+/* void ServoHandler::openTube(int tubeNumber)
 {
     if (tubeNumber < 0 || tubeNumber > 2)
         return;
@@ -114,7 +154,7 @@ void ServoHandler::closeTube(int tubeNumber)
     if (tubeNumber < 0 || tubeNumber > 2)
         return;
     maestro_->setPosition(SERVO_TUBE[tubeNumber], 7000);
-}
+} */
 
 
 void ServoHandler::tapOpen()

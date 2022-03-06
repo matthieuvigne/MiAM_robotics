@@ -18,9 +18,9 @@ Robot robot;
 // Stop motor before exit.
 void killCode(int x)
 {
-    robot.servos_.openTube(0);
+/*     robot.servos_.openTube(0);
     robot.servos_.openTube(1);
-    robot.servos_.openTube(2);
+    robot.servos_.openTube(2); */
     robot.servos_.tapOpen();
     robot.servos_.shutdownServos();
     robot.servos_.turnOffPump();
