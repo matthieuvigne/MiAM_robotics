@@ -9,9 +9,9 @@
 // Build window from Glade.
 Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade, std::string const& tableImagePath) :
     Gtk::Window(cobject),
-    obstacleSize_(200),
     obstacleX_(-500),
     obstacleY_(-500),
+    obstacleSize_(200),
     mmToCairo_(1.0),
     originX_(0.0),
     originY_(0.0)
@@ -187,7 +187,7 @@ void Viewer::recompute()
         r->obstacleX_ = obstacleX_;
         r->obstacleY_ = obstacleY_;
         r->obstacleSize_ = obstacleSize_;
-        r->recomputeStrategyFunction_(r, new ServoHandler(&(r->servoMock_)));
+        r->recomputeStrategyFunction_(r, &(r->handler_));
     }
     // Re-equalize time vectors.
     for(auto r : robots_)

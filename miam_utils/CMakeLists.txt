@@ -8,6 +8,7 @@ set(PROJECT_DESCRIPTION "C++ utility library to use a Beaglebone Black / Raspber
 # If compiling for the current computer, _intel is appended to the library name.
 
 option(CROSS_COMPILE "True to cross compile to arm, false to compile on current platform" ON)
+option(UNIT_TESTS "Enable unit tests (ignored when cross-compiling)" OFF)
 
 # Set compiler and library name.
 
@@ -16,7 +17,9 @@ if(CROSS_COMPILE)
     set(LIBRARY_NAME ${PROJECT_NAME}_arm)
 else()
     # Add unit test only if not cross-compiling
-    add_subdirectory(unit)
+    if(UNIT_TESTS)
+        add_subdirectory(unit)
+    endif()
     set(CMAKE_CXX_COMPILER "g++")
     set(LIBRARY_NAME ${PROJECT_NAME})
 endif()

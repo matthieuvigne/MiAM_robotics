@@ -5,7 +5,7 @@
 
 #ifndef PARAMETERS_H
     #define PARAMETERS_H
-        #include <miam_utils/drivers/MaestroServoDriver.h>
+        #include <math.h>
 
         // Dimensions of the robot
         namespace robotdimensions
@@ -23,5 +23,52 @@
 
             double const maxWheelSpeedTrajectory = 400; ///< Maximum wheel speed, in mm/s, for trajectory generation.
             double const maxWheelAccelerationTrajectory = 400; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
+
+            // Chassis physical dimensions
+            double const CHASSIS_FRONT = 115.0;
+            double const CHASSIS_BACK = 121.0;
+            double const CHASSIS_WIDTH = 150.0;
+            double const SUCTION_CENTER = 180.0;
         }
+
+
+        // Servo configuration
+        enum SERVOS
+        {
+            VALVE_RIGHT = 0,
+            VALVE_CENTER = 1,
+            VALVE_LEFT = 2,
+            TAP = 3,
+            MAGNET = 4,
+            SUCTION_RIGHT = 6,
+            SUCTION_CENTER = 7,
+            SUCTION_LEFT = 8,
+            ELEVATOR = 9,
+            RIGHT_ARM = 10,
+            RIGHT_FINGER = 11,
+            LEFT_ARM = 12,
+            LEFT_FINGER = 13,
+            STATUE = 14
+        };
+
+        std::string const SERVO_NAMES[18] = {
+            "Valve right",
+            "Valve center",
+            "Valve left",
+            "Tap",
+            "Magnet",
+            "",
+            "Suction right",
+            "Suction center",
+            "Suction left",
+            "Elevator",
+            "Right arm",
+            "Right finger",
+            "Left arm",
+            "Left finger",
+            "Statue",
+            "",
+            "",
+            ""
+        };
  #endif

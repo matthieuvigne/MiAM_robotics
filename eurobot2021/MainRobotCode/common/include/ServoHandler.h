@@ -33,9 +33,6 @@
 /*                 void openTube(int tubeNumber); ///< Open suction air tube.
                 void closeTube(int tubeNumber); ///< Close suction air tube. */
 
-                void tapOpen(); ///< Open air tap.
-                void tapClose(); ///< Close air tap.
-
                 void shutdownServos(); ///< Turn off all servos.
 
                 void turnOnPump();
@@ -66,6 +63,7 @@
                 void moveSuctionForGoldDrop();
 
                 void setMaestro(MaestroDriver & maestro);
+                bool isPumpOn_;
             private:
                 MaestroDriver * maestro_;
         };

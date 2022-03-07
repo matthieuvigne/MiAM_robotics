@@ -2,63 +2,39 @@
 /// \copyright GNU GPLv3
 #include <miam_utils/raspberry_pi/RPiGPIO.h>
 #include "ServoHandler.h"
+#include "Parameters.h"
 #include <unistd.h>
-
-// Servo config: port defintion.
-int const SERVO_SUCTION[3] = {0, 1, 2};    // Numbered from right to left.
-
-int const SERVO_TAP = 12;
-
-// Temporary.
-/// \brief Servo position definition.
-//~ int const SP_SUCTION_HIGH = {1500, 1500, 1500};
-//~ int const SP_SUCTION_LOW = {1500, 1500, 1500};
-
-//~ int const SP_TUBE_OPEN = {1500, 1500, 1500};
-//~ int const SP_TUBE_CLOSE = {1500, 1500, 1500};
-
-int const SP_TAP_OPEN  = 1000;
-int const SP_TAP_CLOSE  = 1000;
 
 int const PUMP_PWM = 26;
 
-int const VALVE_RIGHT = 0;
-int const VALVE_CENTER = 1;
-int const VALVE_LEFT = 2;
-
-
-int const ELECTROMAGNET_NUMBER = 4;
-int const FIGURINE_ARM_NUMBER = 14;
-
-typedef enum SERVOS{
-    VENTOUSE_DROITE = 6,
-    VENTOUSE_MILIEU = 7,
-    VENTOUSE_GAUCHE = 8 ,
-    //VALVE = 3,
-    SERVO_VERTICAL_TRANSLATION = 9
-};
-
-//int const SERVO_TUBE[3] = {VENTOUSE_DROITE, VENTOUSE_MILIEU, VENTOUSE_GAUCHE};
-
-int const RIGHT_ARM = 10;
-int const LEFT_ARM = 12;
-
-int const RIGHT_FINGER = 11;
-int const LEFT_FINGER = 13;
+static int const SERVO_SUCTION[3] = {SUCTION_RIGHT, SUCTION_CENTER, SUCTION_LEFT};
 
 ServoHandler::ServoHandler(MaestroDriver *maestro):
+    isPumpOn_(false),
     maestro_(maestro)
 {
+}
+
+
+bool ServoHandler::init(std::string const& portName)
+{
+    // Enable pump GPIO.
+    #ifndef SIMULATION
+    RPi_setupGPIO(PUMP_PWM, PI_GPIO_OUTPUT);
+    #endif
+    turnOffPump();
+
+    return maestro_->init(portName);
 }
 
 
 void ServoHandler::ouvrirlesbrasdebugmilieu() {
 
     // maestro_->setPosition(RIGHT_ARM, 1500);
-    maestro_->setPosition(VENTOUSE_DROITE, 1500);
+    maestro_->setPosition(SUCTION_RIGHT, 1500);
     maestro_->setPosition(RIGHT_FINGER, 1500);
-    // maestro_->setPosition(VENTOUSE_MILIEU, 1500);
-    // maestro_->setPosition(VENTOUSE_GAUCHE, 1500);
+    // maestro_->setPosition(SUCTION_MILIEU, 1500);
+    // maestro_->setPosition(SUCTION_LEFT, 1500);
     // maestro_->setPosition(LEFT_ARM, 1500);
 }
 
@@ -66,10 +42,10 @@ void ServoHandler::ouvrirlesbrasdebugmilieu() {
 void ServoHandler::ouvrirlesbrasdebugbas() {
 
     // maestro_->setPosition(RIGHT_ARM, 1980);
-    maestro_->setPosition(VENTOUSE_DROITE, 1980);
+    maestro_->setPosition(SUCTION_RIGHT, 1980);
     maestro_->setPosition(RIGHT_FINGER, 1980);
-    // maestro_->setPosition(VENTOUSE_MILIEU, 1980);
-    // maestro_->setPosition(VENTOUSE_GAUCHE, 1980);
+    // maestro_->setPosition(SUCTION_MILIEU, 1980);
+    // maestro_->setPosition(SUCTION_LEFT, 1980);
     // maestro_->setPosition(LEFT_ARM, 1020);
 }
 
@@ -77,10 +53,10 @@ void ServoHandler::ouvrirlesbrasdebugbas() {
 void ServoHandler::ouvrirlesbrasdebughaut() {
 
     // maestro_->setPosition(RIGHT_ARM, 1020);
-    maestro_->setPosition(VENTOUSE_DROITE, 1020);
+    maestro_->setPosition(SUCTION_RIGHT, 1020);
     maestro_->setPosition(RIGHT_FINGER, 1020);
-    // maestro_->setPosition(VENTOUSE_MILIEU, 1020);
-    // maestro_->setPosition(VENTOUSE_GAUCHE, 1020);
+    // maestro_->setPosition(SUCTION_MILIEU, 1020);
+    // maestro_->setPosition(SUCTION_LEFT, 1020);
     // maestro_->setPosition(LEFT_ARM, 1980);
 }
 
@@ -97,47 +73,37 @@ void ServoHandler::closeValve() {
 } */
 
 void ServoHandler::electroMagnetOn() {
-    maestro_->setPosition(ELECTROMAGNET_NUMBER, 1900);
+    maestro_->setPosition(MAGNET, 1900);
 }
 
 
 void ServoHandler::electroMagnetOff() {
-    maestro_->setPosition(ELECTROMAGNET_NUMBER, 1500);
+    maestro_->setPosition(MAGNET, 1500);
 }
 
 
 void ServoHandler::figurineArmLow() {
-    maestro_->setPosition(FIGURINE_ARM_NUMBER, 900);
+    maestro_->setPosition(STATUE, 900);
 }
 
 
 void ServoHandler::figurineArmMiddle() {
-    maestro_->setPosition(FIGURINE_ARM_NUMBER, 1180);
+    maestro_->setPosition(STATUE, 1180);
 }
 
 
 void ServoHandler::figurineArmHigh() {
-    maestro_->setPosition(FIGURINE_ARM_NUMBER, 1850);
+    maestro_->setPosition(STATUE, 1850);
 }
 
 
 void ServoHandler::figurineArmSpeedLow() {
-    maestro_->setSpeed(FIGURINE_ARM_NUMBER, 500);
+    maestro_->setSpeed(STATUE, 500);
 }
 
 
 void ServoHandler::figurineArmSpeedHigh() {
-    maestro_->setSpeed(FIGURINE_ARM_NUMBER, 1900);
-}
-
-
-bool ServoHandler::init(std::string const& portName)
-{
-    // Enable pump GPIO.
-    RPi_setupGPIO(PUMP_PWM, PI_GPIO_OUTPUT);
-    turnOffPump();
-
-    return maestro_->init(portName);
+    maestro_->setSpeed(STATUE, 1900);
 }
 
 
@@ -157,17 +123,6 @@ void ServoHandler::closeTube(int tubeNumber)
 } */
 
 
-void ServoHandler::tapOpen()
-{
-    maestro_->setPosition(SERVO_TAP, 1500);
-}
-
-
-void ServoHandler::tapClose()
-{
-    maestro_->setPosition(SERVO_TAP, 750);
-}
-
 void ServoHandler::shutdownServos()
 {
 	for(int i = 0; i < 18; i++)
@@ -179,12 +134,18 @@ void ServoHandler::shutdownServos()
 
 void ServoHandler::turnOnPump()
 {
+    #ifndef SIMULATION
     RPi_writeGPIO(PUMP_PWM, HIGH);
+    #endif
+    isPumpOn_ = true;
 }
 
 void ServoHandler::turnOffPump()
 {
+    #ifndef SIMULATION
     RPi_writeGPIO(PUMP_PWM, LOW);
+    #endif
+    isPumpOn_ = false;
 }
 
 
@@ -236,7 +197,7 @@ void ServoHandler::moveMiddleSuctionForDrop(bool drop)
 
 void ServoHandler::moveRail(int velocity)
 {
-    maestro_->setPosition(SERVO_VERTICAL_TRANSLATION, velocity);
+    maestro_->setPosition(ELEVATOR, velocity);
 }
 
 

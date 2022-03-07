@@ -35,7 +35,6 @@
             std::vector<double> getState();
             void setState(std::vector<double> const& vectorIn);
         private:
-
             std::vector<double> state_;
 
     };

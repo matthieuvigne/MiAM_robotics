@@ -137,6 +137,7 @@
             std::deque<DetectedRobot> detectedRobots_;    ///< Vector holding the detected robots, as fifo of robot angle.
 
         private:
+            bool isInit_;
             /// \brief Add a point to the current blob.
             void addPointToBlob(LidarPoint *point);
 

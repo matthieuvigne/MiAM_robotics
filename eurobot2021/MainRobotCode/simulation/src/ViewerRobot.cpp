@@ -1,6 +1,7 @@
 /// \author Matthieu Vigne
 /// \copyright GNU GPLv3
 #include "ViewerRobot.h"
+#include "Parameters.h"
 #include <string>
 
 
@@ -11,6 +12,7 @@ ViewerRobot::ViewerRobot(std::string const& imageFileName,
     obstacleX_(0.0),
     obstacleY_(0.0),
     obstacleSize_(0.0),
+    handler_(&servoMock_),
     r_(r),
     g_(g),
     b_(b),
@@ -49,6 +51,7 @@ bool ViewerRobot::followTrajectory(miam::trajectory::Trajectory *traj)
         viewerPoint.angularVelocity = currentPoint.angularVelocity;
         viewerPoint.score = score_;
         viewerPoint.servoState_ = servoMock_.getState();
+        viewerPoint.isPumpOn_ = handler_.isPumpOn_;
         trajectory_.push_back(viewerPoint);
         currentTrajectoryTime += TIMESTEP;
     }
@@ -87,6 +90,7 @@ void ViewerRobot::resetPosition(RobotPosition const& resetPosition, bool const& 
     p.linearVelocity = 0.0;
     p.angularVelocity = 0.0;
     p.servoState_ = servoMock_.getState();
+    p.isPumpOn_ = handler_.isPumpOn_;
     trajectory_.push_back(p);
 }
 
@@ -130,23 +134,24 @@ void ViewerRobot::draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mm
     cr->stroke();
 
     cr->set_line_width(3.0);
-    cr->set_font_size(20);
+    double font_size = 55 * mmToCairo;
+    cr->set_font_size(font_size);
     double const X = 3100;
     double const Y = 700;
     cr->save();
     cr->translate(mmToCairo * X, mmToCairo * Y);
 
-    cr->move_to(0, 0);
+    cr->move_to(2 * font_size, 0);
     cr->set_source_rgb(0.0, 0.0, 0.0);
     cr->show_text("Servo state");
 
     uint lenght = currentViewerPoint.servoState_.size();
     for (uint i = 0; i < lenght; i++)
     {
-        cr->move_to(0, mmToCairo * 70 * (1 + i));
+        cr->move_to(0, 1.2 * font_size * (1 + i));
         cr->set_source_rgb(0.0, 0.0, 0.0);
         cr->show_text(std::to_string(i));
-        cr->move_to(mmToCairo * 120, mmToCairo * 70 * (1 + i));
+        cr->move_to(1.8 * font_size, 1.2 * font_size * (1 + i));
         cr->set_source_rgb(1.0, 0.0, 0.0);
         int const servoState = int(currentViewerPoint.servoState_[i]);
         if (servoState == 0)
@@ -159,8 +164,24 @@ void ViewerRobot::draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mm
             cr->set_source_rgb(0.0, 0.5, 0.0);
             cr->show_text(std::to_string(servoState));
         }
-        cr->stroke();
+        cr->move_to(5 * font_size, 1.2 * font_size * (1 + i));
+        cr->set_source_rgb(0.0, 0.0, 0.0);
+        cr->show_text(SERVO_NAMES[i]);
     }
+    cr->move_to(0, - 1.2 * font_size);
+    cr->set_source_rgb(0.0, 0.0, 0.0);
+    cr->show_text("Pump: ");
+    if (currentViewerPoint.isPumpOn_)
+    {
+        cr->set_source_rgb(0.0, 0.5, 0.0);
+        cr->show_text("ON");
+    }
+    else
+    {
+        cr->set_source_rgb(1.0, 0.0, 0.0);
+        cr->show_text("OFF");
+    }
+    cr->stroke();
     cr->restore();
 }
 
@@ -176,7 +197,8 @@ void ViewerRobot::padTrajectory(int const& desiredLength)
     lastPoint.linearVelocity = 0.0;
     lastPoint.angularVelocity = 0.0;
     lastPoint.servoState_ = servoMock_.getState();
-    while(trajectory_.size() < desiredLength)
+    lastPoint.isPumpOn_ = handler_.isPumpOn_;
+    while(static_cast<int>(trajectory_.size()) < desiredLength)
     {
         lastPoint.time += TIMESTEP;
         trajectory_.push_back(lastPoint);

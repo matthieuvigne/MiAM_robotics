@@ -11,7 +11,7 @@ include_directories(../common/include include)
 file(GLOB SOURCES  ../common/src/*.cpp src/*.cpp)
 
 #compile flag
-add_definitions(-Wall -std=c++11 -fdiagnostics-color)
+add_definitions(-Wall -std=c++11 -fdiagnostics-color -DSIMULATION)
 
 # Use the package PkgConfig to detect GTK+ headers/library files
 find_package(PkgConfig REQUIRED)

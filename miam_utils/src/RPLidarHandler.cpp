@@ -19,6 +19,7 @@ inline double modulo(double angle)
 }
 
 RPLidarHandler::RPLidarHandler(double mountingOffset) :
+    isInit_(false),
     debuggingBufferPosition_(0),
     detectedRobots_(),
     lidar(NULL),
@@ -39,6 +40,7 @@ RPLidarHandler::~RPLidarHandler()
 
 bool RPLidarHandler::init(std::string const& portNameIn)
 {
+    isInit_ = false;
     lidar =  RPlidarDriver::CreateDriver(DRIVER_TYPE_SERIALPORT);
     if(IS_FAIL(lidar->connect(portNameIn.c_str(), 115200)))
         return false;
@@ -59,9 +61,10 @@ bool RPLidarHandler::init(std::string const& portNameIn)
         }
     }
     // Start scan.
+    isInit_ = true;
     if(!start())
-        return false;
-    return true;
+        isInit_ = false;
+    return isInit_;
 }
 
 
@@ -77,6 +80,8 @@ void RPLidarHandler::addPointToBlob(LidarPoint *point)
 
 int RPLidarHandler::update()
 {
+    if (!isInit_)
+        return 0;
     // Get pending data from the lidar.
     size_t nPoint = 8000;
     rplidar_response_measurement_node_hq_t data[nPoint];
@@ -164,12 +169,16 @@ int RPLidarHandler::update()
 
 void RPLidarHandler::stop()
 {
+    if (!isInit_)
+        return;
     lidar->stopMotor();
     lidar->stop();
 }
 
 bool RPLidarHandler::start()
 {
+    if (!isInit_)
+        return false;
     lidar->startMotor();
     lidar->setMotorPWM(LIDAR_RPM);
     return !IS_FAIL(lidar->startScanExpress(false, lidarMode_));
