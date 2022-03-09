@@ -6,7 +6,7 @@
 #ifndef STRATEGY_H
     #define STRATEGY_H
 
-    #include <miam_utils/AbstractRobot.h>
+    #include "RobotInterface.h"
     #include "ServoHandler.h"
-    void matchStrategy(AbstractRobot *robot, ServoHandler *servos);
+    void matchStrategy(RobotInterface *robot, ServoHandler *servos);
  #endif

@@ -14,37 +14,36 @@
 using namespace miam::trajectory;
 using miam::RobotPosition;
 
-void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
+void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 {
     std::cout << "Strategy thread started." << std::endl;
-
     //while(true) {
 
         /* servo->ouvrirlesbrasdebugbas();
         std::cout << "bas" << std::endl;
-        usleep(2000000);
+        robot->wait(2000000);
 
         servo->ouvrirlesbrasdebugmilieu();
         std::cout << "milieu" << std::endl;
-        usleep(2000000);
+        robot->wait(2000000);
 
         servo->ouvrirlesbrasdebughaut();
         std::cout << "haut" << std::endl;
-        usleep(2000000); */
+        robot->wait(2000000); */
 
         /* servo->figurineArmMiddle();
         std::cout << "milieu" << std::endl;
-        usleep(2000000); */
-/*         usleep(5000000);
+        robot->wait(2000000); */
+/*         robot->wait(5000000);
 
 
         servo->figurineArmHigh();
         std::cout << "haut" << std::endl;
-        usleep(2000000);
+        robot->wait(2000000);
 
         servo->figurineArmLow();
         std::cout << "bas" << std::endl;
-        usleep(2000000); */
+        robot->wait(2000000); */
 
 
     //}
@@ -52,7 +51,7 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
 
     //while(true) {
         //std::cout << "waiting" << std::endl;
-        //usleep(100000);
+        //robot->wait(100000);
     //}
 
     // Update config.
@@ -73,6 +72,10 @@ void matchStrategy(AbstractRobot *robot, ServoHandler *servo)
     targetPosition.y = 1200;
     targetPosition.theta = 0;
     robot->resetPosition(targetPosition, true, true, true);
+
+    // Move rail to top.
+    robot->moveRail(1.0);
+    robot->wait(100000); // Wait 100ms - works both on the robot and in simulation.
 
     //**********************************************************
     // Go get the statue

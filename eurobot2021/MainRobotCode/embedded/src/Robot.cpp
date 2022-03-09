@@ -28,7 +28,7 @@ const int MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY = 1000;
 
 
 Robot::Robot():
-    AbstractRobot(),
+    RobotInterface(),
     isScreenInit_(false),
     isServosInit_(false),
     isArduinoInit_(false),
@@ -355,7 +355,7 @@ void Robot::lowLevelLoop()
                 matchStartTime_ = currentTime_;
                 metronome.resetLag();
                 // Start strategy thread.
-                strategyThread = std::thread(&matchStrategy, static_cast<AbstractRobot*>(this), &servos_);
+                strategyThread = std::thread(&matchStrategy, static_cast<RobotInterface*>(this), &servos_);
                 strategyThread.detach();
             }
 
@@ -434,7 +434,7 @@ void Robot::lowLevelLoop()
 }
 
 
-void Robot::moveRail(double position)
+void Robot::moveRail(double const& position)
 {
     // Compute target potentiometer value.
     int targetValue = MIAM_POTENTIOMETER_LOW_VALUE - (MIAM_POTENTIOMETER_LOW_VALUE - MIAM_POTENTIOMETER_HIGH_VALUE) * position;

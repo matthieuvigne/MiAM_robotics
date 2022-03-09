@@ -32,6 +32,8 @@
     #include "uCListener.h"
     #include "ServoHandler.h"
     #include "LoggerFields.h"
+    #include "RobotInterface.h"
+    #include "Parameters.h"
 
     // Right and left macros, for array addressing.
     int const RIGHT = 0;
@@ -49,23 +51,6 @@
         PLAYING_LEFT
     };
 
-    // Dimensions of the robot
-    namespace robotdimensions
-    {
-        double const wheelRadius = 49.3; ///< Wheel radius, in mm - identified during open loop experiments.
-        double const wheelSpacing = 100.5; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.
-        double const encoderWheelRadius = 25.3; ///< Radius of encoder wheels, in mm.
-        //~ double const encoderWheelSpacing = 140.0; ///< Encoder wheel spacing from robot center, in mm.
-        double const encoderWheelSpacing = 140.0; ///< Encoder wheel spacing from robot center, in mm.
-
-        double const stepSize = 2 * M_PI / 600.0; ///< Size of a motor step, in rad.
-
-        double const maxWheelSpeed = 400; ///< Maximum wheel speed, in mm/s.
-        double const maxWheelAcceleration = 1000; ///< Maximum wheel acceleration, in mm/s^2.
-
-        double const maxWheelSpeedTrajectory = 300; ///< Maximum wheel speed, in mm/s, for trajectory generation.
-        double const maxWheelAccelerationTrajectory = 400; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
-    }
 
     // Controller parameters
     namespace controller
@@ -117,7 +102,7 @@
       double constexpr ramp_max_y = 450;
     } // namespace table dimensions
 
-    class Robot : public AbstractRobot
+    class Robot : public RobotInterface
     {
         public:
 
@@ -142,7 +127,7 @@
             ///
             /// \param position Relative rail position, form 0 (down) to 1 (up).
             /// \param wait If set, this function blocks until motion is complete.
-            void moveRail(double position);
+            void moveRail(double const& position) override;
 
             /// \brief Get current rail position.
             ///

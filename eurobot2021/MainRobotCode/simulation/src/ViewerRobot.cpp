@@ -6,7 +6,7 @@
 
 
 ViewerRobot::ViewerRobot(std::string const& imageFileName,
-                         std::function<void(AbstractRobot *, ServoHandler *)> const& strategyFunction,
+                         std::function<void(RobotInterface *, ServoHandler *)> const& strategyFunction,
                          double const& r, double const& g, double const& b):
     recomputeStrategyFunction_(strategyFunction),
     obstacleX_(0.0),
@@ -227,4 +227,15 @@ void ViewerRobot::updateScore(int const& scoreIncrement)
 double ViewerRobot::getMatchTime()
 {
     return trajectory_.back().time;
+}
+
+void ViewerRobot::moveRail(double const& position)
+{
+    handler_.moveRail(100 * position);
+}
+
+void ViewerRobot::wait(int const& waitTimeus)
+{
+    int const nPoints = waitTimeus / 1.0e6 / TIMESTEP;
+    padTrajectory(nPoints);
 }

@@ -9,8 +9,8 @@
     #include <gtkmm.h>
     #include <iostream>
     #include <miam_utils/trajectory/Trajectory.h>
-    #include <miam_utils/AbstractRobot.h>
 
+    #include "RobotInterface.h"
     #include "ServoHandler.h"
     #include "MaestroMock.h"
 
@@ -40,12 +40,12 @@
         {}
     };
 
-    class ViewerRobot: public AbstractRobot
+    class ViewerRobot: public RobotInterface
     {
         public:
             /// \brief Constructor.
             ViewerRobot(std::string const& imageFileName,
-                        std::function<void(AbstractRobot *, ServoHandler *)> const& strategyFunction,
+                        std::function<void(RobotInterface *, ServoHandler *)> const& strategyFunction,
                         double const& r = 1.0, double const& g = 0.0, double const& b = 0.0);
 
             /// \brief Get current robot position.
@@ -75,7 +75,7 @@
             void padTrajectory(int const& desiredLength);
 
             ///< Function computing the strategy, for a given obstacle position.
-            std::function<void(AbstractRobot *, ServoHandler *)> const recomputeStrategyFunction_;
+            std::function<void(RobotInterface *, ServoHandler *)> const recomputeStrategyFunction_;
 
             double obstacleX_;
             double obstacleY_;
@@ -98,6 +98,10 @@
             {
                 return true;
             }
+
+            void moveRail(double const& position) override;
+
+            void wait(int const& waitTimeus) override;
 
             std::vector<ViewerTrajectoryPoint> trajectory_;
             ServoHandler handler_;
