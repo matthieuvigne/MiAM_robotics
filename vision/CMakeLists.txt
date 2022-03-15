@@ -14,6 +14,7 @@ find_package(YAML-CPP REQUIRED)
 find_package(Threads REQUIRED)
 add_library(${PROJECT_NAME}
   src/camera.cpp
+  src/camera_pose_filter.cpp
   src/client.cpp
   src/client_socket.cpp
   src/distortion_model.cpp
@@ -28,6 +29,9 @@ target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} yaml-cpp ${CMAKE_THREAD_LIB
 link_directories(${Eigen_INCLUDE_DIRS})
 
 # Executable files
+
+add_executable(test_geometry scripts/test_geometry.cpp)
+target_link_libraries(test_geometry ${Eigen_LIBRARIES})
 
 #~ add_executable(test_fov scripts/test_fov.cpp)
 #~ target_link_libraries(test_fov ${Eigen_LIBRARIES})
