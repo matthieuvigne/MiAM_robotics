@@ -17,6 +17,7 @@ public:
 
   DISALLOW_EVIL_CONSTRUCTORS(CameraPoseFilter);
   CameraPoseFilter(
+    Eigen::Affine3d const& T_WM,
     Eigen::Affine3d const& T_RC,
     Eigen::Matrix<double,6,6> const& cov_T_RC);
   virtual ~CameraPoseFilter(){}
@@ -47,6 +48,14 @@ public:
 
 private:
 
+  // Exponential and Logarithm mapping
+
+  static Eigen::Affine3d expMap(Eigen::Matrix<double,6,1> const& tau);
+
+  static Eigen::Matrix<double,6,1> logMap(Eigen::Affine3d const& T);
+
+  // Pose Jacobians
+
   static Eigen::Matrix<double,6,6> leftProductJacobian(
     Eigen::Affine3d const& T1,
     Eigen::Affine3d const& T2);
@@ -69,6 +78,7 @@ private:
   Eigen::Matrix<double,6,6> cov_T_WC_;
 
   // Parameters
+  Eigen::Affine3d const T_WM_;
   Eigen::Affine3d const T_RC_;
   Eigen::Matrix<double,6,6> cov_T_RC_;
 
