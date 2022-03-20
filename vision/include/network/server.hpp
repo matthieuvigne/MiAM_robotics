@@ -37,6 +37,7 @@ public:
 public:
 
   inline void launchThread();
+  inline void join() const;
   inline void abortThread();
 
 private:
@@ -61,6 +62,13 @@ public:
 void Server::launchThread()
 {
   this->thread_ptr_.reset(new std::thread([=](){this->serverThread();}));
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Server::join() const
+{
+  this->thread_ptr_->join();
 }
 
 //--------------------------------------------------------------------------------------------------

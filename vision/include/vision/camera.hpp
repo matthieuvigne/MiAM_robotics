@@ -80,6 +80,7 @@ public:
 
   // Camera thread
   inline void launchThread();
+  inline void join() const;
   inline void abortThread();
 
   // Camera projection
@@ -158,6 +159,14 @@ void Camera::launchThread()
 {
   this->thread_ptr_.reset(new std::thread([=](){this->cameraThread();}));
 }
+
+//--------------------------------------------------------------------------------------------------
+
+void Camera::join() const
+{
+  this->thread_ptr_->join();
+}
+
 
 //--------------------------------------------------------------------------------------------------
 

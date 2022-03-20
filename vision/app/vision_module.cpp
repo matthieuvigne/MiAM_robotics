@@ -9,10 +9,7 @@ std::string const config_filename = "/home/rodolphe/Programming/MiAM_robotics/vi
 int main(int argc, char* argv[])
 {
   // Initialization of the vision module
-  // Initializes the cameras and the server
   std::cout << "Initialization of the vision module" << std::endl;
   vision::Module::UniquePtr module_ptr(new vision::Module(config_filename));
-  
-  // Standard routine
-  // -> todo
+  module_ptr->join();
 }

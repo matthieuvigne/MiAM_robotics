@@ -10,16 +10,11 @@ namespace network {
 
 Server::Server(int port)
 : ServerSocket(port)
-{
-  // TODO
-}
+{}
 
 //--------------------------------------------------------------------------------------------------
 
-Server::~Server()
-{
-  // TODO
-}
+Server::~Server(){}
 
 //--------------------------------------------------------------------------------------------------
 // Methods
@@ -28,23 +23,38 @@ Server::~Server()
 void Server::serverThread()
 {
   // Wait for the client's connection
-  // TODO
-
-  // Wait for the client's requests
-  while(true)
+  while(!this->abort_thread_)
   {
-    // Wait condition (unbusy waiting)
-    std::unique_lock<std::mutex> server_locker(this->thread_mtx_);
-    this->thread_con_.wait(server_locker,
-      [&](){ return !this->server_buffer_.empty() or this->abort_thread_; });
-    if(this->abort_thread_) break;
-    Message new_message = std::move(this->server_buffer_.front());
-    this->server_buffer_.pop();
-    this->thread_mtx_.unlock();
-  
-    // Send the message
-    //~ send(new_socket , hello , strlen(hello) , 0 );
-    // TODO
+    // Wait for the client's connection
+    std::cout << "Waiting for the client's connection...";
+    ServerSocket new_sock;
+    this->accept(new_sock);
+    std::cout << "ok" << std::endl;
+
+    // Wait for the client's requests
+    while(!this->abort_thread_)
+    {
+      // Waiting for the client's request
+      std::string client_request;
+      new_sock >> client_request;
+      
+      // Interpret the request
+      std::cout << "Received from the client: " << client_request << std::endl;
+      
+      // Send data to the client
+      if(client_request == "stop") break;
+      new_sock << client_request + " [replied]";
+      
+      //~ // Wait condition (unbusy waiting)
+      //~ std::unique_lock<std::mutex> server_locker(this->thread_mtx_);
+      //~ this->thread_con_.wait(server_locker,
+        //~ [&](){ return !this->server_buffer_.empty() or this->abort_thread_; });
+      //~ if(this->abort_thread_) break;
+      //~ Message new_message = std::move(this->server_buffer_.front());
+      //~ this->server_buffer_.pop();
+      //~ this->thread_mtx_.unlock();
+    }
+    break;
   }
   
   // Shut the server down

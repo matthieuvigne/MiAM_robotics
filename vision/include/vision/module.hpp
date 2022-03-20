@@ -37,11 +37,9 @@ public:
 
 public:
 
-  // Camera information
   Camera const& getCamera() const;
-
-  // Print
   std::string print() const;
+  void join() const;
 
 private:
 
@@ -52,13 +50,10 @@ private:
 
 private:
 
-  // Board and cameras
   Board board_;
   Camera::UniquePtr camera_ptr_;
-  bool turn_off_ = false;
-
-  // Server socket
   network::Server::UniquePtr server_ptr_;
+  bool turn_off_ = false;
 
 }; // class Module
 

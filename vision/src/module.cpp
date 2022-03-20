@@ -63,6 +63,14 @@ Camera const& Module::getCamera() const
 
 //--------------------------------------------------------------------------------------------------
 
+void Module::join() const
+{
+  this->camera_ptr_->join();
+  this->server_ptr_->join();
+}
+
+//--------------------------------------------------------------------------------------------------
+
 std::string Module::print() const
 {
   std::stringstream out;
