@@ -32,6 +32,7 @@ public:
 private:
 
   void runThread();
+  
   void getMeasurements() const;
 
 private:

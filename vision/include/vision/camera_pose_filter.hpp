@@ -28,9 +28,14 @@ public:
 
   void setState(
     Eigen::Affine3d const& T_WC);
-
   void setCovariance(
     Eigen::Matrix<double,6,6> const& cov_T_WC);
+
+  enum class InitType { T_WC, T_CM };
+  void setStateAndCovariance(
+    InitType init_type,
+    Eigen::Affine3d const& T,
+    Eigen::Matrix<double,6,6> const cov_T);
 
   // Estimation
 

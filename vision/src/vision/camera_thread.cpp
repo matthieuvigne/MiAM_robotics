@@ -39,14 +39,28 @@ void CameraThread::runThread()
   while(!initialized)
   {
     // Take picture
+    // TODO: incrementPosition();
+    cv::Mat image;
+    // TODO: takePicture();
 
     // Detect the markers
+    DetectedMarkerList detected_markers;
+    this->camera_ptr_->detectMarkers(image, &detected_markers);
 
-    // Check if the central marker is detected
+    // Check if the central marker (n°42) is detected
+    DetectedMarkerList::const_iterator it = detected_markers.cbegin();
+    for(it; it != detected_markers.cend(); ++it)
+      if(it->marker_id == 42) break;
 
-    // If so: initialize the camera pose filter and go to the next step
-
-    // Otherwise: try again
+    // If so => initialize the camera pose filter and go to the next step
+    if(it != detected_markers.cend())
+    {
+      Eigen::Affine3d const T_CM = it->T_CM;
+      Eigen::Matrix<double,6,6> const cov_T_CM = it->cov_T_CM;
+      this->pose_filter_ptr_->setStateAndCovariance(
+        CameraPoseFilter::InitType::T_CM, T_CM, cov_T_CM);
+      break;
+    }
   }
   
   // Routine : scan the board and detect all the markers
