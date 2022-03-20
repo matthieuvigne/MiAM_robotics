@@ -34,6 +34,9 @@ link_directories(${Eigen_INCLUDE_DIRS})
 add_executable(vision_module app/vision_module.cpp)
 target_link_libraries(vision_module ${PROJECT_NAME} ${Eigen_LIBRARIES})
 
+add_executable(dummy_client app/dummy_client.cpp)
+target_link_libraries(dummy_client ${PROJECT_NAME} ${Eigen_LIBRARIES})
+
 # Executable files
 
 #~ add_executable(test_geometry scripts/test_geometry.cpp)

@@ -6,23 +6,13 @@ namespace network {
 // Constructors and destructors
 //--------------------------------------------------------------------------------------------------
 
-Client::Client(
-    std::mutex* mtx_ptr,
-    std::condition_variable* con_ptr,
-    std::queue<Message>* buffer_ptr)
-: client_mtx_       (mtx_ptr),
-  client_con_       (con_ptr),
-  client_buffer_    (buffer_ptr)
-{
-  // TODO
-}
+Client::Client()
+{}
 
 //--------------------------------------------------------------------------------------------------
 
 Client::~Client()
-{
-  // TODO
-}
+{}
 
 //--------------------------------------------------------------------------------------------------
 // Methods

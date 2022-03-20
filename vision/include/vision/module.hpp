@@ -3,6 +3,7 @@
 
 #include <opencv2/aruco.hpp>
 
+#include <network/server.hpp>
 #include <vision/camera.hpp>
 
 /* Vision module
@@ -52,10 +53,13 @@ private:
 
 private:
 
+  // Board and cameras
   Board board_;
   std::vector<Camera::UniquePtr> cameras_;
   bool turn_off_ = false;
-  // Messages queue
+
+  // Server socket
+  network::Server::UniquePtr server_ptr_;
 
 }; // class Module
 

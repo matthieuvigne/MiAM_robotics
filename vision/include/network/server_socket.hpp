@@ -1,6 +1,7 @@
 #ifndef NETORK_SERVER_SOCKET_HPP
 #define NETORK_SERVER_SOCKET_HPP
 
+#include <common/macros.hpp>
 #include <network/socket.hpp>
 
 namespace network {
@@ -15,7 +16,7 @@ class ServerSocket : private Socket
 
   ServerSocket(int port);
   ServerSocket(){};
-  virtual ~ServerSocket(){};
+  virtual ~ServerSocket();
 
   ServerSocket const& operator << (std::string const&) const;
   ServerSocket const& operator >> (std::string&) const;

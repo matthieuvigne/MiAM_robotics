@@ -2,6 +2,7 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <network/socket_exception.hpp>
 #include <vision/module.hpp>
 #include <vision/distortion_null.hpp>
 #include <vision/distortion_radtan.hpp>
@@ -36,6 +37,13 @@ Module::Module(std::string const& filename)
     camera_ptr->launchThread();
     std::cout << camera_ptr->print() << std::endl;
     this->cameras_.push_back(std::move(camera_ptr));
+  }
+  
+  // Launch the server
+  try {
+      this->server_ptr_.reset(new network::Server);
+  } catch(network::SocketException const& e) { 
+      std::cout << e.description() << std::endl;
   }
 }
 

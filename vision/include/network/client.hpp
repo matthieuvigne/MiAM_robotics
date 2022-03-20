@@ -27,10 +27,7 @@ public:
 
 public:
 
-  Client(
-    std::mutex* mtx_ptr,
-    std::condition_variable* con_ptr,
-    std::queue<Message>* buffer_ptr);
+  Client();
   virtual ~Client();
 
 public:
@@ -39,9 +36,9 @@ public:
 
 public:
 
-    std::mutex* const client_mtx_;
-    std::condition_variable* const client_con_;
-    std::queue<Message>* const client_buffer_;
+    std::mutex client_mtx_;
+    std::condition_variable client_con_;
+    std::queue<Message> client_buffer_;
 
 }; // class Client
 
