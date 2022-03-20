@@ -38,8 +38,7 @@ public:
 public:
 
   // Camera information
-  Camera const& getCamera(size_t camera_idx) const;
-  inline size_t getNumCameras() const;
+  Camera const& getCamera() const;
 
   // Print
   std::string print() const;
@@ -55,22 +54,13 @@ private:
 
   // Board and cameras
   Board board_;
-  std::vector<Camera::UniquePtr> cameras_;
+  Camera::UniquePtr camera_ptr_;
   bool turn_off_ = false;
 
   // Server socket
   network::Server::UniquePtr server_ptr_;
 
 }; // class Module
-
-//--------------------------------------------------------------------------------------------------
-// INLINE FUNCTIONS
-//--------------------------------------------------------------------------------------------------
-
-size_t Module::getNumCameras() const
-{
-  return this->cameras_.size();
-}
 
 //--------------------------------------------------------------------------------------------------
 
