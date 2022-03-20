@@ -18,21 +18,12 @@ Module::Module(std::string const& filename)
   YAML::Node const params = YAML::LoadFile(filename);
   assert(params["board"]);
   assert(params["cameras"]);
-  assert(params["beacons"]);
   
   // Get the board dimensions
   YAML::Node const& board = params["board"];
   assert(board.IsMap());
   this->board_.width = board["width"].as<double>();
   this->board_.height = board["height"].as<double>();
-
-  // Get the beacons
-  //~ YAML::Node const beacons = params["beacons"];
-  //~ assert(beacons.IsMap());
-  //~ for(YAML::const_iterator it = beacons.begin(); it != beacons.end(); ++it)
-  //~ {
-    // Build the beacon
-  //~ }
 
   // Get the cameras and launch the associated threads
   YAML::Node const cameras = params["cameras"];

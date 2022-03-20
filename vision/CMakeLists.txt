@@ -20,6 +20,7 @@ add_library(${PROJECT_NAME}
   src/distortion_model.cpp
   src/distortion_null.cpp
   src/distortion_radtan.cpp
+  src/distortion_fisheye.cpp
   src/module.cpp
   src/server.cpp
   src/server_socket.cpp
@@ -28,10 +29,15 @@ include_directories("include")
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} yaml-cpp ${CMAKE_THREAD_LIBS_INIT})
 link_directories(${Eigen_INCLUDE_DIRS})
 
+# Application
+
+add_executable(vision_module app/vision_module.cpp)
+target_link_libraries(vision_module ${PROJECT_NAME} ${Eigen_LIBRARIES})
+
 # Executable files
 
-add_executable(test_geometry scripts/test_geometry.cpp)
-target_link_libraries(test_geometry ${Eigen_LIBRARIES})
+#~ add_executable(test_geometry scripts/test_geometry.cpp)
+#~ target_link_libraries(test_geometry ${Eigen_LIBRARIES})
 
 #~ add_executable(test_fov scripts/test_fov.cpp)
 #~ target_link_libraries(test_fov ${Eigen_LIBRARIES})

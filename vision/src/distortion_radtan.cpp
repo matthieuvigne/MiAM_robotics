@@ -13,7 +13,7 @@ DistortionRadTan::DistortionRadTan(
   Eigen::VectorXd const& distortion_coeffs)
 : DistortionModel(distortion_coeffs,DistortionModel::Type::RadTan)
 {
-  assert(this->distortion_coeffs_.size() == 4);
+  assert(this->distortion_coeffs_.size() == 5);
 }
 
 //--------------------------------------------------------------------------------------------------

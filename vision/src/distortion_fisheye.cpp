@@ -34,6 +34,7 @@ void DistortionFisheye::distort(Eigen::Vector2d* point, Eigen::Matrix2d* out_jac
   double const x2 = x*x;
   double const y2 = y*y;
   double const r2 = x2 + y2;
+  double const r = std::sqrt(r2);
   double const theta = std::atan(std::sqrt(r2));
   double const theta2 = theta*theta;
   double const theta4 = theta2*theta2;
@@ -59,7 +60,7 @@ void DistortionFisheye::distort(Eigen::Vector2d* point, Eigen::Matrix2d* out_jac
       (2*k1*theta + 4*k2*theta2*theta + 6*theta4*theta + 8*k4*theta6*theta)*dtheta_dr;
     double const dfulldist_dr =
       (dtheta_dr/r-theta/r2)*rad_dist + (theta/r)*draddist_dr;
-    double const dfulldist_dx = dfulldist_dy*dr_dx;
+    double const dfulldist_dx = dfulldist_dr*dr_dx;
     double const dfulldist_dy = dfulldist_dr*dr_dy;
     
     // Compute the full gradient
