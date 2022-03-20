@@ -3,7 +3,7 @@
 
 #include <opencv2/aruco.hpp>
 
-#include <network/server.hpp>
+#include <network/server_thread.hpp>
 #include <vision/camera_thread.hpp>
 
 /* Vision module
@@ -11,7 +11,7 @@
  * TODO : during initialization : should spot the cameras + robot wifi network
  * */
 
-namespace vision {
+namespace module {
 
 //--------------------------------------------------------------------------------------------------
 // Structures
@@ -45,14 +45,14 @@ private:
 private:
 
   Board board_;
-  CameraThread::UniquePtr camera_thread_ptr_;
-  //~ network::Server::UniquePtr server_ptr_;
+  vision::CameraThread::UniquePtr camera_thread_ptr_;
+  network::ServerThread::UniquePtr server_thread_ptr_;
   bool turn_off_ = false;
 
 }; // class Module
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace module
 
 #endif // VISION_BOARD_HPP

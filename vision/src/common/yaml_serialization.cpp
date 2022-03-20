@@ -20,6 +20,7 @@ Eigen::Matrix<double,6,6> deserializePoseCovariance(YAML::Node const& node)
 {
   std::vector<double> data = node.as<std::vector<double>>();
   Eigen::Map<Eigen::Matrix<double,6,1>> sigmas(data.data());
+  sigmas.head<3>() *= M_PI/180.; // Conversion degrees -> radians
   Eigen::Matrix<double,6,6> covariance = sigmas.cwiseAbs2().asDiagonal();
   return covariance;
 }

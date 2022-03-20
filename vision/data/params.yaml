@@ -18,6 +18,5 @@ T_RC: [1.0, 0.0, 0.0, 0.0,
        0.0, 1.0, 0.0, 0.0,
        0.0, 0.0, 1.0, 0.0,
        0.0, 0.0, 0.0, 1.0]
-cov_T_RC: [1e-3, 1e-3, 1e-3, # Rotation sigmas: wx, wy, wz
-           1e-3, 1e-3, 1e-3] # Translation sigmas: tx, ty, tz
-
+cov_T_RC: [ 1.0,  1.0,  1.0, # Rotation sigmas:    wx, wy, wz [degrees]
+           1e-3, 1e-3, 1e-3] # Translation sigmas: tx, ty, tz [meters]

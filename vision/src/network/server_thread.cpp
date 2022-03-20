@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <network/server.hpp>
+#include <network/server_thread.hpp>
 
 namespace network {
 
@@ -8,22 +8,26 @@ namespace network {
 // Constructors and destructors
 //--------------------------------------------------------------------------------------------------
 
-Server::Server(int port)
+ServerThread::ServerThread(int port)
 : ServerSocket(port)
-{}
+{
+  this->thread_ptr_.reset(new std::thread([=](){this->serverThread();}));
+}
 
 //--------------------------------------------------------------------------------------------------
 
-Server::~Server(){}
+ServerThread::~ServerThread(){
+  this->thread_ptr_->join();  
+}
 
 //--------------------------------------------------------------------------------------------------
 // Methods
 //--------------------------------------------------------------------------------------------------
 
-void Server::serverThread()
+void ServerThread::serverThread()
 {
   // Wait for the client's connection
-  while(!this->abort_thread_)
+  while(true)
   {
     // Wait for the client's connection
     std::cout << "Waiting for the client's connection...";
@@ -32,7 +36,7 @@ void Server::serverThread()
     std::cout << "ok" << std::endl;
 
     // Wait for the client's requests
-    while(!this->abort_thread_)
+    while(true)
     {
       // Waiting for the client's request
       std::string client_request;

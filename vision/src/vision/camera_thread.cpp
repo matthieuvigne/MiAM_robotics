@@ -23,7 +23,10 @@ CameraThread::CameraThread(
 //--------------------------------------------------------------------------------------------------
 
 CameraThread::~CameraThread()
-{}
+{
+  this->thread_ptr_->join();
+  std::cout << "Destruction" << std::endl;
+}
 
 //--------------------------------------------------------------------------------------------------
 // Methods
@@ -36,9 +39,13 @@ void CameraThread::runThread()
   while(!initialized)
   {
     // Take picture
+
     // Detect the markers
+
     // Check if the central marker is detected
+
     // If so: initialize the camera pose filter and go to the next step
+
     // Otherwise: try again
   }
   
@@ -55,6 +62,7 @@ void CameraThread::runThread()
     // Check if the central marker is detected => if so: update the filter
     // Update the pose estimate of all other markers
   }
+  std::cout << "Camera thread" << std::endl;
 }
 
 //--------------------------------------------------------------------------------------------------
