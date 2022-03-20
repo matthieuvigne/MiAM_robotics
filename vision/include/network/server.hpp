@@ -2,6 +2,7 @@
 #define NETWORK_SERVER_HPP
 
 #include <condition_variable>
+#include <iostream>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -10,6 +11,7 @@
 #include <assert.h>
 
 #include <common/macros.hpp>
+#include <network/server_socket.hpp>
 
 namespace network {
 
@@ -17,7 +19,7 @@ namespace network {
 // Class definition
 //--------------------------------------------------------------------------------------------------
 
-class Server {
+class Server : public ServerSocket {
 
 public:
 
@@ -29,8 +31,13 @@ public:
 
 public:
 
-  Server();
+  Server(int port);
   virtual ~Server();
+
+public:
+
+  inline void launchThread();
+  inline void abortThread();
 
 private:
 
@@ -38,15 +45,39 @@ private:
 
 public:
 
-  std::mutex server_mtx_;
-  std::condition_variable server_con_;
+  // Threading
+  mutable std::mutex thread_mtx_;
+  std::condition_variable thread_con_;
+  std::unique_ptr<std::thread> thread_ptr_;
   std::queue<Message> server_buffer_;
-
-private:
-
-  bool shut_down_ = false;
+  bool abort_thread_ = false;
 
 }; // class Server
+
+//--------------------------------------------------------------------------------------------------
+// Inline functions
+//--------------------------------------------------------------------------------------------------
+
+void Server::launchThread()
+{
+  this->thread_ptr_.reset(new std::thread([=](){this->serverThread();}));
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Server::abortThread()
+{
+  if(this->thread_ptr_ != nullptr)
+  {
+    this->abort_thread_ = true;
+    this->thread_con_.notify_all();
+    this->thread_ptr_->join();
+    this->thread_ptr_ = nullptr;
+    this->abort_thread_ = false;
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
 
 } // namespace network
 

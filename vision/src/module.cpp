@@ -34,11 +34,13 @@ Module::Module(std::string const& filename)
   std::cout << this->camera_ptr_->print() << std::endl;
   
   // Launch the server
+  int const port = 30000;
   try {
-      this->server_ptr_.reset(new network::Server);
-  } catch(network::SocketException const& e) { 
+      this->server_ptr_.reset(new network::Server(port));
+  } catch(network::SocketException const& e) {
       std::cout << e.description() << std::endl;
   }
+  this->server_ptr_->launchThread();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -47,6 +49,7 @@ Module::~Module()
 {
   // Abort the camera thread
   this->camera_ptr_->abortThread();
+  this->server_ptr_->abortThread();
 }
 
 //--------------------------------------------------------------------------------------------------

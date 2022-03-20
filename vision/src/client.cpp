@@ -6,7 +6,8 @@ namespace network {
 // Constructors and destructors
 //--------------------------------------------------------------------------------------------------
 
-Client::Client()
+Client::Client(std::string host, int port)
+: ClientSocket(host, port)
 {}
 
 //--------------------------------------------------------------------------------------------------

@@ -1,8 +1,4 @@
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/socket.h>
-#include <stdlib.h>
-#include <netinet/in.h>
+#include <iostream>
 
 #include <network/server.hpp>
 
@@ -12,7 +8,8 @@ namespace network {
 // Constructors and destructors
 //--------------------------------------------------------------------------------------------------
 
-Server::Server()
+Server::Server(int port)
+: ServerSocket(port)
 {
   // TODO
 }
@@ -30,45 +27,20 @@ Server::~Server()
 
 void Server::serverThread()
 {
-  // Launch the server
-
-	// Creating socket file descriptor
-  int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-  assert( server_fd != 0);
-	// Forcefully attaching socket to the port 8080
-  int opt = 1;
-  int const PORT = 8080;
-  bool success = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
-  assert(success);
-  sockaddr_in address;
-	int addrlen = sizeof(address);
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);  
-  // Forcefully attaching socket to the port 8080
-  success &= bind(server_fd, (sockaddr*) &address, sizeof(address));
-  assert(success);
-  // Listen to the port binded to the socket
-  success &= listen(server_fd, 3);
-  assert(success);
-  // Empty the current messages
-  while(!this->server_buffer_.empty())
-    this->server_buffer_.pop();
-
-  // Accept the first communication to get the socket from the robot
+  // Wait for the client's connection
   // TODO
 
-  // Send the messages
+  // Wait for the client's requests
   while(true)
   {
     // Wait condition (unbusy waiting)
-    std::unique_lock<std::mutex> server_locker(this->server_mtx_);
-    this->server_con_.wait(server_locker,
-      [&](){ return !this->server_buffer_.empty() or this->shut_down_; });
-    if(this->shut_down_) break;
+    std::unique_lock<std::mutex> server_locker(this->thread_mtx_);
+    this->thread_con_.wait(server_locker,
+      [&](){ return !this->server_buffer_.empty() or this->abort_thread_; });
+    if(this->abort_thread_) break;
     Message new_message = std::move(this->server_buffer_.front());
     this->server_buffer_.pop();
-    this->server_mtx_.unlock();
+    this->thread_mtx_.unlock();
   
     // Send the message
     //~ send(new_socket , hello , strlen(hello) , 0 );
@@ -76,7 +48,7 @@ void Server::serverThread()
   }
   
   // Shut the server down
-  // TODO
+  std::cout << "Shutting down the server thread." << std::endl;
 }
 
   //~ std::cout << "running....\n";

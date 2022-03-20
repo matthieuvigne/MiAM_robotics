@@ -8,5 +8,5 @@
 int main(int argc, char* argv[])
 {
   std::cout << "Launching the dummy client" << std::endl;
-  network::Client client;
+  network::Client client("localhost", 30000);
 }

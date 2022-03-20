@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <common/macros.hpp>
+#include <network/client_socket.hpp>
 
 namespace network {
 
@@ -15,7 +16,7 @@ namespace network {
 // Class definition
 //--------------------------------------------------------------------------------------------------
 
-class Client {
+class Client : public ClientSocket {
 
 public:
 
@@ -27,7 +28,7 @@ public:
 
 public:
 
-  Client();
+  Client(std::string host, int port);
   virtual ~Client();
 
 public:

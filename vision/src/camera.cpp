@@ -324,7 +324,7 @@ void Camera::cameraThread()
   }
   
   // Shut the thread down
-  std::cout << "Shutting down camera " << this->name_ << "." << std::endl;
+  std::cout << "Shutting down camera thread." << std::endl;
 }
 
 //--------------------------------------------------------------------------------------------------
