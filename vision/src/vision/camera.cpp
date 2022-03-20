@@ -69,16 +69,10 @@ Camera::UniquePtr Camera::buildCameraFromYaml(
   }
   assert(distortion_ptr != nullptr);
   
-  // Get the camera's extrinsics
-  Eigen::Affine3d pose;
-  std::vector<double> data = camera_node["T_WC"]["data"].as<std::vector<double>>();
-  Eigen::Map<Eigen::Matrix<double,4,4,Eigen::RowMajor>> pose_matrix(data.data());
-  pose.matrix() = pose_matrix;
-  
   // Build and return the camera
   Camera::UniquePtr camera_ptr(new Camera(
     camera_name, image_width, image_height,
-    fx, fy, cx, cy, distortion_ptr, pose));
+    fx, fy, cx, cy, distortion_ptr, Eigen::Affine3d::Identity()));
   return std::move(camera_ptr);
 }
 
@@ -285,6 +279,12 @@ void Camera::cameraThread()
 {
   std::cout << "Launched thread for camera " << this->name_ << "." << std::endl;
 
+  //~ while(true)
+  //~ {
+    //~ // Check if there are specific request
+    //~ // Otherwise, sweep
+  //~ }
+
   while(true)
   {
     // Wait condition (unbusy waiting)
@@ -325,24 +325,6 @@ void Camera::cameraThread()
   
   // Shut the thread down
   std::cout << "Shutting down camera thread." << std::endl;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-std::string Camera::print() const
-{
-  std::stringstream out;
-  out << "Camera " << this->name_ << std::endl;
-  out << "- Image width: " << this->image_width_ << "px" << std::endl;
-  out << "- Image height: " << this->image_height_ << "px" << std::endl;
-  out << "- Intrinsics: "
-    << "{ fx="  << this->intrinsics_.fx << "px/m"
-    << ", fy="  << this->intrinsics_.fy << "px/m"
-    << ", cx="  << this->intrinsics_.cx << "px"
-    << ", cy="  << this->intrinsics_.cy << "px"
-    << " }" << std::endl;
-  out << this->distortion_->print();
-  return out.str();
 }
 
 //--------------------------------------------------------------------------------------------------

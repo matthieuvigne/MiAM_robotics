@@ -4,7 +4,7 @@
 #include <opencv2/aruco.hpp>
 
 #include <network/server.hpp>
-#include <vision/camera.hpp>
+#include <vision/camera_thread.hpp>
 
 /* Vision module
  * -------------
@@ -35,12 +35,6 @@ public:
   Module(std::string const& filename);
   virtual ~Module();
 
-public:
-
-  Camera const& getCamera() const;
-  std::string print() const;
-  void join() const;
-
 private:
 
   struct Board {
@@ -51,8 +45,8 @@ private:
 private:
 
   Board board_;
-  Camera::UniquePtr camera_ptr_;
-  network::Server::UniquePtr server_ptr_;
+  CameraThread::UniquePtr camera_thread_ptr_;
+  //~ network::Server::UniquePtr server_ptr_;
   bool turn_off_ = false;
 
 }; // class Module

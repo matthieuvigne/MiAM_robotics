@@ -94,9 +94,6 @@ public:
     cv::Mat const& image,
     DetectedMarkerList* detected_markers) const;
 
-  // Print
-  std::string print() const;
-
 private:
 
   static Eigen::Matrix3d skew(Eigen::Vector3d const& v);

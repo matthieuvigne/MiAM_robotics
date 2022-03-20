@@ -8,8 +8,9 @@ std::string const config_filename = "/home/rodolphe/Programming/MiAM_robotics/vi
 // Main routine
 int main(int argc, char* argv[])
 {
-  // Initialization of the vision module
+  // Vision module
+  // Camera thread : at each turn, increment the camera, except if reception of a specific request
+  // Server thread : receive and process the client's requests
   std::cout << "Initialization of the vision module" << std::endl;
   vision::Module::UniquePtr module_ptr(new vision::Module(config_filename));
-  module_ptr->join();
 }

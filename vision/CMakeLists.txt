@@ -13,18 +13,23 @@ find_package(Eigen3 REQUIRED)
 find_package(YAML-CPP REQUIRED)
 find_package(Threads REQUIRED)
 add_library(${PROJECT_NAME}
-  src/camera.cpp
-  src/camera_pose_filter.cpp
-  src/client.cpp
-  src/client_socket.cpp
-  src/distortion_model.cpp
-  src/distortion_null.cpp
-  src/distortion_radtan.cpp
-  src/distortion_fisheye.cpp
-  src/module.cpp
-  src/server.cpp
-  src/server_socket.cpp
-  src/socket.cpp)
+  # Common sources
+  src/common/yaml_serialization.cpp
+  # Network sources
+  src/network/client.cpp
+  src/network/client_socket.cpp
+  src/network/server.cpp
+  src/network/server_socket.cpp
+  src/network/socket.cpp
+  # Vision sources
+  src/vision/camera.cpp
+  src/vision/camera_pose_filter.cpp
+  src/vision/camera_thread.cpp
+  src/vision/distortion_model.cpp
+  src/vision/distortion_null.cpp
+  src/vision/distortion_radtan.cpp
+  src/vision/distortion_fisheye.cpp
+  src/vision/module.cpp)
 include_directories("include")
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} yaml-cpp ${CMAKE_THREAD_LIBS_INIT})
 link_directories(${Eigen_INCLUDE_DIRS})
