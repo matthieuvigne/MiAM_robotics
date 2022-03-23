@@ -1,64 +1,38 @@
 # CMake params
 cmake_minimum_required(VERSION 2.8.3)
 project(vision)
+set(PROJECT_DESCRIPTION "Code for the vision module")
 
 # Building options
-#~ set(CMAKE_BUILD_TYPE RelWithDebInfo)
+# Mode: Debug or RelWithDebInfo
+set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_BUILD_TYPE Debug)
 add_compile_options(-std=c++11)
 
-# Library
+# Recursively include all the source files
+file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp")
+set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX)
+
+# Recursively include all the header files
+file(GLOB_RECURSE ${PROJECT_NAME}_HEADERS "include/*.hpp")
+include_directories("include")
+
+# Setup the static library
+set(LIBRARY_NAME ${PROJECT_NAME})
+add_library(${LIBRARY_NAME} STATIC ${${PROJECT_NAME}_SOURCES})
+
+# Link to external libraries
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(YAML-CPP REQUIRED)
 find_package(Threads REQUIRED)
-add_library(${PROJECT_NAME}
-  # Common sources
-  src/common/yaml_serialization.cpp
-  # Module sources
-  src/module/module.cpp
-  # Network sources
-  src/network/client.cpp
-  src/network/client_socket.cpp
-  src/network/server_thread.cpp
-  src/network/server_socket.cpp
-  src/network/socket.cpp
-  # Vision sources
-  src/vision/camera.cpp
-  src/vision/camera_pose_filter.cpp
-  src/vision/camera_thread.cpp
-  src/vision/distortion_model.cpp
-  src/vision/distortion_null.cpp
-  src/vision/distortion_radtan.cpp
-  src/vision/distortion_fisheye.cpp)
-include_directories("include")
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} yaml-cpp ${CMAKE_THREAD_LIBS_INIT})
-link_directories(${Eigen_INCLUDE_DIRS})
+link_directories(${OpenCV_DIRS} ${Eigen_INCLUDE_DIRS})
+target_link_libraries(${LIBRARY_NAME} ${OpenCV_LIBS} yaml-cpp ${CMAKE_THREAD_LIBS_INIT})
 
 # Application
 
 add_executable(vision_module app/vision_module.cpp)
-target_link_libraries(vision_module ${PROJECT_NAME} ${Eigen_LIBRARIES})
+target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
 add_executable(dummy_client app/dummy_client.cpp)
-target_link_libraries(dummy_client ${PROJECT_NAME} ${Eigen_LIBRARIES})
-
-# Executable files
-
-#~ add_executable(test_geometry scripts/test_geometry.cpp)
-#~ target_link_libraries(test_geometry ${Eigen_LIBRARIES})
-
-#~ add_executable(test_fov scripts/test_fov.cpp)
-#~ target_link_libraries(test_fov ${Eigen_LIBRARIES})
-
-#~ add_executable(client scripts/client.cpp)
-#~ add_executable(server scripts/server.cpp)
-
-#~ add_executable(test_board scripts/test_board.cpp)
-#~ target_link_libraries(test_board ${OpenCV_LIBS} ${Eigen_LIBRARIES} ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
-
-#~ add_executable(test_aruco scripts/test_aruco.cpp)
-#~ target_link_libraries(test_aruco ${OpenCV_LIBS} ${Eigen_LIBRARIES})
-
-#~ add_executable(create_aruco_video scripts/create_aruco_video.cpp)
-#~ target_link_libraries(create_aruco_video ${OpenCV_LIBS} ${Eigen_LIBRARIES})
+target_link_libraries(dummy_client ${LIBRARY_NAME} ${Eigen_LIBRARIES})
