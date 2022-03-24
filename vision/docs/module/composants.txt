@@ -1,0 +1,45 @@
+Composants
+----------
+- Raspberry Pi -> alimentation 5V
+- Caméra Raspberry Pi -> alimentée depuis la Raspberry Pi
+- Servomoteur (1 ou 2 axes ?) -> alimentation (4.8 à 6Vcc) si servo simple Mg90s
+- Convertisseur de tension -> inutile
+- Alimentation -> pile tension 7V
+
+Pour le servomoteur (contrôle de l'orientation de la caméra) :
+https://www.robotshop.com/eu/fr/kit-aluminium-pan-and-tilt-lynxmotion2.html?gclid=CjwKCAiA1JGRBhBSEiwAxXblwVBc57u4wZpfZsT03bN6wG9Bkxf6Yy_JsQQaTSqYCgyQgvj4kO3R-xoCpsgQAvD_BwE
+
+Modifications du code
+---------------------
+-> Gestion du balayage par la Raspberry et récupération des estimées de position du moteur.
+-> Récupération des images de la caméra puis estimation des poses
+-> Passage aux positions absolues sur le terrain (fusion des informations moteur et du tag, 
+  avec vérifications, besoin d'un filtre de Kalman pour estimer l'angle)
+Attention au risque d'occlusion du tag principal => besoin du filtrage pour compenser.
+-> Coder l'initialisation : enclencher le balayage du moteur, puis repérer le tag central avant le
+début du match, puis transmettre les informations au robot.
+-> Faire le schéma électronique de l'ensemble.
+
+Filtre Kalman
+-------------
+-> Etat à estimer : la pose de la caméra. La mesure du tag central permet de mettre à jour toute la
+pose, la mesuredu moteur permet de mettre à jour uniquement l'angle. Voir avec quels angles paramétrer
+la rotation, et quels incertitudes prendre. Modèle de propagation tout simple. Quel type de Kalman ?
+Faire un filtre d'erreur, avec un reset de l'estiméeà chaque recalage du tag.
+Etat : position du centre optique + angles de gisemet, site et roulis de la caméra, estimés
+à partir d'une pose de référence fictive de la caméra.
+Propagation avec les commandes envoyées au moteur : propagation de l'erreur de l'état nominal.
+Recalage : injection de l'erreur dans l'état nominal.
+La propagation n'est pas l'identité ! 
+
+Module vision
+-------------
+Serveur, qui sera interrogé régulièrement par le client.
+
+Alimentation
+------------
+5V avec Power Bank, chargeur de portable.
+
+Requête
+-------
+Comptage des échantillons rochers dans la zone pour voir si on a tout poussé.

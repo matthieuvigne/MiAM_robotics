@@ -1,0 +1,624 @@
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{a4wide}
+\usepackage{bm}
+
+\begin{document}
+
+%~ \section{Calcul de la matrice de covariance des estimées des poses relatives des marqueurs AruCo}
+
+%~ \noindent Paramétrisation locale de la pose relative : on pose $\bm{\delta\tau} = \begin{bmatrix} \bm{\delta\theta}, \bm{\delta{p}} \end{bmatrix}^{\top}$ :
+%~ \begin{align}
+%~ \bm{\delta\tau} \boxplus \begin{bmatrix} \bm{R} & \bm{t} \\ \bm{0}_{1\times{3}} & 1 \end{bmatrix} =
+%~ \begin{bmatrix} \bm{\delta\theta} \boxplus \bm{R} & \bm{t} + \bm{\delta{p}} \\ \bm{0}_{1\times{3}} & 1 \end{bmatrix}
+%~ \end{align}
+%~ L'incrément en rotation est :
+%~ \begin{align}
+%~ \bm{\delta\theta} \boxplus \bm{R} = \exp\left(\begin{bmatrix}\bm{\delta\theta}\end{bmatrix}_{\times}\right) \cdot \bm{R}
+%~ \approx \left( \bm{I}_3 + \begin{bmatrix} \bm{\delta\theta} \end{bmatrix}_{\times} \right) \cdot \bm{R}
+%~ \end{align}
+%~ Modèle de projection du coin $c$ en coordonnées homogènes :
+%~ \begin{align}
+%~ {}^I\tilde{\bm{p}}_c(\bm{\delta\tau}) &= \bm{K} \cdot \left( \bm{\delta\tau} \boxplus T_{CM} \right) 
+%~ \cdot {}^M\tilde{\bm{p}}_c\\
+%~ &= \bm{K} \cdot \begin{bmatrix} \bm{\delta\theta} \boxplus \bm{R} & 
+%~ \bm{\delta{p}} + \bm{t} \\ \bm{0}_{1\times{3}} & 1 \end{bmatrix} \cdot \begin{bmatrix} 
+%~ {}^{\mathcal{I}}\bm{p}_c \\ 1 \end{bmatrix}\\
+%~ &= \bm{K} \cdot \begin{bmatrix} \left( \bm{\delta\theta} \boxplus \bm{R} \right) \cdot
+%~ {}^{\mathcal{I}}\bm{p}_c + (\bm{\delta{p}} + \bm{t}) \\ 1 \end{bmatrix}
+%~ \end{align}
+%~ Calcul de la matrice Jacobienne :
+%~ \begin{subequations}
+%~ \begin{align}
+%~ \bm{J}^{{}^I\tilde{\bm{p}}_c}_{T_{CM}} &= \left.\dfrac{\partial{}^I\bm{p}_c(\bm{\delta\tau})}{\partial\bm{\delta\tau}}
+%~ \right|_{\bm{\delta\tau}=0} \\
+%~ &= \begin{bmatrix} \left.\dfrac{\partial{}^{\mathcal{I}}\bm{p}_c}{\partial\bm{\delta\theta}} \right|_{\bm{\delta\theta}=0} 
+%~ & \left.\dfrac{\partial{}^{\mathcal{I}}\bm{p}_c}{\partial\bm{\delta{p}}} 
+%~ \right|_{\bm{\delta{p}}=0} \end{bmatrix}\\
+%~ &= \bm{K} \cdot 
+%~ \begin{bmatrix} 
+%~ \left.\dfrac{\partial}{\partial\bm{\delta\theta}}
+%~ \left( \bm{I}_3 + \begin{bmatrix} \bm{\delta\theta} \end{bmatrix}_{\times} \right) \cdot \bm{R}_{CM} \cdot {}^M\bm{p}_c
+%~ \right|_{\bm{\delta\theta}=0}
+%~ &
+%~ \left.\dfrac{\partial\bm{\delta{p}}}{\partial\bm{\delta{p}}}
+%~ \right|_{\bm{\delta{p}}=0}
+%~ \end{bmatrix}\\
+%~ &= \bm{K}\cdot\begin{bmatrix} 
+%~ \left.\dfrac{\partial}{\partial\bm{\delta\theta}} \begin{bmatrix} \bm{\delta\theta} \end{bmatrix}_{\times} \bm{R}_{CM} {}^M\bm{p}_c \right|_{\bm{\delta\theta}=0}
+%~ & \bm{I}_3 \end{bmatrix}\\
+%~ &= \bm{K} \cdot \begin{bmatrix} - \left. \dfrac{\partial}{\partial\bm{\delta\theta}} 
+%~ \begin{bmatrix} \bm{R}_{CM} \cdot {}^M\bm{p}_c \end{bmatrix}_{\times} \bm{\delta\theta} 
+%~ \right|_{\bm{\delta\theta}=0}
+%~ & \bm{I}_3\end{bmatrix}\\
+%~ &= \bm{K} \cdot \begin{bmatrix} - \begin{bmatrix} \bm{R}_{CM}{}^M\bm{p}_c \end{bmatrix}_{\times} & \bm{I}_3 \end{bmatrix}
+%~ \end{align}
+%~ \end{subequations}
+%~ Cette matrice Jacobienne permet de passer en coordonnées homogènes. Pour passer aux coordonnées 
+%~ 3D, il faut diviser par la dernière composante :
+%~ \begin{align}
+%~ {}^{\mathcal{I}}\bm{p}_c = \begin{bmatrix} x \\ y \end{bmatrix} = \begin{bmatrix} 
+%~ \dfrac{\tilde{x}}{\tilde{z}}, \dfrac{\tilde{y}}{\tilde{z}} 
+%~ \end{bmatrix}^{\top}
+%~ \end{align}
+%~ La matrice Jacobienne correspondant à cette opération est:
+%~ \begin{align}
+%~ \bm{J}^{{}^{\mathcal{I}}\bm{p}_c}_{{}^{\mathcal{I}}\tilde{\bm{p}}_c} = \left. 
+%~ \dfrac{\partial{}^{\mathcal{I}}\bm{p}_c}{\partial{}^{\mathcal{I}}\tilde{\bm{p}}_c}\right|_{\tilde{\bm{p}}} =
+%~ \begin{bmatrix} 1/\tilde{z} & 0 & - \tilde{x}/\tilde{z}^2 \\ 0 & 1/\tilde{z} & 
+%~ -\tilde{y}/\tilde{z}^2 \end{bmatrix} =
+%~ \dfrac{1}{\tilde{z}} \begin{bmatrix} 1 & 0 & - \tilde{x}/\tilde{z} \\ 0 & 1 & 
+%~ - \tilde{y}/\tilde{z} \end{bmatrix}
+%~ \end{align}
+%~ La matrice Jacobienne de la projection totale vaut alors :
+%~ \begin{align}
+%~ \bm{J}^{{}^{\mathcal{I}}\bm{p}_c}_{T_{CM}}(\hat{T}_{CM}) =
+%~ \bm{J}^{{}^{\mathcal{I}}\bm{p}_c}_{{}^{\mathcal{I}}\tilde{\bm{p}}_c} \cdot
+%~ \bm{K} \cdot \begin{bmatrix} - \begin{bmatrix} \hat{\bm{R}}_{CM} {}^M\hat{\bm{p}}_c \end{bmatrix}_{\times}  & \bm{I}_3 \end{bmatrix}
+%~ \end{align}
+%~ En supposant un écart type $\sigma_{\text{vis}}$ sur chaque pixel, la matrice Fisher vaut :
+%~ \begin{align}
+%~ \boxed{\bm{\mathcal{I}}_{\mathcal{Z}}(\hat{T}_{CM}) = \dfrac{1}{\sigma_{\text{vis}}^2} \displaystyle\sum_{i=1}^4 
+%~ \left( \bm{J}^{{}^{\mathcal{I}}\bm{p}_{c_i}}_{T_{CM}}(\hat{T}_{CM}) \right)^{\top} 
+%~ \left( \bm{J}^{{}^{\mathcal{I}}\bm{p}_{c_i}}_{T_{CM}}(\hat{T}_{CM}) \right)}
+%~ \end{align}
+
+%~ \section{Homographie induite par un plan}
+
+%~ On considère un plan dont l'équation homogène est :
+%~ \begin{align}
+%~ {}^{C}\bm{\pi}^{\top} \cdot {}^{C}\bm{X} = 0
+%~ \end{align}
+%~ avec ${}^C\bm{\pi} = \begin{bmatrix} {}^C\bm{n}^{\top} & d_C \end{bmatrix}^{\top}$. Le point dans le 
+%~ plan focal :
+%~ \begin{align}
+%~ {}^F\bm{x} = \begin{bmatrix} \bm{I} & \bm{0} \end{bmatrix} {}^C\bm{X}
+%~ \end{align}
+%~ Pour que le point rétro-projeté appartienne au plan, il doit être de la forme :
+%~ \begin{align}
+%~ {}^C\bm{X} = \begin{bmatrix} {}^F\bm{x} \\ - \dfrac{{}^C\bm{n}^{\top} \cdot {}^F\bm{x}}{d_C} \end{bmatrix}
+%~ \end{align}
+%~ En projetant ceci dans une autre caméra :
+%~ \begin{align}
+%~ {}^{F'}\bm{x}^{'} = \begin{bmatrix} \bm{R}_{C'C} & {}^{C'}\bm{t}_C \end{bmatrix} {}^C\bm{X}
+%~ = \left( \bm{R}_{C'C} - \dfrac{{}^{C'}\bm{t}_C.{}^C\bm{n}^{\top}}{d} \right) {}^F\bm{x}
+%~ \end{align}
+%~ En ajoutant les matrices des caméras :
+%~ \begin{align}
+%~ \bm{x}^{'} = \bm{K}^{'} \left( \bm{R}_{C'C} - \dfrac{{}^{C'}\bm{t}_C.{}^C\bm{n}^{\top}}{d_C} \right) 
+%~ \bm{K}^{-1} \bm{x}
+%~ \end{align}
+%~ En considérant la transformation qui permet de passer de la caméra de référence à la caméra 
+%~ désirée :
+%~ \begin{align}
+%~ \boxed{\bm{x}^{'} = \bm{K}^{'} \bm{R}_{CC'}^{\top} \left( \bm{I}_3 +  
+%~ \dfrac{{}^C\bm{t}_{C'}.{}^C\bm{n}^{\top}}{d_C} \right) \bm{K}^{-1} \bm{x}}
+%~ \end{align}
+%~ Pour simplifier, on peut considérer un vecteur ${}^C\tilde{\bm{\pi}}$ normalisé :
+%~ \begin{align}
+%~ \boxed{{}^{I'}\bm{x} = \bm{K}_{I'C'} \left( \bm{R}_{C'C} -  
+%~ {}^{C'}\bm{t}_{C'C}.{}^C\tilde{\bm{n}}^{\top} \right) \bm{K}_{IC}^{-1}.{}^I\bm{x}}
+%~ \end{align}
+%~ Si on connaît le vecteur normal dans le référentiel monde :
+%~ \begin{align}
+%~ {}^{I'}\bm{x} &= \bm{K}_{I'C'} \left( \bm{R}_{C'C} -  
+%~ {}^{C'}\bm{t}_{C'C}.(\bm{R}_{CW}.{}^W\tilde{\bm{n}})^{\top} \right) \bm{K}_{IC}^{-1}.{}^I\bm{x}\\
+%~ &= \bm{K}_{I'C'} \left( \bm{R}_{C'C} -  
+%~ {}^{C'}\bm{t}_{C'C}.{}^W\tilde{\bm{n}}^{\top}.\bm{R}_{WC} \right) \bm{K}_{IC}^{-1}.{}^I\bm{x}\\
+%~ &= \bm{K}_{I'C'} \left( \bm{R}_{C'W} -  
+%~ {}^{C'}\bm{t}_{C'C}.{}^W\tilde{\bm{n}}^{\top} \right) \bm{R}_{WC}.\bm{K}_{IC}^{-1}.{}^I\bm{x}\\
+%~ \end{align}
+%~ Changement de référentiel (axes + orgine) :
+%~ \begin{align}
+%~ {}^{A'}\bm{t}_{A'C} = {}^{A'}\bm{t}_{A'A} + \underset{={}^{A'}\bm{t}_{AC}}{\underbrace{\bm{R}_{A'A}.{}^A\bm{t}_{AC}}}
+%~ \end{align}
+
+%~ \section{Modèle de distortion d'OpenCV}
+
+%~ Le modèle de distortion d'OpenCV est de la forme suivante :
+%~ \begin{align*}
+%~ \left\{\begin{array}{l}
+%~ x_d = \dfrac{1 + k_1r^2 + k_2r^4 + k_3r^6}{1 + k_4 r^2 + k_5r^4 + k_6r^6}x + 2\rho_1xy + \rho_2(r^2 + 2x^2)\\[1em]
+%~ y_d = \dfrac{1 + k_1r^2 + k_2r^4 + k_3r^6}{1 + k_4 r^2 + k_5r^4 + k_6r^6}y + \rho_1(r^2 + 2y^2) + 2\rho_2xy
+%~ \end{array}\right.
+%~ \end{align*}
+%~ Ainsi, le vecteur classique des paramètres de distortion utilisé est de la forme :
+%~ \begin{align*}
+%~ k_1, k_2, \rho_1, \rho_2, k_3, k_4, k_5, k_6, s_1, s_2, s_3, s_4
+%~ \end{align*}
+%~ Attention, le modèle de distortion Fisheye n'est pas le même, et n'est pas géré par le module Aruco :
+%~ \begin{align*}
+%~ \left\{\begin{array}{l}
+%~ x_d = \dfrac{\theta}{r}(1 + k_1\theta^2 + k_2\theta^4 + k_3\theta^6 + k_4\theta^8)x\\[1em]
+%~ y_d = \dfrac{\theta}{r}(1 + k_1\theta^2 + k_2\theta^4 + k_3\theta^6 + k_4\theta^8)y
+%~ \end{array}\right.
+%~ \end{align*}
+%~ Donc, non seulement ce ne sont pas les mêmes coefficients, mais les polynômes de distorsion ne portent
+%~ pas non plus sur les mêmes variables ! Mais on peut utiliser la forme à cinq coefficients en premier
+%~ spécifiquement pour les caméras fisheye, cela devrait suffire, mais il faut tester !
+
+%~ \section{Filtre d'erreur pour la pose de la caméra}
+
+%~ L'état du filtre sera la pose relative $T_{C_0C}$ de la caméra par rapport à une pose de référence 
+%~ $T_{WC_0}$. Ainsi, pour obtenir la pose dans le référentiel global, il faudra composer l'estimée 
+%~ de pose relative avec la pose nominale :
+%~ \begin{align}
+%~ \hat{T}_{WC} = T_{WC_0} \ast \hat{T}_{C_0C}
+%~ \end{align}
+%~ Comment paramétrer la rotation dans l'estimée ? Ici, on utilise les angles de gisement, de site 
+%~ et de roulis de la caméra. Le roulis de la caméra correspondra plutôt à un mésalignement car 
+%~ elle n'est pas sensée évoluer selon cet axe. Pareil pour le site, normalement, cet angle doit 
+%~ rester constant. Ce n'est que le gisement qui doit évoluer. Ainsi :
+%~ \begin{align}
+%~ \hat{T}_{C_0C} = \begin{bmatrix} {}^{C_0}\bm{p}_C \hskip1ex G \hskip1ex S \hskip1ex \Phi \end{bmatrix}
+%~ \end{align}
+%~ La matrice de rotation se reconstruit comme suit :
+%~ \begin{align}
+%~ \bm{R}_{C_0C} &=
+%~ \begin{bmatrix} \cos(G) & -\sin(G) & 0 \\ \sin(G) & \cos(G) & 0 \\ 0 & 0 & 1 \end{bmatrix} \cdot
+%~ \begin{bmatrix} \cos(S) & 0 & \sin(S) \\ 0 & 1 & 0 \\ -\sin(S) & 0 & \cos(S) \end{bmatrix} \cdot
+%~ \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos(\Phi) & -\sin(\Phi) \\ 0 & \sin(\Phi) & \cos(\Phi) 
+%~ \end{bmatrix}
+%~ \end{align}
+%~ Pour faire un filtre d'erreur, il faut scinder l'état en un état nominal et une erreur, et c'est 
+%~ cette erreur qu'on estimera explicitement dans le filtre. L'état nominal évoluera selon les 
+%~ équations de propagation non-linéaires, tandis que l'erreur évoluera selon les équations de 
+%~ propagations linéarisées par rapport à l'erreur (donc il n'y a que sa covariance qui va évoluer 
+%~ jusqu'au prochain recalage). Et dès qu'un recalage est disponible, alors on met l'erreur à jour, 
+%~ puis on l'injecte dans l'état nominal et on la réinitialise à zéro.
+
+%~ \vskip1ex
+
+%~ Pour la propagation, on utilise les commandes envoyées au servomoteur, avec une incertitude 
+%~ donnée abritrairement. Pour le recalage, on utilise la pose relative mesurée avec le marqueur 
+%~ central sur le terrain. On peut commander le servomoteur avec une vitesse et une position objectif.
+%~ On utilisera l'ordre en vitesse de rotation. Les équations de propagation non-linéaires sont :
+%~ \begin{align}
+%~ T_{C_0C_{k+1}} = f(T_{C_0C_k}, \bm{u}_k) 
+%~ \end{align}
+%~ On va commander par incréments de position angulaire. On appelle le filtre uniquement à chaque 
+%~ commande. Puis on recale avec la photo si possible. On doit voir la translation estimée comme une
+%~ correction par rapport à la pose de référence. Le modèle de propagation est alors :
+%~ \begin{align}
+%~ \left\{ \begin{array}{l}
+%~ {}^{C_0}\bm{p}_{C_{k+1}} = {}^{C_0}\bm{p}_{C_k} + (\bm{R}(\Delta G_k) - \bm{I_3}) \cdot {}^{C_0}\bm{\ell}(G_k) \\
+%~ G_{k+1} = G_k + \Delta G_k \\
+%~ S_{k+1} = S_k \\
+%~ \Phi_{k+1} = \Phi_k
+%~ \end{array}\right.
+%~ \end{align}
+%~ Il faut prendre en compte le bras de levier, avec le centre de rotation. On alors, on peut estimer 
+%~ juste le rayon ? Non, on a besoin d'estimer les trois degrés de liberté en translation. La 
+%~ position de référence est complètement arbitraire. Le paramètre dont on a besoin, c'est la 
+%~ distance à l'axe de rotation du centre optique de la caméra. On peut considérer que le capteur 
+%~ est parfait, ou alors avec une petite incertitude sur l'erreur statique, et de l'autre côté, on 
+%~ peut propager une erreur sur la longueur retenue pour le bras de levier, et la direction de l'axe 
+%~ de rotation. Donc ça revient à estimer la position du centre de rotation de la caméra. La 
+%~ translation estimée et les angles sont corrélés. On connait la longueur du bras de levier, et on 
+%~ suppose que la rotation est contenue dans le plan horizontal. Et la pose de référence est 
+%~ horizontale. Peut-on considérer que l'axe de rotation sera bien vertical ? C'est vraisemblablement 
+%~ le plus simple (au pire on ajoute des incertitudes pour compenser les écarts dans le modèle de 
+%~ propagation), car sinon, il faudrait estimer l'axe de rotation (2 paramètres angulaires), et la 
+%~ correction sur le point par lequel il passerait. Donc on suppose que la rotation s'effectue bien 
+%~ dans le plan horizontal. Mais on ne connaît pas exactement la distance entre l'axe de rotation et 
+%~ le centre optique de la caméra. Il faudrait l'estimer aussi... Mais on pourrait le connaître si 
+%~ la caméra est calibrée, avec les distances focales et les coordonnées du centre optique. Quoique 
+%~ non, le centre optique n'a pas véritablement de position par rapport au plan image, les distances 
+%~ focales ne sont que des changements d'échelle. On peut le confondre avec la position de la 
+%~ caméra. Il faudrait savoir exactement où se trouve le centre optique de la caméra, physiquement. 
+%~ On peut estimer cette distance. On sait que c'est un point situé sur l'axe optique de la caméra. 
+%~ Une possibilité serait de l'estimer à la première mesure visuelle du marqueur. Dans les autres 
+%~ applications, le centre optique est toujours géré comme un point intermédiaire fictif, sans 
+%~ qu'on n'ait jamais besoin de lui conférer un sens physique. En première approximation, on peut 
+%~ considérer que le centre optique se confond avec le centre du capteur ? Le centre optique ne 
+%~ correspond pas exactement au centre de la lentille, puisque c'est une lentille convergente qui 
+%~ focalise tous les rayons sur le foyer, légèrement en amont duquel se situe le récepteur optique. 
+%~ Or, dans le modèle sténopé, le centre optique est vue comme le centre d'une convergence 
+%~ linéaire. Ce qui est certain, c'est qu'on aura une translation circulaire autour de l'axe de 
+%~ rotation.
+
+%~ \vskip1ex
+
+%~ Attention à ne pas faire de contresens sur les notions incluses dans le modèle pinhole. Ne pas 
+%~ confondre le centre optique avec le point principal. Le point principal est le point d'intersection 
+%~ entre le plan image et l'axe optique. En fait, la distance focale correspond bien à la distance 
+%~ entre le plan image et le centre optique. Mais dans les fichiers de calibration, on la multiplie 
+%~ souvent par une densité pixellique, c'est-à-dire le nombre de pixel par unité de longueur. Le 
+%~ plan focal et le plan image sont les mêmes plans. Les densités pixelliques ne sont pas les mêmes 
+%~ selon x et y. C'est un abus de langage de parler de distance focale lorsqu'on a prémultiplié par 
+%~ ce coefficient, car ce n'est plus une distance à proprement parler. On obtient alors une distance 
+%~ focale en pixels. Physiquement d'ailleurs, le plan du capteur est en arrière du centre optique 
+%~ (l'image est mesurée à l'envers). Ce qui veut bien dire que le centre optique n'est jamais très 
+%~ loin du plan image. Donc, en première appproximation, on peut postuler qu'on connaît bien le bras 
+%~ de levier.
+
+%~ \vskip1ex
+
+%~ On peut aussi simplifier le modèle de propagation en ignorant l'effet de roulis sur la caméra. On 
+%~ fait l'hypothèse qu'elle sera bien plate. On reprend donc le modèle d'état ci-dessus :
+%~ \begin{align}
+%~ \left\{
+%~ \begin{array}{l}
+%~ {}^{C_0}\bm{p}_{C_{k+1}} = {}^{C_0}\bm{p}_{C_k} + (\bm{R}(\Delta G_k) - \bm{I_3}) \cdot {}^{C_0}\bm{\ell}(G_k) \\
+%~ G_{k+1} = G_k + \Delta G_k \\
+%~ S_{k+1} = S_k
+%~ \end{array}
+%~ \right.
+%~ \end{align}
+%~ Ci-dessus, le bras de levier se calcule comme suit :
+%~ \begin{align}
+%~ {}^{C_0}\bm{\ell}(\Delta G_k) = \ell \begin{bmatrix} \cos(\Delta G_k) \\ 0 \\ \sin(\Delta G_k) \end{bmatrix}
+%~ \end{align}
+%~ La quantité $\ell$ est la longueur qui sépare le centre optique de la caméra de l'axe de 
+%~ rotation (et on l'aura théoriquement selon les dimensions de la pièce de support de la caméra 
+%~ qu'on aura construite).
+
+\section{Filtre pour estimer la pose de la caméra}
+
+\subsection{Etat estimé}
+
+On cherche à estimer la pose de la caméra :
+\begin{align}
+x_k = T_{WC_k} = \left[ \bm{q}_{WC_k} \hskip1ex {}^{W}\bm{p}_{C_k} \right]
+\end{align}
+On suppose connaître la pose relative $T_{R_kC_k} = T_{RC}$ (constante) entre le centre optique de la caméra et un repère 
+arbitraire $R_k$ dont l'origine appartient à l'axe de rotation du servomoteur et dont l'axe $z$ 
+dirige l'axe de rotation vers le bas. 
+
+\vskip1em
+
+\noindent Paramétrisation locale de la pose relative : on pose $\bm{\delta\tau} = \begin{bmatrix} \bm{\delta\theta}, \bm{\delta{p}} \end{bmatrix}^{\top}$ :
+\begin{align}
+\bm{\delta\tau} \boxplus \begin{bmatrix} \bm{R} & \bm{t} \\ \bm{0}_{1\times{3}} & 1 \end{bmatrix} =
+\begin{bmatrix} \bm{\delta\theta} \boxplus \bm{R} & \bm{t} + \bm{\delta{p}} \\ \bm{0}_{1\times{3}} & 1 \end{bmatrix}
+\end{align}
+L'incrément en rotation est :
+\begin{align}
+\bm{\delta\theta} \boxplus \bm{R} = \exp\left(\begin{bmatrix}\bm{\delta\theta}\end{bmatrix}_{\times}\right) \cdot \bm{R}
+\approx \left( \bm{I}_3 + \begin{bmatrix} \bm{\delta\theta} \end{bmatrix}_{\times} \right) \cdot \bm{R}
+\end{align}
+
+\subsection{Modèle de propagation}
+
+Le modèle de propagation est le suivant :
+\begin{align}
+T_{WC_{k+1}} = T_{WC_k} \ast T_{RC}^{-1} \ast T_{\Delta{R}}(\Delta\theta_k) \ast T_{RC}
+\end{align}
+Ci-dessus, on peut également noter $T_{\Delta\theta_k} = T_{R_kR_{k+1}}$.
+Connaissant les incertitudes sur $T_{WC_k}$ et sur $T_{RC}$, on en déduit les incertitudes sur 
+$T_{WC_{k+1}}$ et donc la matrice des bruits d'états :
+\begin{subequations}
+\begin{align}
+\bm{\Sigma}_{T_{WC_{k+1}}} &=
+\bm{J}^{T_{WC_{k+1}}}_{T_{CW_k}} \cdot \bm{\Sigma}_{T_{WC_{k}}} \cdot 
+{\bm{J}^{T_{WC_{k+1}}}_{T_{CW_k}}}^{\top}\\
+&+
+\bm{J}^{T_{WC_{k+1}}}_{T_{RC}} \cdot \bm{\Sigma}_{T_{RC}} \cdot 
+{\bm{J}^{T_{WC_{k+1}}}_{T_{RC}}}^{\top}\\
+&+
+\bm{J}^{T_{WC_{k+1}}}_{\Delta\theta_k} \cdot \sigma_{\Delta\theta_k}^2 \cdot 
+{\bm{J}^{T_{WC_{k+1}}}_{\Delta\theta_k}}^{\top}
+\end{align}
+\end{subequations}
+Le premier terme correspond à la propagation des incertitudes sur la pose de la caméra, tandis 
+que les deux derniers, constants, correspondent à la matrice de propagation des bruits d'états.
+Toutes les matrices de covariance et les matrices Jacobiennes utilisées sont exprimées 
+globalement :
+\begin{align}
+\bm{\Sigma}_{T} = \text{cov}(\bm{\delta\tau})
+\end{align}
+tel que $\hat{T} = \exp_{\mathbb{SE}_3}(\bm{\delta\tau}^{\wedge}) \ast T_{\text{vrai}}$, donc en 
+particulier : $\bm{\delta\tau} = \log_{\mathbb{SE}_3}(\hat{T} \ast T_{\text{vrai}}^{-1})^{\vee}$.
+Calculons les matrices Jacobiennes introduites ci-dessus :
+
+\begin{align}
+\left\{\begin{array}{l}
+%
+\bm{J}^{T_{WC_{k+1}}}_{T_{CW_k}} =
+\bm{J}^{T_{WC_{k}} \ast T_{C_kC_{k+1}}}_{T_{WC_k}}\\[1em]
+%
+\bm{J}^{T_{WC_{k+1}}}_{T_{RC}} =
+\bm{J}^{T_{WR_k} \ast T_{R_kC_{k+1}}}_{T_{WR_k}} \cdot \bm{J}^{T_{WC_k} \ast T_{RC}^{-1}}_{T_{RC}^{-1}} \cdot 
+\bm{J}^{T_{RC}^{-1}}_{T_{RC}}
++ \bm{J}^{T_{WR_{k+1}} \ast T_{RC}}_{T_{RC}}\\[1em]
+%
+\bm{J}^{T_{WC_{k+1}}}_{\Delta\theta_k} =
+\bm{J}^{T_{WR_{k+1} \ast T_{RC}}}_{T_{WR_{k+1}}} \cdot
+\bm{J}^{T_{WR_k} \ast T_{R_kR_{k+1}}}_{T_{R_kR_{k+1}}} \cdot
+\bm{J}^{T_{R_kR_{k+1}}}_{\Delta\theta_k}
+\end{array}\right.
+\end{align}
+
+\noindent On peut alors expliciter chaque matrice Jacobienne intervenant dans les décompositions ci-dessus :
+
+\begin{subequations}
+\begin{align}
+%
+\bm{J}^{T_{WC_{k}} \ast T_{C_kC_{k+1}}}_{T_{WC_k}} =
+\begin{bmatrix}
+\bm{I}_3 & \bm{0}_3 \\
+- \left[ \bm{R}_{WC_k} {}^{C_k}\bm{t}_{C_{k+1}} \right]_{\times} & \bm{I}_3
+\end{bmatrix}\\[1em]
+%
+\bm{J}^{T_{WR_k} \ast T_{R_kC_{k+1}}}_{T_{WR_k}} =
+\begin{bmatrix} \bm{I}_3 & \bm{0}_3 \\ - \left[ \bm{R}_{WR_k} {}^{R_k}\bm{t}_{C_{k+1}} \right]_{\times} & \bm{I}_3 \end{bmatrix}\\[1em]
+%
+\bm{J}^{T_{WC_k} \ast T_{RC}^{-1}}_{T_{RC}^{-1}} =
+\begin{bmatrix} \bm{R}_{WC_k} & \bm{0}_3 \\ \bm{0}_3 & \bm{R}_{WC_k} \end{bmatrix}\\[1em]
+%
+\bm{J}^{T_{RC}^{-1}}_{T_{RC}} =
+\begin{bmatrix} - \bm{R}_{RC}^{\top} & \bm{0}_3 \\ - \bm{R}_{RC}^{\top} \left[ {}^{R}\bm{t}_C 
+\right]_{\times} & - \bm{R}_{RC}^{\top} \end{bmatrix}\\[1em]
+%
+\bm{J}^{T_{WR_{k+1}} \ast T_{RC}}_{T_{RC}} =
+\begin{bmatrix} \bm{R}_{WR_{k+1}} & \bm{0}_3 \\ \bm{0}_3 & \bm{R}_{WR_{k+1}} \end{bmatrix}\\[1em]
+%
+\bm{J}^{T_{WR_{k+1} \ast T_{RC}}}_{T_{WR_{k+1}}} =
+\begin{bmatrix} \bm{I}_3 & \bm{0}_3 \\ - \left[ \bm{R}_{WR_{k+1}} {}^{R_{k+1}}\bm{t}_{C_{k+1}} \right]_{\times} & \bm{I}_3 \end{bmatrix}\\[1em]
+%
+\bm{J}^{T_{WR_k} \ast T_{R_kR_{k+1}}}_{T_{R_kR_{k+1}}} =
+\begin{bmatrix} \bm{R}_{WR_k} & \bm{0}_3 \\ \bm{0}_3 & \bm{R}_{WR_k} \end{bmatrix}\\[1em]
+%
+\bm{J}^{T_{R_kR_{k+1}}}_{\Delta\theta_k} = 
+\bm{J}^{\text{Exp}(\bm{\tau})}_{\bm{\tau}} \cdot \bm{J}^{\bm{\tau}}_{\Delta\theta_k}
+= \begin{bmatrix}
+\bm{J}_l(\bm{\theta}) & \bm{0}_3 \\
+\left[ \bm{p} \right]_{\times} \bm{J}_l(\bm{\theta}) & \bm{I}_3
+\end{bmatrix} \cdot \bm{e}_3
+\end{align}
+\end{subequations}
+
+Dans la dernière expression, la première matrice Jacobienne est le Jacobien "à gauche" :
+
+\begin{subequations}
+\begin{align}
+\bm{J}^{\text{Exp}(\bm{\tau})}_{\bm{\tau}} &=
+\left.\dfrac{\partial}{\partial\bm{\delta\tau}}
+\text{Log}\left( \text{Exp}(\bm{\delta\tau}+\bm{\tau}) \circ \text{Exp}(\bm{\tau})^{-1}
+\right) \right|_{\bm{\delta\tau}=0}\\
+%
+&= \left.\dfrac{\partial}{\partial\bm{\delta\tau}}\text{Log}\left(
+\begin{bmatrix} \bm{R}(\bm{\delta\theta} + \bm{\theta}) & \bm{\delta{p}}+ \bm{p} \\
+\bm{0} & 1\end{bmatrix} \cdot \begin{bmatrix} \bm{R}(\bm{\theta})^{\top} & - 
+\bm{R}(\bm{\theta})^{\top} \bm{p} \\ \bm{0} & 1\end{bmatrix}
+\right)\right|_{\bm{\delta\tau}=0}\\
+%
+&= \left.\dfrac{\partial}{\partial\bm{\delta\tau}}\text{Log}\left(
+\begin{bmatrix} \bm{R}(\bm{\delta\theta} + \bm{\theta}) \cdot \bm{R}(\bm{\theta}) &
+\left( \bm{I}_3 - \bm{R}(\bm{\delta\theta}+\bm{\theta}) \cdot \bm{R}(\bm{\theta})^{\top} \right) \bm{p} + \bm{\delta{p}}\\ \bm{0} & 1\end{bmatrix}
+\right)\right|_{\bm{\delta\tau}=0}\\
+%
+&= \left.\dfrac{\partial}{\partial\bm{\delta\tau}}
+\begin{bmatrix} \left( \bm{R}(\bm{\delta\theta} + \bm{\theta}) \cdot \bm{R}(\bm{\theta})^{\top} 
+\right)^{\vee} \\
+\left( \bm{I}_3 - \bm{R}(\bm{\delta\theta}+\bm{\theta}) \cdot \bm{R}(\bm{\theta})^{\top} \right) \bm{p} + \bm{\delta{p}}\end{bmatrix}
+\right|_{\bm{\delta\tau}=0}\\
+%
+&= \begin{bmatrix}
+\bm{J}_l(\bm{\theta}) & \bm{0}_3 \\
+- \left.\dfrac{\partial}{\partial\bm{\delta\theta}} 
+\bm{R}(\bm{\delta\theta}+\bm{\theta}) \cdot \bm{R}(\bm{\theta})^{\top} \bm{p}
+\right|_{\bm{\delta\theta}=0} & \bm{I}_3
+\end{bmatrix}\\
+%
+&= \begin{bmatrix}
+\bm{J}_l(\bm{\theta}) & \bm{0}_3 \\
+- \left.\dfrac{\partial}{\partial\bm{\delta\theta}} 
+\bm{R}(\bm{J}_l(\bm{\theta})\bm{\delta\theta}) \bm{p}
+\right|_{\bm{\delta\theta}=0} & \bm{I}_3
+\end{bmatrix}\\
+%
+&= \begin{bmatrix}
+\bm{J}_l(\bm{\theta}) & \bm{0}_3 \\
+- \left.\dfrac{\partial}{\partial\bm{\delta\theta}} 
+\left( \bm{I}_3 + \left[ \bm{J}_l(\bm{\theta})\bm{\delta\theta}) \right]_{\times} \right) \bm{p} 
+\right|_{\bm{\delta\theta}=0} & \bm{I}_3
+\end{bmatrix}\\
+%
+&= \begin{bmatrix}
+\bm{J}_l(\bm{\theta}) & \bm{0}_3 \\
+\left[ \bm{p} \right]_{\times} \bm{J}_l(\bm{\theta}) & \bm{I}_3
+\end{bmatrix}
+\end{align}
+\end{subequations}
+
+Ci-dessus, $\bm{J}_l(\bm{\theta})$ est le Jacobien à gauche sur $\mathbb{SO}_3(\mathbb{R})$ :
+\begin{align}
+\bm{J}_l(\bm{\theta}) = \bm{I}_3 + 
+\dfrac{1-\cos(\theta)}{\theta} \left[\bm{\theta}\right]_{\times} 
++ \dfrac{\theta-\sin(\theta)}{\theta^3}\left[\bm{\theta}\right]_{\times}^2
+\end{align}
+
+En l'occurrrence, le $\Delta\theta$ sera porté par l'axe $z$, lui-même dirigé vers le bas. Donc 
+vu de dessus, un $\Delta\theta$ positif, c'est une rotation vers la droite. Le $\Delta\theta$, 
+c'est la position visée, moins la position actuelle estimée.
+
+\subsection{Modèle de mesure}
+
+\noindent La mesure de recalage est une estimée $\hat{T}_{CM}$ de la pose relative entre la caméra 
+$C$ et le marqueur central $M$ de la table dont la position est supposée connue. Cette pose est 
+calculée en minimisant les erreurs de reprojection des quatre coins repérés du marqueur. Ainsi, 
+la matrice de covariance associée à cette mesure se calcule comme suit.
+
+\vskip1em
+
+\noindent Modèle de projection du coin $c$ en coordonnées homogènes :
+\begin{align}
+{}^I\tilde{\bm{p}}_c(\bm{\delta\tau}) &= \bm{K} \cdot d\left( \left( \bm{\delta\tau} \boxplus T_{CM} \right) 
+\cdot {}^M\tilde{\bm{p}}_c \right)\\
+&= \bm{K} \cdot d\left( \begin{bmatrix} \bm{\delta\theta} \boxplus \bm{R} & 
+\bm{\delta{p}} + \bm{t} \\ \bm{0}_{1\times{3}} & 1 \end{bmatrix} \cdot \begin{bmatrix} 
+{}^{\mathcal{I}}\bm{p}_c \\ 1 \end{bmatrix} \right)\\
+&= \bm{K} \cdot d\left( \begin{bmatrix} \left( \bm{\delta\theta} \boxplus \bm{R} \right) \cdot
+{}^{\mathcal{I}}\bm{p}_c + (\bm{\delta{p}} + \bm{t}) \\ 1 \end{bmatrix} \right)
+\end{align}
+Ci-dessus, $d$ désigne le modèle de distorsion. Dans la suite, on note $\bm{J}_d$ sa matrice 
+Jacobienne.
+
+\vskip1em
+
+\noindent Calcul de la matrice Jacobienne :
+\begin{subequations}
+\begin{align}
+\bm{J}^{{}^I\tilde{\bm{p}}_c}_{T_{CM}} &= \left.\dfrac{\partial{}^I\bm{p}_c(\bm{\delta\tau})}{\partial\bm{\delta\tau}}
+\right|_{\bm{\delta\tau}=0} \\
+&= \begin{bmatrix} \left.\dfrac{\partial{}^{\mathcal{I}}\bm{p}_c}{\partial\bm{\delta\theta}} \right|_{\bm{\delta\theta}=0} 
+& \left.\dfrac{\partial{}^{\mathcal{I}}\bm{p}_c}{\partial\bm{\delta{p}}} 
+\right|_{\bm{\delta{p}}=0} \end{bmatrix}\\
+&= \bm{K} \cdot \bm{J}_d \cdot 
+\begin{bmatrix} 
+\left.\dfrac{\partial}{\partial\bm{\delta\theta}}
+\left( \bm{I}_3 + \begin{bmatrix} \bm{\delta\theta} \end{bmatrix}_{\times} \right) \cdot \bm{R}_{CM} \cdot {}^M\bm{p}_c
+\right|_{\bm{\delta\theta}=0}
+&
+\left.\dfrac{\partial\bm{\delta{p}}}{\partial\bm{\delta{p}}}
+\right|_{\bm{\delta{p}}=0}
+\end{bmatrix}\\
+&= \bm{K} \cdot \bm{J}_d \cdot \begin{bmatrix} 
+\left.\dfrac{\partial}{\partial\bm{\delta\theta}} \begin{bmatrix} \bm{\delta\theta} \end{bmatrix}_{\times} \bm{R}_{CM} {}^M\bm{p}_c \right|_{\bm{\delta\theta}=0}
+& \bm{I}_3 \end{bmatrix}\\
+&= \bm{K} \cdot \bm{J}_d \cdot \begin{bmatrix} - \left. \dfrac{\partial}{\partial\bm{\delta\theta}} 
+\begin{bmatrix} \bm{R}_{CM} \cdot {}^M\bm{p}_c \end{bmatrix}_{\times} \bm{\delta\theta} 
+\right|_{\bm{\delta\theta}=0}
+& \bm{I}_3\end{bmatrix}\\
+&= \bm{K} \cdot \bm{J}_d \cdot \begin{bmatrix} - \begin{bmatrix} \bm{R}_{CM}{}^M\bm{p}_c \end{bmatrix}_{\times} & \bm{I}_3 \end{bmatrix}
+\end{align}
+\end{subequations}
+Cette matrice Jacobienne permet de passer en coordonnées homogènes. Pour passer aux coordonnées 
+3D, il faut diviser par la dernière composante :
+\begin{align}
+{}^{\mathcal{I}}\bm{p}_c = \begin{bmatrix} x \\ y \end{bmatrix} = \begin{bmatrix} 
+\dfrac{\tilde{x}}{\tilde{z}}, \dfrac{\tilde{y}}{\tilde{z}} 
+\end{bmatrix}^{\top}
+\end{align}
+La matrice Jacobienne correspondant à cette opération est:
+\begin{align}
+\bm{J}^{{}^{\mathcal{I}}\bm{p}_c}_{{}^{\mathcal{I}}\tilde{\bm{p}}_c} = \left. 
+\dfrac{\partial{}^{\mathcal{I}}\bm{p}_c}{\partial{}^{\mathcal{I}}\tilde{\bm{p}}_c}\right|_{\tilde{\bm{p}}} =
+\begin{bmatrix} 1/\tilde{z} & 0 & - \tilde{x}/\tilde{z}^2 \\ 0 & 1/\tilde{z} & 
+-\tilde{y}/\tilde{z}^2 \end{bmatrix} =
+\dfrac{1}{\tilde{z}} \begin{bmatrix} 1 & 0 & - \tilde{x}/\tilde{z} \\ 0 & 1 & 
+- \tilde{y}/\tilde{z} \end{bmatrix}
+\end{align}
+La matrice Jacobienne de la projection totale vaut alors :
+\begin{align}
+\bm{J}^{{}^{\mathcal{I}}\bm{p}_c}_{T_{CM}}(\hat{T}_{CM}) =
+\bm{J}^{{}^{\mathcal{I}}\bm{p}_c}_{{}^{\mathcal{I}}\tilde{\bm{p}}_c} \cdot
+\bm{K} \cdot \bm{J}_d \cdot \begin{bmatrix} - \begin{bmatrix} \hat{\bm{R}}_{CM} {}^M\hat{\bm{p}}_c \end{bmatrix}_{\times}  & \bm{I}_3 \end{bmatrix}
+\end{align}
+En supposant un écart type $\sigma_{\text{vis}}$ sur chaque pixel, la matrice Fisher vaut :
+\begin{align}
+\boxed{\bm{\mathcal{I}}_{\mathcal{Z}}(\hat{T}_{CM}) = \dfrac{1}{\sigma_{\text{vis}}^2} \displaystyle\sum_{i=1}^4 
+\left( \bm{J}^{{}^{\mathcal{I}}\bm{p}_{c_i}}_{T_{CM}}(\hat{T}_{CM}) \right)^{\top} 
+\left( \bm{J}^{{}^{\mathcal{I}}\bm{p}_{c_i}}_{T_{CM}}(\hat{T}_{CM}) \right)}
+\end{align}
+
+\vskip1em
+
+\noindent Connaissant l'estimée de la pose absolue $\hat{T}_{WC}$ de la caméra et étant donné la pose absolue 
+du marqueur central $T_{WM}$, le modèle de mesure est le suivant :
+\begin{align}
+T_{CM} = h(T_{WC}, T_{WM}) = T_{WC}^{-1} \ast T_{WM}
+\end{align}
+
+\noindent La matrice Jacobienne vis-à-vis de l'état vaut alors :
+\begin{align}
+\bm{J}^{T_{CM}}_{T_{WC}} = \bm{J}^{T_{WC}^{-1} \ast T_{WM}}_{T_{WC}} =
+\begin{bmatrix}
+- \bm{R}_{WC}^{\top} & \bm{0}_3 \\
+- \bm{R}_{WC}^{\top}\cdot \left[ {}^{W}\bm{t}_M - {}^{W}\bm{t}_C \right]_{\times} & 
+-\bm{R}_{WC}^{\top}
+\end{bmatrix}
+\end{align}
+
+\subsection{Équations du filtre}
+
+On rappelle que l'état estimé comprend un 
+quaternion et une position. Du côté du quaternion, c'est non-Euclidien, donc il faut bien faire 
+gaffe à exprimer l'innovation dans l'algèbre de Lie pour mettre à jour l'état. Les équations 
+du filtre sont donc les suivantes :
+
+\vskip1em
+
+On dispose de l'estimée de la pose absolue de la caméra $\hat{T}_{WC}$ et de sa matrice de 
+covariance dans l'algèbre de Lie $\bm{\Sigma}_{T_{WC}}$. C'est un état à 7 dimensions, mais on 
+considère un état à 6 dimensions en raison de la paramétrisation locale des quaternions (on prend 
+le logarithme du quaternion sur $\mathbb{H}$). On note $\bm{\tau}_{WC} = \begin{bmatrix} 
+\bm{\theta} \hskip1ex \bm{p} \end{bmatrix} \triangleq \text{Log}(T_{WC})$.
+
+\subsubsection{Propagation}
+\noindent Prédiction de l'état au temps $k+1$ :
+\begin{align}
+T_{WC_{k+1|k}} &= T_{WC_k} \ast T_{RC}^{-1} \ast T_{\Delta\theta_k} \ast T_{RC}
+\end{align}
+Propagation de la covariance : 
+\begin{subequations}
+\begin{align}
+\bm{\Sigma}_{T_{WC_{k+1|k}}} &= 
+\bm{J}^{T_{WC_{k+1}}}_{T_{CW_k}} \cdot \bm{\Sigma}_{T_{WC_{k}}} \cdot 
+{\bm{J}^{T_{WC_{k+1}}}_{T_{CW_k}}}^{\top}\\
+&+
+\bm{J}^{T_{WC_{k+1}}}_{T_{RC}} \cdot \bm{\Sigma}_{T_{RC}} \cdot 
+{\bm{J}^{T_{WC_{k+1}}}_{T_{RC}}}^{\top}\\
+&+
+\bm{J}^{T_{WC_{k+1}}}_{\Delta\theta_k} \cdot \sigma_{\Delta\theta_k}^2 \cdot 
+{\bm{J}^{T_{WC_{k+1}}}_{\Delta\theta_k}}^{\top}
+\end{align}
+\end{subequations}
+
+\subsubsection{Recalage avec la mesure}
+
+\noindent Prédiction de la mesure :
+\begin{align}
+\hat{T}_{C_{k+1}M} &= \hat{T}_{WC_{k+1|k}}^{-1} \ast T_{WM}
+\end{align}
+Calcul de l'innovation de la mesure (dans l'algèbre de Lie) :
+\begin{align}
+\bm{\delta\tau}_{innov} &= \text{Log}(T_{C_{k+1}M}^{mesure} \ast \hat{T}_{C_{k+1|k}M}^{-1})
+\end{align}
+Calcul de la covariance de l'innovation de la mesure :
+\begin{align}
+\bm{\Sigma}_{\bm{\delta\tau}_{innov}} &= \bm{J}^{T_{C_kM}}_{T_{WC_{k+1|k}}} \cdot \bm{\Sigma}_{T_{WC_{k+1|k}}} \cdot 
+{\bm{J}^{T_{C_kM}}_{T_{WC_{k+1|k}}}}^{\top} + \bm{R}_k
+\end{align}
+Calcul de la matrice de gains :
+\begin{align}
+\bm{K}_k &= \bm{\Sigma}_{T_{WC_{k+1|k}}} \cdot \bm{J}^{T_{C_kM}}_{T_{WC_k}} \cdot \bm{\Sigma}_{\bm{\delta\tau}_{innov}}^{-1}
+\end{align}
+Mise à jour de l'estimée (avec incrément global) :
+\begin{align}
+T_{WC_{k+1}} &= \text{Exp}(\bm{K}_k \cdot \bm{\delta\tau}_{innov}) \ast 
+T_{WC_{k+1|k}}
+\end{align}
+Mise à jour de la covariance :
+\begin{align}
+\bm{\Sigma}_{T_{WC_{k+1}}} = \left( \bm{I}_3 - \bm{K}_k \cdot 
+\bm{J}^{T_{C_{k+1}M}}_{T_{WC_{k+1|k}}} 
+\right) \cdot \bm{\Sigma}_{T_{WC_{k+1|k}}}
+\end{align}
+
+\end{document}

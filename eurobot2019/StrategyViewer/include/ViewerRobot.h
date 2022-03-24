@@ -41,18 +41,18 @@
                         double const& r = 1.0, double const& g = 0.0, double const& b = 0.0);
 
             /// \brief Get current robot position.
-            RobotPosition getCurrentPosition();
+            RobotPosition getCurrentPosition() override;
 
             /// \brief Get viewer position.
             ViewerTrajectoryPoint getViewerPoint(int const& index);
 
             /// \brief Mock trajectory following.
             /// \details Returns true on succes, false if obstacle was encounterd.
-            bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>>  trajectories);
+            bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>>  trajectories) override;
 
             /// \brief Mock trajectory following.
             /// \details Returns true on succes, false if obstacle was encounterd.
-            bool waitForTrajectoryFinished();
+            bool waitForTrajectoryFinished() override;
 
             /// \brief Reset robot position (velocity is set to 0, this is mostly done for position reset and init).
             void resetPosition(RobotPosition const& resetPosition, bool const& resetX = true, bool const& resetY = true, bool const& resetTheta = true);
@@ -74,7 +74,7 @@
             double obstacleSize_;
 
             ///< Increment robot score.
-            void updateScore(int const& scoreIncrement);
+            void updateScore(int const& scoreIncrement) override;
 
             ///< Reset robot score.
             void clearScore();

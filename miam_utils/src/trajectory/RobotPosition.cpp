@@ -109,5 +109,6 @@ namespace miam{
         os << "x: " << p.x;
         os << " y: " << p.y;
         os << " theta: " << p.theta;
+        return os;
     }
 }

@@ -7,6 +7,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <iostream>
 
 
 
@@ -33,6 +34,7 @@ bool MaestroDriver::init(std::string const& portName, int const& deviceID)
     unsigned char returnData[1];
     sendCommand(0x13, returnData, 1);
     int returnValue = read_timeout(port_, returnData, 1, 100);
+    std::cout << returnValue << std::endl;
     if(returnValue < 1 || returnData[0] > 1)
         return false;
 

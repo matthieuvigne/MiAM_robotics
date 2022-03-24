@@ -4,7 +4,6 @@
 #include "miam_utils/AbstractRobot.h"
 
 AbstractRobot::AbstractRobot():
-    stepperMotors_(),
     currentPosition_(),
     currentBaseSpeed_(),
     trajectoryPoint_(),
@@ -47,10 +46,11 @@ void AbstractRobot::resetPosition(miam::RobotPosition const& resetPosition, bool
 }
 
 
-void AbstractRobot::setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories)
+bool AbstractRobot::setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories)
 {
     newTrajectories_ = trajectories;
     wasTrajectoryFollowingSuccessful_ = true;
+    return true;
 }
 
 
@@ -65,14 +65,6 @@ bool AbstractRobot::waitForTrajectoryFinished()
 bool AbstractRobot::isTrajectoryFinished()
 {
     return (currentTrajectories_.size() == 0 && newTrajectories_.size() == 0);
-}
-
-
-void AbstractRobot::stopMotors()
-{
-    stepperMotors_.hardStop();
-    usleep(50000);
-    stepperMotors_.highZ();
 }
 
 bool AbstractRobot::wasTrajectoryFollowingSuccessful()

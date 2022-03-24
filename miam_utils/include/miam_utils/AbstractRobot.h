@@ -25,7 +25,7 @@
 
             /// \brief Get current robot position.
             /// \return Current robot position.
-            miam::RobotPosition getCurrentPosition();
+            virtual miam::RobotPosition getCurrentPosition();
 
             /// \brief Get current robot base speed.
             /// \return Current robot base speed.
@@ -40,7 +40,7 @@
             /// \param[in] resetX Wheather or not to reset the X coordinate.
             /// \param[in] resetY Wheather or not to reset the Y coordinate.
             /// \param[in] resetTheta Wheather or not to reset the angle.
-            void resetPosition(miam::RobotPosition const& resetPosition, bool const& resetX, bool const& resetY, bool const& resetTheta);
+            virtual void resetPosition(miam::RobotPosition const& resetPosition, bool const& resetX, bool const& resetY, bool const& resetTheta);
 
             /// \brief Set new trajectory set to follow.
             /// \details This function is used to set the trajectories which will be followed by
@@ -48,17 +48,17 @@
             ///          and returns immediately: use waitForTrajectoryFinish
             ///
             /// \param[in] trajectories Vector of trajectory to follow.
-            void setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories);
+            virtual bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories);
 
             /// \brief Wait for the current trajectory following to be finished.
             /// \return true if trajectory following was successful, false otherwise.
-            bool waitForTrajectoryFinished();
+            virtual bool waitForTrajectoryFinished();
 
             /// \brief Get current trajectory following status.
             bool isTrajectoryFinished();
 
             /// \brief Stop the wheel motors.
-            void stopMotors();
+            virtual void stopMotors() = 0;
 
             /// \brief The low-level thread of the robot.
             /// \details This thread runs a periodic loop. At each iteration, it updates sensor values,
@@ -68,8 +68,18 @@
 
             /// \brief Get status of last trajectory following.
             bool wasTrajectoryFollowingSuccessful();
+
+            /// \brief Update the robot score.
+            /// \details This function increments the score then updates the display accordingly.
+            ///
+            /// \param[in] scoreIncrement Amount to increment the score, both positive or negative.
+            virtual void updateScore(int const& scoreIncrement) = 0;
+
+            /// \brief Get time in current match.
+            /// \return Time since start of the match, or 0 if not started.
+            virtual double getMatchTime() = 0;
+
         protected:
-            miam::L6470 stepperMotors_; ///< Robot driving motors.
             miam::ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
             BaseSpeed currentBaseSpeed_; ///< Current robot base speed.
             miam::trajectory::TrajectoryPoint trajectoryPoint_; ///< Current trajectory point.

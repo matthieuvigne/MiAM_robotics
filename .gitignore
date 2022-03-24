@@ -1,5 +1,11 @@
+# Original
 *html*
 build/
 dist/
 *.pyc
 *.egg*
+
+# LaTeX
+*.aux
+*.log
+*.pdf

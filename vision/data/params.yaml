@@ -1,0 +1,22 @@
+# Board and central marker
+board:
+  height: 2.0
+  width: 3.0
+T_WM: [1.0, 0.0, 0.0, 0.0,
+       0.0, 1.0, 0.0, 0.0,
+       0.0, 0.0, 1.0, 0.0,
+       0.0, 0.0, 0.0, 1.0]
+
+# Camera
+camera:
+  resolution: [752,480]
+  intrinsics: [450, 450, 376, 240]
+  distortion:
+    model: radial-tangential
+    coeffs: [-0.28340811, 0.07395907, 0.00019359, 1.76187114e-05, 0.0]
+T_RC: [1.0, 0.0, 0.0, 0.0,
+       0.0, 1.0, 0.0, 0.0,
+       0.0, 0.0, 1.0, 0.0,
+       0.0, 0.0, 0.0, 1.0]
+cov_T_RC: [ 1.0,  1.0,  1.0, # Rotation sigmas:    wx, wy, wz [degrees]
+           1e-3, 1e-3, 1e-3] # Translation sigmas: tx, ty, tz [meters]

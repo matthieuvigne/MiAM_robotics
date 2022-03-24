@@ -156,7 +156,7 @@ namespace miam
     void L6470::setStepMode(L6470_STEP_MODE const& stepMode)
     {
         setParam(dSPIN_STEP_MODE, stepMode);
-        stepModeMultiplier_ = 2 << stepMode;
+        stepModeMultiplier_ = 1 << stepMode;
     }
 
 

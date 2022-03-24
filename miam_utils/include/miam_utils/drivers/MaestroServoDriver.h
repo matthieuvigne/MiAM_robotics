@@ -23,21 +23,21 @@
             /// \param portName Serial port file name ("/dev/ttyOx")
             /// \param deviceID Maestro device ID.
             /// \returns   true on success, false otherwise.
-            bool init(std::string const& portName, int const& deviceID = 12);
+            virtual bool init(std::string const& portName, int const& deviceID = 12);
 
             /// \brief Set target position of a servo.
             ///
             /// \param[in] servo The number of the servo to change (from 0 to 15).
             /// \param[in] position Signal value, in microseconds (clamped between 500 and 2500). Note that the resolution
             ///                   of the driver is of 0.25 microseconds.
-            void setPosition(int const& servo, double const& position);
+            virtual void setPosition(int const& servo, double const& position);
 
             /// \brief Set target speed of a servo.
             /// \details This function in itself does not move a servo, but only specify the speed at which it will move at.
             ///
             /// \param[in] servo The number of the servo to change (from 0 to 15).
             /// \param[in] speed Servo speed, in us/s. Device resolution is 25us/s
-            void setSpeed(int const& servo, int const& speed);
+            virtual void setSpeed(int const& servo, int const& speed);
         private:
 
             /// \brief Clear internal device error.
