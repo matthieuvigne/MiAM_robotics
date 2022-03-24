@@ -19,12 +19,18 @@
                 /// \param portName Serial port file name ("/dev/ttyOx")
                 /// \returns   true on success, false otherwise.
                 bool init(std::string const& portName);
+                void ouvrirlebrasdroitmilieu();
 
-                void ouvrirlesbrasdebugmilieu();
+                void ouvrirlebrasdroitbas();
 
-                void ouvrirlesbrasdebugbas();
+                void ouvrirlebrasdroithaut();
+                
+                void ouvrirlebrasgauchemilieu();
+                
+                void ouvrirlebrasgauchebas();
 
-                void ouvrirlesbrasdebughaut();
+                void ouvrirlebrasgauchehaut();
+                void baisserledoigtdroit();
 
                 // Valve control
                 void openValve();
