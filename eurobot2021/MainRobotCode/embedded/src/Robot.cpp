@@ -29,19 +29,20 @@ const int MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY = 1000;
 
 Robot::Robot():
     RobotInterface(),
+    servos_(&maestro_),
+    lidar_(M_PI_4),
+    ignoreDetection_(false),
+    avoidanceTimeout_(250),
     isScreenInit_(false),
     isServosInit_(false),
     isArduinoInit_(false),
     isLidarInit_(false),
+    score_(5),  // Initial score: 5, for the experiment.
     startupStatus_(startupstatus::INIT),
     initMotorState_(1),
-    score_(5),  // Initial score: 5, for the experiment.
-    lidar_(M_PI_4),
     curvilinearAbscissa_(0.0),
-    ignoreDetection_(false),
-    askedForReset_(false),
-    avoidanceTimeout_(250),
-    servos_(&maestro_)
+    reset_(),
+    askedForReset_(false)
 {
     kinematics_ = DrivetrainKinematics(robotdimensions::wheelRadius,
                                       robotdimensions::wheelSpacing,
