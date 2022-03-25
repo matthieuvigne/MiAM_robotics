@@ -9,6 +9,11 @@ std::string const config_filename =
 // Main routine
 int main(int argc, char* argv[])
 {
+  // Setup RPi GPIO for servo control.
+  RPi_enableGPIO();
+  RPi_enablePWM(true, false);
+  RPi_setPWMClock(PiPWMClockFrequency::F1200kHz);
+
   // Vision module
   // Camera thread: at each turn, increment the camera, except if reception of a specific request
   // Server thread: receive and process the client's requests

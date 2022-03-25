@@ -239,3 +239,10 @@ void RPi_setPWM(int const& channel, int const& dutyCycle, int const& periodCS)
     *(pwm_register + PWM_RANGE[channel]) = periodCS;
     *(pwm_register + PWM_DATA[channel]) = dutyCycle;
 }
+
+void RPi_setPWMServo(int const& channel, int const& signal)
+{
+    int sig = std::max(500, std::min(signal, 2500));
+    // At 1200kHz, 24000 ticks = 20ms
+    RPi_setPWM(channel, static_cast<int>(1.2 * sig), 24000);
+}
