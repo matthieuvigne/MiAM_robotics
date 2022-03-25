@@ -413,12 +413,14 @@ namespace miam
 
         // Do SPI communication
         int result = spiReadWrite(data, numberOfDevices_ * (1 + paramLength));
-        #ifdef DEBUG
-            if(result < 0)
-                std::cout << "L6470 SPI error: " << errno << " " << std::strerror(errno) << std::endl;
-        #endif
-        // Decode response.
+        if(result < 0)
+        {
+            #ifdef DEBUG
+                    std::cout << "L6470 SPI error: " << errno << " " << std::strerror(errno) << std::endl;
+            #endif
+        }
 
+        // Decode response.
         for(uint8_t i = 1; i <= paramLength; i++)
         {
             for(uint j = 0; j < numberOfDevices_; j++)

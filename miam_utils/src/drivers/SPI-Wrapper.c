@@ -8,6 +8,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <iostream>
+#include <cstring>
+
 int spi_open(std::string const& portName, int const& frequency)
 {
 
@@ -15,7 +18,7 @@ int spi_open(std::string const& portName, int const& frequency)
     if(port < 0)
     {
         #ifdef DEBUG
-            printf("Error opening SPI bus %s %d\n", portName, errno);
+            std::cout << "SPI error opening bus " << portName << ": " << std::strerror(errno) << std::endl;
         #endif
         return -1 ;
     }
@@ -26,7 +29,7 @@ int spi_open(std::string const& portName, int const& frequency)
     if(ioctl(port, SPI_IOC_WR_MODE, &mode) < 0)
     {
         #ifdef DEBUG
-            printf("Error configuring port %s %d\n", portName, errno);
+            std::cout << "SPI error configuring port " << portName << ": " << std::strerror(errno) << std::endl;
         #endif
         return -1 ;
     }
@@ -35,7 +38,7 @@ int spi_open(std::string const& portName, int const& frequency)
     if(ioctl(port, SPI_IOC_WR_BITS_PER_WORD, &nBits) < 0)
     {
         #ifdef DEBUG
-            printf("Error configuring port %s %d\n", portName, errno);
+            std::cout << "SPI error configuring port " << portName << ": " << std::strerror(errno) << std::endl;
         #endif
         return -1 ;
     }
@@ -43,7 +46,7 @@ int spi_open(std::string const& portName, int const& frequency)
     if(ioctl(port, SPI_IOC_WR_MAX_SPEED_HZ, &frequency)   < 0)
     {
         #ifdef DEBUG
-            printf("Error configuring port %s %d\n", portName, errno);
+            std::cout << "SPI error configuring port " << portName << ": " << std::strerror(errno) << std::endl;
         #endif
         return -1 ;
     }
@@ -60,7 +63,7 @@ void spi_close(int const& port)
         if(ioctl(port, SPI_IOC_WR_MODE, &mode) < 0)
         {
             #ifdef DEBUG
-                printf("Error closing SPI port: %d\n", errno);
+            std::cout << "SPI error closing port " << port << ": " << std::strerror(errno) << std::endl;
             #endif
         }
         close(port);

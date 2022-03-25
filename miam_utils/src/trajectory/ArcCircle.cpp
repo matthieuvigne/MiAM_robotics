@@ -17,11 +17,11 @@ namespace miam{
                              bool const& backward,
                              double maxVelocity,
                              double maxAcceleration):
+             movingBackward_(1.0),
              radius_(std::abs(radius)),
              side_(side),
              endAngle_(endAngle),
              endVelocity_(endVelocity),
-             movingBackward_(1.0),
              maxVelocity_(maxVelocity),
              maxAcceleration_(maxAcceleration)
         {

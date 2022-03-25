@@ -92,9 +92,9 @@ enum regAddr
 };
 
 VL53L0X::VL53L0X():
-    adapter_(nullptr),
    io_timeout(0) // no timeout
   , did_timeout(false)
+  ,  adapter_(nullptr)
 {
 
 }
@@ -157,11 +157,11 @@ bool VL53L0X::init(I2CAdapter *adapter, int const& slaveAddress)
     adapter_ = adapter;
     address_ = slaveAddress;
     //~ if(i2c_readRegister(adapter_, address_, IDENTIFICATION_MODEL_ID) != 0xEE)
-    writeReg16Bit(IDENTIFICATION_MODEL_ID, 0xAB << 8 + 0xBB);
+    writeReg16Bit(IDENTIFICATION_MODEL_ID, (0xAB << 8) + 0xBB);
     std::cout << "here" << std::endl;
     std::cout << readReg16Bit(IDENTIFICATION_MODEL_ID) << std::endl;
     std::cout << 0xDE << 8 + 0xAA << std::endl;
-    std::cout << (readReg16Bit(IDENTIFICATION_MODEL_ID) != (0xDE << 8 + 0xAA)) << std::endl;
+    std::cout << (readReg16Bit(IDENTIFICATION_MODEL_ID) != ((0xDE << 8) + 0xAA)) << std::endl;
     std::cout << "done" << std::endl;
     if(readReg16Bit(IDENTIFICATION_MODEL_ID) != ((0xEE << 8) + 0xAA))
     {

@@ -19,17 +19,17 @@ inline double modulo(double angle)
 }
 
 RPLidarHandler::RPLidarHandler(double mountingOffset) :
-    isInit_(false),
     debuggingBufferPosition_(0),
     detectedRobots_(),
+    isInit_(false),
     lidar(NULL),
     lidarMode_(0),
     lastPointAngle_(0),
     lastPointAddedToBlobDistance_(0),
     pointsNotAddedToBlob_(),
     pointsInBlob_(),
-    timeHandler_(1.0),
-    mountingOffset_(mountingOffset)
+    mountingOffset_(mountingOffset),
+    timeHandler_(1.0)
 {
 }
 
@@ -85,7 +85,7 @@ int RPLidarHandler::update()
     // Get pending data from the lidar.
     size_t nPoint = 8000;
     rplidar_response_measurement_node_hq_t data[nPoint];
-    int result = lidar->getScanDataWithIntervalHq(data, nPoint);
+    uint32_t result = lidar->getScanDataWithIntervalHq(data, nPoint);
 
     if (result == RESULT_OPERATION_TIMEOUT || nPoint == 8000)
         return 0;
@@ -107,7 +107,7 @@ int RPLidarHandler::update()
         }
     }
 
-    for(int i = 0; i < nPoint; i++)
+    for(uint i = 0; i < nPoint; i++)
     {
         // Compute new point.
         LidarPoint newPoint(data[i].dist_mm_q2 /4.0f, 2 * M_PI - (data[i].angle_z_q14 * ANGLE_CONVERSION) + mountingOffset_);
@@ -139,8 +139,8 @@ int RPLidarHandler::update()
                     {
                         // We have a new robot: add it to the list.
                         double blobDistance = 0.0;
-                        for(uint32_t i = 0; i < nPoints; i++)
-                            blobDistance += pointsInBlob_[i].r;
+                        for(int j = 0; j < nPoints; j++)
+                            blobDistance += pointsInBlob_[j].r;
                         blobDistance /= (1.0 * nPoints);
                         double arcAngle = std::min(modulo(b.theta - a.theta), modulo(a.theta - b.theta));
                         double blobAngle = modulo(a.theta - arcAngle / 2.0);

@@ -4,6 +4,7 @@
 #include "miam_utils/drivers/UART-Wrapper.h"
 
 #include <iostream>
+#include <cstring>
 #include <unistd.h>
 // Microcontroller commands.
 // These commands come from the modified Adafruit code, to include ways to interact with the buttons and LEDs.
@@ -33,10 +34,10 @@ bool USBLCD::init(std::string const& fileName)
     unsigned char message[2];
     message[0] = 0xFE;
     message[1] = MATRIX_CLEAR;
-    write(port_, message, 2);
+    int result = write(port_, message, 2);
 
     // Check that the display is present by doing a read button command.
-    if(getButtonStateRaw() == 255)
+    if(result < 0 || getButtonStateRaw() == 255)
     {
         #ifdef DEBUG
             std::cout << "USBLCD error: a USB device is connected but does not respond like expected." << std::endl;
@@ -56,7 +57,13 @@ void USBLCD::setText(std::string const& text, int const& line, bool centered)
     message[1] = MATRIX_SETCURSOR_POSITION;
     message[2] = 1;
     message[3] = (line == 1 ? 2 : 1);
-    write(port_, message, 4);
+    int result = write(port_, message, 4);
+    if (result < 0)
+    {
+        #ifdef DEBUG
+            std::cout << "USBLCD error: failed to write: "  << std::strerror(errno) << std::endl;
+        #endif
+    }
 
     // Send the data, padded with space to fill the line.
     int const lineLength = 16;
@@ -68,7 +75,13 @@ void USBLCD::setText(std::string const& text, int const& line, bool centered)
 
         paddedText.insert(paddedText.end(), lineLength - paddedText.length(), ' ');
     }
-    write(port_, paddedText.c_str(), lineLength);
+    result = write(port_, paddedText.c_str(), lineLength);
+    if (result < 0)
+    {
+        #ifdef DEBUG
+            std::cout << "USBLCD error: failed to write: "  << std::strerror(errno) << std::endl;
+        #endif
+    }
 }
 
 
@@ -83,7 +96,13 @@ void USBLCD::setLCDBacklight(uint const& red, uint const& green, uint const& blu
     message[2] = red & 0xFF;
     message[3] = green & 0xFF;
     message[4] = blue & 0xFF;
-    write(port_, message, 5);
+    int result = write(port_, message, 5);
+    if (result < 0)
+    {
+        #ifdef DEBUG
+            std::cout << "USBLCD error: failed to write: "  << std::strerror(errno) << std::endl;
+        #endif
+    }
 }
 
 
@@ -94,7 +113,13 @@ void USBLCD::setLED(uint8_t const& leds)
     message[0] = 0xFE;
     message[1] = ADDON_SET_LED_STATE;
     message[2] = LEDState_;
-    write(port_, message, 3);
+    int result = write(port_, message, 3);
+    if (result < 0)
+    {
+        #ifdef DEBUG
+            std::cout << "USBLCD error: failed to write: "  << std::strerror(errno) << std::endl;
+        #endif
+    }
 }
 
 
@@ -129,7 +154,13 @@ uint8_t USBLCD::getButtonStateRaw()
     unsigned char message[2];
     message[0] = 0xFE;
     message[1] = ADDON_GET_BUTTON_STATE;
-    write(port_, message, 2);
+    int result = write(port_, message, 2);
+    if (result < 0)
+    {
+        #ifdef DEBUG
+            std::cout << "USBLCD error: failed to write: "  << std::strerror(errno) << std::endl;
+        #endif
+    }
     message[0] = 0;
 
     // Read with 10ms timeout - on failure set message to 0xFF.

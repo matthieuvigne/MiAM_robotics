@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
+#include <assert.h>
 
 #include "miam_utils/beaglebone/BeagleboneCape.h"
 #include "miam_utils/beaglebone/BBBGpio.h"
@@ -58,9 +59,9 @@ void BBB_enableCape()
             //~ exit(-1);
         //~ }
         // Enable the overlay.
-        system("echo BB-PWM2 > /sys/devices/bone_capemgr.9/slots");
-        system("echo ADAFRUIT-SPI1 > /sys/devices/bone_capemgr.9/slots");
-        system("echo PyBBIO-ADC > /sys/devices/bone_capemgr.9/slots");
+        assert(system("echo BB-PWM2 > /sys/devices/bone_capemgr.9/slots") > -1);
+        assert(system("echo ADAFRUIT-SPI1 > /sys/devices/bone_capemgr.9/slots") > -1);
+        assert(system("echo PyBBIO-ADC > /sys/devices/bone_capemgr.9/slots") > -1);
 
         // Check that the overlay is indeed enabled.
         if(!isEurobotEnabled())
@@ -88,6 +89,6 @@ void BBB_enableCape()
         gpio_digitalWrite(CAPE_LED[i], 0);
     }
     // Enable PWM ports.
-    system("echo 0 > /sys/class/pwm/export");
-    system("echo 1 > /sys/class/pwm/export");
+    assert(system("echo 0 > /sys/class/pwm/export") > -1);
+    assert(system("echo 1 > /sys/class/pwm/export") > -1);
 }
