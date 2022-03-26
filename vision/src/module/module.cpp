@@ -65,18 +65,27 @@ Module::Module(ModuleParams const& params)
     std::move(camera_ptr)));
     
   // Launch the server's thread
-  int const port = 30000;
-  try {
-    this->server_thread_ptr_.reset(new network::ServerThread(port));
-  } catch(network::SocketException const& e) {
-    std::cout << e.description() << std::endl;
-  }
+  //~ int const port = 30000;
+  //~ try {
+    //~ this->server_thread_ptr_.reset(new network::ServerThread(port));
+  //~ } catch(network::SocketException const& e) {
+    //~ std::cout << e.description() << std::endl;
+  //~ }
 }
 
 //--------------------------------------------------------------------------------------------------
 
-Module::~Module()
-{}
+Module::~Module(){}
+
+//--------------------------------------------------------------------------------------------------
+// Methods
+//--------------------------------------------------------------------------------------------------
+
+void Module::join()
+{
+  this->camera_thread_ptr_->join();
+  this->server_thread_ptr_->join();
+}
 
 //--------------------------------------------------------------------------------------------------
 

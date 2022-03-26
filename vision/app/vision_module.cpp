@@ -2,10 +2,13 @@
 
 #include <module/module.hpp>
 
+// Camera thread: at each turn, increment the camera, except if reception of a specific request
+// Server thread: receive and process the client's requests
+
 // Main routine
 int main(int argc, char* argv[])
 {
-  // Camera parameters
+  // Set the camera parameters
   vision::CameraParams camera_params;
   camera_params.name = "camera";
   camera_params.resolution[vision::CameraParams::WIDTH]  = 752;
@@ -18,16 +21,16 @@ int main(int argc, char* argv[])
   camera_params.distortion_coeffs = {-0.28340811, 0.07395907, 0.00019359, 1.76187114e-05, 0.0};
   camera_params.pose = Eigen::Affine3d::Identity();
 
-  // Module parameters
+  // Set the module parameters
   module::ModuleParams parameters;
   parameters.board_height = 2.0;
   parameters.board_width  = 3.0;
+  parameters.camera_params = camera_params;
   parameters.T_WM = Eigen::Affine3d::Identity();
   parameters.T_RC = Eigen::Affine3d::Identity();
   parameters.cov_T_RC = Eigen::Matrix<double,6,6>::Identity();
   
-  // Vision module
-  // Camera thread: at each turn, increment the camera, except if reception of a specific request
-  // Server thread: receive and process the client's requests
+  // Initialize the vision module
   module::Module::UniquePtr module_ptr(new module::Module(parameters));
+  module_ptr->join();
 }

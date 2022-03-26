@@ -24,15 +24,13 @@ class ServerThread : public ServerSocket {
 public:
 
   typedef std::unique_ptr<char*> Message;
-
-public:
-
   POINTER_TYPEDEF(ServerThread);
-
-public:
-
   ServerThread(int port);
   virtual ~ServerThread();
+
+public:
+
+  inline void join();
 
 private:
 
@@ -45,6 +43,15 @@ public:
   std::unique_ptr<std::thread> thread_ptr_;
 
 }; // class ServerThread
+
+//--------------------------------------------------------------------------------------------------
+// Inline functions
+//--------------------------------------------------------------------------------------------------
+
+void ServerThread::join()
+{
+  this->thread_ptr_->join();
+}
 
 //--------------------------------------------------------------------------------------------------
 

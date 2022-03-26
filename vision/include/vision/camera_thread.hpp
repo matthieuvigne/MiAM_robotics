@@ -29,10 +29,13 @@ public:
     Camera::UniquePtr camera);
   virtual ~CameraThread();
 
+public:
+
+  inline void join();
+
 private:
 
   void runThread();
-  
   void getMeasurements() const;
 
 private:
@@ -49,6 +52,15 @@ private:
   std::unique_ptr<std::thread> thread_ptr_;
 
 }; // class CameraThread
+
+//--------------------------------------------------------------------------------------------------
+// Inline functions
+//--------------------------------------------------------------------------------------------------
+
+void CameraThread::join()
+{
+  this->thread_ptr_->join();
+}
 
 //--------------------------------------------------------------------------------------------------
 
