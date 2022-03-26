@@ -9,6 +9,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
+#include <raspicam/raspicam_cv.h>
 #include <yaml-cpp/yaml.h>
 
 #include <common/macros.hpp>
@@ -91,16 +92,14 @@ public:
   void getCameraMatrix(Eigen::Matrix3d* matrix) const;
   void getCameraMatrix(cv::Mat* matrix) const;
 
-  // Camera thread
-  inline void launchThread();
-  inline void join() const;
-  inline void abortThread();
-
   // Camera projection
   ProjectionResult project(
     Eigen::Vector3d const& point_3d,
     Eigen::Vector2d* point_2d,
     Eigen::Matrix<double,2,3>* out_jacobian) const;
+
+  // Take picture
+  bool takePicture(cv::Mat* image) const;
 
   // Get all detected markers with covariances
   bool detectMarkers(
@@ -110,8 +109,6 @@ public:
 private:
 
   static Eigen::Matrix3d skew(Eigen::Vector3d const& v);
-
-  void cameraThread();
 
 private:
 
@@ -125,18 +122,12 @@ private:
   DistortionModel::UniquePtr distortion_;
   Eigen::Affine3d pose_;
 
+  // Raspicam object
+  std::unique_ptr<raspicam::RaspiCam_Cv> camera_handler_;
+
   // Marker properties
   cv::Ptr<cv::aruco::Dictionary> dictionary_;
   cv::Ptr<cv::aruco::DetectorParameters> detector_params_;
-
-public:
-
-  // Threading
-  mutable std::mutex thread_mtx_;
-  std::condition_variable thread_con_;
-  vision_mgs::Image::UniquePtr thread_image_;
-  std::unique_ptr<std::thread> thread_ptr_;
-  bool abort_thread_ = false;
 
 }; // class Camera
 
@@ -161,35 +152,6 @@ uint32_t Camera::getImageHeight() const
 DistortionModel const& Camera::getDistortionModel() const
 {
   return *(this->distortion_);
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Camera::launchThread()
-{
-  this->thread_ptr_.reset(new std::thread([=](){this->cameraThread();}));
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Camera::join() const
-{
-  this->thread_ptr_->join();
-}
-
-
-//--------------------------------------------------------------------------------------------------
-
-void Camera::abortThread()
-{
-  if(this->thread_ptr_ != nullptr)
-  {
-    this->abort_thread_ = true;
-    this->thread_con_.notify_all();
-    this->thread_ptr_->join();
-    this->thread_ptr_ = nullptr;
-    this->abort_thread_ = false;
-  }
 }
 
 //--------------------------------------------------------------------------------------------------

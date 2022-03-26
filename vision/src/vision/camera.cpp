@@ -19,12 +19,18 @@ Camera::Camera(
   image_width_      (image_width),
   image_height_     (image_height),
   intrinsics_       {fx,fy,cx,cy},
+  camera_handler_   (new raspicam::RaspiCam_Cv),
   distortion_       (std::move(distortion)),
   dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250)),
   detector_params_  (cv::aruco::DetectorParameters::create()),
   pose_             (pose)
 {
   assert(this->distortion_ != nullptr);
+  
+  // Configure the camera handler to get the photos
+  this->camera_handler_->set(CV_CAP_PROP_FRAME_WIDTH, this->image_width_);
+  this->camera_handler_->set(CV_CAP_PROP_FRAME_HEIGHT, this->image_height_);
+  this->camera_handler_->set(CV_CAP_PROP_FORMAT, CV_8UC1);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -32,6 +38,7 @@ Camera::Camera(
 Camera::Camera(CameraParams const& params)
 : name_             (params.name),
   pose_             (params.pose),
+  camera_handler_   (new raspicam::RaspiCam_Cv),
   dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250)),
   detector_params_  (cv::aruco::DetectorParameters::create())
 {
@@ -70,6 +77,11 @@ Camera::Camera(CameraParams const& params)
     
     default: throw("Unrecognized distortion model.");
   }
+
+  // Configure the camera handler to get the photos
+  this->camera_handler_->set(CV_CAP_PROP_FRAME_WIDTH, this->image_width_);
+  this->camera_handler_->set(CV_CAP_PROP_FRAME_HEIGHT, this->image_height_);
+  this->camera_handler_->set(CV_CAP_PROP_FORMAT, CV_8UC1);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -319,10 +331,22 @@ Eigen::Matrix3d Camera::skew(Eigen::Vector3d const& v)
 
 //--------------------------------------------------------------------------------------------------
 
-// As options, pass the message queue and its associated mutex from the board.
-void Camera::cameraThread()
+bool Camera::takePicture(cv::Mat* image) const
 {
-  std::cout << "Launched thread for camera " << this->name_ << "." << std::endl;
+  bool success = this->camera_handler_->open();
+  success &= this->camera_handler_->grab(),
+  this->camera_handler_->retrieve(*image);
+  this->camera_handler_->release();
+  return success;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+#if 0
+//~ // As options, pass the message queue and its associated mutex from the board.
+//~ void Camera::cameraThread()
+//~ {
+  //~ std::cout << "Launched thread for camera " << this->name_ << "." << std::endl;
 
   //~ while(true)
   //~ {
@@ -330,47 +354,48 @@ void Camera::cameraThread()
     //~ // Otherwise, sweep
   //~ }
 
-  while(true)
-  {
-    // Wait condition (unbusy waiting)
-    std::unique_lock<std::mutex> camera_locker(this->thread_mtx_);
-    this->thread_con_.wait(camera_locker,
-      [&](){ return this->thread_image_ != nullptr or this->abort_thread_; });
-    if(this->abort_thread_) break;
-    vision_mgs::Image::UniquePtr image_msg = std::move(this->thread_image_);
-    assert(this->thread_image_ == nullptr);
-    this->thread_mtx_.unlock();
+  //~ while(true)
+  //~ {
+    //~ // Wait condition (unbusy waiting)
+    //~ std::unique_lock<std::mutex> camera_locker(this->thread_mtx_);
+    //~ this->thread_con_.wait(camera_locker,
+      //~ [&](){ return this->thread_image_ != nullptr or this->abort_thread_; });
+    //~ if(this->abort_thread_) break;
+    //~ vision_mgs::Image::UniquePtr image_msg = std::move(this->thread_image_);
+    //~ assert(this->thread_image_ == nullptr);
+    //~ this->thread_mtx_.unlock();
 
-    // Process the image
-    // Specific processing for fisheye images : TODO
-    std::cout << "Processing the new image" << std::endl;
-    DetectedMarkerList detected_markers;
-    cv::Mat& new_image = *(image_msg->image_ptr);
-    this->detectMarkers(new_image, &detected_markers);
+    //~ // Process the image
+    //~ // Specific processing for fisheye images : TODO
+    //~ std::cout << "Processing the new image" << std::endl;
+    //~ DetectedMarkerList detected_markers;
+    //~ cv::Mat& new_image = *(image_msg->image_ptr);
+    //~ this->detectMarkers(new_image, &detected_markers);
 
-    // Sort the markers (according to their numbers)
-    // Marker 42 for center tag on the table
-    // Marker 47 for the treasure face of red samples
-    // Marker 13 for the treasure face of blue samples
-    // Marker 36 for the treasure face of geen samples
-    // Marker 17 for the rock face of all samples
-    // Team purple receives tags between 1 and 5
-    // Team yellow receives tags between 6 and 10
-    // Tags from 11 to 50 are reserved for the playing area
-    // Tags from 51 to 70 are reserved for team purple
-    // Tags from 71 to 90 are reserved for team yellow
-    // Tags are 4x4 ArUco tags, 7cm wide, and 10cm for the border
-    // All robots will have different markers and it will not be possible to choose them.
-    // -> Such markers are laid on the top of the robot, above the eventual beacon.
-    // Possible to make beacons with tags (dimensions 510mm high, 100m side) and use the tags we want.
+    //~ // Sort the markers (according to their numbers)
+    //~ // Marker 42 for center tag on the table
+    //~ // Marker 47 for the treasure face of red samples
+    //~ // Marker 13 for the treasure face of blue samples
+    //~ // Marker 36 for the treasure face of geen samples
+    //~ // Marker 17 for the rock face of all samples
+    //~ // Team purple receives tags between 1 and 5
+    //~ // Team yellow receives tags between 6 and 10
+    //~ // Tags from 11 to 50 are reserved for the playing area
+    //~ // Tags from 51 to 70 are reserved for team purple
+    //~ // Tags from 71 to 90 are reserved for team yellow
+    //~ // Tags are 4x4 ArUco tags, 7cm wide, and 10cm for the border
+    //~ // All robots will have different markers and it will not be possible to choose them.
+    //~ // -> Such markers are laid on the top of the robot, above the eventual beacon.
+    //~ // Possible to make beacons with tags (dimensions 510mm high, 100m side) and use the tags we want.
     
-    // Build the message to send to the robot and add it to the queue
-    // TODO
-  }
+    //~ // Build the message to send to the robot and add it to the queue
+    //~ // TODO
+  //~ }
   
-  // Shut the thread down
-  std::cout << "Shutting down camera thread." << std::endl;
-}
+  //~ // Shut the thread down
+  //~ std::cout << "Shutting down camera thread." << std::endl;
+//~ }
+#endif
 
 //--------------------------------------------------------------------------------------------------
 

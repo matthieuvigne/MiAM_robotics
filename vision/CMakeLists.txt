@@ -29,10 +29,11 @@ find_package(Threads REQUIRED)
 find_package(raspicam REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(MIAMUTILSLIB REQUIRED miam_utils)
-message(STATUS "Found miam_utils v." ${MIAMUTILSLIB_VERSION})
+message(STATUS "Found miam_utils v." ${MIAMUTILSLIB_VERSION} " at " ${MIAMUTILSLIB_LIBRARY_DIRS})
 include_directories(${MIAMUTILSLIB_INCLUDE_DIRS})
 link_directories(${OpenCV_DIRS} ${Eigen_INCLUDE_DIRS} ${MIAMUTILSLIB_LIBRARY_DIRS})
-target_link_libraries(${LIBRARY_NAME} ${OpenCV_LIBS} yaml-cpp raspicam ${CMAKE_THREAD_LIBS_INIT} ${MIAMUTILSLIB_LIBRARIES})
+target_link_libraries(${LIBRARY_NAME} ${OpenCV_LIBS} yaml-cpp ${raspicam_CV_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT} ${MIAMUTILSLIB_LIBRARIES})
 
 # Application
 
@@ -41,3 +42,6 @@ target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
 add_executable(dummy_client app/dummy_client.cpp)
 target_link_libraries(dummy_client ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+
+#~ add_executable(test_serialization tests/serialization.cpp)
+#~ target_link_libraries(test_serialization ${LIBRARY_NAME} ${Eigen_LIBRARIES})

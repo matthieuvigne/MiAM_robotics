@@ -37,6 +37,7 @@ private:
 
   void runThread();
   void getMeasurements() const;
+  void rotateCamera(int const&);
 
 private:
 

@@ -1,5 +1,6 @@
 #include <memory>
 
+#include <miam_utils/raspberry_pi/RPiGPIO.h>
 #include <yaml-cpp/yaml.h>
 
 #include <common/yaml_serialization.hpp>
@@ -16,6 +17,11 @@ namespace module {
 
 Module::Module(std::string const& filename)
 {
+  // Setup RPi GPIO for servo control.
+  RPi_enableGPIO();
+  RPi_enablePWM(true, false);
+  RPi_setPWMClock(PiPWMClockFrequency::F1200kHz);
+
   // Load the configuration file
   YAML::Node const params = YAML::LoadFile(filename);
   
@@ -40,18 +46,23 @@ Module::Module(std::string const& filename)
     std::move(camera_ptr)));
 
   // Launch the server's thread
-  int const port = 30000;
-  try {
-      this->server_thread_ptr_.reset(new network::ServerThread(port));
-  } catch(network::SocketException const& e) {
-      std::cout << e.description() << std::endl;
-  }
+  //~ int const port = 30000;
+  //~ try {
+      //~ this->server_thread_ptr_.reset(new network::ServerThread(port));
+  //~ } catch(network::SocketException const& e) {
+      //~ std::cout << e.description() << std::endl;
+  //~ }
 }
 
 //--------------------------------------------------------------------------------------------------
 
 Module::Module(ModuleParams const& params)
 {
+  // Setup RPi GPIO for servo control.
+  RPi_enableGPIO();
+  RPi_enablePWM(true, false);
+  RPi_setPWMClock(PiPWMClockFrequency::F1200kHz);
+
   // Get the board dimensions
   this->board_.height = params.board_height;
   this->board_.width = params.board_width;

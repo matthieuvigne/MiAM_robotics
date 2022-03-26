@@ -1,3 +1,5 @@
+#include <miam_utils/raspberry_pi/RPiGPIO.h>
+
 #include <vision/camera_thread.hpp>
 
 namespace vision {
@@ -38,10 +40,10 @@ void CameraThread::runThread()
   bool initialized = false;
   while(!initialized)
   {
-    // Take picture
-    // TODO: incrementPosition();
+    // Increment position and take picture
+    this->rotateCamera(1500);
     cv::Mat image;
-    // TODO: takePicture();
+    this->camera_ptr_->takePicture(&image);
 
     // Detect the markers
     DetectedMarkerList detected_markers;
@@ -70,15 +72,26 @@ void CameraThread::runThread()
     // If so, realize it (don't forget to propagate the filter while doing it).
 
     // Rotate the camera
-    RPi_setPWMServo(0, 1500);
-
+    this->rotateCamera(1500);
     // Propagate the filter
+    
     // Take a picture
+    
     // Detect all the markers
     // Check if the central marker is detected => if so: update the filter
     // Update the pose estimate of all other markers
   }
   std::cout << "Camera thread" << std::endl;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void CameraThread::rotateCamera(int const& signal)
+{
+  int constexpr channel = 0;
+  int sig = std::max(500, std::min(signal, 2500));
+  // At 1200kHz, 24000 ticks = 20ms
+  RPi_setPWM(channel, static_cast<int>(1.2 * sig), 24000);
 }
 
 //--------------------------------------------------------------------------------------------------

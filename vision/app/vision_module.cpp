@@ -8,11 +8,6 @@
 // Main routine
 int main(int argc, char* argv[])
 {
-  // Setup RPi GPIO for servo control.
-  RPi_enableGPIO();
-  RPi_enablePWM(true, false);
-  RPi_setPWMClock(PiPWMClockFrequency::F1200kHz);
-
   // Set the camera parameters
   vision::CameraParams camera_params;
   camera_params.name = "camera";
@@ -39,4 +34,5 @@ int main(int argc, char* argv[])
   // -> Launches the internal camera and server threads
   module::Module::UniquePtr module_ptr(new module::Module(parameters));
   module_ptr->join();
+  return EXIT_SUCCESS;
 }
