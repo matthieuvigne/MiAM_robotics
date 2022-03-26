@@ -31,6 +31,7 @@ int main(int argc, char* argv[])
   parameters.cov_T_RC = Eigen::Matrix<double,6,6>::Identity();
   
   // Initialize the vision module
+  // -> Launches the internal camera and server threads
   module::Module::UniquePtr module_ptr(new module::Module(parameters));
   module_ptr->join();
 }
