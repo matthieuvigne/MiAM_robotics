@@ -32,10 +32,12 @@ bool i2c_open(I2CAdapter *adapter, std::string const& portName)
 void changeSlave(int file, unsigned char address)
 {
     int result = ioctl(file, I2C_SLAVE, address);
-    #ifdef DEBUG
-        if(result < 0)
+    if(result < 0)
+    {
+        #ifdef DEBUG
             std::cout << "I2C: failed to talk to slave " << address << ": " << std::strerror(errno) << std::endl;
-    #endif
+        #endif
+    }
 }
 
 

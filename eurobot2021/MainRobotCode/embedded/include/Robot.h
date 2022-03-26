@@ -160,7 +160,7 @@
             void performPositionReset(miam::RobotPosition const& resetPosition, bool const& resetX, bool const& resetY, bool const& resetTheta);
 
             bool ignoreDetection_; ///<< Turn off detection in some very specific instants.
-            int avoidanceTimeout_;
+            int avoidanceTimeout_; ///<< Time to wait before abording, in number of iterations.
         private:
             /// \brief Update the logfile with current values.
             void updateLog();

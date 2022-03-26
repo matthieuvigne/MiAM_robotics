@@ -62,14 +62,16 @@ void CameraThread::runThread()
       break;
     }
   }
-  
+
   // Routine : scan the board and detect all the markers
   while(true)
   {
     // Check if a specific request has been received
     // If so, realize it (don't forget to propagate the filter while doing it).
-    
+
     // Rotate the camera
+    RPi_setPWMServo(0, 1500);
+
     // Propagate the filter
     // Take a picture
     // Detect all the markers

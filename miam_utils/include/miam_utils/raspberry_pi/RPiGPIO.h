@@ -102,4 +102,13 @@
     /// \param[in] periodCS Period of the signal, in number of clock samples. Use clock frequency to compute corresponding signal frequency.
     void RPi_setPWM(int const& channel, int const& dutyCycle, int const& periodCS);
 
+    /// \brief Send servo pulse on PWM port.
+    ///
+    /// \details channel 0 stands for GPIO 12, channel 1 for GPIO 13.
+    ///
+    /// \note It is assume that the PWM frequency has been set to F1200kHz
+    ///
+    /// \param[in] channel Channel number, 0 (GPIO 12) or 1 (GPIO 13).
+    /// \param[in] signal Signal value, in us (500-2500)
+    void RPi_setPWMServo(int const& channel, int const& signal);
 #endif

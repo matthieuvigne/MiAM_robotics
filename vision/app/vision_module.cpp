@@ -8,6 +8,11 @@
 // Main routine
 int main(int argc, char* argv[])
 {
+  // Setup RPi GPIO for servo control.
+  RPi_enableGPIO();
+  RPi_enablePWM(true, false);
+  RPi_setPWMClock(PiPWMClockFrequency::F1200kHz);
+
   // Set the camera parameters
   vision::CameraParams camera_params;
   camera_params.name = "camera";
