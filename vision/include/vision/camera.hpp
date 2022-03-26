@@ -36,6 +36,17 @@ struct DetectedMarker {
 }; // DetectedMarker
 typedef std::vector<DetectedMarker> DetectedMarkerList;
 
+struct CameraParams {
+  std::string name;
+  enum {WIDTH, HEIGHT};
+  double resolution[2];
+  enum {FX, FY, CX, CY};
+  double intrinsics[4];
+  DistortionModel::Type distortion_model;
+  std::vector<double> distortion_coeffs;
+  Eigen::Affine3d pose;
+}; // struct CameraParams
+
 //--------------------------------------------------------------------------------------------------
 // Class definition
 //--------------------------------------------------------------------------------------------------
@@ -62,6 +73,8 @@ public:
     double fx, double fy, double cx, double cy,
     DistortionModel::UniquePtr& distortion,
     Eigen::Affine3d const& pose);
+
+  Camera(CameraParams const& params);
 
   virtual ~Camera() = default;
 

@@ -15,6 +15,7 @@ public:
 
   DISALLOW_EVIL_CONSTRUCTORS(DistortionFisheye);
   DistortionFisheye(Eigen::VectorXd const& distortion_coeffs);
+  enum {k1, k2, k3, k4};
 
 public:
 

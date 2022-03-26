@@ -15,6 +15,7 @@ public:
 
   DISALLOW_EVIL_CONSTRUCTORS(DistortionRadTan);
   DistortionRadTan(Eigen::VectorXd const& distortion_coeffs);
+  enum {k1, k2, p1, p2, k3};
 
 public:
 

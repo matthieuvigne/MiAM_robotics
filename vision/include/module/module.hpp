@@ -17,7 +17,19 @@ namespace module {
 // Structures
 //--------------------------------------------------------------------------------------------------
 
-// TODO
+struct ModuleParams {
+
+  // Board and central marker
+  int board_height;
+  int board_width;
+  Eigen::Affine3d T_WM;
+  
+  // Camera
+  vision::CameraParams camera_params;
+  Eigen::Affine3d T_RC;
+  Eigen::Matrix<double,6,6> cov_T_RC;
+  
+}; // struct ModuleParams
 
 //--------------------------------------------------------------------------------------------------
 // Class definition
@@ -33,6 +45,7 @@ public:
 
   DISALLOW_EVIL_CONSTRUCTORS(Module);
   Module(std::string const& filename);
+  Module(ModuleParams const& params);
   virtual ~Module();
 
 private:

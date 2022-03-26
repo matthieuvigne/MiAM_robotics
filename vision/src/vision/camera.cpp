@@ -29,6 +29,51 @@ Camera::Camera(
 
 //--------------------------------------------------------------------------------------------------
 
+Camera::Camera(CameraParams const& params)
+: name_             (params.name),
+  pose_             (params.pose),
+  dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250)),
+  detector_params_  (cv::aruco::DetectorParameters::create())
+{
+  // Get the image resolution
+  this->image_width_ = params.resolution[0];
+  this->image_height_ = params.resolution[1];
+  
+  // Get the intrinsic parameters
+  this->intrinsics_.fx = params.intrinsics[0];
+  this->intrinsics_.fy = params.intrinsics[1];
+  this->intrinsics_.cx = params.intrinsics[2];
+  this->intrinsics_.cy = params.intrinsics[3];
+  
+  // Build the camera distortion model
+  switch(params.distortion_model)
+  {
+    case DistortionModel::Type::NoDistortion:
+    {
+      this->distortion_ = DistortionModel::UniquePtr(new DistortionNull());
+      break;
+    }
+    
+    case DistortionModel::Type::RadTan:
+    {
+      Eigen::Map<Eigen::VectorXd const> const coeffs(params.distortion_coeffs.data(), 5u);
+      this->distortion_ = DistortionModel::UniquePtr(new DistortionRadTan(coeffs));
+      break;
+    }
+
+    case DistortionModel::Type::Fisheye:
+    {
+      Eigen::Map<Eigen::VectorXd const> const coeffs(params.distortion_coeffs.data(), 4u);
+      this->distortion_ = DistortionModel::UniquePtr(new DistortionFisheye(coeffs));
+      break;
+    }
+    
+    default: throw("Unrecognized distortion model.");
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+
 Camera::UniquePtr Camera::buildCameraFromYaml(
   std::string const& camera_name,
   YAML::Node const& camera_node)
