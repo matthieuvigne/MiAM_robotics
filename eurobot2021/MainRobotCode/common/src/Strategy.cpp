@@ -11,10 +11,10 @@
 #include "Strategy.h"
 
 //reste à faire: symetrie booléens pour servos & doigts avec is Right dans Robot.h
-//da,s initizlisation des 3 minutes : initialiser rail au mileu, servos figurine en haut, statuette bas
+//dans initialisation des 3 minutes : initialiser rail au mileu, servos figurine en haut, statuette bas
 //definir hauteurs de rails (depose figurine)
 //ajuster l'ordre : recupérer statue en position milieu puis depose figurine
-//ajuster hauteur servos (milieu legerement haut) pour pousser avec doigt (position bas), mesures (servos milieu legerement bas)
+//ajuster hauteur servos (milieu legerement haut) pour pousser avec doigt (position bas) à l'endroit du distributeur, mesures (servos milieu legerement bas)
 
 
 using namespace miam::trajectory;
@@ -28,36 +28,103 @@ void setupRobot(RobotInterface *robot, ServoHandler *servo)
 void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 {
     std::cout << "Strategy thread started." << std::endl;
-    //while(true) {
-
-        /* servo->ouvrirlesbrasdebugbas();
-        std::cout << "bas" << std::endl;
-        robot->wait(2000000);
-
-        servo->ouvrirlesbrasdebugmilieu();
-        std::cout << "milieu" << std::endl;
-        robot->wait(2000000);
-
-        servo->ouvrirlesbrasdebughaut();
-        std::cout << "haut" << std::endl;
-        robot->wait(2000000); */
-
-        /* servo->figurineArmMiddle();
-        std::cout << "milieu" << std::endl;
-        robot->wait(2000000); */
-/*         robot->wait(5000000);
+    while(true) {
 
 
-        servo->figurineArmHigh();
-        std::cout << "haut" << std::endl;
-        robot->wait(2000000);
+	    miam::trajectory::setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
+		                                            robotdimensions::maxWheelAccelerationTrajectory,
+		                                            robotdimensions::wheelSpacing);
 
-        servo->figurineArmLow();
-        std::cout << "bas" << std::endl;
-        robot->wait(2000000); */
+	    // Create required variables.
+	    RobotPosition targetPosition;
+	    TrajectoryVector traj;
+	    RobotPosition endPosition;
+	    std::vector<RobotPosition> positions;
+	    bool wasMoveSuccessful = true;
+	    robot->updateScore(2);
+	    
+	    
+	    servo->openTube(2);
+            servo->turnOnPump();
+            robot->wait(5000000);
+            servo->closeTube(2);
+            servo->closeTube(1);
+            servo->closeTube(3);
+            robot->wait(10000000);
+    
+	    
+	    //initialisation servos
+	    //servo->moveSuction(true, true);
+	    //servo->moveSuctionUnitary(2,1800);
+	    //servo->reglageouvrirledoigtdroitbas();
+	    //robot->wait(10000000);
+	    //servo->moveSuctionUnitary(1,1800);
+	    //robot->wait(1000000);
+	    //servo->moveSuctionUnitary(2,1800);
+	    //robot->wait(1000000);
+	    //servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),false);
+	    //robot->wait(1000000);
+	    
+	    
+	    //servo->reglageouvrirlebrasdroitbas();
+	    //robot->wait(10000000);
+	    //servo->electroMagnetOn();
+	    //servo->reglageouvrirlebrasgauchebas();
+	    //robot->wait(5000000);
+
+	    //if (robot->getExcavationReadings(true)== YELLOW)
+	    	//servo->reglageouvrirlebrasgauchemilieu();
+	        //robot->wait(5000000);
+	        //servo->reglageouvrirlebrasgauchehaut();
+	    	//servo->reglageouvrirledoigtdroithaut();
+	    
+	    
+	    
+	     /*
+	    // Set initial position
+	    targetPosition.x = robotdimensions::CHASSIS_BACK;
+	    targetPosition.y = 1200;
+	    targetPosition.theta = 0;
+	    robot->resetPosition(targetPosition, true, true, true);
+	    
+	    servo->openTube(2);
+	    //servo->turnOnPump();
+	    servo->closeTube(2);
+	    servo->closeTube(1);
+	    servo->closeTube(3);
+	    robot->wait(1000000);
+	    // Move rail to top.
+	    //robot->moveRail(1.0);
+	    //robot->wait(100000); // Wait 100ms - works both on the robot and in simulation.
+            */
+
+	    /*
+	    //**********************************************************
+	    // Go get the statue
+	    //**********************************************************
+	    targetPosition = robot->getCurrentPosition();
+	    positions.push_back(targetPosition);
+	    targetPosition.x = 450;
+	    positions.push_back(targetPosition);
+	    targetPosition.y = 450;
+	    positions.push_back(targetPosition);
+	    // Move at 45degree angle toward the statue
+	    targetPosition.x += 80;
+	    targetPosition.y += 80;
+	    positions.push_back(targetPosition);
+	    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.2);
+	    robot->setTrajectoryToFollow(traj);
+	    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+	    targetPosition = robot->getCurrentPosition();
+	    
+	    //retrive statue and put the figurine
+
+	    servo->electroMagnetOn();
+	    servo->figurineArmLow();
+             */
 
 
-    //}
+    }
 
 
     //while(true) {
@@ -77,15 +144,21 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     std::vector<RobotPosition> positions;
     bool wasMoveSuccessful = true;
     robot->updateScore(2);
+    
+    servo->moveSuction(true, true);
+    robot->wait(100000);
 
     // Set initial position
     targetPosition.x = robotdimensions::CHASSIS_BACK;
     targetPosition.y = 1200;
     targetPosition.theta = 0;
     robot->resetPosition(targetPosition, true, true, true);
-
-
+    
+    servo->openTube(2);
     servo->turnOnPump();
+    servo->closeTube(2);
+    servo->closeTube(1);
+    servo->closeTube(3);
     robot->wait(100000);
     // Move rail to top.
     //robot->moveRail(1.0);
@@ -132,6 +205,9 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     servo->moveSuction(true, false);
     servo->turnOffPump();
+    servo->openTube(2);
+    servo->openTube(1);
+    servo->openTube(3);
     robot->updateScore(15);
     robot->updateScore(15);
 
@@ -151,7 +227,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //**********************************************************
     // Round to the side distributor
     //**********************************************************
-    servo->ouvrirlebrasgauchemilieu();
+    
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -159,13 +235,14 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition.x = 102+40+robotdimensions::CHASSIS_WIDTH+50;
     targetPosition.y = 500;
     positions.push_back(targetPosition);
-    targetPosition.y = 800;
+    targetPosition.y = 750;
     positions.push_back(targetPosition);
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 150.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     robot->updateScore(3);
-    servo->ouvrirlebrasgauchehaut();
+    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),false);
+    servo->ouvrirledoigtbas(robot->isPlayingRightSide(),false);
 
     //**********************************************************
     // Go to the display
@@ -177,6 +254,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition, 500.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    servo->ouvrirlebrashaut(robot->isPlayingRightSide(),false);
 
     // then a little to the left
     targetPosition = robot->getCurrentPosition();
@@ -228,14 +306,14 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // Go back to the gallery & side distributor
     //**********************************************************
 
-    servo->ouvrirlebrasdroitbas();
+    servo->ouvrirlebrashaut(robot->isPlayingRightSide(),true);
     //Go back
     targetPosition = robot->getCurrentPosition();
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-1100.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     robot->updateScore(3);
-    servo->ouvrirlebrasdroithaut();
+    servo->ouvrirlebrashaut(robot->isPlayingRightSide(),true);
 
     //**********************************************************
     // Rotate to the gallery & stop to put the first tresor
@@ -351,6 +429,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // Rotate to measure (with several stops to add with finger to command),
     //**********************************************************
 
+
     servo->baisserledoigtdroit();
 
     positions.clear();
@@ -364,9 +443,19 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    servo->ouvrirlebrasdroitmilieu();
+    
+    //test des 4 configurations
+    
+    //1ere mesure du carré : soit notre équipe (Yellow ou Violet) soit RED
+    if (robot->getExcavationReadings(true)== RED)  //dans configuration
+	    	servo->reglageouvrirlebrasgauchemilieu();
+	        robot->wait(5000000);
+	        servo->reglageouvrirlebrasgauchehaut();
+	    	//servo->reglageouvrirledoigtdroithaut();
+    
+    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
+    servo->ouvrirledoigtbas(robot->isPlayingRightSide(),true);
     robot->updateScore(8);
-    servo->ouvrirlebrasdroithaut();
 
     positions.clear();
     targetPosition = robot->getCurrentPosition();
@@ -377,9 +466,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    servo->ouvrirlebrasdroitmilieu();
+    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
     robot->updateScore(8);
-    servo->ouvrirlebrasdroithaut();
 
     positions.clear();
     targetPosition = robot->getCurrentPosition();
@@ -390,9 +478,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    servo->ouvrirlebrasdroitmilieu();
+    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
     robot->updateScore(8);
-    servo->ouvrirlebrasdroithaut();
 
     positions.clear();
     targetPosition = robot->getCurrentPosition();
@@ -403,9 +490,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    servo->ouvrirlebrasdroitmilieu();
+    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
     robot->updateScore(8);
-    servo->ouvrirlebrasdroithaut();
 
     positions.clear();
     targetPosition = robot->getCurrentPosition();
@@ -416,9 +502,9 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    servo->ouvrirlebrasdroitmilieu();
+    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
     robot->updateScore(8);
-    servo->ouvrirlebrasdroithaut();
+    servo->ouvrirlebrashaut(robot->isPlayingRightSide(),true);
 
     //**********************************************************
     // Rotate to come back to the campment

@@ -8,6 +8,8 @@
 int const PUMP_PWM = 26;
 
 static int const SERVO_SUCTION[3] = {SUCTION_RIGHT, SUCTION_CENTER, SUCTION_LEFT};
+static int const SERVO_VALVE[3] = {VALVE_RIGHT, VALVE_CENTER, VALVE_LEFT};
+
 
 ServoHandler::ServoHandler(MaestroDriver *maestro):
     isPumpOn_(false),
@@ -27,82 +29,120 @@ bool ServoHandler::init(std::string const& portName)
     return maestro_->init(portName);
 }
 
+void ServoHandler::reglageouvrirlebrasdroithaut() {
+	maestro_->setPosition(RIGHT_ARM, 700);
+	//reglage mesure bras droit haut maestro_->setPosition(RIGHT_ARM, 700);
+}
 
-void ServoHandler::ouvrirlebrasdroitmilieu() {
+void ServoHandler::reglageouvrirlebrasdroitmilieu() {
+	maestro_->setPosition(RIGHT_ARM, 1500);
+	//reglage mesure bras droit mesure fouille avant action doigt maestro_->setPosition(RIGHT_ARM, 1500);
+}
+void ServoHandler::reglageouvrirlebrasdroitbas() {
+	maestro_->setPosition(RIGHT_ARM, 1630);
+	// reglage mesure bras droit bas maestro_->setPosition(RIGHT_ARM, 1640);
+}
 
-     maestro_->setPosition(RIGHT_ARM, 1500);
-    //maestro_->setPosition(SUCTION_RIGHT, 1500);
-    //maestro_->setPosition(RIGHT_FINGER, 1500);
-    // maestro_->setPosition(SUCTION_MILIEU, 1500);
-    // maestro_->setPosition(SUCTION_LEFT, 1500);
-    // maestro_->setPosition(LEFT_ARM, 1500);
+void ServoHandler::reglageouvrirlebrasgauchebas() {
+	maestro_->setPosition(LEFT_ARM, 1200);
+}
+void ServoHandler::reglageouvrirlebrasgauchemilieu() {
+	maestro_->setPosition(LEFT_ARM, 1500);
+}
+void ServoHandler::reglageouvrirlebrasgauchehaut() {
+	maestro_->setPosition(LEFT_ARM, 1880);
+}
+
+void ServoHandler::reglageouvrirledoigtdroithaut() {
+	maestro_->setPosition(RIGHT_FINGER, 1500);
+	
+}
+
+void ServoHandler::reglageouvrirledoigtdroitbas() {
+	maestro_->setPosition(RIGHT_FINGER, 1700);
+	// reglage mesure doigt droit bas maestro_->setPosition(RIGHT_ARM, 1640);
+}
+
+void ServoHandler::reglageouvrirledoigtgauchehaut() {
+	maestro_->setPosition(LEFT_FINGER, 1500);
+}
+
+void ServoHandler::reglageouvrirledoigtgauchebas() {
+	maestro_->setPosition(LEFT_FINGER, 1500);
 }
 
 
-void ServoHandler::ouvrirlebrasdroitbas() {
 
-     maestro_->setPosition(RIGHT_ARM, 1980);
-    //maestro_->setPosition(SUCTION_RIGHT, 1980);
-    //maestro_->setPosition(RIGHT_FINGER, 1980);
-    // maestro_->setPosition(SUCTION_MILIEU, 1980);
-    // maestro_->setPosition(SUCTION_LEFT, 1980);
-    // maestro_->setPosition(LEFT_ARM, 1020);
+void ServoHandler::ouvrirlebrasmilieu(bool isPlayingRightSide, bool right){
+
+	if (!isPlayingRightSide)
+		if (right)
+     			maestro_->setPosition(RIGHT_ARM, 1500);
+     		if (!right)
+     			maestro_->setPosition(LEFT_ARM, 1500);
+     	if (isPlayingRightSide)
+		if (right)
+     			maestro_->setPosition(LEFT_ARM, 1500);
+     		if (!right)
+     			maestro_->setPosition(RIGHT_ARM, 1500);
 }
 
+void ServoHandler::ouvrirlebrasbas(bool isPlayingRightSide, bool right){
 
-void ServoHandler::ouvrirlebrasdroithaut() {
-
-     maestro_->setPosition(RIGHT_ARM, 1020);
-    //maestro_->setPosition(SUCTION_RIGHT, 1020);
-    //maestro_->setPosition(RIGHT_FINGER, 1020);
-    // maestro_->setPosition(SUCTION_MILIEU, 1020);
-    // maestro_->setPosition(SUCTION_LEFT, 1020);
-    // maestro_->setPosition(LEFT_ARM, 1980);
+	if (!isPlayingRightSide)
+		if (right)
+     			maestro_->setPosition(RIGHT_ARM, 1980);
+     		if (!right)
+     			maestro_->setPosition(LEFT_ARM, 1980);
+     	if (isPlayingRightSide)
+		if (right)
+     			maestro_->setPosition(LEFT_ARM, 1980);
+     		if (!right)
+     			maestro_->setPosition(RIGHT_ARM, 1980);
 }
 
-void ServoHandler::ouvrirlebrasgauchemilieu() {
+void ServoHandler::ouvrirlebrashaut(bool isPlayingRightSide, bool right){
 
-    // maestro_->setPosition(RIGHT_ARM, 1500);
-    //maestro_->setPosition(SUCTION_RIGHT, 1500);
-    //maestro_->setPosition(LEFT_FINGER, 1500);
-    // maestro_->setPosition(SUCTION_MILIEU, 1500);
-    // maestro_->setPosition(SUCTION_LEFT, 1500);
-     maestro_->setPosition(LEFT_ARM, 1500);
+	if (!isPlayingRightSide)
+		if (right)
+     			maestro_->setPosition(RIGHT_ARM, 1020);
+     		if (!right)
+     			maestro_->setPosition(LEFT_ARM, 1020);
+     	if (isPlayingRightSide)
+		if (right)
+     			maestro_->setPosition(LEFT_ARM, 1020);
+     		if (!right)
+     			maestro_->setPosition(RIGHT_ARM, 1020);
 }
 
+void ServoHandler::ouvrirledoigthaut(bool isPlayingRightSide, bool right){
 
-void ServoHandler::ouvrirlebrasgauchebas() {
-
-    // maestro_->setPosition(RIGHT_ARM, 1980);
-    //maestro_->setPosition(SUCTION_RIGHT, 1980);
-    //maestro_->setPosition(LEFT_FINGER, 1980);
-    // maestro_->setPosition(SUCTION_MILIEU, 1980);
-    // maestro_->setPosition(SUCTION_LEFT, 1980);
-    maestro_->setPosition(LEFT_ARM, 1020);
+	if (isPlayingRightSide)
+		if (right)
+     			maestro_->setPosition(RIGHT_FINGER, 1980);
+     		if (!right)
+     			maestro_->setPosition(LEFT_FINGER, 1980);
+     	if (!isPlayingRightSide)
+		if (right)
+     			maestro_->setPosition(LEFT_FINGER, 1980);
+     		if (!right)
+     			maestro_->setPosition(RIGHT_FINGER, 1980);
 }
 
+void ServoHandler::ouvrirledoigtbas(bool isPlayingRightSide, bool right){
 
-void ServoHandler::ouvrirlebrasgauchehaut() {
+	if (isPlayingRightSide)
+		if (right)
+     			maestro_->setPosition(RIGHT_FINGER, 1020);
+     		if (!right)
+     			maestro_->setPosition(LEFT_FINGER, 1020);
+     	if (!isPlayingRightSide)
+		if (right)
+     			maestro_->setPosition(LEFT_FINGER, 1020);
+     		if (!right)
+     			maestro_->setPosition(RIGHT_FINGER, 1020);
+}
 
-    // maestro_->setPosition(RIGHT_ARM, 1020);
-    //maestro_->setPosition(SUCTION_RIGHT, 1020);
-    //maestro_->setPosition(LEFT_FINGER, 1020);
-    // maestro_->setPosition(SUCTION_MILIEU, 1020);
-    // maestro_->setPosition(SUCTION_LEFT, 1020);
-     maestro_->setPosition(LEFT_ARM, 1980);
-    
- }
- 
-  void ServoHandler::baisserledoigtdroit() {
-
-    maestro_->setPosition(RIGHT_FINGER, 1980);
-    //maestro_->setPosition(SUCTION_RIGHT, 1020);
-    //maestro_->setPosition(LEFT_FINGER, 1020);
-    // maestro_->setPosition(SUCTION_MILIEU, 1020);
-    // maestro_->setPosition(SUCTION_LEFT, 1020);
-    // maestro_->setPosition(LEFT_ARM, 1980);
-    
- }
 /* void ServoHandler::openValve() {
 
     maestro_->setPosition(VALVE, 0);
@@ -116,12 +156,12 @@ void ServoHandler::closeValve() {
 } */
 
 void ServoHandler::electroMagnetOn() {
-    maestro_->setPosition(MAGNET, 1900);
+    maestro_->setPosition(MAGNET, 7000);
 }
 
 
 void ServoHandler::electroMagnetOff() {
-    maestro_->setPosition(MAGNET, 1500);
+    maestro_->setPosition(MAGNET, 0);
 }
 
 
@@ -150,11 +190,11 @@ void ServoHandler::figurineArmSpeedHigh() {
 }
 
 
-/* void ServoHandler::openTube(int tubeNumber)
+ void ServoHandler::openTube(int tubeNumber)
 {
     if (tubeNumber < 0 || tubeNumber > 2)
         return;
-    maestro_->setPosition(SERVO_TUBE[tubeNumber], 0);
+    maestro_->setPosition(SERVO_VALVE[tubeNumber], 0);
 }
 
 
@@ -162,8 +202,8 @@ void ServoHandler::closeTube(int tubeNumber)
 {
     if (tubeNumber < 0 || tubeNumber > 2)
         return;
-    maestro_->setPosition(SERVO_TUBE[tubeNumber], 7000);
-} */
+    maestro_->setPosition(SERVO_VALVE[tubeNumber], 7000);
+} 
 
 
 void ServoHandler::shutdownServos()
@@ -196,10 +236,12 @@ void ServoHandler::moveSuction(bool high, bool moveMiddle)
 {
     if(high)
     {
-        maestro_->setPosition(SERVO_SUCTION[0], 1800);
+        maestro_->setPosition(SERVO_SUCTION[0], 1500);
         if (moveMiddle)
-            maestro_->setPosition(SERVO_SUCTION[1], 1650);
-        maestro_->setPosition(SERVO_SUCTION[2], 1800);
+            maestro_->setPosition(SERVO_SUCTION[1], 1500);
+        if (!moveMiddle)
+            maestro_->setPosition(SERVO_SUCTION[1], 1500);
+        maestro_->setPosition(SERVO_SUCTION[2], 1500);
     }
     else
     {
@@ -217,7 +259,13 @@ void ServoHandler::moveMiddle()
         maestro_->setPosition(SERVO_SUCTION[0], 1700);
             maestro_->setPosition(SERVO_SUCTION[1], 1700);
         maestro_->setPosition(SERVO_SUCTION[2], 1700);
+        
+}
 
+void ServoHandler::moveSuctionUnitary(int tubeNumber, int targetServo)
+{
+        maestro_->setPosition(SERVO_SUCTION[tubeNumber], targetServo);
+        
 }
 
 

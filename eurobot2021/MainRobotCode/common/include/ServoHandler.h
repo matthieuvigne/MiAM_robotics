@@ -20,25 +20,40 @@
                 /// \returns   true on success, false otherwise.
                 bool init(std::string const& portName);
 
-                void ouvrirlebrasdroitmilieu();
+                void ouvrirlebrasmilieu(bool isPlayingRightSide, bool right);
 
-                void ouvrirlebrasdroitbas();
+                void ouvrirlebrasbas(bool isPlayingRightSide, bool right);
 
-                void ouvrirlebrasdroithaut();
+                void ouvrirlebrashaut(bool isPlayingRightSide, bool right);
                 
-                void ouvrirlebrasgauchemilieu();
+                void ouvrirledoigthaut(bool isPlayingRightSide, bool right);
                 
-                void ouvrirlebrasgauchebas();
+                void ouvrirledoigtbas(bool isPlayingRightSide, bool right);
+                
+		void reglageouvrirlebrasdroithaut();
+		void reglageouvrirlebrasdroitmilieu();
+		void reglageouvrirlebrasdroitbas();
 
-                void ouvrirlebrasgauchehaut();
-                void baisserledoigtdroit();
+		void reglageouvrirlebrasgauchehaut() ;
+		void reglageouvrirlebrasgauchemilieu() ;
+		void reglageouvrirlebrasgauchebas() ;
+		
+		void reglageouvrirledoigtgauchehaut() ;
+		void reglageouvrirledoigtgauchebas() ;
+		
+		void reglageouvrirledoigtdroithaut() ;
+		void reglageouvrirledoigtdroitbas() ;
+
+
+                
 
                 // Valve control
                 void openValve();
                 void closeValve();
 
-/*                 void openTube(int tubeNumber); ///< Open suction air tube.
-                void closeTube(int tubeNumber); ///< Close suction air tube. */
+                void openTube(int tubeNumber); ///< Open suction air tube.
+                void closeTube(int tubeNumber); ///< Close suction air tube. 
+                void moveSuctionUnitary(int tubeNumber, int targetServo);
 
                 void shutdownServos(); ///< Turn off all servos.
 
