@@ -71,4 +71,11 @@
             "",
             ""
         };
+
+        enum ExcavationSquareColor{
+            NONE = 0,
+            PURPLE = 1,
+            YELLOW = 2,
+            RED = 3
+        };
  #endif

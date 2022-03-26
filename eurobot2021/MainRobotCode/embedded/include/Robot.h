@@ -33,7 +33,6 @@
     #include "ServoHandler.h"
     #include "LoggerFields.h"
     #include "RobotInterface.h"
-    #include "Parameters.h"
 
     // Right and left macros, for array addressing.
     int const RIGHT = 0;
@@ -161,6 +160,9 @@
 
             bool ignoreDetection_; ///<< Turn off detection in some very specific instants.
             int avoidanceTimeout_; ///<< Time to wait before abording, in number of iterations.
+
+            ExcavationSquareColor getExcavationReadings(bool readRightSide) override;
+
         private:
             /// \brief Update the logfile with current values.
             void updateLog();

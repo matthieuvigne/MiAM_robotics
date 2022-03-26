@@ -10,6 +10,7 @@
 
     #include <miam_utils/AbstractRobot.h>
     #include <unistd.h>
+    #include "Parameters.h"
 
     class RobotInterface : public AbstractRobot
     {
@@ -26,6 +27,11 @@
             virtual bool isPlayingRightSide()
             {
                 return false;
+            }
+
+            virtual ExcavationSquareColor getExcavationReadings(bool readRightSide)
+            {
+                return ExcavationSquareColor::RED;
             }
     };
  #endif

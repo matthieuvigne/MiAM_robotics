@@ -522,3 +522,11 @@ void Robot::stopMotors()
     usleep(50000);
     stepperMotors_.highZ();
 }
+
+
+ExcavationSquareColor Robot::getExcavationReadings(bool readRightSide)
+{
+    if (readRightSide)
+        return microcontrollerData_.rightArmColor;
+    return microcontrollerData_.leftArmColor;
+}

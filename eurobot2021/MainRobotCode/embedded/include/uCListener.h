@@ -12,13 +12,7 @@
 
     ///< Global includes
     #include <miam_utils/miam_utils.h>
-
-    enum ExcavationSquareColor{
-        NONE = 0,
-        PURPLE = 1,
-        YELLOW = 2,
-        RED = 3
-    };
+    #include "Parameters.h"
 
     static inline std::ostream& operator<< (std::ostream& out, ExcavationSquareColor const& c)
     {
