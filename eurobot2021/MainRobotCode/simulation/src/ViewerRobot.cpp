@@ -6,18 +6,20 @@
 
 
 ViewerRobot::ViewerRobot(std::string const& imageFileName,
-                         std::function<void(RobotInterface *, ServoHandler *)> const& strategyFunction,
+                         strategyFunction_t const& setupFunction,
+                         strategyFunction_t const& strategyFunction,
                          double const& r, double const& g, double const& b):
-    recomputeStrategyFunction_(strategyFunction),
-    obstacleX_(0.0),
-    obstacleY_(0.0),
-    obstacleSize_(0.0),
+    setupFunction_(setupFunction),
+    strategyFunction_(strategyFunction),
     handler_(&servoMock_),
     r_(r),
     g_(g),
     b_(b),
     score_(0),
-    trajectoryFollowingStatus_(true)
+    trajectoryFollowingStatus_(true),
+    obstacleX_(0.0),
+    obstacleY_(0.0),
+    obstacleSize_(0.0)
 {
     image_ = Gdk::Pixbuf::create_from_file(imageFileName, -1, -1);
 }
@@ -239,3 +241,22 @@ void ViewerRobot::wait(int const& waitTimeus)
     int const nPoints = waitTimeus / 1.0e6 / TIMESTEP;
     padTrajectory(nPoints);
 }
+
+void ViewerRobot::recomputeStrategy(int const& obstacleX, int const& obstacleY, int const& obstacleSize)
+{
+    obstacleX_ = obstacleX;
+    obstacleY_ = obstacleY;
+    obstacleSize_ = obstacleSize;
+    trajectory_.clear();
+    servoMock_.init("", 0);
+    clearScore();
+    setupFunction_(this, &this->handler_);
+    strategyFunction_(this, &this->handler_);
+}
+
+
+int ViewerRobot::getScore(int const& index)
+{
+    return trajectory_[index].score;
+}
+

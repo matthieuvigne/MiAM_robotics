@@ -19,6 +19,7 @@
 
     using miam::RobotPosition;
 
+    typedef std::function<void(RobotInterface *, ServoHandler *)> strategyFunction_t;
 
     struct ViewerTrajectoryPoint{
         double time;
@@ -45,7 +46,8 @@
         public:
             /// \brief Constructor.
             ViewerRobot(std::string const& imageFileName,
-                        std::function<void(RobotInterface *, ServoHandler *)> const& strategyFunction,
+                        strategyFunction_t const& setupFunction,
+                        strategyFunction_t const& strategyFunction,
                         double const& r = 1.0, double const& g = 0.0, double const& b = 0.0);
 
             /// \brief Get current robot position.
@@ -75,11 +77,8 @@
             void padTrajectory(int const& desiredLength);
 
             ///< Function computing the strategy, for a given obstacle position.
-            std::function<void(RobotInterface *, ServoHandler *)> const recomputeStrategyFunction_;
+            void recomputeStrategy(int const& obstacleX, int const& obstacleY, int const& obstacleSize);
 
-            double obstacleX_;
-            double obstacleY_;
-            double obstacleSize_;
 
             ///< Increment robot score.
             void updateScore(int const& scoreIncrement) override;
@@ -103,12 +102,16 @@
 
             void wait(int const& waitTimeus) override;
 
-            std::vector<ViewerTrajectoryPoint> trajectory_;
-            ServoHandler handler_;
-            MaestroMock servoMock_;
+            int getScore(int const& index);
+
         private:
             bool followTrajectory(miam::trajectory::Trajectory * traj); ///< Perform actual trajectory following.
 
+            strategyFunction_t const setupFunction_;
+            strategyFunction_t const strategyFunction_;
+            ServoHandler handler_;
+            MaestroMock servoMock_;
+            std::vector<ViewerTrajectoryPoint> trajectory_;
 
             Glib::RefPtr<Gdk::Pixbuf> image_;
 
@@ -117,6 +120,11 @@
             double b_;  ///< Trajectory color.
             int score_; ///< Current robot score.
             bool trajectoryFollowingStatus_; ///< Status of last trajectory following.
+
+
+            double obstacleX_;  // Obstacle information.
+            double obstacleY_;
+            double obstacleSize_;
     };
 
 #endif

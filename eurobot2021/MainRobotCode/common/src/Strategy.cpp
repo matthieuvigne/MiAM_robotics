@@ -20,6 +20,11 @@
 using namespace miam::trajectory;
 using miam::RobotPosition;
 
+void setupRobot(RobotInterface *robot, ServoHandler *servo)
+{
+}
+
+
 void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 {
     std::cout << "Strategy thread started." << std::endl;
@@ -103,12 +108,12 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     targetPosition = robot->getCurrentPosition();
-    
+
     //retrive statue and put the figurine
 
     servo->electroMagnetOn();
     servo->figurineArmLow();
-    
+
     //Go back
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-131.0);
     robot->setTrajectoryToFollow(traj);
@@ -166,7 +171,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // Go to the display
     //**********************************************************
 
-    
+
     // go forward
     targetPosition = robot->getCurrentPosition();
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition, 500.0);
@@ -192,7 +197,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(targetPosition,endPosition,0.0,false);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    
+
     servo->electroMagnetOff();
     robot->updateScore(15);
 
@@ -258,7 +263,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-100.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    
+
 
 
     //**********************************************************
@@ -342,13 +347,12 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-150.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
     //**********************************************************
     // Rotate to measure (with several stops to add with finger to command),
     //**********************************************************
 
     servo->baisserledoigtdroit();
-    
+
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -363,7 +367,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->ouvrirlebrasdroitmilieu();
     robot->updateScore(8);
     servo->ouvrirlebrasdroithaut();
-    
+
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -376,7 +380,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->ouvrirlebrasdroitmilieu();
     robot->updateScore(8);
     servo->ouvrirlebrasdroithaut();
-    
+
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -389,7 +393,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->ouvrirlebrasdroitmilieu();
     robot->updateScore(8);
     servo->ouvrirlebrasdroithaut();
-    
+
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -402,7 +406,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->ouvrirlebrasdroitmilieu();
     robot->updateScore(8);
     servo->ouvrirlebrasdroithaut();
-    
+
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);

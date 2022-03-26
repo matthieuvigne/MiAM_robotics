@@ -96,7 +96,7 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
     for(auto robot : robots_)
     {
         robot->draw(cr, mmToCairo_, currentTrajectoryIndex_);
-        score += robot->trajectory_[currentTrajectoryIndex_].score;
+        score += robot->getScore(currentTrajectoryIndex_);
     }
 
     // Draw obstacle.
@@ -183,12 +183,7 @@ void Viewer::recompute()
 {
     // Recompute strategies.
     for(auto r : robots_)
-    {
-        r->obstacleX_ = obstacleX_;
-        r->obstacleY_ = obstacleY_;
-        r->obstacleSize_ = obstacleSize_;
-        r->recomputeStrategyFunction_(r, &(r->handler_));
-    }
+        r->recomputeStrategy(obstacleX_, obstacleY_, obstacleSize_);
     // Re-equalize time vectors.
     for(auto r : robots_)
         trajectoryLength_ = std::max(trajectoryLength_, r->getTrajectoryLength());

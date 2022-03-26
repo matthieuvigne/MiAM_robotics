@@ -14,6 +14,8 @@ MaestroMock::MaestroMock()
 
 bool MaestroMock::init(std::string const& portName, int const& deviceID)
 {
+    for (int i = 0; i < 18; i++)
+        state_[i] = 0;
     return true;
 }
 
