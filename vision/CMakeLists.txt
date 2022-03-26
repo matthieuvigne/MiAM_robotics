@@ -24,16 +24,15 @@ add_library(${LIBRARY_NAME} STATIC ${${PROJECT_NAME}_SOURCES})
 # Link to external libraries
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(YAML-CPP REQUIRED)
 find_package(Threads REQUIRED)
 find_package(raspicam REQUIRED)
 find_package(PkgConfig REQUIRED)
+pkg_search_module(YAMLCPP REQUIRED yaml-cpp)
 pkg_search_module(MIAMUTILSLIB REQUIRED miam_utils)
 message(STATUS "Found miam_utils v." ${MIAMUTILSLIB_VERSION} " at " ${MIAMUTILSLIB_LIBRARY_DIRS})
 include_directories(${MIAMUTILSLIB_INCLUDE_DIRS})
-link_directories(${OpenCV_DIRS} ${Eigen_INCLUDE_DIRS} ${MIAMUTILSLIB_LIBRARY_DIRS})
-target_link_libraries(${LIBRARY_NAME} ${OpenCV_LIBS} yaml-cpp ${raspicam_CV_LIBS}
-  ${CMAKE_THREAD_LIBS_INIT} ${MIAMUTILSLIB_LIBRARIES})
+link_directories(${OpenCV_DIRS} ${Eigen_INCLUDE_DIRS} ${YAMLCPP_INCLUDE_DIRS} ${MIAMUTILSLIB_LIBRARY_DIRS})
+target_link_libraries(${LIBRARY_NAME} ${OpenCV_LIBS} ${YAMLCPP_LIBRARIES} ${raspicam_CV_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${MIAMUTILSLIB_LIBRARIES})
 
 # Application
 

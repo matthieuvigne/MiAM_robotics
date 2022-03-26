@@ -74,9 +74,9 @@ void CameraThread::runThread()
     // Rotate the camera
     this->rotateCamera(1500);
     // Propagate the filter
-    
+
     // Take a picture
-    
+
     // Detect all the markers
     // Check if the central marker is detected => if so: update the filter
     // Update the pose estimate of all other markers
