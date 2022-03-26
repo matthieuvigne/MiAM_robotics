@@ -22,6 +22,8 @@ using miam::RobotPosition;
 
 void setupRobot(RobotInterface *robot, ServoHandler *servo)
 {
+    servo->figurineArmLow();
+    servo->turnOffPump();
 }
 
 
@@ -43,19 +45,19 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 	    bool wasMoveSuccessful = true;
 	    robot->updateScore(2);
 	    servo->initsectionmiddle();
-	    
-	    
+
+
 	    servo->openTube(2);
-            servo->turnOnPump();
-            robot->wait(5000000);
-            servo->closeTube(2);
-            servo->closeTube(1);
-            servo->closeTube(3);
-            robot->wait(10000000);
-    
-	    
+        servo->turnOnPump();
+        robot->wait(5000000);
+        servo->closeTube(2);
+        servo->closeTube(1);
+        servo->closeTube(3);
+        robot->wait(10000000);
+
+
 	    //initialisation servos
-	    //servo->moveSuction(true, true);
+	    //servo->moveSuction(true);
 	    //servo->moveSuctionUnitary(2,1800);
 	    //servo->reglageouvrirledoigtdroitbas();
 	    //robot->wait(10000000);
@@ -65,8 +67,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 	    //robot->wait(1000000);
 	    //servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),false);
 	    //robot->wait(1000000);
-	    
-	    
+
+
 	    //servo->reglageouvrirlebrasdroitbas();
 	    //robot->wait(10000000);
 	    //servo->electroMagnetOn();
@@ -78,16 +80,16 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 	        //robot->wait(5000000);
 	        //servo->reglageouvrirlebrasgauchehaut();
 	    	//servo->reglageouvrirledoigtdroithaut();
-	    
-	    
-	    
+
+
+
 	     /*
 	    // Set initial position
 	    targetPosition.x = robotdimensions::CHASSIS_BACK;
 	    targetPosition.y = 1200;
 	    targetPosition.theta = 0;
 	    robot->resetPosition(targetPosition, true, true, true);
-	    
+
 	    servo->openTube(2);
 	    //servo->turnOnPump();
 	    servo->closeTube(2);
@@ -117,7 +119,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 	    robot->setTrajectoryToFollow(traj);
 	    wasMoveSuccessful = robot->waitForTrajectoryFinished();
 	    targetPosition = robot->getCurrentPosition();
-	    
+
 	    //retrive statue and put the figurine
 
 	    servo->electroMagnetOn();
@@ -145,8 +147,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     std::vector<RobotPosition> positions;
     bool wasMoveSuccessful = true;
     robot->updateScore(2);
-    
-    servo->moveSuction(true, true);
+
+    servo->moveSuction(true);
     robot->wait(100000);
 
     // Set initial position
@@ -154,7 +156,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition.y = 1200;
     targetPosition.theta = 0;
     robot->resetPosition(targetPosition, true, true, true);
-    
+
     servo->openTube(2);
     servo->turnOnPump();
     servo->closeTube(2);
@@ -204,7 +206,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     positions.push_back(targetPosition);
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.2);
     robot->setTrajectoryToFollow(traj);
-    servo->moveSuction(true, false);
+    servo->moveSuction(true);
     servo->turnOffPump();
     servo->openTube(2);
     servo->openTube(1);
@@ -228,7 +230,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //**********************************************************
     // Round to the side distributor
     //**********************************************************
-    
+
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -300,7 +302,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     servo->turnOnPump();
-    servo->moveSuction(false, true);
+    servo->moveSuction(false);
     robot->updateScore(1);
 
     //**********************************************************
@@ -334,7 +336,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     servo->turnOffPump();
-    servo->moveSuction(true, true);
+    servo->moveSuction(true);
     robot->updateScore(8);
 
     // go back a little
@@ -376,7 +378,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     servo->turnOnPump();
-    servo->moveSuction(false, false);
+    servo->moveSuction(false);
     robot->updateScore(15);
 
      //**********************************************************
@@ -392,7 +394,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     robot->updateScore(9);
     servo->turnOffPump();
-    servo->moveSuction(true, false);
+    servo->moveSuction(true);
 
     // go back a little
     targetPosition = robot->getCurrentPosition();
@@ -431,7 +433,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //**********************************************************
 
 
-    servo->baisserledoigtdroit();
+    // servo->baisserledoigtdroit();
 
     positions.clear();
     targetPosition = robot->getCurrentPosition();
@@ -444,16 +446,18 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    
+
     //test des 4 configurations
-    
+
     //1ere mesure du carré : soit notre équipe (Yellow ou Violet) soit RED
     if (robot->getExcavationReadings(true)== RED)  //dans configuration
-	    	servo->reglageouvrirlebrasgauchemilieu();
-	        robot->wait(5000000);
-	        servo->reglageouvrirlebrasgauchehaut();
-	    	//servo->reglageouvrirledoigtdroithaut();
-    
+    {
+        servo->reglageouvrirlebrasgauchemilieu();
+        robot->wait(5000000);
+        servo->reglageouvrirlebrasgauchehaut();
+        //servo->reglageouvrirledoigtdroithaut();
+    }
+
     servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
     servo->ouvrirledoigtbas(robot->isPlayingRightSide(),true);
     robot->updateScore(8);

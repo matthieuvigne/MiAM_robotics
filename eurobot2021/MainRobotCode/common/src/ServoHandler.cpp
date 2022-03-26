@@ -8,15 +8,17 @@
 int const PUMP_PWM = 26;
 
 static int const SERVO_SUCTION[3] = {SUCTION_RIGHT, SUCTION_CENTER, SUCTION_LEFT};
-static int const SERVO_VALVE[3] = {VALVE_RIGHT, VALVE_CENTER, VALVE_LEFT};
+static int const SERVO_TUBE[3] = {VALVE_RIGHT, VALVE_CENTER, VALVE_LEFT};
 
+////////////////////////////////////////////////////////////////
+// Core functions
+////////////////////////////////////////////////////////////////
 
 ServoHandler::ServoHandler(MaestroDriver *maestro):
     isPumpOn_(false),
     maestro_(maestro)
 {
 }
-
 
 bool ServoHandler::init(std::string const& portName)
 {
@@ -28,6 +30,20 @@ bool ServoHandler::init(std::string const& portName)
 
     return maestro_->init(portName);
 }
+
+void ServoHandler::shutdownServos()
+{
+	for(int i = 0; i < 18; i++)
+	{
+		maestro_->setPosition(i, 0);
+		usleep(80);
+	}
+}
+
+
+////////////////////////////////////////////////////////////////
+// Arm motion
+////////////////////////////////////////////////////////////////
 
 void ServoHandler::reglageouvrirlebrasdroithaut() {
 	maestro_->setPosition(RIGHT_ARM, 700);
@@ -55,7 +71,7 @@ void ServoHandler::reglageouvrirlebrasgauchehaut() {
 
 void ServoHandler::reglageouvrirledoigtdroithaut() {
 	maestro_->setPosition(RIGHT_FINGER, 1500);
-	
+
 }
 
 void ServoHandler::reglageouvrirledoigtdroitbas() {
@@ -71,148 +87,121 @@ void ServoHandler::reglageouvrirledoigtgauchebas() {
 	maestro_->setPosition(LEFT_FINGER, 1500);
 }
 
-
-
-void ServoHandler::ouvrirlebrasmilieu(bool isPlayingRightSide, bool right){
-
+void ServoHandler::ouvrirlebrasmilieu(bool isPlayingRightSide, bool right)
+{
 	if (!isPlayingRightSide)
+    {
 		if (right)
-     			maestro_->setPosition(RIGHT_ARM, 1500);
-     		if (!right)
-     			maestro_->setPosition(LEFT_ARM, 1500);
-     	if (isPlayingRightSide)
-		if (right)
-     			maestro_->setPosition(LEFT_ARM, 1500);
-     		if (!right)
-     			maestro_->setPosition(RIGHT_ARM, 1500);
+            maestro_->setPosition(RIGHT_ARM, 1500);
+     	else
+            maestro_->setPosition(LEFT_ARM, 1500);
+    }
+    else
+    {
+        if (right)
+            maestro_->setPosition(LEFT_ARM, 1500);
+        else
+            maestro_->setPosition(RIGHT_ARM, 1500);
+    }
 }
 
-void ServoHandler::ouvrirlebrasbas(bool isPlayingRightSide, bool right){
-
+void ServoHandler::ouvrirlebrasbas(bool isPlayingRightSide, bool right)
+{
 	if (!isPlayingRightSide)
+    {
 		if (right)
-     			maestro_->setPosition(RIGHT_ARM, 1980);
-     		if (!right)
-     			maestro_->setPosition(LEFT_ARM, 1980);
-     	if (isPlayingRightSide)
-		if (right)
-     			maestro_->setPosition(LEFT_ARM, 1980);
-     		if (!right)
-     			maestro_->setPosition(RIGHT_ARM, 1980);
+            maestro_->setPosition(RIGHT_ARM, 1980);
+     	else
+            maestro_->setPosition(LEFT_ARM, 1980);
+    }
+    else
+    {
+        if (right)
+            maestro_->setPosition(LEFT_ARM, 1980);
+        else
+            maestro_->setPosition(RIGHT_ARM, 1980);
+    }
 }
 
-void ServoHandler::ouvrirlebrashaut(bool isPlayingRightSide, bool right){
-
+void ServoHandler::ouvrirlebrashaut(bool isPlayingRightSide, bool right)
+{
 	if (!isPlayingRightSide)
+    {
 		if (right)
-     			maestro_->setPosition(RIGHT_ARM, 1020);
-     		if (!right)
-     			maestro_->setPosition(LEFT_ARM, 1020);
-     	if (isPlayingRightSide)
+            maestro_->setPosition(RIGHT_ARM, 1020);
+     	else
+            maestro_->setPosition(LEFT_ARM, 1020);
+    }
+    else
+    {
+        if (right)
+            maestro_->setPosition(LEFT_ARM, 1020);
+        else
+            maestro_->setPosition(RIGHT_ARM, 1020);
+    }
+}
+
+void ServoHandler::ouvrirledoigthaut(bool isPlayingRightSide, bool right)
+{
+	if (!isPlayingRightSide)
+    {
 		if (right)
-     			maestro_->setPosition(LEFT_ARM, 1020);
-     		if (!right)
-     			maestro_->setPosition(RIGHT_ARM, 1020);
+            maestro_->setPosition(RIGHT_FINGER, 1980);
+     	else
+            maestro_->setPosition(LEFT_FINGER, 1980);
+    }
+    else
+    {
+        if (right)
+            maestro_->setPosition(LEFT_FINGER, 1980);
+        else
+            maestro_->setPosition(RIGHT_FINGER, 1980);
+    }
 }
 
-void ServoHandler::ouvrirledoigthaut(bool isPlayingRightSide, bool right){
-
-	if (isPlayingRightSide)
+void ServoHandler::ouvrirledoigtbas(bool isPlayingRightSide, bool right)
+{
+	if (!isPlayingRightSide)
+    {
 		if (right)
-     			maestro_->setPosition(RIGHT_FINGER, 1980);
-     		if (!right)
-     			maestro_->setPosition(LEFT_FINGER, 1980);
-     	if (!isPlayingRightSide)
-		if (right)
-     			maestro_->setPosition(LEFT_FINGER, 1980);
-     		if (!right)
-     			maestro_->setPosition(RIGHT_FINGER, 1980);
+            maestro_->setPosition(RIGHT_FINGER, 1020);
+     	else
+            maestro_->setPosition(LEFT_FINGER, 1020);
+    }
+    else
+    {
+        if (right)
+            maestro_->setPosition(LEFT_FINGER, 1020);
+        else
+            maestro_->setPosition(RIGHT_FINGER, 1020);
+    }
 }
 
-void ServoHandler::ouvrirledoigtbas(bool isPlayingRightSide, bool right){
-
-	if (isPlayingRightSide)
-		if (right)
-     			maestro_->setPosition(RIGHT_FINGER, 1020);
-     		if (!right)
-     			maestro_->setPosition(LEFT_FINGER, 1020);
-     	if (!isPlayingRightSide)
-		if (right)
-     			maestro_->setPosition(LEFT_FINGER, 1020);
-     		if (!right)
-     			maestro_->setPosition(RIGHT_FINGER, 1020);
+////////////////////////////////////////////////////////////////
+// Suction-related functions
+////////////////////////////////////////////////////////////////
+void ServoHandler::openValve()
+{
+    maestro_->setPosition(TAP, 0);
 }
 
-/* void ServoHandler::openValve() {
-
-    maestro_->setPosition(VALVE, 0);
+void ServoHandler::closeValve()
+{
+    maestro_->setPosition(TAP, 7000);
 }
 
-
-void ServoHandler::closeValve() {
-
-    maestro_->setPosition(VALVE, 7000);
-    maestro_->setPosition(VALVE, 7000);
-} */
-
-void ServoHandler::electroMagnetOn() {
-    maestro_->setPosition(MAGNET, 7000);
-}
-
-
-void ServoHandler::electroMagnetOff() {
-    maestro_->setPosition(MAGNET, 0);
-}
-
-
-void ServoHandler::figurineArmLow() {
-    maestro_->setPosition(STATUE, 900);
-}
-
-
-void ServoHandler::figurineArmMiddle() {
-    maestro_->setPosition(STATUE, 1180);
-}
-
-
-void ServoHandler::figurineArmHigh() {
-    maestro_->setPosition(STATUE, 1850);
-}
-
-
-void ServoHandler::figurineArmSpeedLow() {
-    maestro_->setSpeed(STATUE, 500);
-}
-
-
-void ServoHandler::figurineArmSpeedHigh() {
-    maestro_->setSpeed(STATUE, 1900);
-}
-
-
- void ServoHandler::openTube(int tubeNumber)
+void ServoHandler::openTube(int tubeNumber)
 {
     if (tubeNumber < 0 || tubeNumber > 2)
         return;
-    maestro_->setPosition(SERVO_VALVE[tubeNumber], 0);
+    maestro_->setPosition(SERVO_TUBE[tubeNumber], 0);
 }
-
 
 void ServoHandler::closeTube(int tubeNumber)
 {
     if (tubeNumber < 0 || tubeNumber > 2)
         return;
-    maestro_->setPosition(SERVO_VALVE[tubeNumber], 7000);
-} 
-
-
-void ServoHandler::shutdownServos()
-{
-	for(int i = 0; i < 18; i++)
-	{
-		maestro_->setPosition(i, 0);
-		usleep(80);
-	}
+    maestro_->setPosition(SERVO_TUBE[tubeNumber], 7000);
 }
 
 void ServoHandler::turnOnPump()
@@ -249,7 +238,6 @@ void ServoHandler::moveSuction(bool high)
 }
 
 
-
 void ServoHandler::initsectionmiddle()
 {
         maestro_->setPosition(SERVO_SUCTION[1], 2500);
@@ -262,34 +250,46 @@ void ServoHandler::moveRail(int velocity)
     maestro_->setPosition(ELEVATOR, velocity);
 }
 
-
-void ServoHandler::foldArms()
+////////////////////////////////////////////////////////////////
+// Statue-related functions
+////////////////////////////////////////////////////////////////
+void ServoHandler::electroMagnetOn()
 {
-    maestro_->setPosition(5, 850);
-    maestro_->setPosition(4, 2000);
+    maestro_->setPosition(MAGNET, 7000);
 }
 
 
-void ServoHandler::unfoldArms(bool isPlayingRightSide)
+void ServoHandler::electroMagnetOff()
 {
-    if (!isPlayingRightSide)
-        maestro_->setPosition(5, 1585);
-    else
-        maestro_->setPosition(4, 1300);
+    maestro_->setPosition(MAGNET, 0);
 }
 
-void ServoHandler::raiseArms(bool isPlayingRightSide)
+
+void ServoHandler::figurineArmLow()
 {
-    if (!isPlayingRightSide)
-        maestro_->setPosition(5, 1900);
-    else
-        maestro_->setPosition(4, 1000);
+    maestro_->setPosition(STATUE, 900);
 }
 
-void ServoHandler::moveArmForDrop(bool isPlayingRightSide)
+
+void ServoHandler::figurineArmMiddle()
 {
-    if (!isPlayingRightSide)
-        maestro_->setPosition(5, 1715);
-    else
-        maestro_->setPosition(4, 1170);
+    maestro_->setPosition(STATUE, 1180);
+}
+
+
+void ServoHandler::figurineArmHigh()
+{
+    maestro_->setPosition(STATUE, 1850);
+}
+
+
+void ServoHandler::figurineArmSpeedLow()
+{
+    maestro_->setSpeed(STATUE, 500);
+}
+
+
+void ServoHandler::figurineArmSpeedHigh()
+{
+    maestro_->setSpeed(STATUE, 1900);
 }

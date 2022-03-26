@@ -19,17 +19,18 @@
                 /// \param portName Serial port file name ("/dev/ttyOx")
                 /// \returns   true on success, false otherwise.
                 bool init(std::string const& portName);
+                void shutdownServos(); ///< Turn off all servos.
 
                 void ouvrirlebrasmilieu(bool isPlayingRightSide, bool right);
 
                 void ouvrirlebrasbas(bool isPlayingRightSide, bool right);
 
                 void ouvrirlebrashaut(bool isPlayingRightSide, bool right);
-                
+
                 void ouvrirledoigthaut(bool isPlayingRightSide, bool right);
-                
+
                 void ouvrirledoigtbas(bool isPlayingRightSide, bool right);
-                
+
 		void reglageouvrirlebrasdroithaut();
 		void reglageouvrirlebrasdroitmilieu();
 		void reglageouvrirlebrasdroitbas();
@@ -37,26 +38,25 @@
 		void reglageouvrirlebrasgauchehaut() ;
 		void reglageouvrirlebrasgauchemilieu() ;
 		void reglageouvrirlebrasgauchebas() ;
-		
+
 		void reglageouvrirledoigtgauchehaut() ;
 		void reglageouvrirledoigtgauchebas() ;
-		
+
 		void reglageouvrirledoigtdroithaut() ;
 		void reglageouvrirledoigtdroitbas() ;
 		void initsectionmiddle();
 
 
-                
+
 
                 // Valve control
                 void openValve();
                 void closeValve();
 
                 void openTube(int tubeNumber); ///< Open suction air tube.
-                void closeTube(int tubeNumber); ///< Close suction air tube. 
+                void closeTube(int tubeNumber); ///< Close suction air tube.
                 void moveSuctionUnitary(int tubeNumber, int targetServo);
 
-                void shutdownServos(); ///< Turn off all servos.
 
                 void turnOnPump();
                 void turnOffPump();
@@ -73,19 +73,9 @@
                 void figurineArmSpeedLow();
                 void figurineArmSpeedHigh();
 
-                void moveSuction(bool high, bool moveMiddle = true);
-                void moveMiddle();
-                void moveMiddleSuctionForDrop(bool drop = false);
-
+                void moveSuction(bool high);
                 void moveRail(int velocity);
 
-                void foldArms();
-                void unfoldArms(bool isPlayingRightSide);
-                void raiseArms(bool isPlayingRightSide);
-                void moveArmForDrop(bool isPlayingRightSide);
-                void moveSuctionForGoldDrop();
-
-                void setMaestro(MaestroDriver & maestro);
                 bool isPumpOn_;
             private:
                 MaestroDriver * maestro_;
