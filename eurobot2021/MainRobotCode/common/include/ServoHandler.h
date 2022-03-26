@@ -20,11 +20,18 @@
                 /// \returns   true on success, false otherwise.
                 bool init(std::string const& portName);
 
-                void ouvrirlesbrasdebugmilieu();
+                void ouvrirlebrasdroitmilieu();
 
-                void ouvrirlesbrasdebugbas();
+                void ouvrirlebrasdroitbas();
 
-                void ouvrirlesbrasdebughaut();
+                void ouvrirlebrasdroithaut();
+                
+                void ouvrirlebrasgauchemilieu();
+                
+                void ouvrirlebrasgauchebas();
+
+                void ouvrirlebrasgauchehaut();
+                void baisserledoigtdroit();
 
                 // Valve control
                 void openValve();

@@ -28,38 +28,81 @@ bool ServoHandler::init(std::string const& portName)
 }
 
 
-void ServoHandler::ouvrirlesbrasdebugmilieu() {
+void ServoHandler::ouvrirlebrasdroitmilieu() {
 
-    // maestro_->setPosition(RIGHT_ARM, 1500);
-    maestro_->setPosition(SUCTION_RIGHT, 1500);
-    maestro_->setPosition(RIGHT_FINGER, 1500);
+     maestro_->setPosition(RIGHT_ARM, 1500);
+    //maestro_->setPosition(SUCTION_RIGHT, 1500);
+    //maestro_->setPosition(RIGHT_FINGER, 1500);
     // maestro_->setPosition(SUCTION_MILIEU, 1500);
     // maestro_->setPosition(SUCTION_LEFT, 1500);
     // maestro_->setPosition(LEFT_ARM, 1500);
 }
 
 
-void ServoHandler::ouvrirlesbrasdebugbas() {
+void ServoHandler::ouvrirlebrasdroitbas() {
 
-    // maestro_->setPosition(RIGHT_ARM, 1980);
-    maestro_->setPosition(SUCTION_RIGHT, 1980);
-    maestro_->setPosition(RIGHT_FINGER, 1980);
+     maestro_->setPosition(RIGHT_ARM, 1980);
+    //maestro_->setPosition(SUCTION_RIGHT, 1980);
+    //maestro_->setPosition(RIGHT_FINGER, 1980);
     // maestro_->setPosition(SUCTION_MILIEU, 1980);
     // maestro_->setPosition(SUCTION_LEFT, 1980);
     // maestro_->setPosition(LEFT_ARM, 1020);
 }
 
 
-void ServoHandler::ouvrirlesbrasdebughaut() {
+void ServoHandler::ouvrirlebrasdroithaut() {
 
-    // maestro_->setPosition(RIGHT_ARM, 1020);
-    maestro_->setPosition(SUCTION_RIGHT, 1020);
-    maestro_->setPosition(RIGHT_FINGER, 1020);
+     maestro_->setPosition(RIGHT_ARM, 1020);
+    //maestro_->setPosition(SUCTION_RIGHT, 1020);
+    //maestro_->setPosition(RIGHT_FINGER, 1020);
     // maestro_->setPosition(SUCTION_MILIEU, 1020);
     // maestro_->setPosition(SUCTION_LEFT, 1020);
     // maestro_->setPosition(LEFT_ARM, 1980);
 }
 
+void ServoHandler::ouvrirlebrasgauchemilieu() {
+
+    // maestro_->setPosition(RIGHT_ARM, 1500);
+    //maestro_->setPosition(SUCTION_RIGHT, 1500);
+    //maestro_->setPosition(LEFT_FINGER, 1500);
+    // maestro_->setPosition(SUCTION_MILIEU, 1500);
+    // maestro_->setPosition(SUCTION_LEFT, 1500);
+     maestro_->setPosition(LEFT_ARM, 1500);
+}
+
+
+void ServoHandler::ouvrirlebrasgauchebas() {
+
+    // maestro_->setPosition(RIGHT_ARM, 1980);
+    //maestro_->setPosition(SUCTION_RIGHT, 1980);
+    //maestro_->setPosition(LEFT_FINGER, 1980);
+    // maestro_->setPosition(SUCTION_MILIEU, 1980);
+    // maestro_->setPosition(SUCTION_LEFT, 1980);
+    maestro_->setPosition(LEFT_ARM, 1020);
+}
+
+
+void ServoHandler::ouvrirlebrasgauchehaut() {
+
+    // maestro_->setPosition(RIGHT_ARM, 1020);
+    //maestro_->setPosition(SUCTION_RIGHT, 1020);
+    //maestro_->setPosition(LEFT_FINGER, 1020);
+    // maestro_->setPosition(SUCTION_MILIEU, 1020);
+    // maestro_->setPosition(SUCTION_LEFT, 1020);
+     maestro_->setPosition(LEFT_ARM, 1980);
+    
+ }
+ 
+  void ServoHandler::baisserledoigtdroit() {
+
+    maestro_->setPosition(RIGHT_FINGER, 1980);
+    //maestro_->setPosition(SUCTION_RIGHT, 1020);
+    //maestro_->setPosition(LEFT_FINGER, 1020);
+    // maestro_->setPosition(SUCTION_MILIEU, 1020);
+    // maestro_->setPosition(SUCTION_LEFT, 1020);
+    // maestro_->setPosition(LEFT_ARM, 1980);
+    
+ }
 /* void ServoHandler::openValve() {
 
     maestro_->setPosition(VALVE, 0);
