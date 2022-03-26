@@ -42,6 +42,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 	    std::vector<RobotPosition> positions;
 	    bool wasMoveSuccessful = true;
 	    robot->updateScore(2);
+	    servo->initsectionmiddle();
 	    
 	    
 	    servo->openTube(2);

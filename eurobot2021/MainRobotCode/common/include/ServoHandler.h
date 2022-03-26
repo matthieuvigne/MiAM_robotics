@@ -43,6 +43,7 @@
 		
 		void reglageouvrirledoigtdroithaut() ;
 		void reglageouvrirledoigtdroitbas() ;
+		void initsectionmiddle();
 
 
                 

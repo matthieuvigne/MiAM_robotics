@@ -50,7 +50,7 @@ void ServoHandler::reglageouvrirlebrasgauchemilieu() {
 	maestro_->setPosition(LEFT_ARM, 1500);
 }
 void ServoHandler::reglageouvrirlebrasgauchehaut() {
-	maestro_->setPosition(LEFT_ARM, 1880);
+	maestro_->setPosition(LEFT_ARM, 2000);
 }
 
 void ServoHandler::reglageouvrirledoigtdroithaut() {
@@ -232,57 +232,28 @@ void ServoHandler::turnOffPump()
 }
 
 
-void ServoHandler::moveSuction(bool high, bool moveMiddle)
+void ServoHandler::moveSuction(bool high)
 {
     if(high)
     {
-        maestro_->setPosition(SERVO_SUCTION[0], 1500);
-        if (moveMiddle)
-            maestro_->setPosition(SERVO_SUCTION[1], 1500);
-        if (!moveMiddle)
-            maestro_->setPosition(SERVO_SUCTION[1], 1500);
-        maestro_->setPosition(SERVO_SUCTION[2], 1500);
+        maestro_->setPosition(SERVO_SUCTION[0], 1550);
+        maestro_->setPosition(SERVO_SUCTION[1], 1600);
+        maestro_->setPosition(SERVO_SUCTION[2], 1150);
     }
     else
     {
-        maestro_->setPosition(SERVO_SUCTION[0], 1100);
-        if (moveMiddle)
-            maestro_->setPosition(SERVO_SUCTION[1], 1100);
-        maestro_->setPosition(SERVO_SUCTION[2], 1100);
+        maestro_->setPosition(SERVO_SUCTION[0], 550);
+        maestro_->setPosition(SERVO_SUCTION[1], 650);
+        maestro_->setPosition(SERVO_SUCTION[2], 2150);
     }
 }
 
 
 
-void ServoHandler::moveMiddle()
+void ServoHandler::initsectionmiddle()
 {
-        maestro_->setPosition(SERVO_SUCTION[0], 1700);
-            maestro_->setPosition(SERVO_SUCTION[1], 1700);
-        maestro_->setPosition(SERVO_SUCTION[2], 1700);
-        
-}
-
-void ServoHandler::moveSuctionUnitary(int tubeNumber, int targetServo)
-{
-        maestro_->setPosition(SERVO_SUCTION[tubeNumber], targetServo);
-        
-}
-
-
-void ServoHandler::moveSuctionForGoldDrop()
-{
-    maestro_->setPosition(SERVO_SUCTION[0], 1995);
-    maestro_->setPosition(SERVO_SUCTION[2], 1995);
-}
-
-void ServoHandler::moveMiddleSuctionForDrop(bool drop)
-{
-    maestro_->setPosition(SERVO_SUCTION[0], 2200);
-    if (drop)
-        maestro_->setPosition(SERVO_SUCTION[1], 1725);
-    else
-        maestro_->setPosition(SERVO_SUCTION[1], 1800);
-    maestro_->setPosition(SERVO_SUCTION[2], 2200);
+        maestro_->setPosition(SERVO_SUCTION[1], 2500);
+        //pour ventouse haute milieu 2500
 }
 
 
