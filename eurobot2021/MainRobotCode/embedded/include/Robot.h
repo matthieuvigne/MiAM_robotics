@@ -148,7 +148,7 @@
             USBLCD screen_; ///< LCD screen and buttons.
             RPLidarHandler lidar_; ///< Lidar
 
-            bool isPlayingRightSide()
+            bool isPlayingRightSide() override
             {
                 return isPlayingRightSide_;
             }

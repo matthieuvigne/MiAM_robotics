@@ -22,5 +22,10 @@
             {
                 usleep(waitTimeus);
             }
+
+            virtual bool isPlayingRightSide()
+            {
+                return false;
+            }
     };
  #endif
