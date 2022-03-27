@@ -100,7 +100,7 @@ void CameraThread::runThread()
       }
     }
 
-    // Update the pose estimate of all other markers
+    // Update the pose estimate of all the markers
     Eigen::Affine3d const& T_WC = this->pose_filter_ptr_->getState();
     Eigen::Matrix<double,6,6> const& cov_T_WC = this->pose_filter_ptr_->getStateCovariance();
     for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)
@@ -108,9 +108,10 @@ void CameraThread::runThread()
       common::MarkerEstimate marker_estimate;
       common::DetectedMarker const& detected_marker = *it;
       common::getMarkerEstimate(T_WC, cov_T_WC, detected_marker, &marker_estimate);
-      // Save to buffer
+      std::lock_guard<std::mutex> const lock(this->mutex_);
+      this->marker_id_to_estimate_[marker_estimate.id] = marker_estimate;
     }
-    
+
     // TODO: add a sigint breaker (optional)
   }
 }
@@ -159,6 +160,16 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
   
   // Move the camera to this new angle
   this->rotateCameraToAnglePosition(new_angle);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void CameraThread::getMarkerEstimates(common::MarkerIdToEstimate* estimates_ptr) const
+{
+  common::MarkerIdToEstimate& estimates = *estimates_ptr;
+  estimates.clear();
+  std::lock_guard<std::mutex> const lock(this->mutex_);
+  estimates.insert(this->marker_id_to_estimate_.cbegin(), this->marker_id_to_estimate_.cend());
 }
 
 //--------------------------------------------------------------------------------------------------

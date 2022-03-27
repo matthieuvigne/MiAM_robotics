@@ -44,6 +44,8 @@ struct MarkerEstimate {
   Eigen::Affine3d T_WM = Eigen::Affine3d::Identity();
   Eigen::Matrix<double,6,6> cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
 }; // class MarkerEstimate
+typedef std::vector<MarkerEstimate> MarkerEstimateList;
+typedef std::map<MarkerId,MarkerEstimate> MarkerIdToEstimate;
 
 void getMarkerEstimate(
   Eigen::Affine3d const& T_WC,

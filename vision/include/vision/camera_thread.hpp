@@ -32,6 +32,7 @@ public:
 public:
 
   inline void join();
+  void getMarkerEstimates(common::MarkerIdToEstimate* estimates) const;
 
 private:
 
@@ -50,7 +51,8 @@ private:
   CameraPoseFilter::UniquePtr pose_filter_ptr_; ///< Camera pose filter
 
   // Thread
-  mutable std::mutex mtx_;
+  mutable std::mutex mutex_;
+  common::MarkerIdToEstimate marker_id_to_estimate_;
   std::unique_ptr<std::thread> thread_ptr_;
 
 }; // class CameraThread
