@@ -76,9 +76,8 @@ void CameraThread::runThread()
     // If so, realize it (don't forget to propagate the filter while doing it).
 
     // Rotate the camera and propagate the pose camera filter
-    double constexpr angle_increment = 20;
-    this->incrementCameraAngle(camera_angle, angle_increment);
-    double const wy = common::convertDegreeToRadian(angle_increment);
+    this->incrementCameraAngle(camera_angle, this->increment_angle_deg_);
+    double const wy = common::convertDegreeToRadian(this->increment_angle_deg_);
     double constexpr cov_wy = 1.0;
     this->pose_filter_ptr_->predict(wy, cov_wy);
 
@@ -125,8 +124,7 @@ void CameraThread::rotateCameraToAnglePosition(double angle)
   // Angle -90: camera at position 500
   // Angle   0: camera at position 1500
   // Angle +90: camera at position 2500
-  double constexpr max_abs_angle = 90.;
-  double coeff = angle / max_abs_angle;
+  double coeff = angle / this->max_angle_deg_;
   coeff = std::max(-1.0,std::min(coeff,1.0));
   int const signal = 1500 + 1000*coeff;
   
@@ -142,8 +140,8 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
 {
   // Get the new angle
   static bool increasing_angle = true;
-  double constexpr min_angle = -90;
-  double constexpr max_angle =  90;
+  double const min_angle = -this->max_angle_deg_;
+  double const max_angle =  this->max_angle_deg_;
   double new_angle = increasing_angle
     ? camera_angle + delta_angle
     : camera_angle - delta_angle;

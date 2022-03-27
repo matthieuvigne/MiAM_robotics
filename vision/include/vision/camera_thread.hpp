@@ -50,6 +50,10 @@ private:
   Camera::UniquePtr camera_ptr_; ///< Camera
   CameraPoseFilter::UniquePtr pose_filter_ptr_; ///< Camera pose filter
 
+  // Camera rotation
+  double const max_angle_deg_ = 30.0;
+  double const increment_angle_deg_ = 5.0;
+
   // Thread
   mutable std::mutex mutex_;
   common::MarkerIdToEstimate marker_id_to_estimate_;
