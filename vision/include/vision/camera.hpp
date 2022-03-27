@@ -13,6 +13,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <common/macros.hpp>
+#include <common/tags.hpp>
 #include <vision/distortion_model.hpp>
 #include <vision/messages.hpp>
 
@@ -29,13 +30,6 @@ enum class ProjectionResult {
   PROJECTION_INVALID,
   UNINITIALIZED
 }; // ProjectionResult
-
-struct DetectedMarker {
-  int marker_id;
-  Eigen::Affine3d T_CM;
-  Eigen::Matrix<double,6,6> cov_T_CM;
-}; // DetectedMarker
-typedef std::vector<DetectedMarker> DetectedMarkerList;
 
 struct CameraParams {
   std::string name;
@@ -104,11 +98,7 @@ public:
   // Get all detected markers with covariances
   bool detectMarkers(
     cv::Mat const& image,
-    DetectedMarkerList* detected_markers) const;
-
-private:
-
-  static Eigen::Matrix3d skew(Eigen::Vector3d const& v);
+    common::DetectedMarkerList* detected_markers) const;
 
 private:
 

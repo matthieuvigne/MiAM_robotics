@@ -1,3 +1,4 @@
+#include <common/maths.hpp>
 #include <vision/camera.hpp>
 #include <vision/distortion_fisheye.hpp>
 #include <vision/distortion_null.hpp>
@@ -223,7 +224,7 @@ ProjectionResult Camera::project(
 
 bool Camera::detectMarkers(
   cv::Mat const& image,
-  DetectedMarkerList* detected_markers_ptr
+  common::DetectedMarkerList* detected_markers_ptr
 ) const
 {
   // Check the inputs
@@ -252,8 +253,8 @@ bool Camera::detectMarkers(
   for(int marker_idx=0; marker_idx<num_markers; ++marker_idx)
   {
     // Initialize the structure
-    DetectedMarker marker;
-    marker.marker_id = detected_marker_ids[marker_idx];
+    common::DetectedMarker marker;
+    marker.marker_id = static_cast<common::MarkerId>(detected_marker_ids[marker_idx]);
 
     // Get the marker's estimated relative pose
     Eigen::Map<Eigen::Vector3d> C_t_CM((double*) tvecs[marker_idx].val);
@@ -298,7 +299,7 @@ bool Camera::detectMarkers(
       // Project the 3d corner into the camera's frame
       Eigen::Vector3d const C_p_Ci = T_CM * M_p_Ci;
       Eigen::Matrix<double,3,6> J_CpCi_TCM;
-      J_CpCi_TCM.block<3,3>(0,0) = - Camera::skew(R_CM*M_p_Ci);
+      J_CpCi_TCM.block<3,3>(0,0) = - common::skew(R_CM*M_p_Ci);
       J_CpCi_TCM.block<3,3>(0,3).setIdentity();
 
       // Project the point onto the image plane
@@ -320,17 +321,6 @@ bool Camera::detectMarkers(
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Matrix3d Camera::skew(Eigen::Vector3d const& v)
-{
-  Eigen::Matrix3d res;
-  res <<     0., -v.z(),  v.y(),
-          v.z(),     0., -v.x(),
-         -v.y(),  v.x(),     0.;
-  return res;
-}
-
-//--------------------------------------------------------------------------------------------------
-
 bool Camera::takePicture(cv::Mat* image) const
 {
   bool success = this->camera_handler_->open();
@@ -339,63 +329,6 @@ bool Camera::takePicture(cv::Mat* image) const
   this->camera_handler_->release();
   return success;
 }
-
-//--------------------------------------------------------------------------------------------------
-
-#if 0
-//~ // As options, pass the message queue and its associated mutex from the board.
-//~ void Camera::cameraThread()
-//~ {
-  //~ std::cout << "Launched thread for camera " << this->name_ << "." << std::endl;
-
-  //~ while(true)
-  //~ {
-    //~ // Check if there are specific request
-    //~ // Otherwise, sweep
-  //~ }
-
-  //~ while(true)
-  //~ {
-    //~ // Wait condition (unbusy waiting)
-    //~ std::unique_lock<std::mutex> camera_locker(this->thread_mtx_);
-    //~ this->thread_con_.wait(camera_locker,
-      //~ [&](){ return this->thread_image_ != nullptr or this->abort_thread_; });
-    //~ if(this->abort_thread_) break;
-    //~ vision_mgs::Image::UniquePtr image_msg = std::move(this->thread_image_);
-    //~ assert(this->thread_image_ == nullptr);
-    //~ this->thread_mtx_.unlock();
-
-    //~ // Process the image
-    //~ // Specific processing for fisheye images : TODO
-    //~ std::cout << "Processing the new image" << std::endl;
-    //~ DetectedMarkerList detected_markers;
-    //~ cv::Mat& new_image = *(image_msg->image_ptr);
-    //~ this->detectMarkers(new_image, &detected_markers);
-
-    //~ // Sort the markers (according to their numbers)
-    //~ // Marker 42 for center tag on the table
-    //~ // Marker 47 for the treasure face of red samples
-    //~ // Marker 13 for the treasure face of blue samples
-    //~ // Marker 36 for the treasure face of geen samples
-    //~ // Marker 17 for the rock face of all samples
-    //~ // Team purple receives tags between 1 and 5
-    //~ // Team yellow receives tags between 6 and 10
-    //~ // Tags from 11 to 50 are reserved for the playing area
-    //~ // Tags from 51 to 70 are reserved for team purple
-    //~ // Tags from 71 to 90 are reserved for team yellow
-    //~ // Tags are 4x4 ArUco tags, 7cm wide, and 10cm for the border
-    //~ // All robots will have different markers and it will not be possible to choose them.
-    //~ // -> Such markers are laid on the top of the robot, above the eventual beacon.
-    //~ // Possible to make beacons with tags (dimensions 510mm high, 100m side) and use the tags we want.
-    
-    //~ // Build the message to send to the robot and add it to the queue
-    //~ // TODO
-  //~ }
-  
-  //~ // Shut the thread down
-  //~ std::cout << "Shutting down camera thread." << std::endl;
-//~ }
-#endif
 
 //--------------------------------------------------------------------------------------------------
 

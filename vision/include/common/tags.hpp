@@ -2,8 +2,11 @@
 #define COMMON_TAGS_HPP
 
 #include <map>
+#include <vector>
 
 #include <eigen3/Eigen/Dense>
+
+#include <common/time.hpp>
 
 namespace common {
 
@@ -11,8 +14,8 @@ namespace common {
 // Structure/Enum declarations
 //--------------------------------------------------------------------------------------------------
 
-typedef uint8_t TagId;
-enum class TagFamily {
+typedef uint8_t MarkerId;
+enum class MarkerFamily {
   UNKNOWN,
   CENTRAL_MARKER,
   ROCK_SAMPLE,
@@ -23,17 +26,30 @@ enum class TagFamily {
   YELLOW_TEAM_ROBOT,
   PURPLE_TEAM_MARKER,
   YELLOW_TEAM_MARKER
-}; // enum class TagFamily
+}; // enum class MarkerFamily
 
-TagFamily getTagFamily(TagId id);
+MarkerFamily getMarkerFamily(MarkerId id);
 
-struct ArucoTag {
-  TagId id = 0;
-  TagFamily family = TagFamily::UNKNOWN;
-  // Timestamp
+struct DetectedMarker {
+  MarkerId marker_id;
+  Eigen::Affine3d T_CM;
+  Eigen::Matrix<double,6,6> cov_T_CM;
+}; // DetectedMarker
+typedef std::vector<DetectedMarker> DetectedMarkerList;
+
+struct MarkerEstimate {
+  MarkerId id = 0;
+  MarkerFamily family = MarkerFamily::UNKNOWN;
+  int64_t timestamp_ns = 0u;
   Eigen::Affine3d T_WM = Eigen::Affine3d::Identity();
   Eigen::Matrix<double,6,6> cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
-}; // class ArucoTag
+}; // class MarkerEstimate
+
+void getMarkerEstimate(
+  Eigen::Affine3d const& T_WC,
+  Eigen::Matrix<double,6,6> const& cov_T_WC,
+  DetectedMarker const& detected_marker,
+  MarkerEstimate* marker_estimate);
 
 //--------------------------------------------------------------------------------------------------
 

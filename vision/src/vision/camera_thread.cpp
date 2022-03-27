@@ -50,11 +50,11 @@ void CameraThread::runThread()
     this->camera_ptr_->takePicture(&image);
 
     // Detect the markers
-    DetectedMarkerList detected_markers;
+    common::DetectedMarkerList detected_markers;
     this->camera_ptr_->detectMarkers(image, &detected_markers);
 
     // Check if the central marker (n°42) is detected
-    DetectedMarkerList::const_iterator it = detected_markers.cbegin();
+    common::DetectedMarkerList::const_iterator it = detected_markers.cbegin();
     for(it; it != detected_markers.cend(); ++it)
       if(it->marker_id == 42) break;
 
@@ -85,11 +85,11 @@ void CameraThread::runThread()
     // Take a picture and detect all the markers
     cv::Mat image;
     this->camera_ptr_->takePicture(&image);
-    DetectedMarkerList detected_markers;
+    common::DetectedMarkerList detected_markers;
     this->camera_ptr_->detectMarkers(image, &detected_markers);
 
     // Check if the central marker is detected => if so: update the filter
-    DetectedMarkerList::const_iterator it = detected_markers.cbegin();
+    common::DetectedMarkerList::const_iterator it = detected_markers.cbegin();
     for(it; it != detected_markers.cend(); ++it)
     {
       if(it->marker_id == 42)
@@ -101,19 +101,18 @@ void CameraThread::runThread()
     }
 
     // Update the pose estimate of all other markers
+    Eigen::Affine3d const& T_WC = this->pose_filter_ptr_->getState();
+    Eigen::Matrix<double,6,6> const& cov_T_WC = this->pose_filter_ptr_->getStateCovariance();
     for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)
     {
-      // Get the tag ID
-      common::TagId const tag_id = static_cast<common::TagId>(it->marker_id);
-      common::TagFamily const tag_family = common::getTagFamily(tag_id);
-      
-      // Get the timestamp
-      // Get the estimate of the tag
-      // Categorize the tags
-      // Add a sigint breaker (optional)
+      common::MarkerEstimate marker_estimate;
+      common::DetectedMarker const& detected_marker = *it;
+      common::getMarkerEstimate(T_WC, cov_T_WC, detected_marker, &marker_estimate);
+      // Save to buffer
     }
+    
+    // TODO: add a sigint breaker (optional)
   }
-  std::cout << "Camera thread" << std::endl;
 }
 
 //--------------------------------------------------------------------------------------------------
