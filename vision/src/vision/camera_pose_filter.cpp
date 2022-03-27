@@ -20,20 +20,6 @@ CameraPoseFilter::CameraPoseFilter(
 // Methods
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Affine3d const& CameraPoseFilter::getState() const
-{
-  return this->T_WC_;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Matrix<double,6,6> const& CameraPoseFilter::getStateCovariance() const
-{
-  return this->cov_T_WC_;
-}
-
-//--------------------------------------------------------------------------------------------------
-
 void CameraPoseFilter::setStateAndCovariance(
   InitType init_type,
   Eigen::Affine3d const& T,
@@ -71,23 +57,6 @@ void CameraPoseFilter::setStateAndCovariance(
       break;
     }
   }
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void CameraPoseFilter::setState(
-  Eigen::Affine3d const& T_WC)
-{
-  // Set the position
-  this->T_WC_ = T_WC;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void CameraPoseFilter::setCovariance(
-  Eigen::Matrix<double,6,6> const& cov_T_WC)
-{
-  this->cov_T_WC_ = cov_T_WC;
 }
 
 //--------------------------------------------------------------------------------------------------

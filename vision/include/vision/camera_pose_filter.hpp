@@ -7,6 +7,10 @@
 
 namespace vision {
 
+//--------------------------------------------------------------------------------------------------
+// Class declaration
+//--------------------------------------------------------------------------------------------------
+
 class CameraPoseFilter {
 
 public:
@@ -21,16 +25,14 @@ public:
     Eigen::Affine3d const& T_RC,
     Eigen::Matrix<double,6,6> const& cov_T_RC);
   virtual ~CameraPoseFilter(){}
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   // Initialization
 
-  void setState(
-    Eigen::Affine3d const& T_WC);
-  void setCovariance(
-    Eigen::Matrix<double,6,6> const& cov_T_WC);
+  inline void setState(Eigen::Affine3d const& T_WC);
+  inline void setCovariance(Eigen::Matrix<double,6,6> const& cov_T_WC);
 
   enum class InitType { T_WC, T_CM };
   void setStateAndCovariance(
@@ -49,8 +51,8 @@ public:
     Eigen::Matrix<double,6,6> const& cov_T_CM);
 
   // Getters
-  Eigen::Affine3d const& getState() const;
-  Eigen::Matrix<double,6,6> const& getStateCovariance() const;
+  inline Eigen::Affine3d const& getState() const;
+  inline Eigen::Matrix<double,6,6> const& getStateCovariance() const;
 
 private:
 
@@ -64,6 +66,41 @@ private:
   Eigen::Matrix<double,6,6> cov_T_RC_;
 
 }; // class CameraPoseFilter
+
+//--------------------------------------------------------------------------------------------------
+// Inline functions
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Affine3d const& CameraPoseFilter::getState() const
+{
+  return this->T_WC_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Matrix<double,6,6> const& CameraPoseFilter::getStateCovariance() const
+{
+  return this->cov_T_WC_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void CameraPoseFilter::setState(
+  Eigen::Affine3d const& T_WC)
+{
+  // Set the position
+  this->T_WC_ = T_WC;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void CameraPoseFilter::setCovariance(
+  Eigen::Matrix<double,6,6> const& cov_T_WC)
+{
+  this->cov_T_WC_ = cov_T_WC;
+}
+
+//--------------------------------------------------------------------------------------------------
 
 } // namespace vision
 
