@@ -1,6 +1,8 @@
 #include <miam_utils/raspberry_pi/RPiGPIO.h>
 
 #include <common/maths.hpp>
+#include <common/tags.hpp>
+#include <common/time.hpp>
 #include <vision/camera_thread.hpp>
 
 namespace vision {
@@ -102,6 +104,9 @@ void CameraThread::runThread()
     for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)
     {
       // Get the tag ID
+      common::TagId const tag_id = static_cast<common::TagId>(it->marker_id);
+      common::TagFamily const tag_family = common::getTagFamily(tag_id);
+      
       // Get the timestamp
       // Get the estimate of the tag
       // Categorize the tags

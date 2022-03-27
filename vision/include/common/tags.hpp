@@ -3,6 +3,8 @@
 
 #include <map>
 
+#include <eigen3/Eigen/Dense>
+
 namespace common {
 
 //--------------------------------------------------------------------------------------------------
@@ -24,6 +26,14 @@ enum class TagFamily {
 }; // enum class TagFamily
 
 TagFamily getTagFamily(TagId id);
+
+struct ArucoTag {
+  TagId id = 0;
+  TagFamily family = TagFamily::UNKNOWN;
+  // Timestamp
+  Eigen::Affine3d T_WM = Eigen::Affine3d::Identity();
+  Eigen::Matrix<double,6,6> cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
+}; // class ArucoTag
 
 //--------------------------------------------------------------------------------------------------
 

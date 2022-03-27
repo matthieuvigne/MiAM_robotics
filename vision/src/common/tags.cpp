@@ -2,7 +2,7 @@
 
 namespace common {
 
-TagFamily getTagFamily(TagId tag_id)
+TagFamily getTagFamily(TagId requested_tag_id)
 {
   // Initialize the correspondence table when the function is first called.
   typedef std::map<TagId,TagFamily> TagIdToFamily;
@@ -30,7 +30,7 @@ TagFamily getTagFamily(TagId tag_id)
   }
   
   // Return the requested tag's family
-  TagIdToFamily::const_iterator it = tag_id_to_family.find(tag_id);
+  TagIdToFamily::const_iterator it = tag_id_to_family.find(requested_tag_id);
   TagFamily const tag_family = (it != tag_id_to_family.cend()) ? it->second : TagFamily::UNKNOWN;
   return tag_family;
 }
