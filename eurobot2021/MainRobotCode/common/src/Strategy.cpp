@@ -49,6 +49,24 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition.y = 1200;
     targetPosition.theta = 0;
     robot->resetPosition(targetPosition, true, true, true);
+    
+    //init ventouse & rail
+    servo->moveSuction(true);
+    servo->initsectionmiddle();
+    robot->wait(1e6);
+    robot->moveRail(0.7);
+    robot->wait(5e6);
+    robot->moveRail(0.97);
+
+	    
+   //init pompe
+    servo->turnOffPump();
+    servo->openValve();
+    servo->openTube(0);
+    servo->openTube(1);
+    servo->openTube(2);
+    robot->wait(1e6);
+    
 
     //**********************************************************
     // Go get the statue
@@ -116,16 +134,40 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     // go forward and drop figurine
     targetPosition = robot->getCurrentPosition();
-    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,50.0);
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,30.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     // TODO : placer figurine sur le piedestal ici
+    //lancer pompe
+    //servo->openValve();
+    servo->closeTube(0);
+    servo->closeTube(2);
     robot->wait(1e6);
+    //servo->openTube(2);
+    servo->turnOnPump();
+    //robot->wait(5000000);
+    servo->closeValve();
+    //robot->wait(2000000);
+    //servo->closeTube(1);
+    //robot->wait(3000000);
+    //servo->turnOffPump();
+    //aspirer pour toutes les ventouses
+    robot->wait(3e6);
+    robot->moveRail(0.15);
+    servo->transportfigurine();
+    //lacher milieu
+    robot->wait(1e6);
+    servo->turnOffPump();
+    servo->openValve() ;
+    servo->openTube(0);
+    servo->openTube(1);
+    servo->openTube(2);
+    robot->wait(5e6);
 
     // reculer
     targetPosition = robot->getCurrentPosition();
-    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-50.0);
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-30.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
@@ -148,6 +190,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 150.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    robot->moveRail(0.5);
 
     // TODO : unfold finger
 
@@ -219,7 +262,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     servo->turnOnPump();
-    servo->moveSuction(false);
+    //servo->moveSuction(false);
     robot->updateScore(1);
 
     //**********************************************************
@@ -253,7 +296,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     servo->turnOffPump();
-    servo->moveSuction(true);
+    //servo->moveSuction(true);
     robot->updateScore(8);
 
     // go back a little
@@ -295,7 +338,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     servo->turnOnPump();
-    servo->moveSuction(false);
+    //servo->moveSuction(false);
     robot->updateScore(15);
 
      //**********************************************************
@@ -311,7 +354,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     robot->updateScore(9);
     servo->turnOffPump();
-    servo->moveSuction(true);
+    //servo->moveSuction(true);
 
     // go back a little
     targetPosition = robot->getCurrentPosition();

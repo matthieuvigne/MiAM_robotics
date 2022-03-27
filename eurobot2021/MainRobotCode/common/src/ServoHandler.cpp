@@ -226,15 +226,20 @@ void ServoHandler::moveSuction(bool high)
 {
     if(high)
     {
-        maestro_->setPosition(SERVO_SUCTION[0], 1550);
-        maestro_->setPosition(SERVO_SUCTION[1], 1600);
-        maestro_->setPosition(SERVO_SUCTION[2], 1150);
+    
+        //pour milieu
+        //maestro_->setPosition(SERVO_SUCTION[0], 1550);
+        //maestro_->setPosition(SERVO_SUCTION[1], 1600);
+        //maestro_->setPosition(SERVO_SUCTION[2], 1150);
+        maestro_->setPosition(SERVO_SUCTION[0], 2500); 
+        maestro_->setPosition(SERVO_SUCTION[1], 2500);
+        maestro_->setPosition(SERVO_SUCTION[2], 500); //
     }
     else
     {
-        maestro_->setPosition(SERVO_SUCTION[0], 550);
-        maestro_->setPosition(SERVO_SUCTION[1], 650);
-        maestro_->setPosition(SERVO_SUCTION[2], 2150);
+        maestro_->setPosition(SERVO_SUCTION[0], 500);
+        maestro_->setPosition(SERVO_SUCTION[1], 500);
+        maestro_->setPosition(SERVO_SUCTION[2], 2500);
     }
 }
 
@@ -248,15 +253,7 @@ void ServoHandler::initsectionmiddle()
 void ServoHandler::transportfigurine()
 {
         maestro_->setPosition(SERVO_SUCTION[1], 2300);
-        usleep(0.5e6);
-        maestro_->setPosition(SERVO_SUCTION[1], 2100);
-        usleep(0.5e6);
-        maestro_->setPosition(SERVO_SUCTION[1], 1900);
-        usleep(0.5e6);
-        maestro_->setPosition(SERVO_SUCTION[1], 1750);
-        usleep(0.5e6);
-        maestro_->setPosition(SERVO_SUCTION[1], 1600);
-        //pour ventouse haute milieu 2500
+
 }
 
 void ServoHandler::moveRail(int velocity)
