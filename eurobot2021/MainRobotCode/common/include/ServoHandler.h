@@ -65,12 +65,12 @@
                 void electroMagnetOn();
                 void electroMagnetOff();
 
+                // Figurine arm is high enough for transport and dropout
                 void figurineArmTransport();
+                // Figurine arm touches the top of the figurine
                 void figurineArmCatch();
-
+                // Figurine arm is folded inside the robot
                 void figurineArmLow();
-                // void figurineArmMiddle();
-                // void figurineArmHigh();
 
                 // Figurine speed
                 void figurineArmSpeedLow();

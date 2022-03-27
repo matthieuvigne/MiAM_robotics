@@ -284,18 +284,6 @@ void ServoHandler::figurineArmLow()
 }
 
 
-// void ServoHandler::figurineArmMiddle()
-// {
-//     maestro_->setPosition(STATUE, 1180);
-// }
-
-
-// void ServoHandler::figurineArmHigh()
-// {
-//     maestro_->setPosition(STATUE, 1850);
-// }
-
-
 void ServoHandler::figurineArmSpeedLow()
 {
     maestro_->setSpeed(STATUE, 500);
