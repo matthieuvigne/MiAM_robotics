@@ -175,42 +175,7 @@ void ServoHandler::ouvrirledoigtbas(bool isPlayingRightSide, bool right)
         else
             maestro_->setPosition(RIGHT_FINGER, 1020);
     }
-
-
- void ServoHandler::openValve() {
-
-    maestro_->setPosition(VALVE, 0);
-}
-
-
-void ServoHandler::closeValve() {
-
-    maestro_->setPosition(VALVE, 7000);
-} 
-
-void ServoHandler::electroMagnetOn() {
-    maestro_->setPosition(MAGNET, 7000);
-}
-
-
-void ServoHandler::electroMagnetOff() {
-    maestro_->setPosition(MAGNET, 0);
-}
-
-
-void ServoHandler::figurineArmLow() {
-    maestro_->setPosition(STATUE, 900);
-}
-
-
-void ServoHandler::figurineArmMiddle() {
-    maestro_->setPosition(STATUE, 1180);
-}
-
-
-void ServoHandler::figurineArmHigh() {
-    maestro_->setPosition(STATUE, 1850);
->>>>>>> 6ef31c4 (test pompe)
+    
 }
 
 ////////////////////////////////////////////////////////////////
@@ -218,12 +183,12 @@ void ServoHandler::figurineArmHigh() {
 ////////////////////////////////////////////////////////////////
 void ServoHandler::openValve()
 {
-    maestro_->setPosition(TAP, 0);
+    maestro_->setPosition(VALVE, 0);
 }
 
 void ServoHandler::closeValve()
 {
-    maestro_->setPosition(TAP, 7000);
+    maestro_->setPosition(VALVE, 7000);
 }
 
 void ServoHandler::openTube(int tubeNumber)
@@ -247,14 +212,6 @@ void ServoHandler::turnOnPump()
     #endif
     isPumpOn_ = true;
 }
-
-/*void ServoHandler::turnOnPumpReduit()
-{
-    #ifndef SIMULATION
-    RPi_writeGPIO(PUMP_PWM, MIDDLE);
-    #endif
-    isPumpOn_ = true;
-}*/
 
 void ServoHandler::turnOffPump()
 {

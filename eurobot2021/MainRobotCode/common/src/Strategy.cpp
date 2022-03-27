@@ -31,111 +31,6 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 {
     std::cout << "Strategy thread started." << std::endl;
 
-    while(true) {
-    
-    
-    	
-
-	    //while(true) {
-		//std::cout << "waiting" << std::endl;
-		//robot->wait(100000);
-	    //}
-
-	    // Update config.
-	    miam::trajectory::setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
-		                                            robotdimensions::maxWheelAccelerationTrajectory,
-		                                            robotdimensions::wheelSpacing);
-
-	    // Create required variables.
-	    RobotPosition targetPosition;
-	    TrajectoryVector traj;
-	    RobotPosition endPosition;
-	    std::vector<RobotPosition> positions;
-	    bool wasMoveSuccessful = true;
-	    robot->updateScore(2);
-	    //initialisation servos
-	    //servo->moveSuction(true);
-	    //servo->moveSuctionUnitary(2,1800);
-	    //servo->reglageouvrirledoigtdroitbas();
-	    //robot->wait(10000000);
-	    //servo->moveSuctionUnitary(1,1800);
-	    //robot->wait(1000000);
-	    //servo->moveSuctionUnitary(2,1800);
-	    //robot->wait(1000000);
-	    //servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),false);
-	    //robot->wait(1000000);
-
-
-	    //servo->reglageouvrirlebrasdroitbas();
-	    //robot->wait(10000000);
-	    //servo->electroMagnetOn();
-	    //servo->reglageouvrirlebrasgauchebas();
-	    //robot->wait(5000000);
-
-	    //if (robot->getExcavationReadings(true)== YELLOW)
-	    	//servo->reglageouvrirlebrasgauchemilieu();
-	        //robot->wait(5000000);
-	        //servo->reglageouvrirlebrasgauchehaut();
-	    	//servo->reglageouvrirledoigtdroithaut();
-
-
-
-
-	    servo->moveSuction(false);
-	    servo->initsectionmiddle();
-	    robot->wait(1e6);
-	    robot->moveRail(0.7);
-	    robot->wait(5e6);
-	    robot->moveRail(0.8);
-
-	    
-	    //init pompe
-	    servo->turnOffPump();
-	    servo->openValve();
-	    servo->openTube(0);
-	    servo->openTube(1);
-	    servo->openTube(2);
-	    robot->wait(1e6);
-	    //lancer pompe
-	    //servo->openValve();
-	    servo->closeTube(0);
-	    servo->closeTube(2);
-	    robot->wait(1e6);
-	    //servo->openTube(2);
-	    servo->turnOnPump();
-	    //robot->wait(5000000);
-	    servo->closeValve();
-	    //robot->wait(2000000);
-	    //servo->closeTube(1);
-	    //robot->wait(3000000);
-	    //servo->turnOffPump();
-	    //aspirer pour toutes les ventouses
-	    robot->wait(10e6);
-	    robot->moveRail(0.6);
-	    servo->transportfigurine();
-	    //lacher milieu
-	    robot->wait(1e6);
-	    servo->turnOffPump();
-	    servo->openValve() ;
-	    servo->openTube(0);
-	    servo->openTube(1);
-	    servo->openTube(2);
-	    robot->wait(5e6);
-	    //servo->openTube(1);
-	    
-	    // Move rail to top.
-	    //robot->moveRail(1.0);
-	    //robot->wait(100000); // Wait 100ms - works both on the robot and in simulation.
-           
-    }
-
-   /*
-
-    //while(true) {
-        //std::cout << "waiting" << std::endl;
-        //robot->wait(100000);
-    //}
-
     // Update config.
     miam::trajectory::setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
                                                     robotdimensions::maxWheelAccelerationTrajectory,
@@ -550,5 +445,5 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->updateScore(20);
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
-    */
 }
+

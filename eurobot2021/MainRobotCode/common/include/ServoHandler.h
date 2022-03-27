@@ -78,9 +78,6 @@
 
                 void moveSuction(bool high);
 
-                void moveRail(int velocity);
-
-
                 void moveMiddle();
                 void transportfigurine();
                 
