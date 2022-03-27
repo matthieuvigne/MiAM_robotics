@@ -116,7 +116,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     // go forward and drop figurine
     targetPosition = robot->getCurrentPosition();
-    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,120.0);
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,50.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
@@ -125,7 +125,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     // reculer
     targetPosition = robot->getCurrentPosition();
-    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-120.0);
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-50.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 

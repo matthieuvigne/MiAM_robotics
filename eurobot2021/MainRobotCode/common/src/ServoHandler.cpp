@@ -268,7 +268,7 @@ void ServoHandler::electroMagnetOff()
 
 void ServoHandler::figurineArmTransport()
 {
-    maestro_->setPosition(STATUE, 1870);
+    maestro_->setPosition(STATUE, 1950);
 }
 
 
