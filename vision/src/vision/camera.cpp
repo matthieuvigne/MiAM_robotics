@@ -28,9 +28,9 @@ Camera::Camera(
   assert(this->distortion_ != nullptr);
   
   // Configure the camera handler to get the photos
-  this->camera_handler_->set(CV_CAP_PROP_FRAME_WIDTH, this->image_width_);
-  this->camera_handler_->set(CV_CAP_PROP_FRAME_HEIGHT, this->image_height_);
-  this->camera_handler_->set(CV_CAP_PROP_FORMAT, CV_8UC1);
+  this->camera_handler_->set(cv::CAP_PROP_FRAME_WIDTH, this->image_width_);
+  this->camera_handler_->set(cv::CAP_PROP_FRAME_HEIGHT, this->image_height_);
+  this->camera_handler_->set(cv::CAP_PROP_FORMAT, CV_8UC1);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -79,9 +79,9 @@ Camera::Camera(CameraParams const& params)
   }
 
   // Configure the camera handler to get the photos
-  this->camera_handler_->set(CV_CAP_PROP_FRAME_WIDTH, this->image_width_);
-  this->camera_handler_->set(CV_CAP_PROP_FRAME_HEIGHT, this->image_height_);
-  this->camera_handler_->set(CV_CAP_PROP_FORMAT, CV_8UC1);
+  this->camera_handler_->set(cv::CAP_PROP_FRAME_WIDTH, this->image_width_);
+  this->camera_handler_->set(cv::CAP_PROP_FRAME_HEIGHT, this->image_height_);
+  this->camera_handler_->set(cv::CAP_PROP_FORMAT, CV_8UC1);
 }
 
 //--------------------------------------------------------------------------------------------------

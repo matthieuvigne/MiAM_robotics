@@ -44,6 +44,7 @@ void CameraThread::runThread()
     this->rotateCamera(1500);
     cv::Mat image;
     this->camera_ptr_->takePicture(&image);
+    cv::imwrite("test.jpg", image);
 
     // Detect the markers
     DetectedMarkerList detected_markers;
