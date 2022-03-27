@@ -422,7 +422,7 @@ void Robot::lowLevelLoop()
 
         // Update log.
         updateLog();
-        std::cout << microcontrollerData_ << std::endl;
+        // std::cout << microcontrollerData_ << std::endl;
     }
     // End of the match.
     std::cout << "Match end" << std::endl;

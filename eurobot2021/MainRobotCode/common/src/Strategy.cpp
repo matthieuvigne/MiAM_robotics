@@ -30,110 +30,6 @@ void setupRobot(RobotInterface *robot, ServoHandler *servo)
 void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 {
     std::cout << "Strategy thread started." << std::endl;
-    while(true) {
-
-
-	    miam::trajectory::setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
-		                                            robotdimensions::maxWheelAccelerationTrajectory,
-		                                            robotdimensions::wheelSpacing);
-
-	    // Create required variables.
-	    RobotPosition targetPosition;
-	    TrajectoryVector traj;
-	    RobotPosition endPosition;
-	    std::vector<RobotPosition> positions;
-	    bool wasMoveSuccessful = true;
-	    robot->updateScore(2);
-	    servo->initsectionmiddle();
-
-
-	    servo->openTube(2);
-        servo->turnOnPump();
-        robot->wait(5000000);
-        servo->closeTube(2);
-        servo->closeTube(1);
-        servo->closeTube(3);
-        robot->wait(10000000);
-
-
-	    //initialisation servos
-	    //servo->moveSuction(true);
-	    //servo->moveSuctionUnitary(2,1800);
-	    //servo->reglageouvrirledoigtdroitbas();
-	    //robot->wait(10000000);
-	    //servo->moveSuctionUnitary(1,1800);
-	    //robot->wait(1000000);
-	    //servo->moveSuctionUnitary(2,1800);
-	    //robot->wait(1000000);
-	    //servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),false);
-	    //robot->wait(1000000);
-
-
-	    //servo->reglageouvrirlebrasdroitbas();
-	    //robot->wait(10000000);
-	    //servo->electroMagnetOn();
-	    //servo->reglageouvrirlebrasgauchebas();
-	    //robot->wait(5000000);
-
-	    //if (robot->getExcavationReadings(true)== YELLOW)
-	    	//servo->reglageouvrirlebrasgauchemilieu();
-	        //robot->wait(5000000);
-	        //servo->reglageouvrirlebrasgauchehaut();
-	    	//servo->reglageouvrirledoigtdroithaut();
-
-
-
-	     /*
-	    // Set initial position
-	    targetPosition.x = robotdimensions::CHASSIS_BACK;
-	    targetPosition.y = 1200;
-	    targetPosition.theta = 0;
-	    robot->resetPosition(targetPosition, true, true, true);
-
-	    servo->openTube(2);
-	    //servo->turnOnPump();
-	    servo->closeTube(2);
-	    servo->closeTube(1);
-	    servo->closeTube(3);
-	    robot->wait(1000000);
-	    // Move rail to top.
-	    //robot->moveRail(1.0);
-	    //robot->wait(100000); // Wait 100ms - works both on the robot and in simulation.
-            */
-
-	    /*
-	    //**********************************************************
-	    // Go get the statue
-	    //**********************************************************
-	    targetPosition = robot->getCurrentPosition();
-	    positions.push_back(targetPosition);
-	    targetPosition.x = 450;
-	    positions.push_back(targetPosition);
-	    targetPosition.y = 450;
-	    positions.push_back(targetPosition);
-	    // Move at 45degree angle toward the statue
-	    targetPosition.x += 80;
-	    targetPosition.y += 80;
-	    positions.push_back(targetPosition);
-	    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.2);
-	    robot->setTrajectoryToFollow(traj);
-	    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-	    targetPosition = robot->getCurrentPosition();
-
-	    //retrive statue and put the figurine
-
-	    servo->electroMagnetOn();
-	    servo->figurineArmLow();
-             */
-
-
-    }
-
-
-    //while(true) {
-        //std::cout << "waiting" << std::endl;
-        //robot->wait(100000);
-    //}
 
     // Update config.
     miam::trajectory::setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
@@ -148,24 +44,12 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     bool wasMoveSuccessful = true;
     robot->updateScore(2);
 
-    servo->moveSuction(true);
-    robot->wait(100000);
-
     // Set initial position
     targetPosition.x = robotdimensions::CHASSIS_BACK;
     targetPosition.y = 1200;
     targetPosition.theta = 0;
     robot->resetPosition(targetPosition, true, true, true);
 
-    servo->openTube(2);
-    servo->turnOnPump();
-    servo->closeTube(2);
-    servo->closeTube(1);
-    servo->closeTube(3);
-    robot->wait(100000);
-    // Move rail to top.
-    //robot->moveRail(1.0);
-    //robot->wait(100000); // Wait 100ms - works both on the robot and in simulation.
 
     //**********************************************************
     // Go get the statue
@@ -182,50 +66,85 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     positions.push_back(targetPosition);
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.2);
     robot->setTrajectoryToFollow(traj);
+
+    // begin to move arm some time after beginning to follow traj
+    robot->wait(3e6);
+    servo->figurineArmTransport();
+
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    std::cout << "ETAPE 1 : juste avant de reculer vers la statuette" << std::endl;
+
     targetPosition = robot->getCurrentPosition();
 
-    //retrive statue and put the figurine
-
-    servo->electroMagnetOn();
-    servo->figurineArmLow();
 
     //Go back
-    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-131.0);
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-261.0);
     robot->setTrajectoryToFollow(traj);
     robot->updateScore(15);
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    //Rotate
-    targetPosition.x = 500;
-    targetPosition.y = 500;
-    positions.push_back(targetPosition);
-    targetPosition.x = 450;
-    targetPosition.y = 450;
-    positions.push_back(targetPosition);
-    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.2);
-    robot->setTrajectoryToFollow(traj);
-    servo->moveSuction(true);
-    servo->turnOffPump();
-    servo->openTube(2);
-    servo->openTube(1);
-    servo->openTube(3);
-    robot->updateScore(15);
-    robot->updateScore(15);
-
-    //**********************************************************
-    // Go back to the side distributor
-    //**********************************************************
-    targetPosition = robot->getCurrentPosition();
 
 
-    std::cout << targetPosition << std::endl;
-
-    // Go back
-    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-250.0);
-    robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    std::cout << "ETAPE 2 : devant la statuette" << std::endl;
+
+
+    std::cout << "ETAPE 3 : baisser les bras prendre la statuette et lever le bras" << std::endl;
+
+    servo->figurineArmCatch();
+    robot->wait(5e5);
+    servo->electroMagnetOn();
+    robot->wait(1e6);
+    servo->figurineArmTransport();
+
+
+    targetPosition = robot->getCurrentPosition();
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,140.0);
+    robot->setTrajectoryToFollow(traj);
+
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    std::cout << "ETAPE 4 : le robot est cense avoir avance avec la statuette" << std::endl;
+
+
+
+    // TODO : ici faire un demi tour et placer notre figurine sur le piedestal
+
+    // //Rotate
+    // positions.clear();
+    // targetPosition = robot->getCurrentPosition();
+    // positions.push_back(targetPosition);
+    // targetPosition.x = 500;
+    // targetPosition.y = 500;
+    // positions.push_back(targetPosition);
+    // targetPosition.x = 450;
+    // targetPosition.y = 450;
+    // positions.push_back(targetPosition);
+    // traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.2);
+    // robot->setTrajectoryToFollow(traj);
+
+
+
+    // // servo->moveSuction(true);
+    // // servo->turnOffPump();
+    // // servo->openTube(2);
+    // // servo->openTube(1);
+    // // servo->openTube(3);
+    // // robot->updateScore(15);
+    // // robot->updateScore(15);
+
+    // //**********************************************************
+    // // Go back to the side distributor
+    // //**********************************************************
+    // targetPosition = robot->getCurrentPosition();
+
+
+    // std::cout << targetPosition << std::endl;
+
+    // // Go back
+    // traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-250.0);
+    // robot->setTrajectoryToFollow(traj);
+    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+
+
 
     //**********************************************************
     // Round to the side distributor
@@ -244,8 +163,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     robot->updateScore(3);
-    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),false);
-    servo->ouvrirledoigtbas(robot->isPlayingRightSide(),false);
+    // servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),false);
+    // servo->ouvrirledoigtbas(robot->isPlayingRightSide(),false);
 
     //**********************************************************
     // Go to the display
@@ -257,7 +176,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition, 500.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    servo->ouvrirlebrashaut(robot->isPlayingRightSide(),false);
+    // servo->ouvrirlebrashaut(robot->isPlayingRightSide(),false);
 
     // then a little to the left
     targetPosition = robot->getCurrentPosition();
@@ -268,25 +187,44 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
+    std::cout << "ETAPE 5 : le robot fait un demi tour pour deposer la statuette en marche arriere (a optimiser)" << std::endl;
+    // rotate 180 degrees
+    targetPosition = robot->getCurrentPosition();
+    endPosition = targetPosition;
+    endPosition.theta += M_PI;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(targetPosition,endPosition,0.0,false);
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
 
     // finally go straight
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     endPosition.x = targetPosition.x ;
-    endPosition.y = 2000-40-robotdimensions::CHASSIS_FRONT - 40;
+    endPosition.y = 2000-20-robotdimensions::CHASSIS_FRONT;
     positions.push_back(targetPosition);
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(targetPosition,endPosition,0.0,false);
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(targetPosition,endPosition,0.0,true);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
+    std::cout << "ETAPE 6 : lacher la statuette" << std::endl;
+    
     servo->electroMagnetOff();
+    robot->wait(2e6);
     robot->updateScore(15);
 
-    // go back a little
+ 
+
+    // go forward a little
     targetPosition = robot->getCurrentPosition();
-    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-100.0);
+    traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,90.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    // while(true) {
+    //     robot->wait(1e6);
+    // }
+
 
     //**********************************************************
     // Go to the side distributor

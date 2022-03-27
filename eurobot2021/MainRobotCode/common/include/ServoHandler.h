@@ -65,9 +65,12 @@
                 void electroMagnetOn();
                 void electroMagnetOff();
 
+                void figurineArmTransport();
+                void figurineArmCatch();
+
                 void figurineArmLow();
-                void figurineArmMiddle();
-                void figurineArmHigh();
+                // void figurineArmMiddle();
+                // void figurineArmHigh();
 
                 // Figurine speed
                 void figurineArmSpeedLow();
