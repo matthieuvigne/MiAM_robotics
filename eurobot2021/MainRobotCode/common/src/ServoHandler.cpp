@@ -265,21 +265,22 @@ void ServoHandler::electroMagnetOff()
 }
 
 
+
+void ServoHandler::figurineArmTransport()
+{
+    maestro_->setPosition(STATUE, 1950);
+}
+
+
+void ServoHandler::figurineArmCatch()
+{
+    maestro_->setPosition(STATUE, 1750);
+}
+
+
 void ServoHandler::figurineArmLow()
 {
     maestro_->setPosition(STATUE, 900);
-}
-
-
-void ServoHandler::figurineArmMiddle()
-{
-    maestro_->setPosition(STATUE, 1180);
-}
-
-
-void ServoHandler::figurineArmHigh()
-{
-    maestro_->setPosition(STATUE, 1850);
 }
 
 
