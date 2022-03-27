@@ -66,7 +66,7 @@ void ServoHandler::reglageouvrirlebrasgauchemilieu() {
 	maestro_->setPosition(LEFT_ARM, 1500);
 }
 void ServoHandler::reglageouvrirlebrasgauchehaut() {
-	maestro_->setPosition(LEFT_ARM, 2000);
+	maestro_->setPosition(LEFT_ARM, 2060);
 }
 
 void ServoHandler::reglageouvrirledoigtdroithaut() {
@@ -161,9 +161,9 @@ void ServoHandler::ouvrirledoigthaut(bool isPlayingRightSide, bool right)
 
 void ServoHandler::ouvrirledoigtbas(bool isPlayingRightSide, bool right)
 {
-	if (!isPlayingRightSide)
+    if (!isPlayingRightSide)
     {
-		if (right)
+        if (right)
             maestro_->setPosition(RIGHT_FINGER, 1020);
      	else
             maestro_->setPosition(LEFT_FINGER, 1020);
@@ -175,6 +175,42 @@ void ServoHandler::ouvrirledoigtbas(bool isPlayingRightSide, bool right)
         else
             maestro_->setPosition(RIGHT_FINGER, 1020);
     }
+
+
+ void ServoHandler::openValve() {
+
+    maestro_->setPosition(VALVE, 0);
+}
+
+
+void ServoHandler::closeValve() {
+
+    maestro_->setPosition(VALVE, 7000);
+} 
+
+void ServoHandler::electroMagnetOn() {
+    maestro_->setPosition(MAGNET, 7000);
+}
+
+
+void ServoHandler::electroMagnetOff() {
+    maestro_->setPosition(MAGNET, 0);
+}
+
+
+void ServoHandler::figurineArmLow() {
+    maestro_->setPosition(STATUE, 900);
+}
+
+
+void ServoHandler::figurineArmMiddle() {
+    maestro_->setPosition(STATUE, 1180);
+}
+
+
+void ServoHandler::figurineArmHigh() {
+    maestro_->setPosition(STATUE, 1850);
+>>>>>>> 6ef31c4 (test pompe)
 }
 
 ////////////////////////////////////////////////////////////////
@@ -212,6 +248,14 @@ void ServoHandler::turnOnPump()
     isPumpOn_ = true;
 }
 
+/*void ServoHandler::turnOnPumpReduit()
+{
+    #ifndef SIMULATION
+    RPi_writeGPIO(PUMP_PWM, MIDDLE);
+    #endif
+    isPumpOn_ = true;
+}*/
+
 void ServoHandler::turnOffPump()
 {
     #ifndef SIMULATION
@@ -244,6 +288,19 @@ void ServoHandler::initsectionmiddle()
         //pour ventouse haute milieu 2500
 }
 
+void ServoHandler::transportfigurine()
+{
+        maestro_->setPosition(SERVO_SUCTION[1], 2300);
+        usleep(0.5e6);
+        maestro_->setPosition(SERVO_SUCTION[1], 2100);
+        usleep(0.5e6);
+        maestro_->setPosition(SERVO_SUCTION[1], 1900);
+        usleep(0.5e6);
+        maestro_->setPosition(SERVO_SUCTION[1], 1750);
+        usleep(0.5e6);
+        maestro_->setPosition(SERVO_SUCTION[1], 1600);
+        //pour ventouse haute milieu 2500
+}
 
 void ServoHandler::moveRail(int velocity)
 {
@@ -294,3 +351,4 @@ void ServoHandler::figurineArmSpeedHigh()
 {
     maestro_->setSpeed(STATUE, 1900);
 }
+

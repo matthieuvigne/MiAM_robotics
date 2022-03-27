@@ -77,7 +77,23 @@
                 void figurineArmSpeedHigh();
 
                 void moveSuction(bool high);
+
                 void moveRail(int velocity);
+
+
+                void moveMiddle();
+                void transportfigurine();
+                
+
+                void moveRail(int velocity);
+
+                void foldArms();
+                void unfoldArms(bool isPlayingRightSide);
+                void raiseArms(bool isPlayingRightSide);
+                
+                
+
+                void setMaestro(MaestroDriver & maestro);
 
                 bool isPumpOn_;
             private:

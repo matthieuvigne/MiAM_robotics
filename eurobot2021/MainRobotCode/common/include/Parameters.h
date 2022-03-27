@@ -38,7 +38,7 @@
             VALVE_RIGHT = 0,
             VALVE_CENTER = 1,
             VALVE_LEFT = 2,
-            TAP = 3,
+            VALVE = 3,
             MAGNET = 4,
             SUCTION_RIGHT = 6,
             SUCTION_CENTER = 7,
