@@ -1,0 +1,1 @@
+cmake -D OPENCV_EXTRA_MODULES_PATH=~/Programming/opencv_contrib/modules/ -D BUILD_opencv_rgbd=OFF -D BUILD_opencv_ximgproc=OFF -D BUILD_opencv_tracking=OFF -D BUILD_opencv_python2=OFF -D BUILD_opencv_python_bindings_generator=OFF ..

@@ -41,8 +41,8 @@ public:
   // Estimation
 
   void predict(
-    double wz,
-    double cov_wz);
+    double wy,
+    double cov_wy);
 
   void update(
     Eigen::Affine3d const& T_CM,

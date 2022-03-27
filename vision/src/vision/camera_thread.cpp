@@ -1,5 +1,6 @@
 #include <miam_utils/raspberry_pi/RPiGPIO.h>
 
+#include <common/maths.hpp>
 #include <vision/camera_thread.hpp>
 
 namespace vision {
@@ -38,13 +39,13 @@ void CameraThread::runThread()
 {
   // Initialization : scan the board looking for the central marker to initialize
   bool initialized = false;
+  double camera_angle = 0.;
   while(!initialized)
   {
     // Increment position and take picture
-    this->rotateCamera(1500);
     cv::Mat image;
+    this->rotateCameraToAnglePosition(camera_angle);
     this->camera_ptr_->takePicture(&image);
-    cv::imwrite("test.jpg", image);
 
     // Detect the markers
     DetectedMarkerList detected_markers;
@@ -72,27 +73,88 @@ void CameraThread::runThread()
     // Check if a specific request has been received
     // If so, realize it (don't forget to propagate the filter while doing it).
 
-    // Rotate the camera
-    this->rotateCamera(1500);
-    // Propagate the filter
+    // Rotate the camera and propagate the pose camera filter
+    double constexpr angle_increment = 20;
+    this->incrementCameraAngle(camera_angle, angle_increment);
+    double const wy = common::convertDegreeToRadian(angle_increment);
+    double constexpr cov_wy = 1.0;
+    this->pose_filter_ptr_->predict(wy, cov_wy);
 
-    // Take a picture
+    // Take a picture and detect all the markers
+    cv::Mat image;
+    this->camera_ptr_->takePicture(&image);
+    DetectedMarkerList detected_markers;
+    this->camera_ptr_->detectMarkers(image, &detected_markers);
 
-    // Detect all the markers
     // Check if the central marker is detected => if so: update the filter
+    DetectedMarkerList::const_iterator it = detected_markers.cbegin();
+    for(it; it != detected_markers.cend(); ++it)
+    {
+      if(it->marker_id == 42)
+      {
+        Eigen::Affine3d const T_CM = it->T_CM;
+        Eigen::Matrix<double,6,6> const cov_T_CM = it->cov_T_CM;
+        this->pose_filter_ptr_->update(T_CM, cov_T_CM);
+      }
+    }
+
     // Update the pose estimate of all other markers
+    for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)
+    {
+      // Get the tag ID
+      // Get the timestamp
+      // Get the estimate of the tag
+      // Categorize the tags
+      // Add a sigint breaker (optional)
+    }
   }
   std::cout << "Camera thread" << std::endl;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void CameraThread::rotateCamera(int const& signal)
+void CameraThread::rotateCameraToAnglePosition(double angle)
 {
-  int constexpr channel = 0;
-  int sig = std::max(500, std::min(signal, 2500));
+  // Angle must be provided in degrees
+  // Get the corresponding signal value
+  // Angle -90: camera at position 500
+  // Angle   0: camera at position 1500
+  // Angle +90: camera at position 2500
+  double constexpr max_abs_angle = 90.;
+  double coeff = angle / max_abs_angle;
+  coeff = std::max(-1.0,std::min(coeff,1.0));
+  int const signal = 1500 + 1000*coeff;
+  
+  // Send the new position order to the servo
   // At 1200kHz, 24000 ticks = 20ms
-  RPi_setPWM(channel, static_cast<int>(1.2 * sig), 24000);
+  int constexpr channel = 0;
+  RPi_setPWM(channel, static_cast<int>(1.2 * signal), 24000);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle)
+{
+  // Get the new angle
+  static bool increasing_angle = true;
+  double constexpr min_angle = -90;
+  double constexpr max_angle =  90;
+  double new_angle = increasing_angle
+    ? camera_angle + delta_angle
+    : camera_angle - delta_angle;
+  if(new_angle >= max_angle)
+  {
+    increasing_angle = false;
+    new_angle = max_angle;
+  }
+  else if(new_angle <= min_angle)
+  {
+    increasing_angle = true;
+    new_angle = min_angle;
+  }
+  
+  // Move the camera to this new angle
+  this->rotateCameraToAnglePosition(new_angle);
 }
 
 //--------------------------------------------------------------------------------------------------
