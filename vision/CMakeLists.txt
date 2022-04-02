@@ -43,8 +43,8 @@ target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 add_executable(dummy_client app/dummy_client.cpp)
 target_link_libraries(dummy_client ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
-#~ add_executable(test_serialization tests/serialization.cpp)
-#~ target_link_libraries(test_serialization ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+add_executable(test_serialization scripts/test_serialization.cpp)
+target_link_libraries(test_serialization ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
 #~ message("Current source directory: ${CMAKE_CURRENT_SOURCE_DIR}")
 

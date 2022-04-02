@@ -53,6 +53,12 @@ void getMarkerEstimate(
   DetectedMarker const& detected_marker,
   MarkerEstimate* marker_estimate);
 
+bool serializeMarker(MarkerEstimate const& marker, std::vector<unsigned char>* message);
+
+bool deserializeMarker(std::vector<unsigned char> const& message, MarkerEstimate* marker);
+
+std::string printMarker(MarkerEstimate const& marker);
+
 //--------------------------------------------------------------------------------------------------
 
 } // namespace common
