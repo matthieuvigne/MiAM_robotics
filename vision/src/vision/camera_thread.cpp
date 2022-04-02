@@ -1,7 +1,7 @@
 #include <miam_utils/raspberry_pi/RPiGPIO.h>
 
+#include <common/marker.hpp>
 #include <common/maths.hpp>
-#include <common/tags.hpp>
 #include <common/time.hpp>
 #include <vision/camera_thread.hpp>
 
@@ -104,9 +104,8 @@ void CameraThread::runThread()
     Eigen::Matrix<double,6,6> const& cov_T_WC = this->pose_filter_ptr_->getStateCovariance();
     for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)
     {
-      common::MarkerEstimate marker_estimate;
       common::DetectedMarker const& detected_marker = *it;
-      common::getMarkerEstimate(T_WC, cov_T_WC, detected_marker, &marker_estimate);
+      common::Marker marker_estimate(T_WC, cov_T_WC, detected_marker);
       std::lock_guard<std::mutex> const lock(this->mutex_);
       this->marker_id_to_estimate_[marker_estimate.id] = marker_estimate;
     }
@@ -162,7 +161,7 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
 
 //--------------------------------------------------------------------------------------------------
 
-void CameraThread::getMarkerEstimates(common::MarkerIdToEstimate* estimates_ptr) const
+void CameraThread::getMarkers(common::MarkerIdToEstimate* estimates_ptr) const
 {
   common::MarkerIdToEstimate& estimates = *estimates_ptr;
   estimates.clear();

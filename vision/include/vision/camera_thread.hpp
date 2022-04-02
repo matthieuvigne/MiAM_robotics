@@ -32,7 +32,7 @@ public:
 public:
 
   inline void join();
-  void getMarkerEstimates(common::MarkerIdToEstimate* estimates) const;
+  void getMarkers(common::MarkerIdToEstimate* estimates) const;
 
 private:
 

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <common/tags.hpp>
+#include <common/marker.hpp>
 #include <common/time.hpp>
 
 int main(int argc, char* argv[])
@@ -44,22 +44,22 @@ int main(int argc, char* argv[])
   // Solution 3
   
   // Build a custom marker estimate
-  common::MarkerEstimate sent_marker;
+  common::Marker sent_marker;
   sent_marker.id = 42;
   sent_marker.family = common::MarkerFamily::CENTRAL_MARKER;
   sent_marker.timestamp_ns = 1000u;
   sent_marker.T_WM = Eigen::Affine3d::Identity();
   sent_marker.cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
-  std::cout << common::printMarker(sent_marker) << std::endl;
-  std::vector<unsigned char> sent_message;
-  common::serializeMarker(sent_marker, &sent_message);
+  std::cout << sent_marker.print() << std::endl;
+  std::vector<char> sent_message;
+  sent_marker.serialize(&sent_message);
   std::string const sent_message_str(sent_message.cbegin(), sent_message.cend());
   
   // Deserialize the marker estimate
-  std::vector<unsigned char> received_message(sent_message_str.cbegin(), sent_message_str.cend());
-  common::MarkerEstimate received_marker;
-  common::deserializeMarker(received_message, &received_marker);
-  std::cout << common::printMarker(received_marker) << std::endl;
+  std::vector<char> received_message(sent_message_str.cbegin(), sent_message_str.cend());
+  common::Marker received_marker;
+  received_marker.deserialize(received_message);
+  std::cout << received_marker.print() << std::endl;
 
   return EXIT_SUCCESS;
 }

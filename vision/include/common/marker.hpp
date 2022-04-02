@@ -37,27 +37,34 @@ struct DetectedMarker {
 }; // DetectedMarker
 typedef std::vector<DetectedMarker> DetectedMarkerList;
 
-struct MarkerEstimate {
-  MarkerId id = 0;
-  MarkerFamily family = MarkerFamily::UNKNOWN;
-  int64_t timestamp_ns = 0u;
-  Eigen::Affine3d T_WM = Eigen::Affine3d::Identity();
-  Eigen::Matrix<double,6,6> cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
-}; // class MarkerEstimate
-typedef std::vector<MarkerEstimate> MarkerEstimateList;
-typedef std::map<MarkerId,MarkerEstimate> MarkerIdToEstimate;
+//--------------------------------------------------------------------------------------------------
+// Marker class
+//--------------------------------------------------------------------------------------------------
 
-void getMarkerEstimate(
-  Eigen::Affine3d const& T_WC,
-  Eigen::Matrix<double,6,6> const& cov_T_WC,
-  DetectedMarker const& detected_marker,
-  MarkerEstimate* marker_estimate);
+class Marker {
 
-bool serializeMarker(MarkerEstimate const& marker, std::vector<unsigned char>* message);
+  public:
+    Marker() = default;
+    Marker(
+      Eigen::Affine3d const& T_WC,
+      Eigen::Matrix<double,6,6> const& cov_T_WC,
+      DetectedMarker const& detected_marker);
 
-bool deserializeMarker(std::vector<unsigned char> const& message, MarkerEstimate* marker);
+  public:
+    bool serialize(std::vector<char>* message) const;
+    bool deserialize(std::vector<char> const& message);
+    std::string print() const;
+    
+  public:
+    MarkerId id = 0;
+    MarkerFamily family = MarkerFamily::UNKNOWN;
+    int64_t timestamp_ns = 0u;
+    Eigen::Affine3d T_WM = Eigen::Affine3d::Identity();
+    Eigen::Matrix<double,6,6> cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
 
-std::string printMarker(MarkerEstimate const& marker);
+}; // class Marker
+typedef std::vector<Marker> MarkerList;
+typedef std::map<MarkerId,Marker> MarkerIdToEstimate;
 
 //--------------------------------------------------------------------------------------------------
 

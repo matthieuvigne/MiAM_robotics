@@ -13,7 +13,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <common/macros.hpp>
-#include <common/tags.hpp>
+#include <common/marker.hpp>
 #include <vision/distortion_model.hpp>
 #include <vision/messages.hpp>
 

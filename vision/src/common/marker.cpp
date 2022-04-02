@@ -1,7 +1,35 @@
+#include <common/marker.hpp>
 #include <common/maths.hpp>
-#include <common/tags.hpp>
 
 namespace common {
+
+//--------------------------------------------------------------------------------------------------
+// Constructor and destructor
+//--------------------------------------------------------------------------------------------------
+
+Marker::Marker(
+  Eigen::Affine3d const& T_WC,
+  Eigen::Matrix<double,6,6> const& cov_T_WC,
+  DetectedMarker const& detected_marker)
+{
+  // Get the tag ID and family
+  this->id = static_cast<MarkerId>(detected_marker.marker_id);
+  this->family = getMarkerFamily(this->id);
+  
+  // Get the timestamp in nanoseconds
+  TimePoint const timestamp = Time::now();
+  this->timestamp_ns = convertToNanoseconds(timestamp);
+  
+  // Get the estimate of the tag
+  Eigen::Affine3d const& T_CM = detected_marker.T_CM;
+  Eigen::Matrix<double,6,6> const& cov_T_CM = detected_marker.cov_T_CM;
+  this->T_WM = T_WC * T_CM;
+  Eigen::Matrix<double,6,6> const J_TWM_wrt_TWC = leftProductJacobian(T_WC, T_CM);
+  Eigen::Matrix<double,6,6> const J_TWM_wrt_TCM = rightProductJacobian(T_WC, T_CM);
+  this->cov_T_WM =
+    J_TWM_wrt_TWC * cov_T_WC * J_TWM_wrt_TWC.transpose() +
+    J_TWM_wrt_TCM * cov_T_CM * J_TWM_wrt_TCM.transpose();
+}
 
 //--------------------------------------------------------------------------------------------------
 
@@ -40,40 +68,11 @@ MarkerFamily getMarkerFamily(MarkerId requested_marker_id)
 
 //--------------------------------------------------------------------------------------------------
 
-void getMarkerEstimate(
-  Eigen::Affine3d const& T_WC,
-  Eigen::Matrix<double,6,6> const& cov_T_WC,
-  DetectedMarker const& detected_marker,
-  MarkerEstimate* marker_estimate_ptr)
-{
-  MarkerEstimate& marker_estimate = *marker_estimate_ptr;
-  
-  // Get the tag ID and family
-  marker_estimate.id = static_cast<MarkerId>(detected_marker.marker_id);
-  marker_estimate.family = getMarkerFamily(marker_estimate.id);
-  
-  // Get the timestamp in nanoseconds
-  TimePoint const timestamp = Time::now();
-  marker_estimate.timestamp_ns = convertToNanoseconds(timestamp);
-  
-  // Get the estimate of the tag
-  Eigen::Affine3d const& T_CM = detected_marker.T_CM;
-  Eigen::Matrix<double,6,6> const& cov_T_CM = detected_marker.cov_T_CM;
-  marker_estimate.T_WM = T_WC * T_CM;
-  Eigen::Matrix<double,6,6> const J_TWM_wrt_TWC = leftProductJacobian(T_WC, T_CM);
-  Eigen::Matrix<double,6,6> const J_TWM_wrt_TCM = rightProductJacobian(T_WC, T_CM);
-  marker_estimate.cov_T_WM =
-    J_TWM_wrt_TWC * cov_T_WC * J_TWM_wrt_TWC.transpose() +
-    J_TWM_wrt_TCM * cov_T_CM * J_TWM_wrt_TCM.transpose();
-}
-
-//--------------------------------------------------------------------------------------------------
-
-bool serializeMarker(MarkerEstimate const& marker, std::vector<unsigned char>* message_ptr)
+bool Marker::serialize(std::vector<char>* message_ptr) const
 {
   // Check the pointer message
   if(message_ptr == 0) return false;
-  std::vector<unsigned char>& message = *message_ptr;
+  std::vector<char>& message = *message_ptr;
   message.clear();
   
   // Get the size of the message
@@ -87,17 +86,17 @@ bool serializeMarker(MarkerEstimate const& marker, std::vector<unsigned char>* m
   int byte_idx = 0;
   
   // Serialize the header
-  std::memcpy(&message[byte_idx], &marker.id, sizeof(uint8_t));
+  std::memcpy(&message[byte_idx], &this->id, sizeof(uint8_t));
   byte_idx += sizeof(uint8_t);
-  std::memcpy(&message[byte_idx], &marker.family, sizeof(uint8_t));
+  std::memcpy(&message[byte_idx], &this->family, sizeof(uint8_t));
   byte_idx += sizeof(uint8_t);
-  std::memcpy(&message[byte_idx], &marker.timestamp_ns, sizeof(int64_t));
+  std::memcpy(&message[byte_idx], &this->timestamp_ns, sizeof(int64_t));
   byte_idx += sizeof(int64_t);
   
   // Serialize the pose
   Eigen::Matrix<double,7,1> pose;
-  pose.head<4>() = Eigen::Quaterniond(marker.T_WM.rotation()).coeffs();
-  pose.tail<3>() = marker.T_WM.translation();
+  pose.head<4>() = Eigen::Quaterniond(this->T_WM.rotation()).coeffs();
+  pose.tail<3>() = this->T_WM.translation();
   std::memcpy(&message[byte_idx], pose.data(), 7*sizeof(double));
   byte_idx += 7*sizeof(double);
   
@@ -106,7 +105,7 @@ bool serializeMarker(MarkerEstimate const& marker, std::vector<unsigned char>* m
   int cov_idx = 0;
   for(int i=0; i<6; i++)
     for(int j=i; j<6; j++)
-      covariance[cov_idx++] = marker.cov_T_WM(i,j);
+      covariance[cov_idx++] = this->cov_T_WM(i,j);
   std::memcpy(&message[byte_idx], covariance.data(), 21*sizeof(double));
   byte_idx += 21*sizeof(double);
   
@@ -118,10 +117,9 @@ bool serializeMarker(MarkerEstimate const& marker, std::vector<unsigned char>* m
 
 //--------------------------------------------------------------------------------------------------
 
-bool deserializeMarker(std::vector<unsigned char> const& message, MarkerEstimate* marker_ptr)
+bool Marker::deserialize(std::vector<char> const& message)
 {
   // Check the length of the message
-  if(marker_ptr == 0) return false;
   int constexpr message_size =  1 * sizeof(uint8_t) + /*Marker id*/
                                 1 * sizeof(uint8_t) + /*Marker family*/
                                 1 * sizeof(int64_t) + /*timestamp*/
@@ -129,23 +127,22 @@ bool deserializeMarker(std::vector<unsigned char> const& message, MarkerEstimate
                                21 * sizeof(double)  + /*Covariance*/
                                 1 * sizeof(char);     /*NULL termination*/
   if(message.size() != message_size) return false;
-  MarkerEstimate& marker = *marker_ptr;
   
   // Deserialize the header
   int byte_idx = 0;
-  std::memcpy(&marker.id, &message[byte_idx], sizeof(uint8_t));
+  std::memcpy(&this->id, &message[byte_idx], sizeof(uint8_t));
   byte_idx += sizeof(uint8_t);
-  std::memcpy(&marker.family, &message[byte_idx], sizeof(uint8_t));
+  std::memcpy(&this->family, &message[byte_idx], sizeof(uint8_t));
   byte_idx += sizeof(uint8_t);
-  std::memcpy(&marker.timestamp_ns, &message[byte_idx], sizeof(uint64_t));
+  std::memcpy(&this->timestamp_ns, &message[byte_idx], sizeof(uint64_t));
   byte_idx += sizeof(int64_t);
   
   // Deserialize the pose
   Eigen::Matrix<double,7,1> pose;
   std::memcpy(pose.data(), &message[byte_idx], 7*sizeof(double));
   byte_idx += 7*sizeof(double);
-  marker.T_WM.translation() = pose.tail<3>();
-  marker.T_WM.linear() = Eigen::Quaterniond(pose.head<4>()).normalized().toRotationMatrix();
+  this->T_WM.translation() = pose.tail<3>();
+  this->T_WM.linear() = Eigen::Quaterniond(pose.head<4>()).normalized().toRotationMatrix();
   
   // Deserialize the covariance
   std::vector<double> covariance(21);
@@ -155,8 +152,8 @@ bool deserializeMarker(std::vector<unsigned char> const& message, MarkerEstimate
   {
     for(int j=i; j<6; j++)
     {
-      marker.cov_T_WM(i,j) = covariance[cov_idx];
-      marker.cov_T_WM(j,i) = covariance[cov_idx];
+      this->cov_T_WM(i,j) = covariance[cov_idx];
+      this->cov_T_WM(j,i) = covariance[cov_idx];
       cov_idx += 1;
     }
   }
@@ -166,14 +163,14 @@ bool deserializeMarker(std::vector<unsigned char> const& message, MarkerEstimate
 
 //--------------------------------------------------------------------------------------------------
 
-std::string printMarker(MarkerEstimate const& marker)
+std::string Marker::print() const
 {
   std::stringstream out;
   
   out << "Marker:" << std::endl;
-  out << "- id: " << static_cast<int>(marker.id) << std::endl;
+  out << "- id: " << static_cast<int>(this->id) << std::endl;
   out << "- family: ";
-  switch(marker.family)
+  switch(this->family)
   {
     case common::MarkerFamily::CENTRAL_MARKER:
       out << "CENTRAL_MARKER";
@@ -210,9 +207,9 @@ std::string printMarker(MarkerEstimate const& marker)
       break;
   }
   out << std::endl;
-  out << "- timestamp: " << marker.timestamp_ns << std::endl;
-  out << "- T_WM: " << std::endl << marker.T_WM.matrix() << std::endl;
-  out << "- cov_T_WM: " << std::endl << marker.cov_T_WM.matrix() << std::endl;
+  out << "- timestamp: " << this->timestamp_ns << std::endl;
+  out << "- T_WM: " << std::endl << this->T_WM.matrix() << std::endl;
+  out << "- cov_T_WM: " << std::endl << this->cov_T_WM.matrix() << std::endl;
   
   return out.str();
 }
