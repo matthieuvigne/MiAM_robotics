@@ -37,7 +37,6 @@ public:
 private:
 
   void runThread();
-  void getMeasurements() const;
   void rotateCameraToAnglePosition(double angle_deg);
   void incrementCameraAngle(double& camera_angle, double delta_angle);
 

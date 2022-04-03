@@ -12,6 +12,7 @@
 
 #include <common/macros.hpp>
 #include <network/server_socket.hpp>
+#include <vision/camera_thread.hpp>
 
 namespace network {
 
@@ -31,6 +32,7 @@ public:
 public:
 
   inline void join();
+  inline bool setCameraThread(vision::CameraThread const* camera_thread_ptr);
 
 private:
 
@@ -41,6 +43,7 @@ public:
   // Threading
   mutable std::mutex mtx_;
   std::unique_ptr<std::thread> thread_ptr_;
+  vision::CameraThread const* camera_thread_ptr_;
 
 }; // class ServerThread
 
@@ -51,6 +54,14 @@ public:
 void ServerThread::join()
 {
   this->thread_ptr_->join();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+bool ServerThread::setCameraThread(vision::CameraThread const* camera_thread_ptr)
+{
+  if(camera_thread_ptr == nullptr) return false;
+  this->camera_thread_ptr_ = camera_thread_ptr;
 }
 
 //--------------------------------------------------------------------------------------------------

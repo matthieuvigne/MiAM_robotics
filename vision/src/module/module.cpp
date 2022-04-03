@@ -46,12 +46,13 @@ Module::Module(std::string const& filename)
     std::move(camera_ptr)));
 
   // Launch the server's thread
-  //~ int const port = 30000;
-  //~ try {
-      //~ this->server_thread_ptr_.reset(new network::ServerThread(port));
-  //~ } catch(network::SocketException const& e) {
-      //~ std::cout << e.description() << std::endl;
-  //~ }
+  int const port = 30000;
+  try {
+      this->server_thread_ptr_.reset(new network::ServerThread(port));
+      this->server_thread_ptr_->setCameraThread(this->camera_thread_ptr_.get());
+  } catch(network::SocketException const& e) {
+      std::cout << e.description() << std::endl;
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -76,12 +77,13 @@ Module::Module(ModuleParams const& params)
     std::move(camera_ptr)));
     
   // Launch the server's thread
-  //~ int const port = 30000;
-  //~ try {
-    //~ this->server_thread_ptr_.reset(new network::ServerThread(port));
-  //~ } catch(network::SocketException const& e) {
-    //~ std::cout << e.description() << std::endl;
-  //~ }
+  int const port = 30000;
+  try {
+    this->server_thread_ptr_.reset(new network::ServerThread(port));
+    this->server_thread_ptr_->setCameraThread(this->camera_thread_ptr_.get());
+  } catch(network::SocketException const& e) {
+    std::cout << e.description() << std::endl;
+  }
 }
 
 //--------------------------------------------------------------------------------------------------

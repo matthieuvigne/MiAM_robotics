@@ -27,7 +27,6 @@ enum class MarkerFamily {
   PURPLE_TEAM_MARKER,
   YELLOW_TEAM_MARKER
 }; // enum class MarkerFamily
-
 MarkerFamily getMarkerFamily(MarkerId id);
 
 struct DetectedMarker {
@@ -49,6 +48,7 @@ class Marker {
       Eigen::Affine3d const& T_WC,
       Eigen::Matrix<double,6,6> const& cov_T_WC,
       DetectedMarker const& detected_marker);
+  virtual ~Marker() = default;
 
   public:
     bool serialize(std::vector<char>* message) const;

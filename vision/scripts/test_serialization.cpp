@@ -43,23 +43,33 @@ int main(int argc, char* argv[])
 
   // Solution 3
   
-  // Build a custom marker estimate
-  common::Marker sent_marker;
-  sent_marker.id = 42;
-  sent_marker.family = common::MarkerFamily::CENTRAL_MARKER;
-  sent_marker.timestamp_ns = 1000u;
-  sent_marker.T_WM = Eigen::Affine3d::Identity();
-  sent_marker.cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
-  std::cout << sent_marker.print() << std::endl;
-  std::vector<char> sent_message;
-  sent_marker.serialize(&sent_message);
-  std::string const sent_message_str(sent_message.cbegin(), sent_message.cend());
+  //~ // Build a custom marker estimate
+  //~ common::Marker sent_marker;
+  //~ sent_marker.id = 42;
+  //~ sent_marker.family = common::MarkerFamily::CENTRAL_MARKER;
+  //~ sent_marker.timestamp_ns = 1000u;
+  //~ sent_marker.T_WM = Eigen::Affine3d::Identity();
+  //~ sent_marker.cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
+  //~ std::cout << sent_marker.print() << std::endl;
+  //~ std::vector<char> sent_message;
+  //~ sent_marker.serialize(&sent_message);
+  //~ std::string const sent_message_str(sent_message.cbegin(), sent_message.cend());
   
-  // Deserialize the marker estimate
-  std::vector<char> received_message(sent_message_str.cbegin(), sent_message_str.cend());
-  common::Marker received_marker;
-  received_marker.deserialize(received_message);
-  std::cout << received_marker.print() << std::endl;
+  //~ // Deserialize the marker estimate
+  //~ std::vector<char> received_message(sent_message_str.cbegin(), sent_message_str.cend());
+  //~ common::Marker received_marker;
+  //~ received_marker.deserialize(received_message);
+  //~ std::cout << received_marker.print() << std::endl;
+
+  std::vector<char> chars{'h','e','l','l','o','\0','w','o','r','l','d','\0'};
+  std::string str(chars.data(), chars.size());
+  std::cout << str << std::endl;
+  std::size_t pos1 = str.find('\0');
+  std::cout << pos1 << std::endl;
+  std::size_t pos2 = str.find('\0',pos1+1);
+  std::cout << pos2 << std::endl;
+  std::size_t n = std::count(str.cbegin(), str.cend(), '\0');
+  std::cout << n << std::endl;
 
   return EXIT_SUCCESS;
 }
