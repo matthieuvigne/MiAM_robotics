@@ -76,9 +76,9 @@
             /// \param[in] backward If translation should be done backward.
             /// \return Vector of pointer toward two trajectories: rotation then translation.
             TrajectoryVector computeTrajectoryStraightLineToPoint(RobotPosition const& startPosition,
-                                                                                         RobotPosition const& endPosition,
-                                                                                         double const& endVelocity = 0.0,
-                                                                                         bool const& backward = false);
+                                                                  RobotPosition const& endPosition,
+                                                                  double const& endVelocity = 0.0,
+                                                                  bool const& backward = false);
 
             /// \brief Given a list of points, compute a polyline going from the first point to the last, with rounded
             ///        corners.

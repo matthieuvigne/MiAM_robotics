@@ -7,6 +7,37 @@
     #define SERVO_CONFIG_H
         #include <miam_utils/drivers/MaestroServoDriver.h>
 
+        enum class statue
+        {
+            TRANSPORT = 0,
+            CATCH = 1,
+            DROP = 2,
+            FOLD = 3
+        };
+
+        enum class arm
+        {
+            RAISE = 0,
+            MEASURE = 1,
+            FOLD = 2
+        };
+
+        enum class finger
+        {
+            PUSH = 0,
+            MEASURE = 1,
+            FOLD = 2
+        };
+
+        enum class suction
+        {
+            FOLD = 0,
+            HORIZONTAL = 1,
+            VERTICAL = 2,
+            DROP_FAKE_STATUE = 3,
+            HOLD_FAKE_STATUE = 4
+        };
+
         /// \brief Helper class for controlling the robot servos.
         class ServoHandler
         {
@@ -21,91 +52,32 @@
                 bool init(std::string const& portName);
                 void shutdownServos(); ///< Turn off all servos.
 
-                void ouvrirlebrasmilieu(bool isPlayingRightSide, bool right);
 
-                void ouvrirlebrasbas(bool isPlayingRightSide, bool right);
 
-                void ouvrirlebrashaut(bool isPlayingRightSide, bool right);
+		        void initsuctionmiddle();
 
-                void ouvrirledoigthaut(bool isPlayingRightSide, bool right);
-
-                void ouvrirledoigtbas(bool isPlayingRightSide, bool right);
-
-		void reglageouvrirlebrasdroithaut();
-		void reglageouvrirlebrasdroitmilieu();
-		void reglageouvrirlebrasdroitbas();
-
-		void reglageouvrirlebrasgauchehaut() ;
-		void reglageouvrirlebrasgauchemilieu() ;
-		void reglageouvrirlebrasgauchebas() ;
-
-		void reglageouvrirledoigtgauchehaut() ;
-		void reglageouvrirledoigtgauchebas() ;
-
-		void reglageouvrirledoigtdroithaut() ;
-		void reglageouvrirledoigtdroitbas() ;
-		
-		
-		void bougerlebrasdroithaut();
-                void bougerlebrasdroitmilieumesure();
-                void bougerlebrasdroitbas();
-                void bougerlebrasgauchebas();
-                void bougerlebrasgauchemilieumesure();
-                void bougerlebrasgauchebasculedistributeur();
-                void bougerlebrasdroitbasculedistributeur();
-                void bougerlebrasgauchehaut();
-                void bougerledoigtdroitmilieubasculedistributeur();
-                void bougerledoigtgauchemilieubasculedistributeur();
-                void bougerledoigtdroithautbasculemesure();
-                void bougerledoigtdroitbasinit();
-                void bougerledoigtgauchehautbasculemesure();
-                void bougerledoigtgauchebasinit();
-		
-		void initsuctionmiddle();
-
-                // Valve control
+                // Valve / suction control
                 void openValve();
                 void closeValve();
 
                 void openTube(int tubeNumber); ///< Open suction air tube.
                 void closeTube(int tubeNumber); ///< Close suction air tube.
-                void moveSuctionUnitary(int tubeNumber, int targetServo);
-
-
-                void turnOnPump();
-                void turnOffPump();
-
-                // Electro magnet and arm control
-                void electroMagnetOn();
-                void electroMagnetOff();
-
-                // Figurine arm is high enough for transport and dropout
-                void figurineArmTransport();
-                // Figurine arm touches the top of the figurine
-                void figurineArmCatch();
-                // Figurine arm is folded inside the robot
-                void figurineArmLow();
-
-                // Figurine speed
-                void figurineArmSpeedLow();
-                void figurineArmSpeedHigh();
-
-                void moveSuction(int position);
-
-                void moveMiddle();
-                void deposefigurine();
-                
+                void moveSuction(int const& suctionNumber, suction const& position);
 
                 void moveRail(int velocity);
 
-                void foldArms();
-                void unfoldArms(bool isPlayingRightSide);
-                void raiseArms(bool isPlayingRightSide);
-                
-                
+
+                void activatePump(bool const& pumpOn);
+
+                // Statue-related functions
+                void activateMagnet(bool const& magnetOn);
+                void moveStatue(statue const& pose);
+
+                // Side arm functions
+                void moveArm(bool const& rightArm, arm const& pose);
+                void moveFinger(bool const& rightArm, finger const& pose);
 
                 void setMaestro(MaestroDriver & maestro);
-
                 bool isPumpOn_;
             private:
                 MaestroDriver * maestro_;

@@ -72,7 +72,7 @@
             ""
         };
 
-        enum ExcavationSquareColor{
+        enum class ExcavationSquareColor{
             NONE = 0,
             PURPLE = 1,
             YELLOW = 2,

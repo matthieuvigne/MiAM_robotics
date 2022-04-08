@@ -19,7 +19,8 @@ ViewerRobot::ViewerRobot(std::string const& imageFileName,
     trajectoryFollowingStatus_(true),
     obstacleX_(0.0),
     obstacleY_(0.0),
-    obstacleSize_(0.0)
+    obstacleSize_(0.0),
+    isPlayingRightSide_(false)
 {
     image_ = Gdk::Pixbuf::create_from_file(imageFileName, -1, -1);
 }
@@ -29,7 +30,14 @@ RobotPosition ViewerRobot::getCurrentPosition()
 {
     if (trajectory_.size() == 0)
         return RobotPosition(0.0, 0.0, 0.0);
-    return trajectory_.back().position;
+    RobotPosition p = trajectory_.back().position;
+    if (isPlayingRightSide_)
+    {
+        p.x = 3000 - p.x;
+        p.theta = M_PI - p.theta;
+    }
+
+    return p;
 }
 
 
@@ -54,7 +62,21 @@ bool ViewerRobot::followTrajectory(miam::trajectory::Trajectory *traj)
         viewerPoint.score = score_;
         viewerPoint.servoState_ = servoMock_.getState();
         viewerPoint.isPumpOn_ = handler_.isPumpOn_;
+        if (isPlayingRightSide_)
+        {
+            viewerPoint.position.x = 3000 - viewerPoint.position.x;
+            viewerPoint.position.theta = M_PI - viewerPoint.position.theta;
+            viewerPoint.angularVelocity = -currentPoint.angularVelocity;
+        }
+
         trajectory_.push_back(viewerPoint);
+
+        if (!isRobotPositionInit_)
+        {
+            isRobotPositionInit_ = true;
+            for (int i = 0; i < trajectory_.size(); i++)
+                trajectory_.at(i).position = viewerPoint.position;
+        }
         currentTrajectoryTime += TIMESTEP;
     }
     return true;
@@ -84,15 +106,25 @@ void ViewerRobot::resetPosition(RobotPosition const& resetPosition, bool const& 
     else
         p.time = trajectory_.back().time + TIMESTEP;
     if (resetX)
+    {
         p.position.x = resetPosition.x;
+        if (isPlayingRightSide_)
+            p.position.x = 3000 - p.position.x;
+    }
     if (resetY)
         p.position.y = resetPosition.y;
     if (resetTheta)
+    {
         p.position.theta = resetPosition.theta;
+        if (isPlayingRightSide_)
+            p.position.theta = M_PI - p.position.theta;
+    }
+
     p.linearVelocity = 0.0;
     p.angularVelocity = 0.0;
     p.servoState_ = servoMock_.getState();
     p.isPumpOn_ = handler_.isPumpOn_;
+
     trajectory_.push_back(p);
 }
 
@@ -195,7 +227,9 @@ int ViewerRobot::getTrajectoryLength()
 
 void ViewerRobot::padTrajectory(int const& desiredLength)
 {
-    ViewerTrajectoryPoint lastPoint = trajectory_.back();
+    ViewerTrajectoryPoint lastPoint;
+    if (!trajectory_.empty() )
+        lastPoint = trajectory_.back();
     lastPoint.linearVelocity = 0.0;
     lastPoint.angularVelocity = 0.0;
     lastPoint.servoState_ = servoMock_.getState();
@@ -236,20 +270,22 @@ void ViewerRobot::moveRail(double const& position)
     handler_.moveRail(100 * position);
 }
 
-void ViewerRobot::wait(int const& waitTimeus)
+void ViewerRobot::wait(double const& waitTimeS)
 {
-    int const nPoints = waitTimeus / 1.0e6 / TIMESTEP;
+    int const nPoints = waitTimeS / TIMESTEP;
     padTrajectory(nPoints);
 }
 
-void ViewerRobot::recomputeStrategy(int const& obstacleX, int const& obstacleY, int const& obstacleSize)
+void ViewerRobot::recomputeStrategy(int const& obstacleX, int const& obstacleY, int const& obstacleSize, bool const& isPlayingRightSide)
 {
+    isPlayingRightSide_ = isPlayingRightSide;
     obstacleX_ = obstacleX;
     obstacleY_ = obstacleY;
     obstacleSize_ = obstacleSize;
     trajectory_.clear();
     servoMock_.init("", 0);
     clearScore();
+    isRobotPositionInit_ = false;
     setupFunction_(this, &this->handler_);
     strategyFunction_(this, &this->handler_);
 }

@@ -19,9 +19,10 @@
             /// \param position Relative rail position, form 0 (down) to 1 (up).
             virtual void moveRail(double const& position) = 0;
 
-            virtual void wait(int const& waitTimeus)
+            // Sleep a specified number of seconds.
+            virtual void wait(double const& waitTimeS)
             {
-                usleep(waitTimeus);
+                usleep(static_cast<int>(1e6 * waitTimeS));
             }
 
             virtual bool isPlayingRightSide()

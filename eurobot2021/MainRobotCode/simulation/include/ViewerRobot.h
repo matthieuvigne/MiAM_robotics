@@ -77,7 +77,7 @@
             void padTrajectory(int const& desiredLength);
 
             ///< Function computing the strategy, for a given obstacle position.
-            void recomputeStrategy(int const& obstacleX, int const& obstacleY, int const& obstacleSize);
+            void recomputeStrategy(int const& obstacleX, int const& obstacleY, int const& obstacleSize, bool const& isPlayingRightSide);
 
 
             ///< Increment robot score.
@@ -95,12 +95,12 @@
             ///< Robot is always playing on the right side.
             bool isPlayingRightSide()
             {
-                return true;
+                return isPlayingRightSide_;
             }
 
             void moveRail(double const& position) override;
 
-            void wait(int const& waitTimeus) override;
+            void wait(double const& waitTimeS) override;
 
             int getScore(int const& index);
 
@@ -125,6 +125,9 @@
             double obstacleX_;  // Obstacle information.
             double obstacleY_;
             double obstacleSize_;
+
+            bool isRobotPositionInit_;
+            bool isPlayingRightSide_;
     };
 
 #endif

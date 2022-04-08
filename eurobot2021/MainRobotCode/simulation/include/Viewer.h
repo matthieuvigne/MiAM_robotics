@@ -43,6 +43,7 @@ class Viewer : public Gtk::Window
         Gtk::Scale *playbackSpeed;
         Gtk::DrawingArea *drawingArea;
         Gtk::ToggleButton *playButton;
+        Gtk::ToggleButton *rightSideButton_;
 
         bool redraw(const Cairo::RefPtr<Cairo::Context>& cr);
         bool timeChanged(Gtk::ScrollType scroll, double new_value);

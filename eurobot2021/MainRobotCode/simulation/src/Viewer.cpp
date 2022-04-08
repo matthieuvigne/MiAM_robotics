@@ -37,6 +37,8 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     Gtk::Button *button;
     refGlade->get_widget("recomputeButton", button);
     button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::recompute));
+    refGlade->get_widget("rightSideToggle", rightSideButton_);
+    rightSideButton_->signal_toggled().connect(sigc::mem_fun(this, &Viewer::recompute));
     // Configure slider based on viewerTrajectory.
     refGlade->get_widget("playbackSpeed", playbackSpeed);
     refGlade->get_widget("timeSlider", timeSlider_);
@@ -183,7 +185,7 @@ void Viewer::recompute()
 {
     // Recompute strategies.
     for(auto r : robots_)
-        r->recomputeStrategy(obstacleX_, obstacleY_, obstacleSize_);
+        r->recomputeStrategy(obstacleX_, obstacleY_, obstacleSize_, rightSideButton_->get_active());
     // Re-equalize time vectors.
     for(auto r : robots_)
         trajectoryLength_ = std::max(trajectoryLength_, r->getTrajectoryLength());
@@ -197,4 +199,5 @@ void Viewer::recompute()
     adjustment->set_upper(endTime);
     adjustment->set_step_increment(TIMESTEP);
     timeSlider_->set_fill_level(endTime);
+    drawingArea->queue_draw();
 }
