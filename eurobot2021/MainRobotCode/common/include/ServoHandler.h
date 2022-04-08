@@ -44,10 +44,24 @@
 
 		void reglageouvrirledoigtdroithaut() ;
 		void reglageouvrirledoigtdroitbas() ;
-		void initsectionmiddle();
-
-
-
+		
+		
+		void bougerlebrasdroithaut();
+                void bougerlebrasdroitmilieumesure();
+                void bougerlebrasdroitbas();
+                void bougerlebrasgauchebas();
+                void bougerlebrasgauchemilieumesure();
+                void bougerlebrasgauchebasculedistributeur();
+                void bougerlebrasdroitbasculedistributeur();
+                void bougerlebrasgauchehaut();
+                void bougerledoigtdroitmilieubasculedistributeur();
+                void bougerledoigtgauchemilieubasculedistributeur();
+                void bougerledoigtdroithautbasculemesure();
+                void bougerledoigtdroitbasinit();
+                void bougerledoigtgauchehautbasculemesure();
+                void bougerledoigtgauchebasinit();
+		
+		void initsuctionmiddle();
 
                 // Valve control
                 void openValve();
@@ -76,10 +90,10 @@
                 void figurineArmSpeedLow();
                 void figurineArmSpeedHigh();
 
-                void moveSuction(bool high);
+                void moveSuction(int position);
 
                 void moveMiddle();
-                void transportfigurine();
+                void deposefigurine();
                 
 
                 void moveRail(int velocity);

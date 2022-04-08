@@ -23,7 +23,17 @@ using miam::RobotPosition;
 void setupRobot(RobotInterface *robot, ServoHandler *servo)
 {
     servo->figurineArmLow();
+    servo->bougerlebrasdroitbas();
+    servo->bougerlebrasgauchebas();
     servo->turnOffPump();
+    //init ventouse & rail
+    servo->moveSuction(true);
+    servo->initsuctionmiddle();
+    robot->wait(1e6);
+    robot->moveRail(0.7);
+    robot->wait(5e6);
+    robot->moveRail(0.97);
+
 }
 
 
@@ -49,16 +59,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition.y = 1200;
     targetPosition.theta = 0;
     robot->resetPosition(targetPosition, true, true, true);
-    
-    //init ventouse & rail
-    servo->moveSuction(true);
-    servo->initsectionmiddle();
-    robot->wait(1e6);
-    robot->moveRail(0.7);
-    robot->wait(5e6);
-    robot->moveRail(0.97);
-
-	    
+      
    //init pompe
     servo->turnOffPump();
     servo->openValve();
@@ -77,6 +78,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     positions.push_back(targetPosition);
     targetPosition.y = 450;
     positions.push_back(targetPosition);
+    
     // Move at 45degree angle toward the statue
     targetPosition.x += 80;
     targetPosition.y += 80;
@@ -99,10 +101,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     robot->updateScore(15);
 
-
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     std::cout << "ETAPE 2 : devant la statuette" << std::endl;
-
 
     std::cout << "ETAPE 3 : baisser les bras prendre la statuette et lever le bras" << std::endl;
 
@@ -111,7 +111,6 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->electroMagnetOn();
     robot->wait(1e6);
     servo->figurineArmTransport();
-
 
     targetPosition = robot->getCurrentPosition();
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,140.0);
@@ -139,24 +138,15 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     // TODO : placer figurine sur le piedestal ici
-    //lancer pompe
-    //servo->openValve();
     servo->closeTube(0);
     servo->closeTube(2);
     robot->wait(1e6);
-    //servo->openTube(2);
     servo->turnOnPump();
-    //robot->wait(5000000);
     servo->closeValve();
-    //robot->wait(2000000);
-    //servo->closeTube(1);
-    //robot->wait(3000000);
-    //servo->turnOffPump();
-    //aspirer pour toutes les ventouses
     robot->wait(3e6);
     robot->moveRail(0.15);
-    servo->transportfigurine();
-    //lacher milieu
+    servo->deposefigurine();
+    //lacher la figurine au milieu
     robot->wait(1e6);
     servo->turnOffPump();
     servo->openValve() ;
@@ -193,6 +183,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->moveRail(0.5);
 
     // TODO : unfold finger
+    servo->bougerlebrasgauchebasculedistributeur();
+    servo->bougerledoigtgauchemilieubasculedistributeur();
 
     // We should have knocked down the hexagons
     robot->updateScore(3);
@@ -243,14 +235,12 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
-    // while(true) {
-    //     robot->wait(1e6);
-    // }
-
 
     //**********************************************************
-    // Go to the side distributor
+    // Go to the side distributor 
     //**********************************************************
+    
+    //TO DO : reglage hauteur rail pour pompe
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -261,22 +251,29 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    robot->moveRail(0.4);
+    servo->moveSuction(3);
+    
+    servo->closeTube(0);
+    servo->closeTube(2);
+    robot->wait(1e6);
     servo->turnOnPump();
-    //servo->moveSuction(false);
+    servo->closeValve();
+    
     robot->updateScore(1);
 
     //**********************************************************
     // Go back to the gallery & side distributor
     //**********************************************************
 
-    servo->ouvrirlebrashaut(robot->isPlayingRightSide(),true);
     //Go back
     targetPosition = robot->getCurrentPosition();
     traj = miam::trajectory::computeTrajectoryStraightLine(targetPosition,-1100.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     robot->updateScore(3);
-    servo->ouvrirlebrashaut(robot->isPlayingRightSide(),true);
+    servo->bougerlebrasdroitbasculedistributeur();
+    servo->bougerledoigtdroitmilieubasculedistributeur();
 
     //**********************************************************
     // Rotate to the gallery & stop to put the first tresor
@@ -295,8 +292,18 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    
+    servo->moveSuction(2);
+    //TO DO : regler la hauteur des rails
+    robot->moveRail(0.6);
+    
     servo->turnOffPump();
-    //servo->moveSuction(true);
+    servo->openValve() ;
+    servo->openTube(0);
+    servo->openTube(1);
+    servo->openTube(2);
+    robot->wait(2e6);
+ 
     robot->updateScore(8);
 
     // go back a little
@@ -305,22 +312,6 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
-
-
-    //**********************************************************
-    // Go to the side distributor
-    //**********************************************************
-    //positions.clear();
-    //targetPosition = robot->getCurrentPosition();
-    //positions.push_back(targetPosition);
-    //targetPosition.y = 2000- robotdimensions::CHASSIS_FRONT - 100 - 40 ;
-    //positions.push_back(targetPosition);
-    //targetPosition.x = 1350;
-    //positions.push_back(targetPosition);
-    //traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
-    //robot->setTrajectoryToFollow(traj);
-    //wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    //robot->updateScore(15);
 
      //**********************************************************
     // Go to the central zone
@@ -337,8 +328,17 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    //TO DO : régler la hauteur des rails
+    robot->moveRail(0);
+    servo->moveSuction(3);
+    
+    servo->closeTube(0);
+    servo->closeTube(1);
+    servo->closeTube(2);
+    robot->wait(1e6);
     servo->turnOnPump();
-    //servo->moveSuction(false);
+    servo->closeValve();
+    
     robot->updateScore(15);
 
      //**********************************************************
@@ -352,9 +352,18 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(9);
+    //TO DO : régler la hauteur des rails
+    robot->moveRail(0.5);
+    servo->moveSuction(2);
+    
+    servo->openValve();
+    servo->openTube(0);
+    servo->openTube(1);
+    servo->openTube(2);
+    robot->wait(2e6);
+    
     servo->turnOffPump();
-    //servo->moveSuction(true);
+    robot->updateScore(9);
 
     // go back a little
     targetPosition = robot->getCurrentPosition();
@@ -392,9 +401,6 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // Rotate to measure (with several stops to add with finger to command),
     //**********************************************************
 
-
-    // servo->baisserledoigtdroit();
-
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -406,70 +412,170 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
+    servo->bougerlebrasdroitmilieumesure(); 
     //test des 4 configurations
 
     //1ere mesure du carré : soit notre équipe (Yellow ou Violet) soit RED
     if (robot->getExcavationReadings(true)== RED)  //dans configuration
     {
-        servo->reglageouvrirlebrasgauchemilieu();
-        robot->wait(5000000);
-        servo->reglageouvrirlebrasgauchehaut();
-        //servo->reglageouvrirledoigtdroithaut();
+       
+       //bascule du 2e carré et 3e carré
+	positions.clear();
+	targetPosition = robot->getCurrentPosition();
+	positions.push_back(targetPosition);
+	targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
+	targetPosition.x = 852.5;
+	positions.push_back(targetPosition);
+	traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+	robot->setTrajectoryToFollow(traj);
+	wasMoveSuccessful = robot->waitForTrajectoryFinished();
+	
+	servo->bougerledoigtdroithautbasculemesure(); 
+	robot->updateScore(8);
+	
+	positions.clear();
+	targetPosition = robot->getCurrentPosition();
+	positions.push_back(targetPosition);
+	targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
+	targetPosition.x = 1037.5;
+	positions.push_back(targetPosition);
+	traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+	robot->setTrajectoryToFollow(traj);
+	wasMoveSuccessful = robot->waitForTrajectoryFinished();
+	
+	servo->bougerledoigtdroithautbasculemesure(); 
+	robot->updateScore(8);
+	
+	positions.clear();
+        targetPosition = robot->getCurrentPosition();
+        positions.push_back(targetPosition);
+        targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
+        targetPosition.x = 1222.5;
+        positions.push_back(targetPosition);
+        traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+        robot->setTrajectoryToFollow(traj);
+        wasMoveSuccessful = robot->waitForTrajectoryFinished();
+        
+        servo->bougerlebrasdroitmilieumesure();
+       
+       if (robot->getExcavationReadings(true)== YELLOW)  //dans configuration
+    	{
+    	//on suppose qu'on est par défaut yellow. TO DO vérifier ceci & mettre un if en incluant right side
+    	//bascule 4e et 7e
+    	servo->bougerledoigtdroithautbasculemesure(); 
+    	
+    	positions.clear();
+        targetPosition = robot->getCurrentPosition();
+        positions.push_back(targetPosition);
+        targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
+        targetPosition.x = 1777.5;
+        positions.push_back(targetPosition);
+        traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+        robot->setTrajectoryToFollow(traj);
+        wasMoveSuccessful = robot->waitForTrajectoryFinished();
+        
+        servo->bougerledoigtdroithautbasculemesure(); 
+    	}
+    	
+    	if (robot->getExcavationReadings(true)== PURPLE)
+    	{
+    	//bascule 5e et 6e
+    	positions.clear();
+        targetPosition = robot->getCurrentPosition();
+        positions.push_back(targetPosition);
+        targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
+        targetPosition.x = 1407.5;
+        positions.push_back(targetPosition);
+        traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+        robot->setTrajectoryToFollow(traj);
+        wasMoveSuccessful = robot->waitForTrajectoryFinished();
+        
+        servo->bougerlebrasdroitmilieumesure();
+        
+        positions.clear();
+        targetPosition = robot->getCurrentPosition();
+        positions.push_back(targetPosition);
+        targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
+        targetPosition.x = 1592.5;
+        positions.push_back(targetPosition);
+        traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+        robot->setTrajectoryToFollow(traj);
+        wasMoveSuccessful = robot->waitForTrajectoryFinished();
+        
+        servo->bougerlebrasdroitmilieumesure();
+    	}
+
+
+    }
+    
+    else if (robot->getExcavationReadings(true)== (YELLOW or PURPLE))
+    {
+     //bascule du 1er carré et 2e carré
+     servo->bougerledoigtdroithautbasculemesure(); 
+     robot->updateScore(8);
+     
+     positions.clear();
+     targetPosition = robot->getCurrentPosition();
+     positions.push_back(targetPosition);
+     targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
+     targetPosition.x = 1037.5;
+     positions.push_back(targetPosition);
+     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+     robot->setTrajectoryToFollow(traj);
+     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+	
+     servo->bougerledoigtdroithautbasculemesure(); 
+     robot->updateScore(8);
+     
+        if (robot->getExcavationReadings(true)== YELLOW)  //dans configuration
+    	{
+    	//on suppose qu'on est par défaut yellow. TO DO vérifier ceci & mettre un if en incluant right side
+    	//bascule 4e et 7e
+    	servo->bougerledoigtdroithautbasculemesure(); 
+    	
+    	positions.clear();
+        targetPosition = robot->getCurrentPosition();
+        positions.push_back(targetPosition);
+        targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
+        targetPosition.x = 1777.5;
+        positions.push_back(targetPosition);
+        traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+        robot->setTrajectoryToFollow(traj);
+        wasMoveSuccessful = robot->waitForTrajectoryFinished();
+        
+        servo->bougerledoigtdroithautbasculemesure(); 
+    	}
+    	
+    	if (robot->getExcavationReadings(true)== PURPLE)
+    	{
+    	//bascule 5e et 6e
+    	positions.clear();
+        targetPosition = robot->getCurrentPosition();
+        positions.push_back(targetPosition);
+        targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
+        targetPosition.x = 1407.5;
+        positions.push_back(targetPosition);
+        traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+        robot->setTrajectoryToFollow(traj);
+        wasMoveSuccessful = robot->waitForTrajectoryFinished();
+        
+        servo->bougerlebrasdroitmilieumesure();
+        
+        positions.clear();
+        targetPosition = robot->getCurrentPosition();
+        positions.push_back(targetPosition);
+        targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
+        targetPosition.x = 1592.5;
+        positions.push_back(targetPosition);
+        traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+        robot->setTrajectoryToFollow(traj);
+        wasMoveSuccessful = robot->waitForTrajectoryFinished();
+        
+        servo->bougerlebrasdroitmilieumesure();
+    	}
+     
     }
 
-    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
-    servo->ouvrirledoigtbas(robot->isPlayingRightSide(),true);
-    robot->updateScore(8);
-
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
-    targetPosition.x = 852.5;
-    positions.push_back(targetPosition);
-    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
-    robot->updateScore(8);
-
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
-    targetPosition.x = 1037.5;
-    positions.push_back(targetPosition);
-    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
-    robot->updateScore(8);
-
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
-    targetPosition.x = 1222.5;
-    positions.push_back(targetPosition);
-    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
-    robot->updateScore(8);
-
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.y = robotdimensions::CHASSIS_WIDTH + 40 +20;
-    targetPosition.x = 1407.5;
-    positions.push_back(targetPosition);
-    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    servo->ouvrirlebrasmilieu(robot->isPlayingRightSide(),true);
-    robot->updateScore(8);
-    servo->ouvrirlebrashaut(robot->isPlayingRightSide(),true);
 
     //**********************************************************
     // Rotate to come back to the campment
