@@ -50,9 +50,9 @@ void ServoHandler::moveArm(bool const& rightArm, arm const& pose)
     {
         switch (pose)
         {
-            case arm::RAISE: maestro_->setPosition(RIGHT_ARM, 700); break;
+            case arm::RAISE: maestro_->setPosition(RIGHT_ARM, 1300); break;
             case arm::MEASURE: maestro_->setPosition(RIGHT_ARM, 1520); break;
-            case arm::FOLD: maestro_->setPosition(RIGHT_ARM, 1630); break;
+            case arm::FOLD: maestro_->setPosition(RIGHT_ARM, 700); break;
             default: break;
         }
     }
@@ -60,9 +60,9 @@ void ServoHandler::moveArm(bool const& rightArm, arm const& pose)
     {
         switch (pose)
         {
-            case arm::RAISE: maestro_->setPosition(LEFT_ARM, 2060); break;
-            case arm::MEASURE: maestro_->setPosition(LEFT_ARM, 1460); break;
-            case arm::FOLD: maestro_->setPosition(LEFT_ARM, 1200); break;
+            case arm::RAISE: maestro_->setPosition(LEFT_ARM, 1500); break;
+            case arm::MEASURE: maestro_->setPosition(LEFT_ARM, 1300); break;
+            case arm::FOLD: maestro_->setPosition(LEFT_ARM, 2100); break;
             default: break;
         }
     }
@@ -75,9 +75,9 @@ void ServoHandler::moveFinger(bool const& rightArm, finger const& pose)
     {
         switch (pose)
         {
-            case finger::PUSH: maestro_->setPosition(RIGHT_FINGER, 700); break;
+            case finger::PUSH: maestro_->setPosition(RIGHT_FINGER, 510); break;
             case finger::MEASURE: maestro_->setPosition(RIGHT_FINGER, 1500); break;
-            case finger::FOLD: maestro_->setPosition(RIGHT_FINGER, 2000); break;
+            case finger::FOLD: maestro_->setPosition(RIGHT_FINGER, 2490); break;
             default: break;
         }
     }
@@ -85,9 +85,9 @@ void ServoHandler::moveFinger(bool const& rightArm, finger const& pose)
     {
         switch (pose)
         {
-            case finger::PUSH: maestro_->setPosition(LEFT_FINGER, 2000); break;
+            case finger::PUSH: maestro_->setPosition(LEFT_FINGER, 2490); break;
             case finger::MEASURE: maestro_->setPosition(LEFT_FINGER, 1500); break;
-            case finger::FOLD: maestro_->setPosition(LEFT_FINGER, 700); break;
+            case finger::FOLD: maestro_->setPosition(LEFT_FINGER, 510); break;
             default: break;
         }
     }
@@ -157,7 +157,7 @@ void ServoHandler::moveSuction(int const& suctionNumber, suction const& position
         switch (position)
         {
             case suction::FOLD:        maestro_->setPosition(SERVO_SUCTION[1], 2500); break;
-            case suction::VERTICAL:    maestro_->setPosition(SERVO_SUCTION[1], 1600); break;
+            case suction::VERTICAL:    maestro_->setPosition(SERVO_SUCTION[1], 1550); break;
             case suction::HORIZONTAL:  maestro_->setPosition(SERVO_SUCTION[1], 500); break;
             case suction::HOLD_FAKE_STATUE:  maestro_->setPosition(SERVO_SUCTION[1], 2500); break;
             case suction::DROP_FAKE_STATUE:  maestro_->setPosition(SERVO_SUCTION[1], 700); break;
@@ -169,7 +169,7 @@ void ServoHandler::moveSuction(int const& suctionNumber, suction const& position
         switch (position)
         {
             case suction::FOLD:        maestro_->setPosition(SERVO_SUCTION[2], 500); break;
-            case suction::VERTICAL:    maestro_->setPosition(SERVO_SUCTION[2], 1150); break;
+            case suction::VERTICAL:    maestro_->setPosition(SERVO_SUCTION[2], 1500); break;
             case suction::HORIZONTAL:  maestro_->setPosition(SERVO_SUCTION[2], 2500); break;
             default: break;
         }

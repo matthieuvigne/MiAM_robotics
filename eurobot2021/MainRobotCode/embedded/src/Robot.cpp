@@ -18,8 +18,8 @@ const double LOOP_PERIOD = 0.010;
 const int START_SWITCH = 21;
 
 // Potentiometer
-const int MIAM_POTENTIOMETER_LOW_VALUE = 45;
-const int MIAM_POTENTIOMETER_HIGH_VALUE = 250;
+const int MIAM_POTENTIOMETER_LOW_VALUE = 60;
+const int MIAM_POTENTIOMETER_HIGH_VALUE = 330;
 const int MIAM_RAIL_TOLERANCE = 10;
 
 const int MIAM_RAIL_SERVO_ZERO_VELOCITY = 1450;
@@ -440,7 +440,7 @@ void Robot::moveRail(double const& position)
     int targetValue = MIAM_POTENTIOMETER_LOW_VALUE - (MIAM_POTENTIOMETER_LOW_VALUE - MIAM_POTENTIOMETER_HIGH_VALUE) * position;
 
     // Compute error
-    int error = microcontrollerData_.potentiometerPosition - targetValue;
+    int error = uCListener_getData().potentiometerPosition - targetValue;
     int nIter = 0;
     while (std::abs(error) > 8 && nIter < 120)
     {
@@ -456,7 +456,7 @@ void Robot::moveRail(double const& position)
         robot.servos_.moveRail(targetVelocity);
 
         usleep(20000);
-        error = microcontrollerData_.potentiometerPosition - targetValue;
+        error = uCListener_getData().potentiometerPosition - targetValue;
         nIter++;
     }
     robot.servos_.moveRail(MIAM_RAIL_SERVO_ZERO_VELOCITY);

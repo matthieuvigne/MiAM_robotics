@@ -22,7 +22,7 @@ void killCode(int x)
     robot.servos_.openTube(1);
     robot.servos_.openTube(2); */
     robot.servos_.shutdownServos();
-    robot.servos_.turnOffPump();
+    robot.servos_.activatePump(false);
     robot.stopMotors();
     robot.lidar_.stop();
     exit(0);

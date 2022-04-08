@@ -17,7 +17,7 @@
     static inline std::ostream& operator<< (std::ostream& out, ExcavationSquareColor const& c)
     {
         std::string const names[] = {"None", "Purple", "Yellow", "Red"};
-        return out << names[c];
+        return out << names[static_cast<int>(c)];
     }
 
 
