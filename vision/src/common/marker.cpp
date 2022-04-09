@@ -165,12 +165,13 @@ bool Marker::serialize(MarkerIdToEstimate const& markers, std::vector<char>* ser
   // Fill the buffer for serialized markers
   std::vector<char>::iterator byte_it = serialized_markers.begin();
   MarkerIdToEstimate::const_iterator marker_it = markers.cbegin();
+  std::cout << marker_it->second.print() << std::endl;
   for(marker_it; marker_it != markers.cend(); ++marker_it)
   {
     Marker const& marker = marker_it->second;
     std::vector<char>::iterator next_it = std::next(byte_it, Marker::MESSAGE_SIZE_BYTES);
     marker.serialize(byte_it, next_it);
-    byte_it = next_it;
+    byte_it += Marker::MESSAGE_SIZE_BYTES;
   }
   return true;
 }

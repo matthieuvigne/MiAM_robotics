@@ -1,6 +1,8 @@
 #ifndef NETWORK_MESSAGE_HPP
 #define NETWORK_MESSAGE_HPP
 
+#include <iostream>
+
 #include <common/macros.hpp>
 #include <common/marker.hpp>
 
@@ -66,8 +68,8 @@ void Message::setParams(void* params)
 MessageType Message::deserializeType(std::string const& message)
 {
   MessageType message_type = MessageType::UNKNOWN;
-  std::size_t const pos1 = message.find('\0');
-  std::memcpy(&message_type, message.data(), pos1);
+  size_t constexpr type_size_bytes = sizeof(MessageType);
+  std::memcpy(&message_type, message.data(), type_size_bytes);
   return message_type;
 }
 

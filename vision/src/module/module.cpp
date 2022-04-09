@@ -60,9 +60,12 @@ Module::Module(std::string const& filename)
 Module::Module(ModuleParams const& params)
 {
   // Setup RPi GPIO for servo control.
+  #if TEST
+  #else
   RPi_enableGPIO();
   RPi_enablePWM(true, false);
   RPi_setPWMClock(PiPWMClockFrequency::F1200kHz);
+  #endif
 
   // Get the board dimensions
   this->board_.height = params.board_height;

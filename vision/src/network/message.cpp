@@ -1,5 +1,6 @@
 #include <cstring>
 #include <vector>
+#include <iostream>
 
 #include <network/message.hpp>
 
@@ -33,14 +34,12 @@ bool Message::serialize(std::string* message_ptr) const
   
   // Append the type of the message
   size_t const n = sizeof(MessageType);
-  std::vector<char> type(n+1);
-  std::memcpy(&type, &(this->type_), sizeof(MessageType));
-  type[n] = '\0';
+  std::vector<char> type(n);
+  std::memcpy(type.data(), &(this->type_), sizeof(MessageType));
   
   // Append the supplementary data
   std::vector<char> params;
   this->serializeParams(&params);
-  params.push_back('\0');
   
   // Build the message
   message = std::string(type.data(),type.size()) + std::string(params.data(),params.size());
@@ -53,13 +52,12 @@ bool Message::serialize(std::string* message_ptr) const
 bool Message::deserialize(std::string const& message)
 {
   // Get the type of the client's message
-  std::size_t const pos1 = message.find('\0');
-  std::memcpy(&(this->type_), message.data(), pos1);
+  size_t constexpr type_size_bytes = sizeof(MessageType);
+  std::memcpy(&(this->type_), message.data(), type_size_bytes);
   
   // Get the associated parameters of the client's message according the message's type
-  std::size_t const pos2 = message.find('\0', pos1 + 1);
-  std::string::const_iterator params_begin = message.cbegin() + pos1 + 1;
-  std::string::const_iterator params_end = message.cbegin() + pos2 - 1;
+  std::string::const_iterator params_begin = message.cbegin() + type_size_bytes;
+  std::string::const_iterator params_end = message.cend();
   std::vector<char> const params_bytes(params_begin, params_end); 
   bool const success = this->deserializeParams(params_bytes);
   return success;

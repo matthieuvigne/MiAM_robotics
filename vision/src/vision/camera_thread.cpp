@@ -30,7 +30,6 @@ CameraThread::CameraThread(
 CameraThread::~CameraThread()
 {
   this->thread_ptr_->join();
-  std::cout << "Destruction" << std::endl;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -51,6 +50,15 @@ void CameraThread::runThread()
 
     // Detect the markers
     common::DetectedMarkerList detected_markers;
+    for(int i=0; i<10; i++)
+    {
+      common::DetectedMarker marker;
+      marker.marker_id = i;
+      marker.T_CM = Eigen::Affine3d::Identity();
+      marker.cov_T_CM = Eigen::Matrix<double,6,6>::Identity();
+      detected_markers.push_back(marker);
+    }
+    detected_markers.back().marker_id = 42;
     this->camera_ptr_->detectMarkers(image, &detected_markers);
 
     // Check if the central marker (n°42) is detected
@@ -105,12 +113,10 @@ void CameraThread::runThread()
     for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)
     {
       common::DetectedMarker const& detected_marker = *it;
-      common::Marker marker_estimate(T_WC, cov_T_WC, detected_marker);
+      common::Marker marker_estimate(T_WC, cov_T_WC, detected_marker); // COVARIANCE NOT SYMMETRIC !
       std::lock_guard<std::mutex> const lock(this->mutex_);
       this->marker_id_to_estimate_[marker_estimate.id] = marker_estimate;
     }
-
-    // TODO: add a sigint breaker (optional)
   }
 }
 

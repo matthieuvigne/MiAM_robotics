@@ -45,9 +45,9 @@ void ServerThread::serverThread()
       client_sock >> received_message;
 
       // Deserialize the client's request and respond
-      MessageType const request_type = ClientRequest::deserializeType(received_message);
       bool shut_down = false;
       void* response_params_ptr = NULL;
+      MessageType const request_type = ClientRequest::deserializeType(received_message);
       switch(request_type)
       {
         case MessageType::GET_MEASUREMENTS:
