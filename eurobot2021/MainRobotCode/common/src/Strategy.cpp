@@ -42,17 +42,18 @@ void setupRobot(RobotInterface *robot, ServoHandler *servo)
     servo->moveSuction(1, suction::HOLD_FAKE_STATUE);
     robot->moveRail(0.5);
     robot->wait(2.0);
-    robot->moveRail(0.7);
+    robot->moveRail(0.65);
 }
 
 // Test an excavation site, pushing it if necessary.
 void testExcavationSite(RobotInterface *robot, ServoHandler *servo)
 {
     // Take measurement
-    servo->moveArm(!robot->isPlayingRightSide(), arm::MEASURE);
-    servo->moveFinger(!robot->isPlayingRightSide(), finger::MEASURE);
-    robot->wait(1.5);
-    ExcavationSquareColor const color = robot->getExcavationReadings(!robot->isPlayingRightSide());
+    servo->moveArm(robot->isPlayingRightSide(), arm::MEASURE);
+    servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
+    robot->wait(0.8);
+    ExcavationSquareColor const color = robot->getExcavationReadings(robot->isPlayingRightSide());
+    std::cout << static_cast<int>(color) << std::endl;
     bool shouldDrop = false;
     if (robot->isPlayingRightSide())
     {
@@ -64,12 +65,13 @@ void testExcavationSite(RobotInterface *robot, ServoHandler *servo)
     }
     if (shouldDrop)
     {
-        servo->moveFinger(!robot->isPlayingRightSide(), finger::PUSH);
+        servo->moveFinger(robot->isPlayingRightSide(), finger::PUSH);
+        servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
         robot->updateScore(5);
-        robot->wait(0.2);
-        servo->moveFinger(!robot->isPlayingRightSide(), finger::MEASURE);
+        robot->wait(0.4);
+        servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
     }
-    servo->moveArm(!robot->isPlayingRightSide(), arm::RAISE);
+    servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
 }
 
 void matchStrategy(RobotInterface *robot, ServoHandler *servo)
@@ -117,11 +119,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->closeTube(2);
     servo->activatePump(true);
     servo->closeValve();
-
     robot->wait(0.5);
     servo->moveStatue(statue::TRANSPORT);
-    robot->wait(1.5);
-
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     //Go back
@@ -135,7 +134,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     servo->moveStatue(statue::CATCH);
     servo->activateMagnet(true);
-    robot->wait(0.5);
+    robot->wait(0.8);
     servo->moveStatue(statue::TRANSPORT);
     robot->updateScore(5);
 
@@ -163,10 +162,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // Place fake statue
     robot->moveRail(0.4);
     servo->moveSuction(1, suction::DROP_FAKE_STATUE);
-    robot->wait(0.5);
     dropElements(robot, servo);
-
-    robot->wait(1);
+    robot->wait(1.0);
     robot->updateScore(10);
 
     targetPosition = robot->getCurrentPosition();
@@ -194,6 +191,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     servo->activateMagnet(false);
+    servo->moveStatue(statue::DROP);
+    robot->wait(0.1);
     robot->updateScore(20);
 
     //**********************************************************
@@ -206,22 +205,20 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     positions.push_back(targetPosition);
     targetPosition.x = 750;
     positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.4);
+    traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
+    robot->wait(1.5);
+    servo->moveStatue(statue::FOLD);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::HORIZONTAL);
 
     robot->wait(0.5);
-    robot->moveRail(0.0);
-
+    robot->moveRail(0.05);
 
     servo->closeValve();
     servo->activatePump(true);
-    robot->wait(3.0);
-    // servo->closeTube(0);
-    // servo->closeTube(1);
-    // servo->closeTube(2);
+    robot->wait(1.0);
 
     robot->moveRail(0.75);
     for (int i = 0; i < 3; i++)
@@ -229,32 +226,22 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     targetPosition = robot->getCurrentPosition();
     endPosition = targetPosition;
-    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 -20;
+    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 10;
     traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     dropElements(robot, servo);
-    
-    robot->wait(1);
-
+    robot->wait(0.2);
     robot->moveRail(0.5);
 
-    
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -10);
+    traj = computeTrajectoryStraightLine(targetPosition, -15);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    robot->wait(0.5);
-
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::DROP_SAMPLE);
-    
-    
-    robot->wait(0.5);
-
-
+    robot->wait(0.3);
     robot->updateScore(9);
 
     targetPosition = robot->getCurrentPosition();
@@ -277,7 +264,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition.x = 460 ;
     targetPosition.y = 230 ;
     positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.5);
+    traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
     // Move the rail so it doesn't hit the fake statue
     robot->moveRail(0.9);
@@ -289,32 +276,30 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //**********************************************************
     // Flip the dig zone
     //**********************************************************
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition,-250.0);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    servo->moveArm(!robot->isPlayingRightSide(), arm::RAISE);
-    servo->moveFinger(!robot->isPlayingRightSide(), finger::MEASURE);
-
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
-    targetPosition.x = 450;
-    targetPosition.y = robotdimensions::CHASSIS_WIDTH + 80 + 80;
+    targetPosition.x -= 100 * std::cos(targetPosition.theta);
+    targetPosition.y -= 100 * std::sin(targetPosition.theta);
     positions.push_back(targetPosition);
-    targetPosition.x = 610;
+    targetPosition.x = 620;
+    targetPosition.y = robotdimensions::CHASSIS_WIDTH + 80 + 60;
     positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+    targetPosition.x = 730;
+    positions.push_back(targetPosition);
+    traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
+    servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
 
     // Test all sites.
     testExcavationSite(robot, servo);
     for (int i = 0; i < 6; i++)
     {
-        targetPosition.x = 610 + (i + 1) * 185;
-        traj = computeTrajectoryStraightLineToPoint(robot->getCurrentPosition(), targetPosition);
+        targetPosition.x = 730 + (i + 1) * 185;
+        traj = computeTrajectoryStraightLineToPoint(robot->getCurrentPosition(), targetPosition, 0.0, true);
         robot->setTrajectoryToFollow(traj);
         wasMoveSuccessful = robot->waitForTrajectoryFinished();
         testExcavationSite(robot, servo);
@@ -332,7 +317,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     positions.push_back(targetPosition);
     targetPosition.x = 975;
     positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.5);
+    traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     robot->updateScore(20);

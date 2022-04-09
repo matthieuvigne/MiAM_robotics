@@ -66,7 +66,7 @@ void MaestroDriver::setSpeed(int const& servo, int const& speed)
     clearError();
     unsigned char parameters[3];
     parameters[0] = servo;
-    // Command unit: 0.25 us/s
+    // Command unit: 25 us/s
     int servoCommand = speed / 25;
     parameters[1] = servoCommand & 0xFF;
     parameters[2] = (servoCommand >> 8) & 0xFF;
