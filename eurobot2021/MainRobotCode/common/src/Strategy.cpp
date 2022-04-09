@@ -53,7 +53,6 @@ void testExcavationSite(RobotInterface *robot, ServoHandler *servo)
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
     robot->wait(0.8);
     ExcavationSquareColor const color = robot->getExcavationReadings(robot->isPlayingRightSide());
-    std::cout << static_cast<int>(color) << std::endl;
     bool shouldDrop = false;
     if (robot->isPlayingRightSide())
     {
@@ -203,7 +202,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     positions.push_back(targetPosition);
     targetPosition.y = 1325;
     positions.push_back(targetPosition);
-    targetPosition.x = 750;
+    targetPosition.x = 770;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
@@ -226,19 +225,18 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     targetPosition = robot->getCurrentPosition();
     endPosition = targetPosition;
-    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 10;
+    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 5;
     traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     dropElements(robot, servo);
-    robot->wait(0.2);
     robot->moveRail(0.5);
 
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -15);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, -15);
+    // robot->setTrajectoryToFollow(traj);
+    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::DROP_SAMPLE);
     robot->wait(0.3);

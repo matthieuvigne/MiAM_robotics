@@ -15,12 +15,17 @@
         enum {
             LEFT_LED = 0b001,
             MIDDLE_LED = 0b010,
-            RIGHT_LED = 0b100,
-            LEFT_BUTTON = 0b001,
-            MIDDLE_BUTTON = 0b010,
-            RIGHT_BUTTON = 0b100
+            RIGHT_LED = 0b100
+        };
+
+        enum class button{
+            LEFT = 0,
+            MIDDLE = 1,
+            RIGHT = 2,
         };
     }
+
+
     class USBLCD{
         public:
             /// \brief Default contstructor.
@@ -39,7 +44,6 @@
             /// \param[in] line Line number (0 or 1).
             /// \param[in] centered If the text should be centered. Default is true.
             void setText(std::string const& text, int const& line = 0, bool centered = true);
-
 
             /// \brief Set LCD backlight
             ///
@@ -69,7 +73,11 @@
             /// \brief Get the state of each button.
             /// \return The state of the three buttons: use lcd enum to get individual button press.
             uint8_t getButtonState();
+
+            /// \brief Return true is the button is currently pressed, and wasn't on last call.
+            bool wasButtonPressedSinceLastCall(lcd::button const& button);
         private:
+            bool lastButtonState_[3];
 
             int port_; ///< File descriptor of the port used to talk to the board.
             uint8_t LEDState_; ///< Current LED state - only lower three bits are used.

@@ -46,8 +46,7 @@
     enum startupstatus{
         INIT,
         WAITING_FOR_CABLE,
-        PLAYING_RIGHT,
-        PLAYING_LEFT
+        WAITING_FOR_START
     };
 
 
@@ -232,7 +231,8 @@
             std::mutex mutex_; ///< Mutex, for thread safety.
 
             startupstatus startupStatus_; ///< Current startup status.
-            int initMotorState_; ///< State of the motors during init.
+            bool initMotorBlocked_; ///< State of the motors during init.
+            bool initStatueHigh_; ///< State of the motors during init.
 
             double curvilinearAbscissa_;
             int nLidarPoints_;  ///< Number of points read by the lidar.

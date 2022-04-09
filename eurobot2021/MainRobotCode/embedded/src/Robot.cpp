@@ -37,9 +37,10 @@ Robot::Robot():
     isServosInit_(false),
     isArduinoInit_(false),
     isLidarInit_(false),
-    score_(5),  // Initial score: 5, for the experiment.
+    score_(0),
     startupStatus_(startupstatus::INIT),
-    initMotorState_(1),
+    initMotorBlocked_(false),
+    initStatueHigh_(true),
     curvilinearAbscissa_(0.0)
 {
     kinematics_ = DrivetrainKinematics(robotdimensions::wheelRadius,
@@ -101,7 +102,7 @@ bool Robot::initSystem()
         else
         {
             screen_.setText("Initializing", 0);
-            robot.screen_.setLCDBacklight(255, 255, 255);
+            screen_.setLCDBacklight(255, 255, 255);
         }
 
     }
@@ -115,9 +116,9 @@ bool Robot::initSystem()
                 std::cout << "[Robot] Failed to init communication with Arduino." << std::endl;
             #endif
             allInitSuccessful = false;
-            robot.screen_.setText("Failed to init", 0);
-            robot.screen_.setText("Arduino", 1);
-            robot.screen_.setLCDBacklight(255, 0, 0);
+            screen_.setText("Failed to init", 0);
+            screen_.setText("Arduino", 1);
+            screen_.setLCDBacklight(255, 0, 0);
         }
     }
 
@@ -140,9 +141,9 @@ bool Robot::initSystem()
                 std::cout << "[Robot] Failed to init communication with stepper motors." << std::endl;
             #endif
             allInitSuccessful = false;
-            robot.screen_.setText("Failed to init", 0);
-            robot.screen_.setText("stepper motors", 1);
-            robot.screen_.setLCDBacklight(255, 0, 0);
+            screen_.setText("Failed to init", 0);
+            screen_.setText("stepper motors", 1);
+            screen_.setLCDBacklight(255, 0, 0);
         }
         else
         {
@@ -159,9 +160,9 @@ bool Robot::initSystem()
                 std::cout << "[Robot] Failed to init communication with servo driver." << std::endl;
             #endif
             allInitSuccessful = false;
-            robot.screen_.setText("Failed to init", 0);
-            robot.screen_.setText("servos", 1);
-            robot.screen_.setLCDBacklight(255, 0, 0);
+            screen_.setText("Failed to init", 0);
+            screen_.setText("servos", 1);
+            screen_.setLCDBacklight(255, 0, 0);
         }
     }
 
@@ -175,9 +176,9 @@ bool Robot::initSystem()
             #ifdef DEBUG
                 std::cout << "[Robot] Failed to init communication with lidar driver." << std::endl;
             #endif
-            robot.screen_.setText("Failed to init", 0);
-            robot.screen_.setText("lidar", 1);
-            robot.screen_.setLCDBacklight(255, 0, 0);
+            screen_.setText("Failed to init", 0);
+            screen_.setText("lidar", 1);
+            screen_.setLCDBacklight(255, 0, 0);
 
         }
     }
@@ -211,12 +212,12 @@ bool Robot::setupBeforeMatchStart()
                 return true;
             }
             startupStatus_ = startupstatus::WAITING_FOR_CABLE;
-            robot.screen_.setText("Waiting for", 0);
-            robot.screen_.setText("start switch", 1);
-            robot.screen_.setLCDBacklight(255, 255, 255);
+            screen_.setText("Waiting for", 0);
+            screen_.setText("start switch", 1);
+            screen_.setLCDBacklight(255, 255, 255);
 
             // Test motors.
-            robot.stepperMotors_.getError();
+            stepperMotors_.getError();
             std::vector<double> speed;
             motorSpeed_[0] = 150;
             motorSpeed_[1] = 150;
@@ -235,54 +236,59 @@ bool Robot::setupBeforeMatchStart()
             // Store plug time in matchStartTime_ to prevent false start due to switch bounce.
             matchStartTime_ = currentTime_;
             isPlayingRightSide_ = false;
-            robot.screen_.setText("     YELLOW    >", 0);
-            robot.screen_.setLCDBacklight(255, 200, 0);
         }
-        startupStatus_ = startupstatus::PLAYING_LEFT;
+        startupStatus_ = startupstatus::WAITING_FOR_START;
     }
-    else
+    else if (startupStatus_ == startupstatus::WAITING_FOR_START)
     {
         // Switch side based on button press.
-        if (startupStatus_ == startupstatus::PLAYING_RIGHT && (robot.screen_.getButtonState() & lcd::LEFT_BUTTON))
+        if (screen_.wasButtonPressedSinceLastCall(lcd::button::LEFT))
+            isPlayingRightSide_ = !isPlayingRightSide_;
+        if (screen_.wasButtonPressedSinceLastCall(lcd::button::MIDDLE))
+            initMotorBlocked_ = !initMotorBlocked_;
+        if (screen_.wasButtonPressedSinceLastCall(lcd::button::RIGHT))
         {
-            startupStatus_ = startupstatus::PLAYING_LEFT;
-            isPlayingRightSide_ = false;
-            robot.screen_.setText("     YELLOW    >", 0);
-            robot.screen_.setLCDBacklight(255, 255, 0);
-        }
-        else if (startupStatus_ == startupstatus::PLAYING_LEFT && (robot.screen_.getButtonState() & lcd::RIGHT_BUTTON))
-        {
-            startupStatus_ = startupstatus::PLAYING_RIGHT;
-            isPlayingRightSide_ = true;
-            robot.screen_.setText("<    PURPLE     ", 0);
-            robot.screen_.setLCDBacklight(255, 0, 255);
+            initStatueHigh_ = !initStatueHigh_;
+            if (initStatueHigh_)
+                moveRail(0.65);
+            else
+                moveRail(0.5);
         }
 
-        // Use down button to lock / unlock the motors.
-        if ((robot.screen_.getButtonState() & lcd::MIDDLE_BUTTON))
+        screen_.setText("SIDE  MOT STATUE", 0);
+        std::string secondLine = "";
+        if (isPlayingRightSide_)
         {
-            // Only modify state if the button was just pressed.
-            if (initMotorState_ < 2)
-            {
-                if (initMotorState_ == 0)
-                    stepperMotors_.hardStop();
-                else
-                    stepperMotors_.highZ();
-                initMotorState_ = (initMotorState_ + 1) % 2 + 2;
-            }
+            secondLine = "PURPLE";
+            screen_.setLCDBacklight(255, 0, 255);
         }
         else
         {
-            // Button release: change state to be less that two.
-            initMotorState_ = initMotorState_ % 2;
+            secondLine = "YELLOW";
+            screen_.setLCDBacklight(255, 255, 0);
         }
+        if (initMotorBlocked_)
+        {
+            stepperMotors_.hardStop();
+            secondLine += " ON ";
+        }
+        else
+        {
+            stepperMotors_.highZ();
+            secondLine += " OFF ";
+        }
+        if (initStatueHigh_)
+            secondLine += "    ON";
+        else
+            secondLine += "  DOWN";
+        screen_.setText(secondLine, 1);
 
         // If start button is pressed, return true to end startup.
-        if (currentTime_ - matchStartTime_ > 0.5 && (RPi_readGPIO(START_SWITCH) == 1))
+        if (currentTime_ - matchStartTime_ > 1.5 && (RPi_readGPIO(START_SWITCH) == 1))
         {
-            robot.screen_.setText("", 0);
-            robot.screen_.setText("", 1);
-            robot.screen_.setLCDBacklight(255, 255, 255);
+            screen_.setText("", 0);
+            screen_.setText("", 1);
+            screen_.setLCDBacklight(255, 255, 255);
             return true;
         }
     }
@@ -318,9 +324,9 @@ void Robot::lowLevelLoop()
         {
             heartbeatLed = !heartbeatLed;
             if (heartbeatLed)
-                robot.screen_.turnOnLED(lcd::RIGHT_LED);
+                screen_.turnOnLED(lcd::RIGHT_LED);
             else
-                robot.screen_.turnOffLED(lcd::RIGHT_LED);
+                screen_.turnOffLED(lcd::RIGHT_LED);
         }
 
         // If match hasn't started, look at switch value to see if it has.
@@ -429,13 +435,13 @@ void Robot::moveRail(double const& position)
             MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
         );
         // Send target to servo
-        robot.servos_.moveRail(targetVelocity);
+        servos_.moveRail(targetVelocity);
 
         usleep(20000);
         error = uCListener_getData().potentiometerPosition - targetValue;
         nIter++;
     }
-    robot.servos_.moveRail(MIAM_RAIL_SERVO_ZERO_VELOCITY);
+    servos_.moveRail(MIAM_RAIL_SERVO_ZERO_VELOCITY);
 }
 
 void Robot::updateLog()

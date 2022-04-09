@@ -44,6 +44,10 @@ bool USBLCD::init(std::string const& fileName)
         #endif
         return false;
     }
+    for (int i = 0; i < 3; i++)
+    {
+        lastButtonState_[i] = true;
+    }
     return true;
 
 }
@@ -143,6 +147,20 @@ uint8_t USBLCD::getButtonState()
     if(state == 255)
         state = 0;
     return state;
+}
+
+
+bool USBLCD::wasButtonPressedSinceLastCall(lcd::button const& button)
+{
+    int const b = static_cast<int>(button);
+    uint8_t mask = 1;
+    if (b > 0)
+        mask = mask << b;
+    uint8_t state = getButtonState();
+    bool const currentState = getButtonState() & mask;
+    bool const wasPressed = currentState & !lastButtonState_[b];
+    lastButtonState_[b] = currentState;
+    return wasPressed;
 }
 
 
