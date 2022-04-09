@@ -29,6 +29,8 @@ ServerThread::~ServerThread(){
 void ServerThread::serverThread()
 {
   // Wait for the client's connection
+  ClientRequest::UniquePtr request_ptr;
+  ServerResponse::UniquePtr response_ptr;
   while(true)
   {
     // Wait for the client's connection
@@ -41,25 +43,24 @@ void ServerThread::serverThread()
       // Waiting for the client's request
       std::string received_message;
       client_sock >> received_message;
-      
-      // Deserialize the client's request
-      ClientRequest const client_request(received_message);
-      MessageType const request_type = client_request.getType();
 
-      // Respond according the client's request type
+      // Deserialize the client's request and respond
+      MessageType const request_type = ClientRequest::deserializeType(received_message);
       bool shut_down = false;
-      void* params_ptr = NULL;
+      void* response_params_ptr = NULL;
       switch(request_type)
       {
         case MessageType::GET_MEASUREMENTS:
         {
+          // No parameters associated to the request
           common::MarkerIdToEstimate estimates;
           this->camera_thread_ptr_->getMarkers(&estimates);
-          params_ptr = &estimates;
+          response_params_ptr = &estimates;
           break;
         }
         case MessageType::SHUT_DOWN:
         {
+          // No parameters associated to the request
           shut_down = true;
           break;
         }
@@ -67,12 +68,12 @@ void ServerThread::serverThread()
         default:
           break;
       }
-      ServerResponse server_response(request_type, params_ptr);
+      response_ptr.reset(new ServerResponse(request_type, response_params_ptr));
 
       // Send the response to the client
-      std::string response;
-      server_response.serialize(&response);
-      client_sock << response;
+      std::string response_str;
+      response_ptr->serialize(&response_str);
+      client_sock << response_str;
 
       // Shut down if request
       if(shut_down) break;

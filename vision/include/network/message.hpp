@@ -33,6 +33,7 @@ public:
   bool deserialize(std::string const& message);
   inline MessageType getType() const;
   inline void const* getParams() const;
+  inline static MessageType deserializeType(std::string const& message);
 
 protected:
   virtual bool serializeParams(std::vector<char>* params) const = 0;
@@ -58,6 +59,16 @@ MessageType Message::getType() const
 void Message::setParams(void* params)
 {
   this->params_ = params;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+MessageType Message::deserializeType(std::string const& message)
+{
+  MessageType message_type = MessageType::UNKNOWN;
+  std::size_t const pos1 = message.find('\0');
+  std::memcpy(&message_type, message.data(), pos1);
+  return message_type;
 }
 
 //--------------------------------------------------------------------------------------------------
