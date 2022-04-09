@@ -117,12 +117,15 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->closeTube(2);
     servo->activatePump(true);
     servo->closeValve();
-    robot->wait(2.0);
+
+    robot->wait(0.5);
     servo->moveStatue(statue::TRANSPORT);
+    robot->wait(1.5);
 
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     //Go back
+
     targetPosition = robot->getCurrentPosition();
     endPosition.x = 230 + robotdimensions::CHASSIS_BACK;
     endPosition.y = 230 + robotdimensions::CHASSIS_BACK;
@@ -208,14 +211,17 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::HORIZONTAL);
+
+    robot->wait(0.5);
     robot->moveRail(0.0);
 
-    servo->activatePump(true);
+
     servo->closeValve();
-    robot->wait(1.0);
-    servo->closeTube(0);
-    servo->closeTube(1);
-    servo->closeTube(2);
+    servo->activatePump(true);
+    robot->wait(3.0);
+    // servo->closeTube(0);
+    // servo->closeTube(1);
+    // servo->closeTube(2);
 
     robot->moveRail(0.75);
     for (int i = 0; i < 3; i++)
@@ -223,7 +229,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     targetPosition = robot->getCurrentPosition();
     endPosition = targetPosition;
-    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70;
+    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 -20;
     traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
@@ -295,7 +301,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = 450;
-    targetPosition.y = robotdimensions::CHASSIS_WIDTH + 80 + 30;
+    targetPosition.y = robotdimensions::CHASSIS_WIDTH + 80 + 80;
     positions.push_back(targetPosition);
     targetPosition.x = 610;
     positions.push_back(targetPosition);

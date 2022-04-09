@@ -149,13 +149,13 @@ void ServoHandler::moveSuction(int const& suctionNumber, suction const& position
             case suction::FOLD:        maestro_->setPosition(SERVO_SUCTION[0], 2500); break;
             case suction::DROP_SAMPLE:    maestro_->setPosition(SERVO_SUCTION[0], 1100); break;
             case suction::LOWER_SAMPLE:    maestro_->setPosition(SERVO_SUCTION[0], 1300); break;
-            case suction::HORIZONTAL:  maestro_->setPosition(SERVO_SUCTION[0], 600); break;
+            case suction::HORIZONTAL:  maestro_->setPosition(SERVO_SUCTION[0], 550); break;
             default: break;
         }
     }
     else if (suctionNumber == 1)
     {
-        maestro_->setSpeed(SERVO_SUCTION[1], 50000);
+        //maestro_->setSpeed(SERVO_SUCTION[1], 50000);
         switch (position)
         {
             case suction::FOLD:        maestro_->setPosition(SERVO_SUCTION[1], 2500); break;
@@ -163,7 +163,8 @@ void ServoHandler::moveSuction(int const& suctionNumber, suction const& position
             case suction::LOWER_SAMPLE:    maestro_->setPosition(SERVO_SUCTION[1], 1200); break;
             case suction::HORIZONTAL:  maestro_->setPosition(SERVO_SUCTION[1], 500); break;
             case suction::HOLD_FAKE_STATUE:  maestro_->setPosition(SERVO_SUCTION[1], 2500); break;
-            case suction::DROP_FAKE_STATUE:  maestro_->setSpeed(SERVO_SUCTION[1], 1500); maestro_->setPosition(SERVO_SUCTION[1], 1100); break;
+            case suction::DROP_FAKE_STATUE:  maestro_->setPosition(SERVO_SUCTION[1], 1100); break;
+            // case suction::DROP_FAKE_STATUE:  maestro_->setSpeed(SERVO_SUCTION[1], 1500); maestro_->setPosition(SERVO_SUCTION[1], 1100); break;
             default: break;
         }
     }
@@ -199,10 +200,11 @@ void ServoHandler::activateMagnet(bool const& magnetOn)
 
 void ServoHandler::moveStatue(statue const& pose)
 {
-    maestro_->setSpeed(STATUE, 20000);
+    // maestro_->setSpeed(STATUE, 20000);
     switch(pose)
     {
-        case statue::TRANSPORT: maestro_->setSpeed(STATUE, 500); maestro_->setPosition(STATUE, 1950); break;
+        case statue::TRANSPORT: maestro_->setPosition(STATUE, 1950); break;
+        // case statue::TRANSPORT: maestro_->setSpeed(STATUE, 500); maestro_->setPosition(STATUE, 1950); break;
         case statue::CATCH: maestro_->setPosition(STATUE, 1740); break;
         case statue::DROP: maestro_->setPosition(STATUE, 1600); break;
         case statue::FOLD: maestro_->setPosition(STATUE, 900); break;
