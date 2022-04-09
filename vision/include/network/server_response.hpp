@@ -12,6 +12,7 @@ public:
   POINTER_TYPEDEF(ServerResponse);
   DISALLOW_EVIL_CONSTRUCTORS(ServerResponse);
   ServerResponse(MessageType type, void* params = NULL);
+  ServerResponse(std::string const& message);
   virtual ~ServerResponse(){}
 
 private:

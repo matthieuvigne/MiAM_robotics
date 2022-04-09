@@ -16,6 +16,7 @@ public:
   POINTER_TYPEDEF(ClientRequest);
   DISALLOW_EVIL_CONSTRUCTORS(ClientRequest);
   ClientRequest(MessageType type, void* params = NULL);
+  ClientRequest(std::string const& message);
   virtual ~ClientRequest(){}
 
 private:

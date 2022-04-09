@@ -22,9 +22,9 @@ public:
   POINTER_TYPEDEF(Message);
   DISALLOW_EVIL_CONSTRUCTORS(Message);
 
-protected:
-
-  Message(MessageType type, void* params);
+public:
+  Message(MessageType type, void* params = NULL);
+  Message(std::string const& message);
   virtual ~Message(){}
 
 public:
