@@ -74,14 +74,14 @@
             ///                        Otherwise, use the motor parameters. Default: false
             ///
             /// \return Speed of the base.
-            BaseSpeed forwardKinematics(WheelSpeed const& wheelSpeedIn, bool const& useEncoders = false);
+            BaseSpeed forwardKinematics(WheelSpeed const& wheelSpeedIn, bool const& useEncoders = false) const;
 
             /// \brief Inverse kinematics, i.e. convert base speed to wheel speed
             ///
             /// \param[in] baseSpeedIn Base velocity
             ///
             /// \return Motor wheel speed.
-            WheelSpeed inverseKinematics(BaseSpeed const& baseSpeedIn);
+            WheelSpeed inverseKinematics(BaseSpeed const& baseSpeedIn) const;
 
             /// \brief Integrate the (infinitesimal) wheel displacement into a robot position.
             /// \details By default, wheelSpeedIn is intepreted as the angular displacement of the encoder wheels:
@@ -91,7 +91,7 @@
             /// \param[in] positionInOut The position from which to integrate ; contains the integration result.
             /// \param[in] useEncoders If true, compute kinematics using the encoders.
             ///                        Otherwise, use the motor parameters. Default: true
-            void integratePosition(WheelSpeed const& wheelSpeedIn, miam::RobotPosition & positionInOut, bool const& useEncoders = true);
+            void integratePosition(WheelSpeed const& wheelSpeedIn, miam::RobotPosition & positionInOut, bool const& useEncoders = true) const;
 
         private:
             double motorWheelRadius_; ///< Radius of the motor wheel, in mm.

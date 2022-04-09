@@ -40,14 +40,12 @@ Robot::Robot():
     score_(5),  // Initial score: 5, for the experiment.
     startupStatus_(startupstatus::INIT),
     initMotorState_(1),
-    curvilinearAbscissa_(0.0),
-    reset_(),
-    askedForReset_(false)
+    curvilinearAbscissa_(0.0)
 {
     kinematics_ = DrivetrainKinematics(robotdimensions::wheelRadius,
-                                      robotdimensions::wheelSpacing,
-                                      robotdimensions::encoderWheelRadius,
-                                      robotdimensions::encoderWheelSpacing);
+                                       robotdimensions::wheelSpacing,
+                                       robotdimensions::encoderWheelRadius,
+                                       robotdimensions::encoderWheelSpacing);
     // Update trajectory config.
     miam::trajectory::setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
                                                     robotdimensions::maxWheelAccelerationTrajectory,
@@ -291,20 +289,6 @@ bool Robot::setupBeforeMatchStart()
     return false;
 }
 
-
-void Robot::performPositionReset(miam::RobotPosition const& resetPosition, bool const& resetX, bool const& resetY, bool const& resetTheta)
-{
-    reset_ = currentPosition_.get();
-    if(resetX)
-        reset_.x = resetPosition.x;
-    if(resetY)
-        reset_.y = resetPosition.y;
-    if(resetTheta)
-        reset_.theta = resetPosition.theta;
-    askedForReset_ = true;
-    usleep(20000);
-}
-
 void Robot::lowLevelLoop()
 {
     std::cout << "Low-level loop started." << std::endl;
@@ -337,12 +321,6 @@ void Robot::lowLevelLoop()
                 robot.screen_.turnOnLED(lcd::RIGHT_LED);
             else
                 robot.screen_.turnOffLED(lcd::RIGHT_LED);
-        }
-
-        if (askedForReset_)
-        {
-            askedForReset_ = false;
-            currentPosition_.set(reset_);
         }
 
         // If match hasn't started, look at switch value to see if it has.
@@ -404,9 +382,7 @@ void Robot::lowLevelLoop()
         if (hasMatchStarted_)
         {
             // Integrate encoder measurements.
-            RobotPosition currentPosition = currentPosition_.get();
-            kinematics_.integratePosition(encoderIncrement, currentPosition);
-            currentPosition_.set(currentPosition);
+            currentPosition_.update(kinematics_, encoderIncrement);
 
             // Perform trajectory tracking.
             updateTrajectoryFollowingTarget(dt);

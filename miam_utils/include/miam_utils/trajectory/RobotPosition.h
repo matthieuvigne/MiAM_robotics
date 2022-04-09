@@ -7,6 +7,8 @@
 
     #include <iostream>
     #include <mutex>
+    class DrivetrainKinematics;
+    class WheelSpeed;
 
     namespace miam{
         /// \brief Robot coordinates on the table.
@@ -119,6 +121,9 @@
                     position_ = p;
                     mutex_.unlock();
                 }
+
+                // Update the position by the given motion, return the updated position.
+                RobotPosition update(DrivetrainKinematics const & kinematics, WheelSpeed const& encoderIncrement);
 
             private:
                 RobotPosition position_;

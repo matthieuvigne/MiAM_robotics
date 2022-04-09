@@ -22,7 +22,7 @@ DrivetrainKinematics::DrivetrainKinematics(double const& motorWheelRadiusIn,
 {
 }
 
-BaseSpeed DrivetrainKinematics::forwardKinematics(WheelSpeed const& wheelSpeedIn, bool const& useEncoders)
+BaseSpeed DrivetrainKinematics::forwardKinematics(WheelSpeed const& wheelSpeedIn, bool const& useEncoders) const
 {
     BaseSpeed speed;
     double wheelRadius = (useEncoders ? encoderWheelRadius_ : motorWheelRadius_);
@@ -35,7 +35,7 @@ BaseSpeed DrivetrainKinematics::forwardKinematics(WheelSpeed const& wheelSpeedIn
     return speed;
 }
 
-WheelSpeed DrivetrainKinematics::inverseKinematics(BaseSpeed const& baseSpeedIn)
+WheelSpeed DrivetrainKinematics::inverseKinematics(BaseSpeed const& baseSpeedIn) const
 {
     WheelSpeed speed;
     speed.right = (baseSpeedIn.linear + motorWheelSpacing_ * baseSpeedIn.angular) / motorWheelRadius_;
@@ -44,7 +44,7 @@ WheelSpeed DrivetrainKinematics::inverseKinematics(BaseSpeed const& baseSpeedIn)
 }
 
 
-void DrivetrainKinematics::integratePosition(WheelSpeed const& wheelSpeedIn, miam::RobotPosition & positionInOut, bool const& useEncoders)
+void DrivetrainKinematics::integratePosition(WheelSpeed const& wheelSpeedIn, miam::RobotPosition & positionInOut, bool const& useEncoders) const
 {
     // Compute base velocity.
     BaseSpeed speed = forwardKinematics(wheelSpeedIn, useEncoders);

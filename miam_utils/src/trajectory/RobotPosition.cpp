@@ -1,6 +1,7 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
 #include "miam_utils/trajectory/RobotPosition.h"
+#include "miam_utils/trajectory/DrivetrainKinematics.h"
 
 #include <cmath>
 
@@ -110,5 +111,15 @@ namespace miam{
         os << " y: " << p.y;
         os << " theta: " << p.theta;
         return os;
+    }
+
+    RobotPosition ProtectedPosition::update(DrivetrainKinematics const & kinematics, WheelSpeed const& encoderIncrement)
+    {
+        RobotPosition output;
+        mutex_.lock();
+        kinematics.integratePosition(encoderIncrement, position_);
+        output = position_;
+        mutex_.unlock();
+        return output;
     }
 }
