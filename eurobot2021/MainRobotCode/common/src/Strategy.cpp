@@ -162,7 +162,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->moveSuction(1, suction::DROP_FAKE_STATUE);
     robot->wait(0.5);
     dropElements(robot, servo);
-    robot->wait(0.5);
+
+    robot->wait(1);
     robot->updateScore(10);
 
     targetPosition = robot->getCurrentPosition();
@@ -230,16 +231,23 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     dropElements(robot, servo);
     
     robot->wait(1);
-    for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::DROP_SAMPLE);
+
+    robot->moveRail(0.5);
+
     
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -10);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
-    robot->moveRail(0.5);
-    robot->wait(1);
+    robot->wait(0.5);
+
+    for (int i = 0; i < 3; i++)
+        servo->moveSuction(i, suction::DROP_SAMPLE);
+    
+    
+    robot->wait(0.5);
+
 
     robot->updateScore(9);
 
@@ -276,7 +284,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // Flip the dig zone
     //**********************************************************
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition,-150.0);
+    traj = computeTrajectoryStraightLine(targetPosition,-250.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
