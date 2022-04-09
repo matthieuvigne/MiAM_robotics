@@ -35,7 +35,8 @@
             HORIZONTAL = 1,
             VERTICAL = 2,
             DROP_FAKE_STATUE = 3,
-            HOLD_FAKE_STATUE = 4
+            HOLD_FAKE_STATUE = 4,
+            DROP_SAMPLES = 5
         };
 
         /// \brief Helper class for controlling the robot servos.
@@ -51,10 +52,6 @@
                 /// \returns   true on success, false otherwise.
                 bool init(std::string const& portName);
                 void shutdownServos(); ///< Turn off all servos.
-
-
-
-		        void initsuctionmiddle();
 
                 // Valve / suction control
                 void openValve();
