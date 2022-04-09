@@ -28,9 +28,10 @@ public:
   virtual ~Message(){}
 
 public:
+  inline void setParams(void* params);
   bool serialize(std::string* message) const;
   bool deserialize(std::string const& message);
-  inline MessageType const getType() const;
+  inline MessageType getType() const;
   inline void const* getParams() const;
 
 protected:
@@ -47,17 +48,17 @@ protected:
 // Inline functions
 //--------------------------------------------------------------------------------------------------
 
-MessageType const Message::getType() const
+MessageType Message::getType() const
 {
   return this->type_;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-//~ void const* Message::getParams() const
-//~ {
-  //~ return this->params_;
-//~ }
+void Message::setParams(void* params)
+{
+  this->params_ = params;
+}
 
 //--------------------------------------------------------------------------------------------------
 
