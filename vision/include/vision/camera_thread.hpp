@@ -28,6 +28,7 @@ public:
     Eigen::Matrix<double,6,6> const& cov_T_RC,
     Camera::UniquePtr camera);
   virtual ~CameraThread();
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 public:
 

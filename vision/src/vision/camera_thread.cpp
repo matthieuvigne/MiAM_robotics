@@ -50,15 +50,6 @@ void CameraThread::runThread()
 
     // Detect the markers
     common::DetectedMarkerList detected_markers;
-    for(int i=0; i<10; i++)
-    {
-      common::DetectedMarker marker;
-      marker.marker_id = i;
-      marker.T_CM = Eigen::Affine3d::Identity();
-      marker.cov_T_CM = Eigen::Matrix<double,6,6>::Identity();
-      detected_markers.push_back(marker);
-    }
-    detected_markers.back().marker_id = 42;
     this->camera_ptr_->detectMarkers(image, &detected_markers);
 
     // Check if the central marker (n°42) is detected
@@ -132,7 +123,7 @@ void CameraThread::rotateCameraToAnglePosition(double angle)
   double coeff = angle / this->max_angle_deg_;
   coeff = std::max(-1.0,std::min(coeff,1.0));
   int const signal = 1500 + 1000*coeff;
-  
+
   // Send the new position order to the servo
   // At 1200kHz, 24000 ticks = 20ms
   int constexpr channel = 0;
@@ -160,7 +151,7 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
     increasing_angle = true;
     new_angle = min_angle;
   }
-  
+
   // Move the camera to this new angle
   this->rotateCameraToAnglePosition(new_angle);
 }

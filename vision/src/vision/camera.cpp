@@ -22,16 +22,19 @@ Camera::Camera(
   intrinsics_       {fx,fy,cx,cy},
   camera_handler_   (new raspicam::RaspiCam_Cv),
   distortion_       (std::move(distortion)),
-  dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250)),
+  dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_250)),
   detector_params_  (cv::aruco::DetectorParameters::create()),
   pose_             (pose)
 {
   assert(this->distortion_ != nullptr);
-  
+
   // Configure the camera handler to get the photos
   this->camera_handler_->set(cv::CAP_PROP_FRAME_WIDTH, this->image_width_);
   this->camera_handler_->set(cv::CAP_PROP_FRAME_HEIGHT, this->image_height_);
   this->camera_handler_->set(cv::CAP_PROP_FORMAT, CV_8UC1);
+  this->camera_handler_->set(cv::CAP_PROP_BRIGHTNESS, 75);
+  this->camera_handler_->set(cv::CAP_PROP_CONTRAST, 75);
+  isRunningOnRPi_ = this->camera_handler_->getId().length() > 0;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -40,19 +43,19 @@ Camera::Camera(CameraParams const& params)
 : name_             (params.name),
   pose_             (params.pose),
   camera_handler_   (new raspicam::RaspiCam_Cv),
-  dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250)),
+  dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_250)),
   detector_params_  (cv::aruco::DetectorParameters::create())
 {
   // Get the image resolution
   this->image_width_ = params.resolution[0];
   this->image_height_ = params.resolution[1];
-  
+
   // Get the intrinsic parameters
   this->intrinsics_.fx = params.intrinsics[0];
   this->intrinsics_.fy = params.intrinsics[1];
   this->intrinsics_.cx = params.intrinsics[2];
   this->intrinsics_.cy = params.intrinsics[3];
-  
+
   // Build the camera distortion model
   switch(params.distortion_model)
   {
@@ -61,7 +64,7 @@ Camera::Camera(CameraParams const& params)
       this->distortion_ = DistortionModel::UniquePtr(new DistortionNull());
       break;
     }
-    
+
     case DistortionModel::Type::RadTan:
     {
       Eigen::Map<Eigen::VectorXd const> const coeffs(params.distortion_coeffs.data(), 5u);
@@ -75,7 +78,7 @@ Camera::Camera(CameraParams const& params)
       this->distortion_ = DistortionModel::UniquePtr(new DistortionFisheye(coeffs));
       break;
     }
-    
+
     default: throw("Unrecognized distortion model.");
   }
 
@@ -83,6 +86,9 @@ Camera::Camera(CameraParams const& params)
   this->camera_handler_->set(cv::CAP_PROP_FRAME_WIDTH, this->image_width_);
   this->camera_handler_->set(cv::CAP_PROP_FRAME_HEIGHT, this->image_height_);
   this->camera_handler_->set(cv::CAP_PROP_FORMAT, CV_8UC1);
+  this->camera_handler_->set(cv::CAP_PROP_BRIGHTNESS, 75);
+  this->camera_handler_->set(cv::CAP_PROP_CONTRAST, 75);
+  isRunningOnRPi_ = this->camera_handler_->getId().length() > 0;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -95,14 +101,14 @@ Camera::UniquePtr Camera::buildCameraFromYaml(
   std::vector<double> const resolution = camera_node["resolution"].as<std::vector<double>>();
   int32_t const image_width = static_cast<int32_t>(resolution[0]);
   int32_t const image_height = static_cast<int32_t>(resolution[1]);
-  
+
   // Get the intrinsic parameters
   std::vector<double> const intrinsics = camera_node["intrinsics"].as<std::vector<double>>();
   double const fx = intrinsics[0];
   double const fy = intrinsics[1];
   double const cx = intrinsics[2];
   double const cy = intrinsics[3];
-  
+
   // Get the camera distortion model
   YAML::Node const& distortion_node = camera_node["distortion"];
   std::string const model_type = distortion_node["model"].as<std::string>();
@@ -126,7 +132,7 @@ Camera::UniquePtr Camera::buildCameraFromYaml(
     distortion_ptr = DistortionModel::UniquePtr(new DistortionFisheye(coeffs));
   }
   assert(distortion_ptr != nullptr);
-  
+
   // Build and return the camera
   Camera::UniquePtr camera_ptr(new Camera(
     camera_name, image_width, image_height,
@@ -182,7 +188,7 @@ ProjectionResult Camera::project(
     this->distortion_->distort(&point_2d, &J_Fxd_Fxu);
   else
     this->distortion_->distort(&point_2d, NULL);
-  
+
   // Project onto the image plane
   double const& fx = this->intrinsics_.fx;
   double const& fy = this->intrinsics_.fy;
@@ -207,13 +213,13 @@ ProjectionResult Camera::project(
     Eigen::Matrix2d J_Ixd_Fxd = Eigen::Matrix2d::Identity();
     J_Ixd_Fxd(0,0) = fx;
     J_Ixd_Fxd(1,1) = fy;
-    
+
     Eigen::Matrix<double,2,3> J_Fxu_x3d = Eigen::Matrix<double,2,3>::Zero();
     J_Fxu_x3d.block<2,2>(0,0).setIdentity();
     J_Fxu_x3d(0,2) = - point_3d.x() / point_3d.z();
     J_Fxu_x3d(1,2) = - point_3d.y() / point_3d.z();
     J_Fxu_x3d *= 1. / point_3d.z();
-    
+
     (*out_jacobian) = J_Ixd_Fxd * J_Fxd_Fxu * J_Fxu_x3d;
   }
 
@@ -229,7 +235,7 @@ bool Camera::detectMarkers(
 {
   // Check the inputs
   assert(detected_markers_ptr != NULL);
-  
+
   // Get all the markers on the image
   std::vector<int> detected_marker_ids;
   std::vector<std::vector<cv::Point2f>> marker_corners;
@@ -237,16 +243,16 @@ bool Camera::detectMarkers(
   cv::Ptr<cv::aruco::DetectorParameters> parameters = cv::aruco::DetectorParameters::create();
   cv::aruco::detectMarkers(image, this->dictionary_, marker_corners, detected_marker_ids,
     this->detector_params_, rejected_candidates);
-  
+
   // Estimate the relative pose of the markers w.r.t. the camera
   std::vector<cv::Vec3d> rvecs, tvecs;
   double constexpr marker_length = 0.05;
   cv::Mat camera_matrix, distortion_coeffs;
   this->distortion_->getDistortionCoeffs(&distortion_coeffs);
   this->getCameraMatrix(&camera_matrix);
-  cv::aruco::estimatePoseSingleMarkers(marker_corners, marker_length, 
+  cv::aruco::estimatePoseSingleMarkers(marker_corners, marker_length,
     camera_matrix, distortion_coeffs, rvecs, tvecs);
-  
+
   // Compute the covariance matrix for all detected markers
   typedef Eigen::Matrix<double,6,6,Eigen::RowMajor> Matrix6d;
   int const num_markers = detected_marker_ids.size();
@@ -266,15 +272,15 @@ bool Camera::detectMarkers(
     T_CM.translate(C_t_CM);
     T_CM.rotate(R_CM);
     marker.T_CM = T_CM;
-    
+
     // Get the marker's corner image coordinates
     int constexpr num_corners = 4;
     std::vector<cv::Point2f> const& corners = marker_corners[marker_idx];
     if(corners.size() != num_corners) throw "Wrong number of corners!";
-    
+
     // Initialize the Fisher Information Matrix
     Eigen::Matrix<double,6,6> information_matrix = Eigen::Matrix<double,6,6>::Zero();
-    
+
     // Compute the predictif markers' coordinates
     for(int corner_idx=1; corner_idx<num_corners; ++corner_idx)
     {
@@ -295,7 +301,7 @@ bool Camera::detectMarkers(
           M_p_Ci = Eigen::Vector3d(-marker_length/2.,-marker_length/2.,0);
           break;
       }
-      
+
       // Project the 3d corner into the camera's frame
       Eigen::Vector3d const C_p_Ci = T_CM * M_p_Ci;
       Eigen::Matrix<double,3,6> J_CpCi_TCM;
@@ -312,7 +318,7 @@ bool Camera::detectMarkers(
       double constexpr sigma_vis = 0.8;
       information_matrix += (1./std::pow(sigma_vis,2)) * J_IpCi_TCM.transpose() * J_IpCi_TCM;
     }
-    
+
     // Assign the covariance matrix
     marker.cov_T_CM = information_matrix.inverse();
     detected_markers_ptr->push_back(marker);
@@ -323,6 +329,13 @@ bool Camera::detectMarkers(
 
 bool Camera::takePicture(cv::Mat* image) const
 {
+  if (!isRunningOnRPi_)
+  {
+    // Dummy image.
+    *image = cv::Mat(2,2, CV_8UC1, cv::Scalar(0,0,255));
+    return true;
+  }
+
   bool success = this->camera_handler_->open();
   success &= this->camera_handler_->grab(),
   this->camera_handler_->retrieve(*image);

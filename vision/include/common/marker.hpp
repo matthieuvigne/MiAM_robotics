@@ -33,6 +33,7 @@ struct DetectedMarker {
   MarkerId marker_id;
   Eigen::Affine3d T_CM;
   Eigen::Matrix<double,6,6> cov_T_CM;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 }; // DetectedMarker
 typedef std::vector<DetectedMarker> DetectedMarkerList;
 
@@ -53,6 +54,7 @@ class Marker {
       Eigen::Matrix<double,6,6> const& cov_T_WC,
       DetectedMarker const& detected_marker);
   virtual ~Marker() = default;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   public:
     bool serialize(
@@ -62,7 +64,7 @@ class Marker {
       std::vector<char>::const_iterator it_begin,
       std::vector<char>::const_iterator it_end);
     std::string print() const;
-    
+
   public:
     MarkerId id = 0;
     MarkerFamily family = MarkerFamily::UNKNOWN;

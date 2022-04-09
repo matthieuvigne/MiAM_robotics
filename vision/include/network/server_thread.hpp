@@ -60,8 +60,10 @@ void ServerThread::join()
 
 bool ServerThread::setCameraThread(vision::CameraThread const* camera_thread_ptr)
 {
-  if(camera_thread_ptr == nullptr) return false;
+  if(camera_thread_ptr == nullptr)
+    return false;
   this->camera_thread_ptr_ = camera_thread_ptr;
+  return true;
 }
 
 //--------------------------------------------------------------------------------------------------

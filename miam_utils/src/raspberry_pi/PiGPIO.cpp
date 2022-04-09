@@ -50,6 +50,9 @@ volatile unsigned int *clock_register;
 
 bool RPi_enableGPIO()
 {
+    gpio_register = (volatile unsigned int *)MAP_FAILED;
+    pwm_register = (volatile unsigned int *)MAP_FAILED;
+    clock_register = (volatile unsigned int *)MAP_FAILED;
     // Open /dev/mem and connect to it.
     int memoryFile = open("/dev/gpiomem", O_RDWR|O_SYNC);
     if(memoryFile < 0)
@@ -75,9 +78,6 @@ bool RPi_enableGPIO()
     // Make gpio_register point to this address.
     gpio_register = (volatile unsigned int *)map;
 
-
-    pwm_register = (volatile unsigned int *)MAP_FAILED;
-    clock_register = (volatile unsigned int *)MAP_FAILED;
     // Check: are we running as root ? If so, try to load PWM registers.
     if (getuid() == 0)
     {
@@ -131,6 +131,13 @@ bool RPi_enableGPIO()
 
 void RPi_setupGPIO(unsigned int const& gpioPin, PiGPIOMode const& direction)
 {
+    if (gpio_register == MAP_FAILED)
+    {
+        #ifdef DEBUG
+            std::cout << "[miam_utils] GPIO not initialized." << std::endl;
+        #endif
+        return;
+    }
     // Check that GPIO number is valid.
     if(gpioPin < 4 || gpioPin > 26)
         return;
@@ -155,6 +162,13 @@ void RPi_setupGPIO(unsigned int const& gpioPin, PiGPIOMode const& direction)
 
 void RPi_writeGPIO(unsigned int const& gpioPin, bool const& value)
 {
+    if (gpio_register == MAP_FAILED)
+    {
+        #ifdef DEBUG
+            std::cout << "[miam_utils] GPIO not initialized." << std::endl;
+        #endif
+        return;
+    }
     // Check that GPIO number is valid.
     if(gpioPin < 4 || gpioPin > 26)
         return;
@@ -167,6 +181,13 @@ void RPi_writeGPIO(unsigned int const& gpioPin, bool const& value)
 
 bool RPi_readGPIO(unsigned int const& gpioPin)
 {
+    if (gpio_register == MAP_FAILED)
+    {
+        #ifdef DEBUG
+            std::cout << "[miam_utils] GPIO not initialized." << std::endl;
+        #endif
+        return false;
+    }
     // Check that GPIO number is valid.
     if(gpioPin < 4 || gpioPin > 26)
         return LOW;

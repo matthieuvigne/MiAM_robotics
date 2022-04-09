@@ -1,5 +1,5 @@
 # CMake params
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0)
 project(vision)
 set(PROJECT_DESCRIPTION "Code for the vision module")
 
@@ -7,7 +7,7 @@ set(PROJECT_DESCRIPTION "Code for the vision module")
 # Mode: Debug or RelWithDebInfo
 set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_BUILD_TYPE Debug)
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++17)
 
 # Recursively include all the source files
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp")

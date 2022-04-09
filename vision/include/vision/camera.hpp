@@ -72,6 +72,7 @@ public:
   Camera(CameraParams const& params);
 
   virtual ~Camera() = default;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   static Camera::UniquePtr buildCameraFromYaml(
     std::string const& camera_name,
@@ -118,6 +119,8 @@ private:
   // Marker properties
   cv::Ptr<cv::aruco::Dictionary> dictionary_;
   cv::Ptr<cv::aruco::DetectorParameters> detector_params_;
+
+  bool isRunningOnRPi_; ///< Detect if running on RPi, otherwise disable functions.
 
 }; // class Camera
 

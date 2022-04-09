@@ -11,13 +11,13 @@ int main(int argc, char* argv[])
   // Set the camera parameters
   vision::CameraParams camera_params;
   camera_params.name = "camera";
-  camera_params.resolution[vision::CameraParams::WIDTH]  = 752;
-  camera_params.resolution[vision::CameraParams::HEIGHT] = 480;
+  camera_params.resolution[vision::CameraParams::WIDTH]  = 1280;
+  camera_params.resolution[vision::CameraParams::HEIGHT] = 960;
   camera_params.intrinsics[vision::CameraParams::FX] = 450;
   camera_params.intrinsics[vision::CameraParams::FY] = 450;
-  camera_params.intrinsics[vision::CameraParams::CX] = 376;
-  camera_params.intrinsics[vision::CameraParams::CY] = 240;
-  camera_params.distortion_model = vision::DistortionModel::Type::RadTan;
+  camera_params.intrinsics[vision::CameraParams::CX] = camera_params.resolution[vision::CameraParams::WIDTH] / 2;
+  camera_params.intrinsics[vision::CameraParams::CY] = camera_params.resolution[vision::CameraParams::HEIGHT] / 2;
+  camera_params.distortion_model = vision::DistortionModel::Type::NoDistortion;
   camera_params.distortion_coeffs = {-0.28340811, 0.07395907, 0.00019359, 1.76187114e-05, 0.0};
   camera_params.pose = Eigen::Affine3d::Identity();
 
