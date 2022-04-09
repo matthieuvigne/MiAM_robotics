@@ -10,13 +10,6 @@
 #include "Parameters.h"
 #include "Strategy.h"
 
-//reste à faire: symetrie booléens pour servos & doigts avec is Right dans Robot.h
-//dans initialisation des 3 minutes : initialiser rail au mileu, servos figurine en haut, statuette bas
-//definir hauteurs de rails (depose figurine)
-//ajuster l'ordre : recupérer statue en position milieu puis depose figurine
-//ajuster hauteur servos (milieu legerement haut) pour pousser avec doigt (position bas) à l'endroit du distributeur, mesures (servos milieu legerement bas)
-
-
 using namespace miam::trajectory;
 using miam::RobotPosition;
 
@@ -28,7 +21,7 @@ void dropElements(RobotInterface *robot, ServoHandler *servo)
     servo->openTube(0);
     servo->openTube(1);
     servo->openTube(2);
-    robot->wait(0.2);
+    robot->wait(0.5);
 }
 
 void setupRobot(RobotInterface *robot, ServoHandler *servo)
@@ -223,9 +216,9 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->closeTube(1);
     servo->closeTube(2);
 
-    robot->moveRail(0.7);
+    robot->moveRail(0.75);
     for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::VERTICAL);
+        servo->moveSuction(i, suction::LOWER_SAMPLE);
 
     targetPosition = robot->getCurrentPosition();
     endPosition = targetPosition;
@@ -235,12 +228,23 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     dropElements(robot, servo);
+    
+    robot->wait(1);
     for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::DROP_SAMPLES);
+        servo->moveSuction(i, suction::DROP_SAMPLE);
+    
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, -10);
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    robot->moveRail(0.5);
+    robot->wait(1);
+
     robot->updateScore(9);
 
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -100);
+    traj = computeTrajectoryStraightLine(targetPosition, -90);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 

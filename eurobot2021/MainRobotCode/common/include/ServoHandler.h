@@ -33,10 +33,10 @@
         {
             FOLD = 0,
             HORIZONTAL = 1,
-            VERTICAL = 2,
+            DROP_SAMPLE = 2,
             DROP_FAKE_STATUE = 3,
             HOLD_FAKE_STATUE = 4,
-            DROP_SAMPLES = 5
+            LOWER_SAMPLE = 5
         };
 
         /// \brief Helper class for controlling the robot servos.
