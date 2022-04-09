@@ -40,6 +40,10 @@ typedef std::vector<DetectedMarker> DetectedMarkerList;
 // Marker class
 //--------------------------------------------------------------------------------------------------
 
+class Marker;
+typedef std::vector<Marker> MarkerList;
+typedef std::map<MarkerId,Marker> MarkerIdToEstimate;
+
 class Marker {
 
   public:
@@ -51,8 +55,12 @@ class Marker {
   virtual ~Marker() = default;
 
   public:
-    bool serialize(std::vector<char>* message) const;
-    bool deserialize(std::vector<char> const& message);
+    bool serialize(
+      std::vector<char>::iterator it_begin,
+      std::vector<char>::iterator it_end) const;
+    bool deserialize(
+      std::vector<char>::const_iterator it_begin,
+      std::vector<char>::const_iterator it_end);
     std::string print() const;
     
   public:
@@ -62,9 +70,16 @@ class Marker {
     Eigen::Affine3d T_WM = Eigen::Affine3d::Identity();
     Eigen::Matrix<double,6,6> cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
 
+  public:
+    static bool serialize(MarkerIdToEstimate const& markers, std::vector<char>* message);
+    static bool deserialize(std::vector<char> const& message, MarkerIdToEstimate* markers);
+    static int constexpr MESSAGE_SIZE_BYTES =  1 * sizeof(uint8_t) + /*Marker id*/
+                                               1 * sizeof(uint8_t) + /*Marker family*/
+                                               1 * sizeof(int64_t) + /*timestamp*/
+                                               7 * sizeof(double)  + /*Pose*/
+                                              21 * sizeof(double);   /*Covariance*/
+
 }; // class Marker
-typedef std::vector<Marker> MarkerList;
-typedef std::map<MarkerId,Marker> MarkerIdToEstimate;
 
 //--------------------------------------------------------------------------------------------------
 

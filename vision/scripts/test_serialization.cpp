@@ -61,15 +61,27 @@ int main(int argc, char* argv[])
   //~ received_marker.deserialize(received_message);
   //~ std::cout << received_marker.print() << std::endl;
 
-  std::vector<char> chars{'h','e','l','l','o','\0','w','o','r','l','d','\0'};
-  std::string str(chars.data(), chars.size());
-  std::cout << str << std::endl;
-  std::size_t pos1 = str.find('\0');
-  std::cout << pos1 << std::endl;
-  std::size_t pos2 = str.find('\0',pos1+1);
-  std::cout << pos2 << std::endl;
-  std::size_t n = std::count(str.cbegin(), str.cend(), '\0');
-  std::cout << n << std::endl;
+  //~ std::vector<char> chars{'h','e','l','l','o','\0','w','o','r','l','d','\0'};
+  //~ std::string str(chars.data(), chars.size());
+  //~ std::cout << str << std::endl;
+  //~ std::size_t pos1 = str.find('\0');
+  //~ std::cout << pos1 << std::endl;
+  //~ std::size_t pos2 = str.find('\0',pos1+1);
+  //~ std::cout << pos2 << std::endl;
+  //~ std::size_t n = std::count(str.cbegin(), str.cend(), '\0');
+  //~ std::cout << n << std::endl;
+
+  std::vector<int> v(10);
+  size_t const distance = std::distance(v.cbegin(), v.cend());
+  std::cout << "Distance is " << distance << std::endl;
+  //~ std::vector<int>::const_iterator it = v.cbegin();
+  //~ std::advance(it,11);
+  //~ if(it == v.cend())
+    //~ std::cout << "ok" << std::endl;
+  //~ else
+    //~ std::cout << "nok" << std::endl;
+
+  //~ std::string::iterator it = std::find("hello",'l');
 
   return EXIT_SUCCESS;
 }

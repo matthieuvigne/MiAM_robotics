@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <network/client_request.hpp>
 #include <network/server_thread.hpp>
 
 namespace network {
@@ -39,20 +40,47 @@ void ServerThread::serverThread()
     while(true)
     {
       // Waiting for the client's request
-      std::string client_request;
-      new_sock >> client_request;
+      std::string received_message;
+      new_sock >> received_message;
       
-      // Get all the measurements and serialize them
-      common::MarkerIdToEstimate estimates;
-      this->camera_thread_ptr_->getMarkers(&estimates);
-      std::string answer;
-      
-      // Send data to the client
-      if(client_request == "stop") break;
-      new_sock << answer;
-      
+      // Deserialize the client's request
+      //~ ClientRequest const client_request(received_message);
+      //~ RequestType const request_type = client_request.getType();
 
+      // Respond according the client's request type
+      bool shut_down = false;
+      std::string answer;
+      //~ switch(request_type)
+      //~ {
+        //~ case RequestType::GET_MEASUREMENTS:
+        //~ {
+          //~ common::MarkerIdToEstimate estimates;
+          //~ this->camera_thread_ptr_->getMarkers(&estimates);
+          //~ common::MarkerIdToEstimate::const_iterator it = estimates.cbegin();
+          //~ for(it; it != estimates.cend(); ++it)
+          //~ {
+            //~ std::vector<char> marker_message;
+            //~ common::Marker const& marker = it->second;
+            //~ marker.serialize(&marker_message);
+            //~ // [TODO] : add the server response
+          //~ }
+          //~ break;
+        //~ }
+        //~ case RequestType::SHUT_DOWN:
+        //~ {
+          //~ shut_down = true;
+          //~ // [TODO] : serialize the answer
+          //~ break;
+        //~ }
+        //~ case RequestType::UNKNOWN:
+        //~ default:
+          //~ break;
+      //~ }
+
+      // Shut down if request
+      if(shut_down) break;
     }
+    
     break;
   }
   

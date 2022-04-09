@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <common/marker.hpp>
 #include <common/maths.hpp>
 
@@ -70,37 +72,29 @@ MarkerFamily getMarkerFamily(MarkerId requested_marker_id)
 
 //--------------------------------------------------------------------------------------------------
 
-bool Marker::serialize(std::vector<char>* message_ptr) const
+bool Marker::serialize(
+  std::vector<char>::iterator it_begin,
+  std::vector<char>::iterator it_end) const
 {
   // Check the pointer message
-  if(message_ptr == 0) return false;
-  std::vector<char>& message = *message_ptr;
-  message.clear();
-  
-  // Get the size of the message
-  int constexpr message_size =  1 * sizeof(uint8_t) + /*Marker id*/
-                                1 * sizeof(uint8_t) + /*Marker family*/
-                                1 * sizeof(int64_t) + /*timestamp*/
-                                7 * sizeof(double)  + /*Pose*/
-                               21 * sizeof(double)  + /*Covariance*/
-                               sizeof(char);          /*NULL termination*/
-  message.resize(message_size);
-  int byte_idx = 0;
+  size_t const distance = std::distance(it_begin, it_end);
+  if(distance != Marker::MESSAGE_SIZE_BYTES) return false;
   
   // Serialize the header
-  std::memcpy(&message[byte_idx], &this->id, sizeof(uint8_t));
-  byte_idx += sizeof(uint8_t);
-  std::memcpy(&message[byte_idx], &this->family, sizeof(uint8_t));
-  byte_idx += sizeof(uint8_t);
-  std::memcpy(&message[byte_idx], &this->timestamp_ns, sizeof(int64_t));
-  byte_idx += sizeof(int64_t);
+  std::vector<char>::iterator byte_it = it_begin;
+  std::memcpy(&(*byte_it), &this->id, sizeof(uint8_t));
+  byte_it += sizeof(uint8_t);
+  std::memcpy(&(*byte_it), &this->family, sizeof(uint8_t));
+  byte_it += sizeof(uint8_t);
+  std::memcpy(&(*byte_it), &this->timestamp_ns, sizeof(int64_t));
+  byte_it += sizeof(int64_t);
   
   // Serialize the pose
   Eigen::Matrix<double,7,1> pose;
   pose.head<4>() = Eigen::Quaterniond(this->T_WM.rotation()).coeffs();
   pose.tail<3>() = this->T_WM.translation();
-  std::memcpy(&message[byte_idx], pose.data(), 7*sizeof(double));
-  byte_idx += 7*sizeof(double);
+  std::memcpy(&(*byte_it), pose.data(), 7*sizeof(double));
+  byte_it += 7*sizeof(double);
   
   // Serialize the covariance matrix
   std::vector<double> covariance(21);
@@ -108,47 +102,42 @@ bool Marker::serialize(std::vector<char>* message_ptr) const
   for(int i=0; i<6; i++)
     for(int j=i; j<6; j++)
       covariance[cov_idx++] = this->cov_T_WM(i,j);
-  std::memcpy(&message[byte_idx], covariance.data(), 21*sizeof(double));
-  byte_idx += 21*sizeof(double);
+  std::memcpy(&(*byte_it), covariance.data(), 21*sizeof(double));
+  byte_it += 21*sizeof(double);
+  bool success = (byte_it == it_end);
   
-  // Null terminated
-  message[byte_idx] ='\0';
-  
-  return true;
+  return success;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool Marker::deserialize(std::vector<char> const& message)
+bool Marker::deserialize(
+  std::vector<char>::const_iterator it_begin,
+  std::vector<char>::const_iterator it_end)
 {
   // Check the length of the message
-  int constexpr message_size =  1 * sizeof(uint8_t) + /*Marker id*/
-                                1 * sizeof(uint8_t) + /*Marker family*/
-                                1 * sizeof(int64_t) + /*timestamp*/
-                                7 * sizeof(double)  + /*Pose*/
-                               21 * sizeof(double)  + /*Covariance*/
-                                1 * sizeof(char);     /*NULL termination*/
-  if(message.size() != message_size) return false;
+  size_t const distance = std::distance(it_begin, it_end);
+  if(distance != Marker::MESSAGE_SIZE_BYTES) return false;
   
   // Deserialize the header
-  int byte_idx = 0;
-  std::memcpy(&this->id, &message[byte_idx], sizeof(uint8_t));
-  byte_idx += sizeof(uint8_t);
-  std::memcpy(&this->family, &message[byte_idx], sizeof(uint8_t));
-  byte_idx += sizeof(uint8_t);
-  std::memcpy(&this->timestamp_ns, &message[byte_idx], sizeof(uint64_t));
-  byte_idx += sizeof(int64_t);
+  std::vector<char>::const_iterator byte_it = it_begin;
+  std::memcpy(&this->id, &(*byte_it), sizeof(uint8_t));
+  byte_it += sizeof(uint8_t);
+  std::memcpy(&this->family, &(*byte_it), sizeof(uint8_t));
+  byte_it += sizeof(uint8_t);
+  std::memcpy(&this->timestamp_ns, &(*byte_it), sizeof(uint64_t));
+  byte_it += sizeof(int64_t);
   
   // Deserialize the pose
   Eigen::Matrix<double,7,1> pose;
-  std::memcpy(pose.data(), &message[byte_idx], 7*sizeof(double));
-  byte_idx += 7*sizeof(double);
+  std::memcpy(pose.data(), &(*byte_it), 7*sizeof(double));
+  byte_it += 7*sizeof(double);
   this->T_WM.translation() = pose.tail<3>();
   this->T_WM.linear() = Eigen::Quaterniond(pose.head<4>()).normalized().toRotationMatrix();
   
   // Deserialize the covariance
   std::vector<double> covariance(21);
-  std::memcpy(covariance.data(), &message[byte_idx], 21*sizeof(double));
+  std::memcpy(covariance.data(), &(*byte_it), 21*sizeof(double));
   int cov_idx = 0;
   for(int i=0; i<6; i++)
   {
@@ -158,6 +147,54 @@ bool Marker::deserialize(std::vector<char> const& message)
       this->cov_T_WM(j,i) = covariance[cov_idx];
       cov_idx += 1;
     }
+  }
+  byte_it += 21*sizeof(double);
+  bool success = (byte_it == it_end);  
+}
+
+//--------------------------------------------------------------------------------------------------
+
+bool Marker::serialize(MarkerIdToEstimate const& markers, std::vector<char>* serialized_markers_ptr)
+{
+  // Initialize the buffer for serialized markers
+  if(serialized_markers_ptr == NULL) return false;
+  std::vector<char>& serialized_markers = *serialized_markers_ptr;
+  size_t num_markers = markers.size();
+  serialized_markers.resize(num_markers * Marker::MESSAGE_SIZE_BYTES);
+  
+  // Fill the buffer for serialized markers
+  std::vector<char>::iterator byte_it = serialized_markers.begin();
+  MarkerIdToEstimate::const_iterator marker_it = markers.cbegin();
+  for(marker_it; marker_it != markers.cend(); ++marker_it)
+  {
+    Marker const& marker = marker_it->second;
+    std::vector<char>::iterator next_it = std::next(byte_it, Marker::MESSAGE_SIZE_BYTES);
+    marker.serialize(byte_it, next_it);
+    byte_it = next_it;
+  }
+  return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+bool Marker::deserialize(std::vector<char> const& message, MarkerIdToEstimate* markers_ptr)
+{
+  // Get the number of markers to deserialize
+  size_t const message_size = message.size();
+  if(message_size % Marker::MESSAGE_SIZE_BYTES != 0) return false;
+  size_t num_markers = message_size / Marker::MESSAGE_SIZE_BYTES;
+  if(markers_ptr == NULL) return false;
+  MarkerIdToEstimate& markers = *markers_ptr;
+  
+  // Deserialize the markers
+  std::vector<char>::const_iterator byte_it = message.cbegin();
+  for(size_t marker_idx=0u; marker_idx<num_markers; ++marker_idx)
+  {
+    Marker marker;
+    std::vector<char>::const_iterator next_it = std::next(byte_it,Marker::MESSAGE_SIZE_BYTES);
+    marker.deserialize(byte_it, next_it);
+    markers[marker.id] = marker;
+    byte_it = next_it;
   }
   
   return true;

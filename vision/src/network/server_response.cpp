@@ -1,7 +1,4 @@
-#include <cstring>
-#include <vector>
-
-#include <network/client_request.hpp>
+#include <network/server_response.hpp>
 
 namespace network {
 
@@ -9,42 +6,49 @@ namespace network {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-ClientRequest::ClientRequest(MessageType type, void* params)
+ServerResponse::ServerResponse(MessageType type, void* params)
 : Message(type, params)
 {}
 
 //--------------------------------------------------------------------------------------------------
-// Functions
+// Methods
 //--------------------------------------------------------------------------------------------------
 
-bool ClientRequest::serializeParams(std::vector<char>* params_ptr) const
+bool ServerResponse::serializeParams(std::vector<char>* serialized_params) const
 {
-  if(params_ptr == NULL) return false;
-  std::vector<char> params = *params_ptr;
   switch(this->type_)
   {
-    case MessageType::UNKNOWN:
     case MessageType::GET_MEASUREMENTS:
+    {
+      if(serialized_params == NULL) return false;
+      common::MarkerIdToEstimate const& markers =
+        *static_cast<common::MarkerIdToEstimate*>(this->params_);
+      common::Marker::serialize(markers, serialized_params);
+    }
     case MessageType::SHUT_DOWN:
-      break;
+    case MessageType::UNKNOWN:
     default:
-      return false;
+      break;
   }
   return true;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool ClientRequest::deserializeParams(std::vector<char> const& params)
+bool ServerResponse::deserializeParams(std::vector<char> const& serialized_params)
 {
   switch(this->type_)
   {
     case MessageType::GET_MEASUREMENTS:
+    {
+      common::MarkerIdToEstimate& markers =
+        *static_cast<common::MarkerIdToEstimate*>(this->params_);
+      common::Marker::deserialize(serialized_params, &markers);
+    }
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:
-      break;
     default:
-      return false;
+      break;
   }
   return true;
 }
