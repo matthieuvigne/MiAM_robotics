@@ -155,9 +155,9 @@ void ServoHandler::moveSuction(int const& suctionNumber, suction const& position
     }
     else if (suctionNumber == 1)
     {
+        maestro_->setSpeed(SERVO_SUCTION[1], 50000);
         switch (position)
         {
-            maestro_->setSpeed(SERVO_SUCTION[1], 50000);
             case suction::FOLD:        maestro_->setPosition(SERVO_SUCTION[1], 2500); break;
             case suction::VERTICAL:    maestro_->setPosition(SERVO_SUCTION[1], 1200); break;
             case suction::DROP_SAMPLES:    maestro_->setPosition(SERVO_SUCTION[1], 1100); break;
@@ -199,9 +199,10 @@ void ServoHandler::activateMagnet(bool const& magnetOn)
 
 void ServoHandler::moveStatue(statue const& pose)
 {
+    maestro_->setSpeed(STATUE, 20000);
     switch(pose)
     {
-        case statue::TRANSPORT: maestro_->setPosition(STATUE, 1950); break;
+        case statue::TRANSPORT: maestro_->setSpeed(STATUE, 500); maestro_->setPosition(STATUE, 1950); break;
         case statue::CATCH: maestro_->setPosition(STATUE, 1750); break;
         case statue::DROP: maestro_->setPosition(STATUE, 1600); break;
         case statue::FOLD: maestro_->setPosition(STATUE, 900); break;
