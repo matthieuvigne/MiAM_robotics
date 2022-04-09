@@ -86,7 +86,8 @@ namespace miam{
 
         TrajectoryVector computeTrajectoryRoundedCorner(std::vector<RobotPosition> const& positions,
                                                         double radius,
-                                                        double transitionVelocityFactor)
+                                                        double transitionVelocityFactor,
+                                                        bool backward)
         {
             TrajectoryVector trajectories;
             if(positions.size() < 2)
@@ -104,7 +105,8 @@ namespace miam{
             // Compute first rotation to be aligned with second point.
             TrajectoryVector straightLine = computeTrajectoryStraightLineToPoint(positions.at(0),
                 positions.at(1),
-                transitionLinearVelocity);
+                transitionLinearVelocity,
+                backward);
             trajectories.push_back(straightLine[0]);
 
             // For each remaining pair of points, computed the line and rounded corner to go there.
@@ -141,6 +143,13 @@ namespace miam{
                 rotationside side = rotationside::LEFT;
                 if(firstVector.cross(secondVector) > 0.0)
                     side = rotationside::RIGHT;
+                if (backward)
+                {
+                    if (side == rotationside::RIGHT)
+                        side = rotationside::LEFT;
+                    else
+                        side = rotationside::RIGHT;
+                }
 
                 // Compute end angle: minus the angle of secondVector.
                 double endAngle = std::atan2(secondVector.y, secondVector.x);
@@ -148,16 +157,20 @@ namespace miam{
                     endAngle -= M_PI_2;
                 else
                     endAngle += M_PI_2;
+
+                if (backward)
+                    endAngle += M_PI;
+
                 // Compute trajectory.
-                std::shared_ptr<StraightLine> line(new StraightLine(startPoint, circleIntersection, transitionLinearVelocity, transitionLinearVelocity));
+                std::shared_ptr<StraightLine> line(new StraightLine(startPoint, circleIntersection, transitionLinearVelocity, transitionLinearVelocity, backward));
                 trajectories.push_back(line);
-                std::shared_ptr<ArcCircle> circle(new ArcCircle(circleIntersection, circleRadius, side, endAngle, transitionAngularVelocity, transitionAngularVelocity));
+                std::shared_ptr<ArcCircle> circle(new ArcCircle(circleIntersection, circleRadius, side, endAngle, transitionAngularVelocity, transitionAngularVelocity, backward));
                 trajectories.push_back(circle);
             }
             // Append final straight line.
             RobotPosition currentPoint = trajectories.back()->getEndPoint().position;
             RobotPosition endPoint = positions.back();
-            std::shared_ptr<StraightLine> line(new StraightLine(currentPoint, endPoint, transitionLinearVelocity, 0.0));
+            std::shared_ptr<StraightLine> line(new StraightLine(currentPoint, endPoint, transitionLinearVelocity, 0.0, backward));
             trajectories.push_back(line);
 
             return trajectories;

@@ -11,12 +11,12 @@ namespace miam{
                                    RobotPosition const& endPoint,
                                    double const& startVelocity,
                                    double const& endVelocity,
-                                   bool const& backward_,
+                                   bool const& backward,
                                    double maxVelocity,
                                    double maxAcceleration):
              endPoint_(endPoint),
              endVelocity_(endVelocity),
-             backward_(backward_),
+             backward_(backward),
              maxVelocity_(maxVelocity),
              maxAcceleration_(maxAcceleration)
         {

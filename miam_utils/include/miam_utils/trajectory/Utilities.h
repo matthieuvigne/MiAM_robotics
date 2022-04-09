@@ -93,7 +93,8 @@
             /// \return Vector of pointer toward the full trajectory.
             TrajectoryVector computeTrajectoryRoundedCorner(std::vector<RobotPosition> const& positions,
                                                             double radius,
-                                                            double transitionVelocityFactor = 0.5);
+                                                            double transitionVelocityFactor = 0.5,
+                                                            bool backward = false);
 
             /// \brief Compute a simple trajectory: going forward for a given distance.
             ///

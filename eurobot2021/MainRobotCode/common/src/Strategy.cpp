@@ -141,7 +141,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->activateMagnet(true);
     robot->wait(0.5);
     servo->moveStatue(statue::TRANSPORT);
-    robot->updateScore(15);
+    robot->updateScore(5);
 
     //**********************************************************
     // Drop the fake statue
@@ -170,6 +170,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->wait(0.5);
     dropElements(robot, servo);
     robot->wait(0.5);
+    robot->updateScore(10);
 
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -30.0);
@@ -177,57 +178,26 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     //**********************************************************
-    // Round to the side distributor
+    // Drop the real statue
     //**********************************************************
-
-    // go in front of the side distributor
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
-    //Rotate
-    targetPosition.x = 102+40+robotdimensions::CHASSIS_WIDTH+50;
-    targetPosition.y = 500;
+    targetPosition.x += 80;
+    targetPosition.y += 80;
     positions.push_back(targetPosition);
-    targetPosition.y = 750;
-    positions.push_back(targetPosition);
-
-    traj = computeTrajectoryRoundedCorner(positions, 150.0, 0.3);
-    robot->setTrajectoryToFollow(traj);
-
-    // Raise rail to grab next element.
-    robot->moveRail(0.9);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    //**********************************************************
-    // Go to the display
-    //**********************************************************
-
-    // continue trajectory
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
+    targetPosition.x = robotdimensions::CHASSIS_WIDTH + 100;
     targetPosition.y += 500;
     positions.push_back(targetPosition);
-    targetPosition.x = 100 + robotdimensions::CHASSIS_WIDTH;
-    targetPosition.y += 100;
-    targetPosition.theta += M_PI;
+    targetPosition.y = 2000 - robotdimensions::CHASSIS_BACK - 20;
     positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 150.0, 0.3);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    traj = computeTrajectoryRoundedCorner(positions, 300.0, 0.3, true);
 
-
-    // finally go straight
-    targetPosition = robot->getCurrentPosition();
-    endPosition.x = targetPosition.x ;
-    endPosition.y = 2000-20-robotdimensions::CHASSIS_FRONT;
-    traj = computeTrajectoryStraightLineToPoint(targetPosition,endPosition,0.0,true);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     servo->activateMagnet(false);
-    robot->updateScore(15);
-
+    robot->updateScore(20);
 
     //**********************************************************
     // Grab the three samples on the ground, and drop them
@@ -277,7 +247,6 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //**********************************************************
     // Push the samples on the field
     //**********************************************************
-
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
