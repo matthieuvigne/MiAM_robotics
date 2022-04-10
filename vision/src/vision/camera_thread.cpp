@@ -46,11 +46,14 @@ void CameraThread::runThread()
     // Increment position and take picture
     cv::Mat image;
     this->rotateCameraToAnglePosition(camera_angle);
-    this->camera_ptr_->takePicture(&image);
+    this->camera_ptr_->takePicture(image);
+    cv::imwrite("test.jpg", image);
+    std::cout << "picture taken" << std::endl;
 
     // Detect the markers
     common::DetectedMarkerList detected_markers;
     this->camera_ptr_->detectMarkers(image, &detected_markers);
+    std::cout << "Found N markers" << detected_markers.size() << std::endl;
 
     // Check if the central marker (n°42) is detected
     common::DetectedMarkerList::const_iterator it = detected_markers.cbegin();
@@ -64,9 +67,12 @@ void CameraThread::runThread()
       Eigen::Matrix<double,6,6> const cov_T_CM = it->cov_T_CM;
       this->pose_filter_ptr_->setStateAndCovariance(
         CameraPoseFilter::InitType::T_CM, T_CM, cov_T_CM);
+      std::cout << T_CM.matrix() << std::endl;
+      std::cout << cov_T_CM << std::endl;
       break;
     }
   }
+    std::cout << "found tag" << std::endl;
 
   // Routine : scan the board and detect all the markers
   while(true)
@@ -82,7 +88,7 @@ void CameraThread::runThread()
 
     // Take a picture and detect all the markers
     cv::Mat image;
-    this->camera_ptr_->takePicture(&image);
+    this->camera_ptr_->takePicture(image);
     common::DetectedMarkerList detected_markers;
     this->camera_ptr_->detectMarkers(image, &detected_markers);
 
