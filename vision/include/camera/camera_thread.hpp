@@ -1,5 +1,5 @@
-#ifndef VISION_CAMERA_THREAD_HPP
-#define VISION_CAMERA_THREAD_HPP
+#ifndef CAMERA_CAMERA_THREAD_HPP
+#define CAMERA_CAMERA_THREAD_HPP
 
 #include <mutex>
 #include <queue>
@@ -74,4 +74,4 @@ void CameraThread::join()
 
 } // namespace camera
 
-#endif // VISION_CAMERA_THREAD_HPP
+#endif // CAMERA_CAMERA_THREAD_HPP

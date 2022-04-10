@@ -1,5 +1,5 @@
-#ifndef VISION_CAMERA_HPP
-#define VISION_CAMERA_HPP
+#ifndef CAMERA_CAMERA_HPP
+#define CAMERA_CAMERA_HPP
 
 #include <condition_variable>
 #include <mutex>
@@ -151,4 +151,4 @@ DistortionModel const& Camera::getDistortionModel() const
 
 } // namespace camera
 
-#endif // VISION_CAMERA_HPP
+#endif // CAMERA_CAMERA_HPP

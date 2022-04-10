@@ -1,7 +1,10 @@
 #ifndef COMMON_MACROS_HPP
 #define COMMON_MACROS_HPP
 
+#include <iostream>
 #include <memory>
+
+#include <string.h>
 
 #define POINTER_TYPEDEF(TypeName)                   \
   typedef std::shared_ptr<TypeName> Ptr;            \
@@ -27,5 +30,11 @@
       CHECK_NOTNULL(result);                          \
       return *this;                                   \
   }
+
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
+#define LOG(message)                                  \
+  std::cout << "[" << __FILENAME__ << ": l."              \
+    << __LINE__ << "] " << message << std::endl
 
 #endif // COMMON_MACRO_HPP

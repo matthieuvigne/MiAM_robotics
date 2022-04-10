@@ -43,9 +43,11 @@ target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 add_executable(dummy_client app/dummy_client.cpp)
 target_link_libraries(dummy_client ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
-add_executable(test_serialization scripts/test_serialization.cpp)
-target_link_libraries(test_serialization ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+add_executable(calibrate_camera app/calibrate_camera.cpp)
+target_link_libraries(calibrate_camera ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
+#~ add_executable(test_serialization scripts/test_serialization.cpp)
+#~ target_link_libraries(test_serialization ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 #~ message("Current source directory: ${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Create package config file from template.

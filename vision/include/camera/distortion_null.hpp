@@ -1,5 +1,5 @@
-#ifndef VISION_DISTORTION_NULL_HPP
-#define VISION_DISTORTION_NULL_HPP
+#ifndef CAMERA_DISTORTION_NULL_HPP
+#define CAMERA_DISTORTION_NULL_HPP
 
 #include <camera/distortion_model.hpp>
 
@@ -36,4 +36,4 @@ int DistortionNull::getNumCoeffs() const
 
 } // namespace camera
 
-#endif // VISION_DISTORTION_NULL_HPP
+#endif // CAMERA_DISTORTION_NULL_HPP

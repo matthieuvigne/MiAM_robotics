@@ -1,5 +1,5 @@
-#ifndef VISION_MESSAGES_HPP
-#define VISION_MESSAGES_HPP
+#ifndef CAMERA_MESSAGES_HPP
+#define CAMERA_MESSAGES_HPP
 
 #include <opencv2/opencv.hpp>
 
@@ -14,4 +14,4 @@ struct Image {
 
 } // namespace camera_mgs
 
-#endif // VISION_MESSAGES_HPP
+#endif // CAMERA_MESSAGES_HPP

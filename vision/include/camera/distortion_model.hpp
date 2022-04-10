@@ -1,5 +1,5 @@
-#ifndef VISION_DISTORTION_MODEL_HPP
-#define VISION_DISTORTION_MODEL_HPP
+#ifndef CAMERA_DISTORTION_MODEL_HPP
+#define CAMERA_DISTORTION_MODEL_HPP
 
 #include <eigen3/Eigen/Dense>
 #include <opencv2/opencv.hpp>
@@ -76,4 +76,4 @@ DistortionModel::Type DistortionModel::getType() const
 
 } // namespace camera
 
-#endif // VISION_DISTORTION_MODEL_HPP
+#endif // CAMERA_DISTORTION_MODEL_HPP

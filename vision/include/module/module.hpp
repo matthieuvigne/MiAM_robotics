@@ -1,5 +1,5 @@
-#ifndef VISION_BOARD_HPP
-#define VISION_BOARD_HPP
+#ifndef CAMERA_BOARD_HPP
+#define CAMERA_BOARD_HPP
 
 #include <opencv2/aruco.hpp>
 
@@ -69,4 +69,4 @@ private:
 
 } // namespace module
 
-#endif // VISION_BOARD_HPP
+#endif // CAMERA_BOARD_HPP

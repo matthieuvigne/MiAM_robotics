@@ -1,5 +1,5 @@
-#ifndef VISION_CAMERA_POSE_FILTER_HPP
-#define VISION_CAMERA_POSE_FILTER_HPP
+#ifndef CAMERA_CAMERA_POSE_FILTER_HPP
+#define CAMERA_CAMERA_POSE_FILTER_HPP
 
 #include <eigen3/Eigen/Dense>
 
@@ -104,4 +104,4 @@ void CameraPoseFilter::setCovariance(
 
 } // namespace camera
 
-#endif // VISION_CAMERA_POSE_FILTER
+#endif // CAMERA_CAMERA_POSE_FILTER

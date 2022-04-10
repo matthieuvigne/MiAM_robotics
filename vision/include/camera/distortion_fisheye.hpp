@@ -1,5 +1,5 @@
-#ifndef VISION_DISTORTION_FISHEYE_HPP
-#define VISION_DISTORTION_FISHEYE_HPP
+#ifndef CAMERA_DISTORTION_FISHEYE_HPP
+#define CAMERA_DISTORTION_FISHEYE_HPP
 
 #include <camera/distortion_model.hpp>
 
@@ -39,4 +39,4 @@ int DistortionFisheye::getNumCoeffs() const
 
 } // namespace camera
 
-#endif // VISION_DISTORTION_FISHEYE
+#endif // CAMERA_DISTORTION_FISHEYE
