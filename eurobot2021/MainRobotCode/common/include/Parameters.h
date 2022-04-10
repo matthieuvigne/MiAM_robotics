@@ -21,7 +21,7 @@
             double const maxWheelSpeed = 500; ///< Maximum wheel speed, in mm/s.
             double const maxWheelAcceleration = 800; ///< Maximum wheel acceleration, in mm/s^2.
 
-            double const maxWheelSpeedTrajectory = 400; ///< Maximum wheel speed, in mm/s, for trajectory generation.
+            double const maxWheelSpeedTrajectory = 500; ///< Maximum wheel speed, in mm/s, for trajectory generation.
             double const maxWheelAccelerationTrajectory = 400; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
             // Chassis physical dimensions
