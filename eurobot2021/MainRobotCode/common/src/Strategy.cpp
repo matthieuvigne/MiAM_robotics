@@ -13,7 +13,8 @@
 using namespace miam::trajectory;
 using miam::RobotPosition;
 
-// #define GO_DIRECTLY_TO_GRABING_SAMPLES 1
+// #define SKIP_TO_GRABBING_SAMPLES 1
+// #define SKIP_TO_PUSHING_SAMPLES 1
 
 // Drop everything from the suction system
 void dropElements(RobotInterface *robot, ServoHandler *servo)
@@ -106,7 +107,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     bool wasMoveSuccessful = true;
     robot->updateScore(2);
 
-    #ifndef GO_DIRECTLY_TO_GRABING_SAMPLES
+    #ifndef SKIP_TO_GRABBING_SAMPLES
 
     // Set initial position
     targetPosition.x = robotdimensions::CHASSIS_BACK;
@@ -258,7 +259,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
 
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 300.0);
+    traj = computeTrajectoryStraightLine(targetPosition, 200.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
@@ -267,15 +268,15 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->wait(1.0);
 
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -300.0);
+    traj = computeTrajectoryStraightLine(targetPosition, -200.0);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     std::cout<< robot->getCurrentPosition() << std::endl;
-    // robot->wait(5.0);
+    robot->wait(5.0);
     #endif
 
-    #ifdef GO_DIRECTLY_TO_GRABING_SAMPLES
+    #ifdef SKIP_TO_GRABBING_SAMPLES
     
     targetPosition.x = 292;
     targetPosition.y = 1667 ;
@@ -283,6 +284,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->resetPosition(targetPosition, true, true, true);
     
     #endif
+
+    #ifndef SKIP_TO_PUSHING_SAMPLES
 
     //**********************************************************
     // Grab the three samples on the ground, and drop them
@@ -374,6 +377,22 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
+
+    std::cout<< robot->getCurrentPosition() << std::endl;
+    robot->wait(10);
+
+    #endif
+
+    #ifdef SKIP_TO_PUSHING_SAMPLES
+    
+    targetPosition.x = 766.546;
+    targetPosition.y = 1635.35 ;
+    targetPosition.theta = 7.8531;
+    robot->resetPosition(targetPosition, true, true, true);
+    
+    #endif
+
+
     //**********************************************************
     // Push the samples on the field
     //**********************************************************
@@ -404,7 +423,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     const int spacing_between_sites = 185;
     const int site_y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -10;
-    const int first_site_x = 730 - 30;
+    const int first_site_x = 730 - 15;
 
     positions.clear();
     targetPosition = robot->getCurrentPosition();
@@ -556,20 +575,71 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     robot->updateScore(5);
 
-
     //**********************************************************
-    // Rotate to come back to the campment
+    // Go to the side tripledist
     //**********************************************************
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
-    targetPosition.x = 975;
-    targetPosition.y = 600;
+    targetPosition.x = robotdimensions::CHASSIS_BACK + 200 + 40 + 10 + 20;
+    targetPosition.y = 1200 - 360 + 75;           
+    positions.push_back(targetPosition);
+    targetPosition.x = robotdimensions::CHASSIS_BACK + 120 + 40 + 10 + 20;
+    targetPosition.y = 1200 - 360 + 75;           
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(20);
+
+
+    servo->moveSuction(2, suction::DROP_SAMPLE);
+    robot->wait(1.0);
+
+    robot->moveRail(0.25);
+    robot->wait(1.0);
+
+    servo->closeValve();
+    servo->openTube(0);
+    servo->closeTube(1);
+    servo->closeTube(2);
+    servo->activatePump(true);
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, 45);
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    robot->wait(3.0);
+
+    robot->moveRail(0.5);
+    robot->wait(2.0);
+
+
+    traj = computeTrajectoryStraightLine(targetPosition, -200);
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    targetPosition = robot->getCurrentPosition();
+    traj.clear();
+    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI_2)));
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    dropElements(robot, servo);
+
+    // //**********************************************************
+    // // Rotate to come back to the campment
+    // //**********************************************************
+    // positions.clear();
+    // targetPosition = robot->getCurrentPosition();
+    // positions.push_back(targetPosition);
+    // targetPosition.x = 975;
+    // targetPosition.y = 600;
+    // positions.push_back(targetPosition);
+    // traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
+    // robot->setTrajectoryToFollow(traj);
+    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    // robot->updateScore(20);
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }
