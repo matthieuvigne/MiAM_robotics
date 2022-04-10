@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   cv::Size image_size;
   std::vector<std::vector<cv::Point2f> > points_2d;
   std::vector<std::vector<cv::Point3f> > points_3d;
-  for(size_t image_idx=0u; image_idx<50/*num_images*/; image_idx++)
+  for(size_t image_idx=0u; image_idx<num_images; image_idx++)
   {
     // Load the image and display it
     std::string const& image_path = images[image_idx];
