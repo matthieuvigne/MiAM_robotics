@@ -45,14 +45,8 @@ void setupRobot(RobotInterface *robot, ServoHandler *servo)
     robot->moveRail(0.65);
 }
 
-// Test an excavation site, pushing it if necessary.
-void testExcavationSite(RobotInterface *robot, ServoHandler *servo)
+bool shouldDrop(ExcavationSquareColor color, RobotInterface *robot) 
 {
-    // Take measurement
-    servo->moveArm(robot->isPlayingRightSide(), arm::MEASURE);
-    servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
-    robot->wait(0.8);
-    ExcavationSquareColor const color = robot->getExcavationReadings(robot->isPlayingRightSide());
     bool shouldDrop = false;
     if (robot->isPlayingRightSide())
     {
@@ -62,15 +56,35 @@ void testExcavationSite(RobotInterface *robot, ServoHandler *servo)
     {
         shouldDrop = color ==  ExcavationSquareColor::YELLOW;
     }
-    if (shouldDrop)
+    return(shouldDrop);
+}
+
+void dropSite(RobotInterface *robot, ServoHandler *servo)
+{
+    servo->moveFinger(robot->isPlayingRightSide(), finger::PUSH);
+    servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
+    robot->wait(0.4);
+    servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
+}
+
+
+// Test an excavation site, pushing it if necessary.
+ExcavationSquareColor testExcavationSite(RobotInterface *robot, ServoHandler *servo)
+{
+    // Take measurement
+    servo->moveArm(robot->isPlayingRightSide(), arm::MEASURE);
+    servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
+    robot->wait(0.8);
+    ExcavationSquareColor const color = robot->getExcavationReadings(robot->isPlayingRightSide());
+    
+    if (shouldDrop(color, robot))
     {
-        servo->moveFinger(robot->isPlayingRightSide(), finger::PUSH);
-        servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
+        dropSite(robot, servo);
         robot->updateScore(5);
-        robot->wait(0.4);
-        servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
     }
     servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
+
+    return color;
 }
 
 void matchStrategy(RobotInterface *robot, ServoHandler *servo)
@@ -225,13 +239,13 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     targetPosition = robot->getCurrentPosition();
     endPosition = targetPosition;
-    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 5;
+    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 20;
     traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     dropElements(robot, servo);
-    robot->moveRail(0.5);
+    robot->moveRail(0.45);
 
     // targetPosition = robot->getCurrentPosition();
     // traj = computeTrajectoryStraightLine(targetPosition, -15);
@@ -239,7 +253,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // wasMoveSuccessful = robot->waitForTrajectoryFinished();
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::DROP_SAMPLE);
-    robot->wait(0.3);
+    // robot->wait(0.3);
+    robot->wait(1.0);
     robot->updateScore(9);
 
     targetPosition = robot->getCurrentPosition();
@@ -294,15 +309,142 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     // Test all sites.
     testExcavationSite(robot, servo);
-    for (int i = 0; i < 6; i++)
+    // for (int i = 0; i < 6; i++)
+    // {
+    //     targetPosition.x = 730 + (i + 1) * 185;
+    //     traj = computeTrajectoryStraightLineToPoint(robot->getCurrentPosition(), targetPosition, 0.0, true);
+    //     robot->setTrajectoryToFollow(traj);
+    //     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    //     testExcavationSite(robot, servo);
+    // }
+    // robot->updateScore(5);
+
+    const int spacing_between_sites = 185;
+    const int first_site_x = 730;
+
+    // Test the first 3 sites
+    for (int i = 1; i < 3; i++)
     {
-        targetPosition.x = 730 + (i + 1) * 185;
+        targetPosition.x = first_site_x + i * spacing_between_sites;
         traj = computeTrajectoryStraightLineToPoint(robot->getCurrentPosition(), targetPosition, 0.0, true);
         robot->setTrajectoryToFollow(traj);
         wasMoveSuccessful = robot->waitForTrajectoryFinished();
         testExcavationSite(robot, servo);
     }
+
+    // positions of the 4th, 5th, 6th, 7th sites
+    // int site_positions[] = {
+    //     first_site_x + 3 * spacing_between_sites, 
+    //     first_site_x + 4 * spacing_between_sites, 
+    //     first_site_x + 5 * spacing_between_sites, 
+    //     first_site_x + 6 * spacing_between_sites};
+
+    int targeted_site = 0;
+    bool know_targeted_site_is_ours = false;
+
+    // Then test the 4 sites ; infer if possible
+    while (targeted_site < 4) 
+    {
+        
+        // go to site
+        targetPosition.x = first_site_x + (targeted_site + 3) * spacing_between_sites;
+        traj = computeTrajectoryStraightLineToPoint(robot->getCurrentPosition(), targetPosition, 0.0, true);
+        robot->setTrajectoryToFollow(traj);
+        wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+        if (know_targeted_site_is_ours) 
+        {
+            // if known ours, 
+            servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
+            robot->wait(0.8);
+            // bascule
+            dropSite(robot, servo);
+            servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
+
+            robot->updateScore(5);
+
+            // our sites are 0 and 3 (normally this condition is useless)
+            if (targeted_site == 0)
+            {
+                targeted_site = 3;
+                continue;
+            } 
+            // our sites are 1 and 2
+            else if (targeted_site == 1)
+            {
+                targeted_site = 2;
+                continue;
+            // if our site was 2 or 3 then job is done
+            } else {
+                // break the loop
+                break;
+            }
+        } 
+        else 
+        {
+            // measure and resolve
+            ExcavationSquareColor color = testExcavationSite(robot, servo); 
+
+            // if measurement is successful then we know where our sites are
+            if (color != ExcavationSquareColor::NONE) {
+                // if we found our site
+                if (shouldDrop(color, robot)) {
+                    // our sites are 0 and 3
+                    if (targeted_site == 0)
+                    {
+                        targeted_site = 3;
+                        know_targeted_site_is_ours = true;
+                        continue;
+                    } 
+                    // our site are 1 and 2
+                    else if (targeted_site == 1) {
+                        targeted_site = 2;
+                        know_targeted_site_is_ours = true;
+                        continue;
+                    } 
+                    // if reached 2 or 3, job done
+                    else 
+                    {
+                        break;
+                    }
+                }
+                // if we did not find our site
+                else
+                {
+                    // site 0 is opposite team so our sites are 1 and 2
+                    if (targeted_site == 0)
+                    {
+                        targeted_site = 1;
+                        know_targeted_site_is_ours = true;
+                        continue;
+                    } 
+                    // site 1 is opposite team so our sites are 0 and 3
+                    else if (targeted_site == 1) {
+                        targeted_site = 3;
+                        know_targeted_site_is_ours = true;
+                        continue;
+                    }
+                    // site 2 is opposite team so our sites are 0 and 3
+                    else if (targeted_site == 2)
+                    {
+                        targeted_site = 3;
+                        know_targeted_site_is_ours = true;
+                        continue;
+                    }
+                    // job done
+                    else 
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        targeted_site++;
+    }
+
     robot->updateScore(5);
+
 
     //**********************************************************
     // Rotate to come back to the campment
