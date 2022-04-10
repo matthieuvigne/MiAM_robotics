@@ -9,13 +9,14 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
-#include <raspicam/raspicam_cv.h>
 #include <yaml-cpp/yaml.h>
 
 #include <common/macros.hpp>
 #include <common/marker.hpp>
 #include <camera/distortion_model.hpp>
 #include <camera/messages.hpp>
+
+#include "LibCamera.h"
 
 namespace camera {
 
@@ -94,7 +95,7 @@ public:
     Eigen::Matrix<double,2,3>* out_jacobian) const;
 
   // Take picture
-  bool takePicture(cv::Mat* image) const;
+  bool takePicture(cv::Mat & image, double const& timeout = 1.0);
 
   // Get all detected markers with covariances
   bool detectMarkers(
@@ -102,6 +103,7 @@ public:
     common::DetectedMarkerList* detected_markers) const;
 
 private:
+  void configureCamera();
 
   // Camera name
   std::string const name_;
@@ -113,8 +115,7 @@ private:
   DistortionModel::UniquePtr distortion_;
   Eigen::Affine3d pose_;
 
-  // Raspicam object
-  std::unique_ptr<raspicam::RaspiCam_Cv> camera_handler_;
+  LibCamera camera_;
 
   // Marker properties
   cv::Ptr<cv::aruco::Dictionary> dictionary_;

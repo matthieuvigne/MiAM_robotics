@@ -20,21 +20,13 @@ Camera::Camera(
   image_width_      (image_width),
   image_height_     (image_height),
   intrinsics_       {fx,fy,cx,cy},
-  camera_handler_   (new raspicam::RaspiCam_Cv),
   distortion_       (std::move(distortion)),
   dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_250)),
   detector_params_  (cv::aruco::DetectorParameters::create()),
   pose_             (pose)
 {
   assert(this->distortion_ != nullptr);
-
-  // Configure the camera handler to get the photos
-  this->camera_handler_->set(cv::CAP_PROP_FRAME_WIDTH, this->image_width_);
-  this->camera_handler_->set(cv::CAP_PROP_FRAME_HEIGHT, this->image_height_);
-  this->camera_handler_->set(cv::CAP_PROP_FORMAT, CV_8UC1);
-  this->camera_handler_->set(cv::CAP_PROP_BRIGHTNESS, 75);
-  this->camera_handler_->set(cv::CAP_PROP_CONTRAST, 75);
-  isRunningOnRPi_ = this->camera_handler_->getId().length() > 0;
+  configureCamera();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -42,7 +34,6 @@ Camera::Camera(
 Camera::Camera(CameraParams const& params)
 : name_             (params.name),
   pose_             (params.pose),
-  camera_handler_   (new raspicam::RaspiCam_Cv),
   dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_250)),
   detector_params_  (cv::aruco::DetectorParameters::create())
 {
@@ -81,14 +72,32 @@ Camera::Camera(CameraParams const& params)
 
     default: throw("Unrecognized distortion model.");
   }
+  configureCamera();
+}
+
+void Camera::configureCamera()
+{
+  isRunningOnRPi_ = !camera_.initCamera(this->image_width_, this->image_height_, formats::RGB888, 4, 0);
+
+  if (isRunningOnRPi_)
+  {
+    ControlList controls_;
+    int64_t frame_time = 1000000 / 30; // 30FPS
+    controls_.set(controls::FrameDurationLimits, { frame_time, frame_time });
+    controls_.set(controls::Brightness, 0.1);
+    controls_.set(controls::Contrast, 1.0);
+    camera_.set(controls_);
+    camera_.startCamera();
+  }
+
 
   // Configure the camera handler to get the photos
-  this->camera_handler_->set(cv::CAP_PROP_FRAME_WIDTH, this->image_width_);
-  this->camera_handler_->set(cv::CAP_PROP_FRAME_HEIGHT, this->image_height_);
-  this->camera_handler_->set(cv::CAP_PROP_FORMAT, CV_8UC1);
-  this->camera_handler_->set(cv::CAP_PROP_BRIGHTNESS, 75);
-  this->camera_handler_->set(cv::CAP_PROP_CONTRAST, 75);
-  isRunningOnRPi_ = this->camera_handler_->getId().length() > 0;
+  // this->camera_handler_->set(cv::CAP_PROP_FRAME_WIDTH, this->image_width_);
+  // this->camera_handler_->set(cv::CAP_PROP_FRAME_HEIGHT, this->image_height_);
+  // this->camera_handler_->set(cv::CAP_PROP_FORMAT, CV_8UC1);
+  // this->camera_handler_->set(cv::CAP_PROP_BRIGHTNESS, 75);
+  // this->camera_handler_->set(cv::CAP_PROP_CONTRAST, 75);
+  // isRunningOnRPi_ = this->camera_handler_->getId().length() > 0;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -329,19 +338,33 @@ bool Camera::detectMarkers(
 
 //--------------------------------------------------------------------------------------------------
 
-bool Camera::takePicture(cv::Mat* image) const
+bool Camera::takePicture(cv::Mat & image, double const& timeout)
 {
   if (!isRunningOnRPi_)
   {
     // Dummy image.
-    *image = cv::Mat(2,2, CV_8UC1, cv::Scalar(0,0,255));
+    image = cv::Mat(2,2, CV_8UC1, cv::Scalar(0,0,255));
     return true;
   }
 
-  bool success = this->camera_handler_->open();
-  success &= this->camera_handler_->grab(),
-  this->camera_handler_->retrieve(*image);
-  this->camera_handler_->release();
+  LibcameraOutData frameData;
+  bool success = false;
+  struct timespec st, ct;
+  clock_gettime(CLOCK_MONOTONIC, &st);
+  ct = st;
+
+  while (!success && (ct.tv_sec - st.tv_sec + (ct.tv_nsec - st.tv_nsec) / 1e9) < timeout)
+  {
+    success = camera_.readFrame(&frameData);
+    clock_gettime(CLOCK_MONOTONIC, &ct);
+  }
+
+  if (success)
+  {
+    image = cv::Mat(image_height_, image_width_, CV_8UC3, frameData.imageData);
+    camera_.returnFrameBuffer(frameData);
+  }
+
   return success;
 }
 
