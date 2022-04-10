@@ -150,6 +150,7 @@ void ServoHandler::moveSuction(int const& suctionNumber, suction const& position
             case suction::DROP_SAMPLE:    maestro_->setPosition(SERVO_SUCTION[0], 1000); break;
             case suction::LOWER_SAMPLE:    maestro_->setPosition(SERVO_SUCTION[0], 1300); break;
             case suction::HORIZONTAL:  maestro_->setPosition(SERVO_SUCTION[0], 550); break;
+            case suction::VERTICAL:  maestro_->setPosition(SERVO_SUCTION[0], 1600); break;
             default: break;
         }
     }
@@ -163,6 +164,7 @@ void ServoHandler::moveSuction(int const& suctionNumber, suction const& position
             case suction::HORIZONTAL:  maestro_->setPosition(SERVO_SUCTION[1], 500); break;
             case suction::HOLD_FAKE_STATUE:  maestro_->setPosition(SERVO_SUCTION[1], 2500); break;
             case suction::DROP_FAKE_STATUE: maestro_->setPosition(SERVO_SUCTION[1], 1180); break;
+            case suction::VERTICAL:  maestro_->setPosition(SERVO_SUCTION[1], 1500); break;
             default: break;
         }
     }
@@ -174,6 +176,7 @@ void ServoHandler::moveSuction(int const& suctionNumber, suction const& position
             case suction::DROP_SAMPLE:    maestro_->setPosition(SERVO_SUCTION[2], 1800); break;
             case suction::LOWER_SAMPLE:    maestro_->setPosition(SERVO_SUCTION[2], 1700); break;
             case suction::HORIZONTAL:  maestro_->setPosition(SERVO_SUCTION[2], 2450); break;
+            case suction::VERTICAL:  maestro_->setPosition(SERVO_SUCTION[2], 1425); break;
             default: break;
         }
     }

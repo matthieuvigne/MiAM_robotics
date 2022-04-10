@@ -36,7 +36,8 @@
             DROP_SAMPLE = 2,
             DROP_FAKE_STATUE = 3,
             HOLD_FAKE_STATUE = 4,
-            LOWER_SAMPLE = 5
+            LOWER_SAMPLE = 5,
+            VERTICAL = 6
         };
 
         /// \brief Helper class for controlling the robot servos.

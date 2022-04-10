@@ -13,6 +13,8 @@
 using namespace miam::trajectory;
 using miam::RobotPosition;
 
+// #define GO_DIRECTLY_TO_GRABING_SAMPLES 1
+
 // Drop everything from the suction system
 void dropElements(RobotInterface *robot, ServoHandler *servo)
 {
@@ -104,6 +106,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     bool wasMoveSuccessful = true;
     robot->updateScore(2);
 
+    #ifndef GO_DIRECTLY_TO_GRABING_SAMPLES
+
     // Set initial position
     targetPosition.x = robotdimensions::CHASSIS_BACK;
     targetPosition.y = 1200;
@@ -131,6 +135,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->closeTube(0);
     servo->closeTube(2);
     servo->activatePump(true);
+    robot->moveRail(0.7);
     servo->closeValve();
     robot->wait(0.5);
     servo->moveStatue(statue::TRANSPORT);
@@ -226,6 +231,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 300.0, 0.5);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    servo->moveStatue(statue::FOLD);
     // servo->turnOnPump();
     //servo->moveSuction(false);
     // robot->updateScore(1);
@@ -264,6 +271,18 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
+    std::cout<< robot->getCurrentPosition() << std::endl;
+    // robot->wait(5.0);
+    #endif
+
+    #ifdef GO_DIRECTLY_TO_GRABING_SAMPLES
+    
+    targetPosition.x = 292;
+    targetPosition.y = 1667 ;
+    targetPosition.theta = 4.66973;
+    robot->resetPosition(targetPosition, true, true, true);
+    
+    #endif
 
     //**********************************************************
     // Grab the three samples on the ground, and drop them
@@ -273,15 +292,35 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     positions.push_back(targetPosition);
     targetPosition.y = 1325;
     positions.push_back(targetPosition);
-    targetPosition.x = 770;
+    targetPosition.x = 650;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
-    robot->wait(1.5);
-    servo->moveStatue(statue::FOLD);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    
+
+    // last straight line should be slower
+    setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory / 2.0,
+                                                robotdimensions::maxWheelAccelerationTrajectory,
+                                                robotdimensions::wheelSpacing);
+
+    // positions.clear();
+    // targetPosition = robot->getCurrentPosition();
+    // positions.push_back(targetPosition);
+    // targetPosition.x = 770;
+    // positions.push_back(targetPosition);
+    // traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, 60.0);
+    robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::HORIZONTAL);
+
+    setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
+                                                robotdimensions::maxWheelAccelerationTrajectory,
+                                                robotdimensions::wheelSpacing);
 
     robot->wait(0.5);
     robot->moveRail(0.05);
@@ -290,14 +329,26 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->activatePump(true);
     robot->wait(1.0);
 
+    // robot->moveRail(0.75);
+    // for (int i = 0; i < 3; i++)
+    //     servo->moveSuction(i, suction::LOWER_SAMPLE);
+
     robot->moveRail(0.75);
     for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::LOWER_SAMPLE);
+        servo->moveSuction(i, suction::VERTICAL);
 
+    positions.clear();
     targetPosition = robot->getCurrentPosition();
-    endPosition = targetPosition;
-    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 25;
-    traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
+    positions.push_back(targetPosition);
+    targetPosition.x = 770;
+    // targetPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 25;
+    // targetPosition.theta = M_PI_2;
+    positions.push_back(targetPosition);
+    targetPosition.x = 770;
+    targetPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 25;
+    targetPosition.theta = M_PI_2;
+    positions.push_back(targetPosition);
+    traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
@@ -308,10 +359,14 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // traj = computeTrajectoryStraightLine(targetPosition, -15);
     // robot->setTrajectoryToFollow(traj);
     // wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::DROP_SAMPLE);
+
+
+    // for (int i = 0; i < 3; i++)
+    //     servo->moveSuction(i, suction::DROP_SAMPLE);
     // robot->wait(0.3);
-    robot->wait(1.0);
+
+
+    robot->wait(2.0);
     robot->updateScore(9);
 
     targetPosition = robot->getCurrentPosition();
@@ -348,8 +403,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //**********************************************************
 
     const int spacing_between_sites = 185;
-    const int site_y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -5;
-    const int first_site_x = 730 - 15;
+    const int site_y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -10;
+    const int first_site_x = 730 - 30;
 
     positions.clear();
     targetPosition = robot->getCurrentPosition();
@@ -385,6 +440,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     for (int i = 1; i < 3; i++)
     {
         targetPosition.x = first_site_x + i * spacing_between_sites;
+        targetPosition.y = site_y;
         traj = computeTrajectoryStraightLineToPoint(robot->getCurrentPosition(), targetPosition, 0.0, true);
         robot->setTrajectoryToFollow(traj);
         wasMoveSuccessful = robot->waitForTrajectoryFinished();
@@ -407,6 +463,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
         
         // go to site
         targetPosition.x = first_site_x + (targeted_site + 3) * spacing_between_sites;
+        targetPosition.y = site_y;
         traj = computeTrajectoryStraightLineToPoint(robot->getCurrentPosition(), targetPosition, 0.0, true);
         robot->setTrajectoryToFollow(traj);
         wasMoveSuccessful = robot->waitForTrajectoryFinished();
