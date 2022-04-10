@@ -13,17 +13,17 @@ int main(int argc, char* argv[])
   camera_params.name = "camera";
   camera_params.resolution[camera::CameraParams::WIDTH]  = 1280;
   camera_params.resolution[camera::CameraParams::HEIGHT] = 960;
-  camera_params.intrinsics[camera::CameraParams::FX] = 7.0424945444991499e+02;
-  camera_params.intrinsics[camera::CameraParams::FY] = 6.9896472232651024e+02;
-  camera_params.intrinsics[camera::CameraParams::CX] = camera_params.resolution[camera::CameraParams::WIDTH] / 2;
-  camera_params.intrinsics[camera::CameraParams::CY] = camera_params.resolution[camera::CameraParams::HEIGHT] / 2;
-  camera_params.distortion_model = camera::DistortionModel::Type::RadTan;
+  camera_params.intrinsics[camera::CameraParams::FX] = 1368.818052261177;
+  camera_params.intrinsics[camera::CameraParams::FY] = 1358.929438179962;
+  camera_params.intrinsics[camera::CameraParams::CX] = 542.3083210278664;
+  camera_params.intrinsics[camera::CameraParams::CY] = 476.3511642509686;
+  camera_params.distortion_model = camera::DistortionModel::Type::NoDistortion;
   camera_params.distortion_coeffs = {
-     2.5432953861499258e-01,
-    -5.8481797342726261e-01,
-    -9.7755009212097837e-04,
-    -2.9062089311574019e-02,
-     3.1200641998405720e-01};
+     0.3321859739578252, 
+    -1.130115755363346,
+     0.001940341517564527,
+    -0.03055278893902099,
+     1.429087154492101};
   camera_params.pose = Eigen::Affine3d::Identity();
 
   // Set the module parameters

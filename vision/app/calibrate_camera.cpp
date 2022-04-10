@@ -62,13 +62,14 @@ int main(int argc, char* argv[])
   cv::Size image_size;
   std::vector<std::vector<cv::Point2f> > points_2d;
   std::vector<std::vector<cv::Point3f> > points_3d;
-  for(size_t image_idx=0u; image_idx<num_images; image_idx++)
+  for(size_t image_idx=0u; image_idx<50/*num_images*/; image_idx++)
   {
     // Load the image and display it
     std::string const& image_path = images[image_idx];
     cv::Mat const original_frame = cv::imread(image_path, cv::IMREAD_GRAYSCALE);
     cv::Mat resized_frame;
-    cv::resize(original_frame, resized_frame, cv::Size(), 0.25, 0.25);
+    //~ cv::resize(original_frame, resized_frame, cv::Size(1280,960), 0.25, 0.25);
+    cv::resize(original_frame, resized_frame, cv::Size(1280,960));
     image_size = cv::Size(resized_frame.rows, resized_frame.cols);
     if(display_images)
     {
