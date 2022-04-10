@@ -252,28 +252,28 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
-    robot->moveRail(0.4);
+    // robot->moveRail(0.4);
 
     targetPosition = robot->getCurrentPosition();
     traj.clear();
-    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_2)));
+    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_4)));
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
 
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 200.0);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, 200.0);
+    // robot->setTrajectoryToFollow(traj);
+    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     servo->activatePump(false);
     servo->openValve();
     robot->wait(1.0);
 
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -200.0);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, -200.0);
+    // robot->setTrajectoryToFollow(traj);
+    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     std::cout<< robot->getCurrentPosition() << std::endl;
     // robot->wait(5.0);
@@ -302,6 +302,10 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
+
+    for (int i = 0; i < 3; i++)
+        servo->moveSuction(i, suction::HORIZONTAL);
+
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
     
 
@@ -320,9 +324,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 60.0);
     robot->setTrajectoryToFollow(traj);
+    
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::HORIZONTAL);
 
     setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
                                                 robotdimensions::maxWheelAccelerationTrajectory,
@@ -645,7 +648,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     dropElements(robot, servo);
-    robot->wait(1.0);
+    robot->wait(0.5);
 
     targetPosition = robot->getCurrentPosition();
     traj.clear();
@@ -683,7 +686,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->wait(0.5);
 
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -180);
+    traj = computeTrajectoryStraightLine(targetPosition, -130);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
@@ -694,56 +697,10 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     dropElements(robot, servo);
-    robot->wait(1.0);
-
-    targetPosition = robot->getCurrentPosition();
-    traj.clear();
-    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_2)));
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 180);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-
-    // go grab the 3d sample
-
-    servo->moveSuction(2, suction::DROP_SAMPLE);
-
-    robot->moveRail(0.25);
-    // robot->wait(1.0);
-
-    servo->closeValve();
-    servo->openTube(2);
-    servo->closeTube(0);
-    servo->closeTube(1);
-    servo->activatePump(true);
-    
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 55);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    robot->wait(1.0);
-
-    robot->moveRail(0.6);
     robot->wait(0.5);
 
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -170);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
-    targetPosition = robot->getCurrentPosition();
-    traj.clear();
-    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI_2)));
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    dropElements(robot, servo);
-    robot->wait(1.0);
+    // // go grab the 3d sample
 
     // targetPosition = robot->getCurrentPosition();
     // traj.clear();
@@ -752,9 +709,55 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, 170);
+    // traj = computeTrajectoryStraightLine(targetPosition, 180);
     // robot->setTrajectoryToFollow(traj);
     // wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    // servo->moveSuction(2, suction::DROP_SAMPLE);
+
+    // robot->moveRail(0.25);
+    // // robot->wait(1.0);
+
+    // servo->closeValve();
+    // servo->openTube(2);
+    // servo->closeTube(0);
+    // servo->closeTube(1);
+    // servo->activatePump(true);
+    
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, 55);
+    // robot->setTrajectoryToFollow(traj);
+    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    // robot->wait(1.0);
+
+    // robot->moveRail(0.6);
+    // robot->wait(0.5);
+
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, -170);
+    // robot->setTrajectoryToFollow(traj);
+    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    // targetPosition = robot->getCurrentPosition();
+    // traj.clear();
+    // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI_2)));
+    // robot->setTrajectoryToFollow(traj);
+    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    // dropElements(robot, servo);
+    // robot->wait(0.5);
+
+    // // targetPosition = robot->getCurrentPosition();
+    // // traj.clear();
+    // // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_2)));
+    // // robot->setTrajectoryToFollow(traj);
+    // // wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    // // targetPosition = robot->getCurrentPosition();
+    // // traj = computeTrajectoryStraightLine(targetPosition, 170);
+    // // robot->setTrajectoryToFollow(traj);
+    // // wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
 
     //**********************************************************
