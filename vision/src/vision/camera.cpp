@@ -323,6 +323,8 @@ bool Camera::detectMarkers(
     marker.cov_T_CM = information_matrix.inverse();
     detected_markers_ptr->push_back(marker);
   }
+
+  return true;
 }
 
 //--------------------------------------------------------------------------------------------------

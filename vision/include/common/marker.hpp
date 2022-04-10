@@ -75,11 +75,11 @@ class Marker {
   public:
     static bool serialize(MarkerIdToEstimate const& markers, std::vector<char>* message);
     static bool deserialize(std::vector<char> const& message, MarkerIdToEstimate* markers);
-    static int constexpr MESSAGE_SIZE_BYTES =  1 * sizeof(uint8_t) + /*Marker id*/
-                                               1 * sizeof(uint8_t) + /*Marker family*/
-                                               1 * sizeof(int64_t) + /*timestamp*/
-                                               7 * sizeof(double)  + /*Pose*/
-                                              21 * sizeof(double);   /*Covariance*/
+    static int constexpr MESSAGE_SIZE_BYTES =  1 * sizeof(MarkerId)     + /*Marker id*/
+                                               1 * sizeof(MarkerFamily) + /*Marker family*/
+                                               1 * sizeof(int64_t)      + /*timestamp*/
+                                               7 * sizeof(double)       + /*Pose*/
+                                              21 * sizeof(double);        /*Covariance*/
 
 }; // class Marker
 
