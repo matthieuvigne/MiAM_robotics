@@ -1,9 +1,9 @@
 #include <iostream>
 #include <assert.h>
 
-#include <vision/distortion_radtan.hpp>
+#include <camera/distortion_radtan.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Constructor and destructors
@@ -66,4 +66,4 @@ void DistortionRadTan::getDistortionCoeffs(cv::Mat* coeffs_ptr) const
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera

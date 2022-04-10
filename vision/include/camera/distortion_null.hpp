@@ -1,21 +1,19 @@
-#ifndef VISION_DISTORTION_FISHEYE_HPP
-#define VISION_DISTORTION_FISHEYE_HPP
+#ifndef VISION_DISTORTION_NULL_HPP
+#define VISION_DISTORTION_NULL_HPP
 
-#include <vision/distortion_model.hpp>
+#include <camera/distortion_model.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration
 //--------------------------------------------------------------------------------------------------
 
-class DistortionFisheye : public DistortionModel {
+class DistortionNull : public DistortionModel {
 
 public:
 
-  DISALLOW_EVIL_CONSTRUCTORS(DistortionFisheye);
-  DistortionFisheye(Eigen::VectorXd const& distortion_coeffs);
-  enum {k1, k2, k3, k4};
+  DistortionNull();
 
 public:
 
@@ -23,20 +21,19 @@ public:
   void getDistortionCoeffs(cv::Mat* coeffs) const;
   void distort(Eigen::Vector2d* point, Eigen::Matrix2d* jacobian) const;
 
-}; // class DistortionFisheye
+}; // class DistortionNull
 
 //--------------------------------------------------------------------------------------------------
 // Inline functions
 //--------------------------------------------------------------------------------------------------
 
-int DistortionFisheye::getNumCoeffs() const
+int DistortionNull::getNumCoeffs() const
 {
-  return 4;
+  return 0;
 }
 
 //--------------------------------------------------------------------------------------------------
 
+} // namespace camera
 
-} // namespace vision
-
-#endif // VISION_DISTORTION_FISHEYE
+#endif // VISION_DISTORTION_NULL_HPP

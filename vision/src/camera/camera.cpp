@@ -1,10 +1,10 @@
 #include <common/maths.hpp>
-#include <vision/camera.hpp>
-#include <vision/distortion_fisheye.hpp>
-#include <vision/distortion_null.hpp>
-#include <vision/distortion_radtan.hpp>
+#include <camera/camera.hpp>
+#include <camera/distortion_fisheye.hpp>
+#include <camera/distortion_null.hpp>
+#include <camera/distortion_radtan.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Constructor and destructor
@@ -347,4 +347,4 @@ bool Camera::takePicture(cv::Mat* image) const
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera

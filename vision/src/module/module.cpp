@@ -6,8 +6,8 @@
 #include <common/yaml_serialization.hpp>
 #include <module/module.hpp>
 #include <network/socket_exception.hpp>
-#include <vision/distortion_null.hpp>
-#include <vision/distortion_radtan.hpp>
+#include <camera/distortion_null.hpp>
+#include <camera/distortion_radtan.hpp>
 
 namespace module {
 
@@ -34,15 +34,15 @@ Module::Module(std::string const& filename)
   // Build the camera and launch its thread
   YAML::Node const camera_node = params["camera"];
   std::string const camera_name = "camera";
-  vision::Camera::UniquePtr camera_ptr =
-    vision::Camera::buildCameraFromYaml(camera_name, camera_node);
+  camera::Camera::UniquePtr camera_ptr =
+    camera::Camera::buildCameraFromYaml(camera_name, camera_node);
   Eigen::Affine3d const T_WM =
     common::yaml_serialization::deserializePose(params["T_WM"]);
   Eigen::Affine3d const T_RC =
     common::yaml_serialization::deserializePose(params["T_RC"]);
   Eigen::Matrix<double,6,6> const cov_T_RC =
     common::yaml_serialization::deserializePoseCovariance(params["cov_T_RC"]);
-  this->camera_thread_ptr_.reset(new vision::CameraThread(T_WM, T_RC, cov_T_RC,
+  this->camera_thread_ptr_.reset(new camera::CameraThread(T_WM, T_RC, cov_T_RC,
     std::move(camera_ptr)));
 
   // Launch the server's thread
@@ -72,11 +72,11 @@ Module::Module(ModuleParams const& params)
   this->board_.width = params.board_width;
   
   // Build the camera and launch its thread
-  vision::Camera::UniquePtr camera_ptr(new vision::Camera(params.camera_params));
+  camera::Camera::UniquePtr camera_ptr(new camera::Camera(params.camera_params));
   Eigen::Affine3d const& T_WM = params.T_WM;
   Eigen::Affine3d const& T_RC = params.T_RC;
   Eigen::Matrix<double,6,6> const& cov_T_RC = params.cov_T_RC;
-  this->camera_thread_ptr_.reset(new vision::CameraThread(T_WM, T_RC, cov_T_RC,
+  this->camera_thread_ptr_.reset(new camera::CameraThread(T_WM, T_RC, cov_T_RC,
     std::move(camera_ptr)));
     
   // Launch the server's thread

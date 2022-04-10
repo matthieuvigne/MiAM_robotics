@@ -1,7 +1,7 @@
 #include <common/maths.hpp>
-#include <vision/camera_pose_filter.hpp>
+#include <camera/camera_pose_filter.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Constructors and destructors
@@ -146,4 +146,4 @@ void CameraPoseFilter::update(
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera

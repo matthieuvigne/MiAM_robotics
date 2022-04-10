@@ -8,10 +8,10 @@
 #include <eigen3/Eigen/Dense>
 
 #include <common/macros.hpp>
-#include <vision/camera.hpp>
-#include <vision/camera_pose_filter.hpp>
+#include <camera/camera.hpp>
+#include <camera/camera_pose_filter.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration
@@ -72,6 +72,6 @@ void CameraThread::join()
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera
 
 #endif // VISION_CAMERA_THREAD_HPP

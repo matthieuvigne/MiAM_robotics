@@ -14,10 +14,10 @@
 
 #include <common/macros.hpp>
 #include <common/marker.hpp>
-#include <vision/distortion_model.hpp>
-#include <vision/messages.hpp>
+#include <camera/distortion_model.hpp>
+#include <camera/messages.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Associated structures
@@ -149,6 +149,6 @@ DistortionModel const& Camera::getDistortionModel() const
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera
 
 #endif // VISION_CAMERA_HPP

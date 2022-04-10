@@ -3,9 +3,9 @@
 #include <common/marker.hpp>
 #include <common/maths.hpp>
 #include <common/time.hpp>
-#include <vision/camera_thread.hpp>
+#include <camera/camera_thread.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Constructor and destructor
@@ -168,4 +168,4 @@ void CameraThread::getMarkers(common::MarkerIdToEstimate* estimates_ptr) const
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera

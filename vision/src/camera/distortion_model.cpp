@@ -1,9 +1,9 @@
 #include <iostream>
 #include <assert.h>
 
-#include <vision/distortion_model.hpp>
+#include <camera/distortion_model.hpp>
 
-namespace vision {
+namespace camera {
   
 //--------------------------------------------------------------------------------------------------
 // Constructor and destructors
@@ -125,4 +125,4 @@ std::string DistortionModel::print() const
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera

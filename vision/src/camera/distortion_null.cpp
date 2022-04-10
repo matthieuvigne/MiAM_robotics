@@ -1,9 +1,9 @@
 #include <iostream>
 #include <assert.h>
 
-#include <vision/distortion_null.hpp>
+#include <camera/distortion_null.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Constructor and destructors
@@ -34,4 +34,4 @@ void DistortionNull::getDistortionCoeffs(cv::Mat* coeffs_ptr) const
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera

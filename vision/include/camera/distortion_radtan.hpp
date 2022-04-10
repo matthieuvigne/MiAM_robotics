@@ -1,9 +1,9 @@
 #ifndef VISION_DISTORTION_RADTAN_HPP
 #define VISION_DISTORTION_RADTAN_HPP
 
-#include <vision/distortion_model.hpp>
+#include <camera/distortion_model.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration
@@ -36,6 +36,6 @@ int DistortionRadTan::getNumCoeffs() const
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera
 
 #endif // VISION_DISTORTION_RADTAN_HPP

@@ -1,9 +1,9 @@
 #include <iostream>
 #include <assert.h>
 
-#include <vision/distortion_fisheye.hpp>
+#include <camera/distortion_fisheye.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Constructor and destructors
@@ -89,4 +89,4 @@ void DistortionFisheye::getDistortionCoeffs(cv::Mat* coeffs_ptr) const
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera

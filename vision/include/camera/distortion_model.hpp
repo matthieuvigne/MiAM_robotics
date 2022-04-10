@@ -6,7 +6,7 @@
 
 #include <common/macros.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration
@@ -74,6 +74,6 @@ DistortionModel::Type DistortionModel::getType() const
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera
 
 #endif // VISION_DISTORTION_MODEL_HPP

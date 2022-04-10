@@ -5,7 +5,7 @@
 
 #include <common/macros.hpp>
 
-namespace vision {
+namespace camera {
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration
@@ -102,6 +102,6 @@ void CameraPoseFilter::setCovariance(
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace vision
+} // namespace camera
 
 #endif // VISION_CAMERA_POSE_FILTER

@@ -12,6 +12,6 @@ struct Image {
   cv::Ptr<cv::Mat> image_ptr;
 }; // struct Image
 
-} // namespace vision_mgs
+} // namespace camera_mgs
 
 #endif // VISION_MESSAGES_HPP

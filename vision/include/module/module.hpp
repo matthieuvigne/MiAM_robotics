@@ -4,7 +4,7 @@
 #include <opencv2/aruco.hpp>
 
 #include <network/server_thread.hpp>
-#include <vision/camera_thread.hpp>
+#include <camera/camera_thread.hpp>
 
 /* Vision module
  * -------------
@@ -25,7 +25,7 @@ struct ModuleParams {
   Eigen::Affine3d T_WM;
   
   // Camera
-  vision::CameraParams camera_params;
+  camera::CameraParams camera_params;
   Eigen::Affine3d T_RC;
   Eigen::Matrix<double,6,6> cov_T_RC;
   
@@ -59,7 +59,7 @@ private:
 private:
 
   Board board_;
-  vision::CameraThread::UniquePtr camera_thread_ptr_;
+  camera::CameraThread::UniquePtr camera_thread_ptr_;
   network::ServerThread::UniquePtr server_thread_ptr_;
   bool turn_off_ = false;
 
