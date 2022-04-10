@@ -184,6 +184,9 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
+    robot->moveRail(0.8);
+    servo->moveSuction(1, suction::HORIZONTAL);
+
     //**********************************************************
     // Drop the real statue
     //**********************************************************
@@ -207,6 +210,60 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->moveStatue(statue::DROP);
     robot->wait(0.1);
     robot->updateScore(20);
+
+
+    //**********************************************************
+    // Go to the side distributor
+    //**********************************************************
+
+    positions.clear();
+    targetPosition = robot->getCurrentPosition();
+    positions.push_back(targetPosition);
+    targetPosition.y = 1680 ;
+    positions.push_back(targetPosition);
+    targetPosition.x = robotdimensions::CHASSIS_FRONT + 30;
+    positions.push_back(targetPosition);
+    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 300.0, 0.5);
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    // servo->turnOnPump();
+    //servo->moveSuction(false);
+    // robot->updateScore(1);
+
+    servo->activatePump(true);
+    servo->closeValve();
+    robot->moveRail(0.55);
+    robot->wait(1.0);
+    robot->moveRail(0.8);
+    
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, -150.0);
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    robot->moveRail(0.4);
+
+    targetPosition = robot->getCurrentPosition();
+    traj.clear();
+    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_2)));
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, 300.0);
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    servo->activatePump(false);
+    servo->openValve();
+    robot->wait(1.0);
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, -300.0);
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
 
     //**********************************************************
     // Grab the three samples on the ground, and drop them
@@ -239,13 +296,13 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     targetPosition = robot->getCurrentPosition();
     endPosition = targetPosition;
-    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 20;
+    endPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 25;
     traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     dropElements(robot, servo);
-    robot->moveRail(0.45);
+    robot->moveRail(0.5);
 
     // targetPosition = robot->getCurrentPosition();
     // traj = computeTrajectoryStraightLine(targetPosition, -15);
@@ -289,6 +346,11 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //**********************************************************
     // Flip the dig zone
     //**********************************************************
+
+    const int spacing_between_sites = 185;
+    const int site_y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -5;
+    const int first_site_x = 730 - 15;
+
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -296,9 +358,9 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition.y -= 100 * std::sin(targetPosition.theta);
     positions.push_back(targetPosition);
     targetPosition.x = 620;
-    targetPosition.y = robotdimensions::CHASSIS_WIDTH + 80 + 60;
+    targetPosition.y = site_y;
     positions.push_back(targetPosition);
-    targetPosition.x = 730;
+    targetPosition.x = first_site_x;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
     robot->setTrajectoryToFollow(traj);
@@ -318,9 +380,6 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //     testExcavationSite(robot, servo);
     // }
     // robot->updateScore(5);
-
-    const int spacing_between_sites = 185;
-    const int first_site_x = 730;
 
     // Test the first 3 sites
     for (int i = 1; i < 3; i++)
@@ -354,13 +413,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
         if (know_targeted_site_is_ours) 
         {
-            // if known ours, 
-            servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
-            robot->wait(0.8);
             // bascule
             dropSite(robot, servo);
-            servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
-
             robot->updateScore(5);
 
             // our sites are 0 and 3 (normally this condition is useless)
@@ -452,10 +506,8 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
-    targetPosition.x = 900;
-    targetPosition.y = 600;
-    positions.push_back(targetPosition);
     targetPosition.x = 975;
+    targetPosition.y = 600;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
