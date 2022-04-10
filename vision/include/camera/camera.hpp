@@ -16,7 +16,11 @@
 #include <camera/distortion_model.hpp>
 #include <camera/messages.hpp>
 
+#ifdef RPI4
 #include "LibCamera.h"
+#else
+#include <raspicam/raspicam_cv.h>
+#endif
 
 namespace camera {
 
@@ -114,8 +118,11 @@ private:
   Intrinsics intrinsics_;
   DistortionModel::UniquePtr distortion_;
   Eigen::Affine3d pose_;
-
-  LibCamera camera_;
+  #ifdef RPI4
+    LibCamera camera_;
+  #else
+    raspicam::RaspiCam_Cv camera_handler_;
+  #endif
 
   // Marker properties
   cv::Ptr<cv::aruco::Dictionary> dictionary_;

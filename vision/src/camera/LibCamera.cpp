@@ -1,4 +1,5 @@
-#include "vision/LibCamera.h"
+#ifdef RPI4
+#include "camera/LibCamera.h"
 
 int LibCamera::initCamera(int width, int height, PixelFormat format, int buffercount, int rotation) {
     int ret;
@@ -232,3 +233,4 @@ void LibCamera::closeCamera(){
 
     cm.reset();
 }
+#endif

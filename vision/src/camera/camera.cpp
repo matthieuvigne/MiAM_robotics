@@ -77,27 +77,27 @@ Camera::Camera(CameraParams const& params)
 
 void Camera::configureCamera()
 {
-  isRunningOnRPi_ = !camera_.initCamera(this->image_width_, this->image_height_, formats::RGB888, 4, 0);
-
-  if (isRunningOnRPi_)
-  {
-    ControlList controls_;
-    int64_t frame_time = 1000000 / 30; // 30FPS
-    controls_.set(controls::FrameDurationLimits, { frame_time, frame_time });
-    controls_.set(controls::Brightness, 0.1);
-    controls_.set(controls::Contrast, 1.0);
-    camera_.set(controls_);
-    camera_.startCamera();
-  }
-
-
-  // Configure the camera handler to get the photos
-  // this->camera_handler_->set(cv::CAP_PROP_FRAME_WIDTH, this->image_width_);
-  // this->camera_handler_->set(cv::CAP_PROP_FRAME_HEIGHT, this->image_height_);
-  // this->camera_handler_->set(cv::CAP_PROP_FORMAT, CV_8UC1);
-  // this->camera_handler_->set(cv::CAP_PROP_BRIGHTNESS, 75);
-  // this->camera_handler_->set(cv::CAP_PROP_CONTRAST, 75);
-  // isRunningOnRPi_ = this->camera_handler_->getId().length() > 0;
+  #ifdef RPI4
+    isRunningOnRPi_ = !camera_.initCamera(this->image_width_, this->image_height_, formats::RGB888, 4, 0);
+    if (isRunningOnRPi_)
+    {
+      ControlList controls_;
+      int64_t frame_time = 1000000 / 30; // 30FPS
+      controls_.set(controls::FrameDurationLimits, { frame_time, frame_time });
+      controls_.set(controls::Brightness, 0.1);
+      controls_.set(controls::Contrast, 1.0);
+      camera_.set(controls_);
+      camera_.startCamera();
+    }
+  #else
+    camera_handler_ = raspicam::RaspiCam_Cv();
+    camera_handler_.set(cv::CAP_PROP_FRAME_WIDTH, this->image_width_);
+    camera_handler_.set(cv::CAP_PROP_FRAME_HEIGHT, this->image_height_);
+    camera_handler_.set(cv::CAP_PROP_FORMAT, CV_8UC1);
+    camera_handler_.set(cv::CAP_PROP_BRIGHTNESS, 75);
+    camera_handler_.set(cv::CAP_PROP_CONTRAST, 75);
+    isRunningOnRPi_ = camera_handler_.getId().length() > 0;
+  #endif
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -346,24 +346,30 @@ bool Camera::takePicture(cv::Mat & image, double const& timeout)
     image = cv::Mat(2,2, CV_8UC1, cv::Scalar(0,0,255));
     return true;
   }
+  #ifdef RPI4
+    LibcameraOutData frameData;
+    bool success = false;
+    struct timespec st, ct;
+    clock_gettime(CLOCK_MONOTONIC, &st);
+    ct = st;
 
-  LibcameraOutData frameData;
-  bool success = false;
-  struct timespec st, ct;
-  clock_gettime(CLOCK_MONOTONIC, &st);
-  ct = st;
+    while (!success && (ct.tv_sec - st.tv_sec + (ct.tv_nsec - st.tv_nsec) / 1e9) < timeout)
+    {
+      success = camera_.readFrame(&frameData);
+      clock_gettime(CLOCK_MONOTONIC, &ct);
+    }
 
-  while (!success && (ct.tv_sec - st.tv_sec + (ct.tv_nsec - st.tv_nsec) / 1e9) < timeout)
-  {
-    success = camera_.readFrame(&frameData);
-    clock_gettime(CLOCK_MONOTONIC, &ct);
-  }
-
-  if (success)
-  {
-    image = cv::Mat(image_height_, image_width_, CV_8UC3, frameData.imageData);
-    camera_.returnFrameBuffer(frameData);
-  }
+    if (success)
+    {
+      image = cv::Mat(image_height_, image_width_, CV_8UC3, frameData.imageData);
+      camera_.returnFrameBuffer(frameData);
+    }
+  #else
+    bool success = camera_handler_.open();
+    success &= camera_handler_.grab(),
+    camera_handler_.retrieve(image);
+    camera_handler_.release();
+  #endif
 
   return success;
 }

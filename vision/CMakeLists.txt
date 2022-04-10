@@ -9,6 +9,8 @@ set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_BUILD_TYPE Debug)
 add_compile_options(-std=c++17)
 
+option(RPI4 "Target is raspberry pi 4" OFF)
+
 # Recursively include all the source files
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp")
 set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX)
@@ -27,13 +29,22 @@ message(STATUS "Found OpenCV v." ${OpenCV_VERSION})
 find_package(Eigen3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
-pkg_search_module(libcamera REQUIRED libcamera)
 pkg_search_module(YAMLCPP REQUIRED yaml-cpp)
 pkg_search_module(MIAMUTILSLIB REQUIRED miam_utils)
+
 message(STATUS "Found miam_utils v." ${MIAMUTILSLIB_VERSION} " at " ${MIAMUTILSLIB_LIBRARY_DIRS})
-include_directories(${MIAMUTILSLIB_INCLUDE_DIRS} ${libcamera_INCLUDE_DIRS} )
+include_directories(${MIAMUTILSLIB_INCLUDE_DIRS})
 link_directories(${OpenCV_DIRS} ${Eigen_INCLUDE_DIRS} ${YAMLCPP_INCLUDE_DIRS} ${MIAMUTILSLIB_LIBRARY_DIRS})
-target_link_libraries(${LIBRARY_NAME} ${OpenCV_LIBS} ${libcamera_LIBRARIES} ${YAMLCPP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MIAMUTILSLIB_LIBRARIES})
+
+if(RPI4)
+    pkg_search_module(LIBCAMERA REQUIRED libcamera)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRPI4")
+    include_directories(${LIBCAMERA_INCLUDE_DIRS})
+    target_link_libraries(${LIBRARY_NAME} ${OpenCV_LIBS} ${LIBCAMERA_LIBRARIES} ${YAMLCPP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MIAMUTILSLIB_LIBRARIES})
+else()
+    find_package(raspicam REQUIRED)
+    target_link_libraries(${LIBRARY_NAME} ${OpenCV_LIBS} ${raspicam_CV_LIBS} ${YAMLCPP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MIAMUTILSLIB_LIBRARIES})
+endif()
 
 # Application
 

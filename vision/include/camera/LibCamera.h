@@ -1,3 +1,5 @@
+#ifdef RPI4
+
 #include <atomic>
 #include <iomanip>
 #include <iostream>
@@ -39,9 +41,9 @@ class LibCamera {
     public:
         LibCamera(){};
         ~LibCamera(){};
-        
+
         int initCamera(int width, int height, PixelFormat format, int buffercount, int rotation);
-        
+
         int startCamera();
         bool readFrame(LibcameraOutData *frameData);
         void returnFrameBuffer(LibcameraOutData frameData);
@@ -74,3 +76,4 @@ class LibCamera {
         std::mutex camera_stop_mutex_;
         std::mutex free_requests_mutex_;
 };
+#endif
