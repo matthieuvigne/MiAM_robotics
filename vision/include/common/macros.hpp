@@ -33,8 +33,18 @@
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define LOG(message)                                  \
+#define LOG(message)                                      \
   std::cout << "[" << __FILENAME__ << ": l."              \
     << __LINE__ << "] " << message << std::endl
+
+#define CHECK(condition)                                  \
+if(!condition)                                            \
+{                                                         \
+  throw std::runtime_error(   std::string(__FILENAME__)   \
+                            + std::string(" [")           \
+                            + std::to_string(__LINE__)    \
+                            + std::string("] ")           \
+                            + std::string(#condition)   );\
+}
 
 #endif // COMMON_MACRO_HPP

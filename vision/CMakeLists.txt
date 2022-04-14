@@ -57,6 +57,14 @@ target_link_libraries(dummy_client ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 add_executable(calibrate_camera app/calibrate_camera.cpp)
 target_link_libraries(calibrate_camera ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
+# Tests
+
+include(CTest)
+file(GLOB_RECURSE ${PROJECT_NAME}_TESTS "tests/*.cpp")
+add_executable(test_camera_pose_filter tests/test_camera_pose_filter.cpp)
+target_link_libraries(test_camera_pose_filter ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+add_test(NAME test_camera_pose_filter COMMAND test_camera_pose_filter)
+
 #~ add_executable(test_serialization scripts/test_serialization.cpp)
 #~ target_link_libraries(test_serialization ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 #~ message("Current source directory: ${CMAKE_CURRENT_SOURCE_DIR}")
