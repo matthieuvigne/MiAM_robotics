@@ -12,25 +12,44 @@
 #include <unistd.h>
 #include <signal.h>
 
-Robot robot;
+Robot *robotPtr;
 
 
 // Stop motor before exit.
 void killCode(int x)
 {
-/*     robot.servos_.openTube(0);
-    robot.servos_.openTube(1);
-    robot.servos_.openTube(2); */
-    robot.servos_.shutdownServos();
-    robot.servos_.activatePump(false);
-    robot.stopMotors();
-    robot.lidar_.stop();
+    robotPtr->servos_.shutdownServos();
+    robotPtr->servos_.activatePump(false);
+    robotPtr->stopMotors();
+    robotPtr->lidar_.stop();
     exit(0);
 }
 
 
 int main(int argc, char **argv)
 {
+    // Parse input
+    bool testMode = false;
+    bool noLidar = false;
+    std::vector <std::string> sources;
+    std::string destination;
+    for (int i = 1; i < argc; i++)
+    {
+        if (std::string(argv[i]) == "--testmode")
+            testMode = true;
+        else if (std::string(argv[i]) == "--nolidar")
+            noLidar = true;
+        else
+        {
+            std::cout << "Main robot code." << std::endl;
+            std::cout << "Usage: ./mainRobotCode [--testmode] [--nolidar]." << std::endl;
+            exit(0);
+        }
+    }
+
+    Robot robot(testMode, noLidar);
+    robotPtr = &robot;
+
     // Wire signals.
     signal(SIGINT, killCode);
     signal(SIGTERM, killCode);

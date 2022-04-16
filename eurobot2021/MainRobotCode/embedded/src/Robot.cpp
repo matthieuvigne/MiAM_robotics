@@ -9,17 +9,14 @@
 #include "Robot.h"
 #include "Strategy.h"
 
-bool const TEST_MODE = true;
-bool const DISABLE_LIDAR = true;
-
 // Update loop frequency
 const double LOOP_PERIOD = 0.010;
 
 const int START_SWITCH = 21;
+const int RAIL_SWITCH = 13;
 
 // Potentiometer
-const int MIAM_POTENTIOMETER_LOW_VALUE = 300;
-const int MIAM_POTENTIOMETER_HIGH_VALUE = 600;
+const int MIAM_POTENTIOMETER_RANGE = 290;
 const int MIAM_RAIL_TOLERANCE = 10;
 
 const int MIAM_RAIL_SERVO_ZERO_VELOCITY = 1450;
@@ -27,12 +24,14 @@ const int MIAM_RAIL_SERVO_MAX_UP_VELOCITY = 2000;
 const int MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY = 1000;
 
 
-Robot::Robot():
+Robot::Robot(bool const& testMode, bool const& disableLidar):
     RobotInterface(),
     servos_(&maestro_),
-    lidar_(M_PI_4),
+    lidar_(-M_PI_4),
     ignoreDetection_(false),
     avoidanceTimeout_(250),
+    testMode_(testMode),
+    disableLidar_(disableLidar),
     isScreenInit_(false),
     isServosInit_(false),
     isArduinoInit_(false),
@@ -87,6 +86,7 @@ Robot::Robot():
 bool Robot::initSystem()
 {
     RPi_setupGPIO(START_SWITCH, PI_GPIO_INPUT_PULLUP); // Starting cable.
+    RPi_setupGPIO(RAIL_SWITCH, PI_GPIO_INPUT_PULLUP); // Rail limit cable.
     bool allInitSuccessful = true;
 
     if (!isScreenInit_)
@@ -153,7 +153,7 @@ bool Robot::initSystem()
 
     if (!isServosInit_)
     {
-        isServosInit_ = servos_.init("/dev/ttyACM2");
+        isServosInit_ = servos_.init("/dev/maestro");
         if (!isServosInit_)
         {
             #ifdef DEBUG
@@ -166,7 +166,7 @@ bool Robot::initSystem()
         }
     }
 
-    if (DISABLE_LIDAR)
+    if (testMode_ && disableLidar_)
         isLidarInit_ = true;
     if (!isLidarInit_)
     {
@@ -179,16 +179,12 @@ bool Robot::initSystem()
             screen_.setText("Failed to init", 0);
             screen_.setText("lidar", 1);
             screen_.setLCDBacklight(255, 0, 0);
-
+            allInitSuccessful = false;
         }
     }
 
 
     return allInitSuccessful;
-
-
-
-    //~ return true;
 }
 
 
@@ -204,20 +200,26 @@ bool Robot::setupBeforeMatchStart()
         bool isInit = initSystem();
         if (isInit)
         {
+            screen_.setText("Calibrating rail", 0);
+            calibrateRail();
             setupRobot(this, &(this->servos_));
-            if (TEST_MODE)
+            // Set component status.
+            stepperMotors_.getError();
+            microcontrollerData_ = uCListener_getData();
+            if (testMode_)
             {
                 usleep(1000000);
                 isPlayingRightSide_ = false;
                 return true;
             }
+            moveRail(0.5);
+            initStatueHigh_ = false;
             startupStatus_ = startupstatus::WAITING_FOR_CABLE;
             screen_.setText("Waiting for", 0);
             screen_.setText("start switch", 1);
             screen_.setLCDBacklight(255, 255, 255);
 
             // Test motors.
-            stepperMotors_.getError();
             std::vector<double> speed;
             motorSpeed_[0] = 150;
             motorSpeed_[1] = 150;
@@ -236,8 +238,8 @@ bool Robot::setupBeforeMatchStart()
             // Store plug time in matchStartTime_ to prevent false start due to switch bounce.
             matchStartTime_ = currentTime_;
             isPlayingRightSide_ = false;
+            startupStatus_ = startupstatus::WAITING_FOR_START;
         }
-        startupStatus_ = startupstatus::WAITING_FOR_START;
     }
     else if (startupStatus_ == startupstatus::WAITING_FOR_START)
     {
@@ -278,9 +280,9 @@ bool Robot::setupBeforeMatchStart()
             secondLine += " OFF ";
         }
         if (initStatueHigh_)
-            secondLine += "    ON";
+            secondLine += "   UP";
         else
-            secondLine += "  DOWN";
+            secondLine += " DOWN";
         screen_.setText(secondLine, 1);
 
         // If start button is pressed, return true to end startup.
@@ -308,9 +310,7 @@ void Robot::lowLevelLoop()
     int nIter = 0;
     bool heartbeatLed = true;
     // Loop until start of the match, then for 100 seconds after the start of the match.
-    //while(!hasMatchStarted_ || (currentTime_ < 100.0 + matchStartTime_))
-
-    while((currentTime_ < 100.0 + matchStartTime_))
+    while(!hasMatchStarted_ || (currentTime_ < 100.0 + matchStartTime_))
     {
         // Wait for next tick.
         lastTime = currentTime_;
@@ -365,7 +365,7 @@ void Robot::lowLevelLoop()
         motorPosition_ = stepperMotors_.getPosition();
 
         // Update the lidar
-        if (!DISABLE_LIDAR)
+        if (!testMode_ || !disableLidar_)
         {
             nLidarPoints_ = lidar_.update();
             coeff_ = avoidOtherRobots();
@@ -411,7 +411,7 @@ void Robot::lowLevelLoop()
     pthread_cancel(strategyThread.native_handle());
     stopMotors();
 
-    if (!DISABLE_LIDAR)
+    if (!testMode_ || !disableLidar_)
         lidar_.stop();
 }
 
@@ -419,7 +419,7 @@ void Robot::lowLevelLoop()
 void Robot::moveRail(double const& position)
 {
     // Compute target potentiometer value.
-    int targetValue = MIAM_POTENTIOMETER_LOW_VALUE - (MIAM_POTENTIOMETER_LOW_VALUE - MIAM_POTENTIOMETER_HIGH_VALUE) * position;
+    int targetValue = railHigh_ + MIAM_POTENTIOMETER_RANGE * (position - 1);
 
     // Compute error
     int error = uCListener_getData().potentiometerPosition - targetValue;
@@ -442,6 +442,18 @@ void Robot::moveRail(double const& position)
         nIter++;
     }
     servos_.moveRail(MIAM_RAIL_SERVO_ZERO_VELOCITY);
+
+}
+
+void Robot::calibrateRail()
+{
+    servos_.moveRail(MIAM_RAIL_SERVO_ZERO_VELOCITY - 250);
+    while (RPi_readGPIO(RAIL_SWITCH) == 1)
+    {
+        usleep(20000);
+    }
+    servos_.moveRail(MIAM_RAIL_SERVO_ZERO_VELOCITY);
+    railHigh_ = uCListener_getData().potentiometerPosition;
 }
 
 void Robot::updateLog()

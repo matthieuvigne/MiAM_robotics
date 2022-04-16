@@ -105,7 +105,7 @@
         public:
 
             /// \brief Constructor: do nothing for now.
-            Robot();
+            Robot(bool const& testMode, bool const& disableLidar);
 
             /// \brief Initialize every system of the robot.
             /// \details This function tries to initialize every component of the robot, by creating the software
@@ -146,7 +146,7 @@
             USBLCD screen_; ///< LCD screen and buttons.
             RPLidarHandler lidar_; ///< Lidar
 
-            bool isPlayingRightSide() override
+            bool isPlayingRightSide() const override
             {
                 return isPlayingRightSide_;
             }
@@ -160,7 +160,15 @@
 
             ExcavationSquareColor getExcavationReadings(bool readRightSide) override;
 
+            bool getTestMode() const override
+            {
+                return testMode_;
+            }
+
         private:
+            bool testMode_; // Test mode: no initial wait.
+            bool disableLidar_; // Disable lidar (works only in test mode)
+
             /// \brief Update the logfile with current values.
             void updateLog();
 
@@ -196,6 +204,9 @@
             /// the desired target rail position using the potentiometer data.
             /// \param[in] dt Time since last servoing call, for PID controller.
             void updateMoveRail(double const& dt);
+
+            void calibrateRail();
+            int railHigh_;
 
             miam::L6470 stepperMotors_; ///< Robot driving motors.
 

@@ -44,12 +44,15 @@ void setupRobot(RobotInterface *robot, ServoHandler *servo)
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::FOLD);
     servo->moveSuction(1, suction::HOLD_FAKE_STATUE);
-    robot->moveRail(0.5);
-    robot->wait(2.0);
-    robot->moveRail(0.65);
+    if (robot->getTestMode())
+    {
+        robot->moveRail(0.5);
+        robot->wait(2.0);
+        robot->moveRail(0.65);
+    }
 }
 
-bool shouldDrop(ExcavationSquareColor color, RobotInterface *robot) 
+bool shouldDrop(ExcavationSquareColor color, RobotInterface *robot)
 {
     bool shouldDrop = false;
     if (robot->isPlayingRightSide())
@@ -80,7 +83,7 @@ ExcavationSquareColor testExcavationSite(RobotInterface *robot, ServoHandler *se
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
     robot->wait(0.8);
     ExcavationSquareColor const color = robot->getExcavationReadings(robot->isPlayingRightSide());
-    
+
     if (shouldDrop(color, robot))
     {
         dropSite(robot, servo);
@@ -238,7 +241,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // servo->turnOnPump();
     //servo->moveSuction(false);
     // robot->updateScore(1);
-    
+
     servo->closeTube(0);
     servo->closeTube(2);
     servo->activatePump(true);
@@ -246,7 +249,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->moveRail(0.55);
     robot->wait(1.0);
     robot->moveRail(0.8);
-    
+
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -150.0);
     robot->setTrajectoryToFollow(traj);
@@ -282,12 +285,12 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     #ifndef SKIP_TO_PUSHING_SAMPLES
 
     #ifdef SKIP_TO_GRABBING_SAMPLES
-    
+
     targetPosition.x = 292;
     targetPosition.y = 1667 ;
     targetPosition.theta = 4.66973;
     robot->resetPosition(targetPosition, true, true, true);
-    
+
     #endif
 
     //**********************************************************
@@ -307,7 +310,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
         servo->moveSuction(i, suction::HORIZONTAL);
 
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    
+
 
     // last straight line should be slower
     setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory / 2.0,
@@ -324,7 +327,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 60.0);
     robot->setTrajectoryToFollow(traj);
-    
+
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
@@ -394,15 +397,15 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     #ifndef SKIP_TO_GRABBING_SAMPLES_SIDE_DIST
 
     #ifdef SKIP_TO_PUSHING_SAMPLES
-    
+
     targetPosition.x = 766.546;
     targetPosition.y = 1635.35 ;
     targetPosition.theta = 7.8531;
     robot->resetPosition(targetPosition, true, true, true);
-    
+
     #endif
 
-    
+
 
 
     //**********************************************************
@@ -480,18 +483,18 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     // positions of the 4th, 5th, 6th, 7th sites
     // int site_positions[] = {
-    //     first_site_x + 3 * spacing_between_sites, 
-    //     first_site_x + 4 * spacing_between_sites, 
-    //     first_site_x + 5 * spacing_between_sites, 
+    //     first_site_x + 3 * spacing_between_sites,
+    //     first_site_x + 4 * spacing_between_sites,
+    //     first_site_x + 5 * spacing_between_sites,
     //     first_site_x + 6 * spacing_between_sites};
 
     int targeted_site = 0;
     bool know_targeted_site_is_ours = false;
 
     // Then test the 4 sites ; infer if possible
-    while (targeted_site < 4) 
+    while (targeted_site < 4)
     {
-        
+
         // go to site
         targetPosition.x = first_site_x + (targeted_site + 3) * spacing_between_sites;
         targetPosition.y = site_y;
@@ -499,7 +502,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
         robot->setTrajectoryToFollow(traj);
         wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
-        if (know_targeted_site_is_ours) 
+        if (know_targeted_site_is_ours)
         {
             // bascule
             dropSite(robot, servo);
@@ -510,7 +513,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
             {
                 targeted_site = 3;
                 continue;
-            } 
+            }
             // our sites are 1 and 2
             else if (targeted_site == 1)
             {
@@ -521,11 +524,11 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
                 // break the loop
                 break;
             }
-        } 
-        else 
+        }
+        else
         {
             // measure and resolve
-            ExcavationSquareColor color = testExcavationSite(robot, servo); 
+            ExcavationSquareColor color = testExcavationSite(robot, servo);
 
             // if measurement is successful then we know where our sites are
             if (color != ExcavationSquareColor::NONE) {
@@ -537,15 +540,15 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
                         targeted_site = 3;
                         know_targeted_site_is_ours = true;
                         continue;
-                    } 
+                    }
                     // our site are 1 and 2
                     else if (targeted_site == 1) {
                         targeted_site = 2;
                         know_targeted_site_is_ours = true;
                         continue;
-                    } 
+                    }
                     // if reached 2 or 3, job done
-                    else 
+                    else
                     {
                         break;
                     }
@@ -559,7 +562,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
                         targeted_site = 1;
                         know_targeted_site_is_ours = true;
                         continue;
-                    } 
+                    }
                     // site 1 is opposite team so our sites are 0 and 3
                     else if (targeted_site == 1) {
                         targeted_site = 3;
@@ -574,7 +577,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
                         continue;
                     }
                     // job done
-                    else 
+                    else
                     {
                         break;
                     }
@@ -590,7 +593,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //**********************************************************
     // Go to the side tripledist
     //**********************************************************
-    
+
 
     servo->moveArm(true, arm::FOLD);
     servo->moveFinger(true, finger::FOLD);
@@ -602,10 +605,10 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_BACK + 200 + 40 + 10 + 20;
-    targetPosition.y = 1200 - 360 + 75;           
+    targetPosition.y = 1200 - 360 + 75;
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_BACK + 120 + 40 + 10 + 20;
-    targetPosition.y = 1200 - 360 + 75;           
+    targetPosition.y = 1200 - 360 + 75;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
@@ -674,7 +677,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     servo->closeTube(0);
     servo->closeTube(1);
     servo->activatePump(true);
-    
+
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 50);
     robot->setTrajectoryToFollow(traj);
@@ -723,7 +726,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     // servo->closeTube(0);
     // servo->closeTube(1);
     // servo->activatePump(true);
-    
+
     // targetPosition = robot->getCurrentPosition();
     // traj = computeTrajectoryStraightLine(targetPosition, 55);
     // robot->setTrajectoryToFollow(traj);

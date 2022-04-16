@@ -25,7 +25,7 @@
                 usleep(static_cast<int>(1e6 * waitTimeS));
             }
 
-            virtual bool isPlayingRightSide()
+            virtual bool isPlayingRightSide() const
             {
                 return false;
             }
@@ -33,6 +33,11 @@
             virtual ExcavationSquareColor getExcavationReadings(bool readRightSide)
             {
                 return ExcavationSquareColor::RED;
+            }
+
+            virtual bool getTestMode() const
+            {
+                return false;
             }
     };
  #endif
