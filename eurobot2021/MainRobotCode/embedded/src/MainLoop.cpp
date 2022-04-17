@@ -46,6 +46,8 @@ int main(int argc, char **argv)
             exit(0);
         }
     }
+    // Init raspberry serial ports and GPIO.
+    RPi_enablePorts();
 
     Robot robot(testMode, noLidar);
     robotPtr = &robot;
@@ -53,8 +55,6 @@ int main(int argc, char **argv)
     // Wire signals.
     signal(SIGINT, killCode);
     signal(SIGTERM, killCode);
-    // Init raspberry serial ports and GPIO.
-    RPi_enablePorts();
 
     // Start low-level loop.
     robot.lowLevelLoop();

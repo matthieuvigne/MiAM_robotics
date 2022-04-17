@@ -449,9 +449,29 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition.x = 620;
     targetPosition.y = site_y;
     positions.push_back(targetPosition);
-    targetPosition.x = first_site_x;
-    positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
+    robot->setTrajectoryToFollow(traj);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    // Check with range sensor: are we at the right place ?
+    robot->wait(0.05);
+    double measured_y = robot->getRangeSensorMeasurement(!robot->isPlayingRightSide());
+    targetPosition = robot->getCurrentPosition();
+    if (std::abs(measured_y - targetPosition.y) < 100)
+    {
+        std::cout << "Resetting position thanks to range sensor. Error:" << targetPosition.y - measured_y << std::endl;
+        targetPosition.y = measured_y;
+        robot->resetPosition(targetPosition, false, true, false);
+    }
+
+    targetPosition.x = 620;
+    targetPosition.y = site_y;
+    positions.push_back(targetPosition);
+
+
+    endPosition.x = first_site_x;
+    endPosition.y = site_y;
+    traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition, 0.0, true);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
 

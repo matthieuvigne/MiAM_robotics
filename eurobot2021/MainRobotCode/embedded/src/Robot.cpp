@@ -14,6 +14,7 @@ const double LOOP_PERIOD = 0.010;
 
 const int START_SWITCH = 21;
 const int RAIL_SWITCH = 13;
+const int RIGHT_RANGE_ACTIVATE = 4;
 
 // Potentiometer
 const int MIAM_POTENTIOMETER_RANGE = 290;
@@ -32,10 +33,6 @@ Robot::Robot(bool const& testMode, bool const& disableLidar):
     avoidanceTimeout_(250),
     testMode_(testMode),
     disableLidar_(disableLidar),
-    isScreenInit_(false),
-    isServosInit_(false),
-    isArduinoInit_(false),
-    isLidarInit_(false),
     score_(0),
     startupStatus_(startupstatus::INIT),
     initMotorBlocked_(false),
@@ -87,6 +84,8 @@ bool Robot::initSystem()
 {
     RPi_setupGPIO(START_SWITCH, PI_GPIO_INPUT_PULLUP); // Starting cable.
     RPi_setupGPIO(RAIL_SWITCH, PI_GPIO_INPUT_PULLUP); // Rail limit cable.
+    RPi_setupGPIO(RIGHT_RANGE_ACTIVATE, PI_GPIO_OUTPUT); // Activation of right range sensor - for cusom I2C addressing.
+    RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, true);
     bool allInitSuccessful = true;
 
     if (!isScreenInit_)
@@ -166,6 +165,49 @@ bool Robot::initSystem()
         }
     }
 
+    // Init range sensor - starting with left sensor
+    if (!isRangeSensorInit_[LEFT])
+    {
+        RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, false);
+        // Try with defalut address
+        isRangeSensorInit_[LEFT] = rangeSensors_[LEFT].init(&RPI_I2C);
+        if (!isRangeSensorInit_[LEFT])
+        {
+            // Try with new address - in case it was already changed.
+            isRangeSensorInit_[LEFT] = rangeSensors_[LEFT].init(&RPI_I2C, 0x42);
+        }
+        if (!isRangeSensorInit_[LEFT])
+        {
+            #ifdef DEBUG
+                std::cout << "[Robot] Failed to init communication with left range sensor." << std::endl;
+            #endif
+            allInitSuccessful = false;
+            screen_.setText("Failed to init", 0);
+            screen_.setText("left range sensor", 1);
+            screen_.setLCDBacklight(255, 0, 0);
+        }
+        else
+        {
+            rangeSensors_[LEFT].setAddress(0x42);
+            RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, true);
+            usleep(10000);
+        }
+    }
+    if (isRangeSensorInit_[LEFT] && !isRangeSensorInit_[RIGHT])
+    {
+        isRangeSensorInit_[RIGHT] = rangeSensors_[RIGHT].init(&RPI_I2C);
+        if (!isRangeSensorInit_[RIGHT])
+        {
+            #ifdef DEBUG
+                std::cout << "[Robot] Failed to init communication with right range sensor." << std::endl;
+            #endif
+            allInitSuccessful = false;
+            screen_.setText("Failed to init", 0);
+            screen_.setText("right range sensor", 1);
+            screen_.setLCDBacklight(255, 0, 0);
+        }
+    }
+
     if (testMode_ && disableLidar_)
         isLidarInit_ = true;
     if (!isLidarInit_)
@@ -201,9 +243,11 @@ bool Robot::setupBeforeMatchStart()
         if (isInit)
         {
             screen_.setText("Calibrating rail", 0);
+            screen_.setText("", 1);
+            screen_.setLCDBacklight(255, 255, 255);
             calibrateRail();
             setupRobot(this, &(this->servos_));
-            // Set component status.
+            // Set status.
             stepperMotors_.getError();
             microcontrollerData_ = uCListener_getData();
             if (testMode_)
@@ -340,6 +384,9 @@ void Robot::lowLevelLoop()
                 // Start strategy thread.
                 strategyThread = std::thread(&matchStrategy, static_cast<RobotInterface*>(this), &servos_);
                 strategyThread.detach();
+                // Start range aquisition
+                std::thread measureThread = std::thread(&Robot::updateRangeMeasurement, this);
+                measureThread.detach();
             }
 
         }
@@ -490,6 +537,8 @@ void Robot::updateLog()
     logger_.setData(LOGGER_RAIL_P_I_D_CORRECTION, PIDRail_.getCorrection());
     logger_.setData(LOGGER_DETECTION_COEFF, this->coeff_);
     logger_.setData(LOGGER_LIDAR_N_POINTS, nLidarPoints_);
+    logger_.setData(LOGGER_RANGE_RIGHT, rangeMeasurements_[RIGHT]);
+    logger_.setData(LOGGER_RANGE_LEFT, rangeMeasurements_[LEFT]);
     logger_.writeLine();
 }
 
@@ -522,4 +571,34 @@ ExcavationSquareColor Robot::getExcavationReadings(bool readRightSide)
     if (readRightSide)
         return microcontrollerData_.rightArmColor;
     return microcontrollerData_.leftArmColor;
+}
+
+
+void Robot::updateRangeMeasurement()
+{
+    // Offset from measurement to position of center of robot.
+    // To update this: place the robot a fixed distance (10cm) from
+    // a flat surface, and look at the measurement v    alue.
+    // This offset thus integrates sensor position, sensor offset...
+    int const OFFSET[2] = {119, 106};
+
+    // Perform average of last N values.
+    #define N_AVG 3
+    int oldValues[2][N_AVG];
+    for (int i = 0; i < 2; i++)
+        for (int j = 0; j < N_AVG; j++)
+            oldValues[i][j] = 0;
+    while (true)
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = 1; j < N_AVG; j++)
+                oldValues[i][j - 1] = oldValues[i][j];
+            oldValues[i][N_AVG - 1] = rangeSensors_[i].getMeasurement() + OFFSET[i];
+            int average = 0;
+            for (int j = 0; j < N_AVG; j++)
+                average += oldValues[i][j];
+            rangeMeasurements_[i] = static_cast<double>(average) / N_AVG;
+        }
+    }
 }

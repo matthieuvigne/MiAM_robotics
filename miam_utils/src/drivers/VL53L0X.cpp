@@ -92,7 +92,7 @@ enum regAddr
 };
 
 VL53L0X::VL53L0X():
-   io_timeout(0) // no timeout
+   io_timeout(50)
   , did_timeout(false)
   ,  adapter_(nullptr)
 {
@@ -141,7 +141,7 @@ long int millis()
 void VL53L0X::setAddress(uint8_t new_addr)
 {
   writeReg(I2C_SLAVE_DEVICE_ADDRESS, new_addr & 0x7F);
-  address = new_addr;
+  address_ = new_addr;
 }
 
 // Initialize sensor using sequence based on VL53L0X_DataInit(),
@@ -156,16 +156,9 @@ bool VL53L0X::init(I2CAdapter *adapter, int const& slaveAddress)
 {
     adapter_ = adapter;
     address_ = slaveAddress;
-    //~ if(i2c_readRegister(adapter_, address_, IDENTIFICATION_MODEL_ID) != 0xEE)
     writeReg16Bit(IDENTIFICATION_MODEL_ID, (0xAB << 8) + 0xBB);
-    std::cout << "here" << std::endl;
-    std::cout << readReg16Bit(IDENTIFICATION_MODEL_ID) << std::endl;
-    std::cout << 0xDE << 8 + 0xAA << std::endl;
-    std::cout << (readReg16Bit(IDENTIFICATION_MODEL_ID) != ((0xDE << 8) + 0xAA)) << std::endl;
-    std::cout << "done" << std::endl;
     if(readReg16Bit(IDENTIFICATION_MODEL_ID) != ((0xEE << 8) + 0xAA))
     {
-        std::cout << "ERROR" << std::endl;
         #ifdef DEBUG
             std::cout << "Error : VL53L0X (range sensor) not detected\n" << std::endl;
         #endif
@@ -443,7 +436,7 @@ uint16_t VL53L0X::readReg16Bit(uint8_t reg)
     unsigned char value[2];
     bool success = i2c_readRegisters(adapter_, address_, reg, 2, value);
     if (!success)
-        std::cout << "FAILED" << std::endl;
+        return 0;
     return (value[0] << 8) + value[1];
 }
 

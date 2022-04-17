@@ -165,6 +165,11 @@
                 return testMode_;
             }
 
+            double getRangeSensorMeasurement(bool measureRightSide) const override
+            {
+                return rangeMeasurements_[measureRightSide ? RIGHT : LEFT];
+            }
+
         private:
             bool testMode_; // Test mode: no initial wait.
             bool disableLidar_; // Disable lidar (works only in test mode)
@@ -233,12 +238,13 @@
             double coeff_ = 1.0;
 
             // Init variables.
-            bool isScreenInit_; ///< Boolean representing the initialization of the screen motors.
-            bool isStepperInit_; ///< Boolean representing the initialization of the stepper motors.
-            bool isServosInit_; ///< Boolean representing the initialization of the servo driving board.
-            bool isArduinoInit_; ///< Boolean representing the initialization of the slave arduino board.
-            bool isLidarInit_; ///< Boolean representing the initialization of the lidar.
-            int score_; ///< Current robot score.
+            bool isScreenInit_ = {false}; ///< Boolean representing the initialization of the screen motors.
+            bool isStepperInit_ = {false}; ///< Boolean representing the initialization of the stepper motors.
+            bool isServosInit_ = {false}; ///< Boolean representing the initialization of the servo driving board.
+            bool isArduinoInit_ = {false}; ///< Boolean representing the initialization of the slave arduino board.
+            bool isLidarInit_ = {false}; ///< Boolean representing the initialization of the lidar.
+            bool isRangeSensorInit_[2] = {false, false}; ///< Initialization of range sensors.
+            int score_={0}; ///< Current robot score.
             std::mutex mutex_; ///< Mutex, for thread safety.
 
             startupstatus startupStatus_; ///< Current startup status.
@@ -247,6 +253,12 @@
 
             double curvilinearAbscissa_;
             int nLidarPoints_;  ///< Number of points read by the lidar.
+
+            VL53L0X rangeSensors_[2];
+
+            double rangeMeasurements_[2] = {0, 0};
+            void updateRangeMeasurement(); // Range measurement thread
+
     };
 
     extern Robot robot;    ///< The robot instance, representing the current robot.

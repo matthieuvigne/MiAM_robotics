@@ -44,6 +44,8 @@
         f(LOGGER_RAIL_P_I_D_CORRECTION) \
         f(LOGGER_DETECTION_COEFF) \
         f(LOGGER_LIDAR_N_POINTS) \
+        f(LOGGER_RANGE_RIGHT) \
+        f(LOGGER_RANGE_LEFT) \
 
     #define GENERATE_ENUM(ENUM) ENUM,
 

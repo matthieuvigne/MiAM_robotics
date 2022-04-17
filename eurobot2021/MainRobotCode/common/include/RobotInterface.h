@@ -39,5 +39,11 @@
             {
                 return false;
             }
+
+            // Return the measured distance, from robot center, given by the range sensor, in mm.
+            virtual double getRangeSensorMeasurement(bool measureRightSide) const
+            {
+                return 0;
+            }
     };
  #endif

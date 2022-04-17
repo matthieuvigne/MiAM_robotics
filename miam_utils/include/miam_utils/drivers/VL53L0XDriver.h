@@ -31,13 +31,15 @@
             /// \return Range measurement, in mm.
             int getMeasurement();
 
+            /// \brief Set new I2C address.
+            void setAddress(uint8_t new_addr);
+
         private:
      enum vcselPeriodType { VcselPeriodPreRange, VcselPeriodFinalRange };
 
         uint8_t last_status; // status of last I2C transmission
 
 
-        void setAddress(uint8_t new_addr);
         inline uint8_t getAddress(void) { return address; }
 
         bool init(bool io_2v8 = true);

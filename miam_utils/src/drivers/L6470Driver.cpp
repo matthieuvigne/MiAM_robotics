@@ -358,6 +358,8 @@ namespace miam
 
     int L6470::spiReadWrite(uint8_t* data, uint8_t const& len)
     {
+        if (numberOfDevices_ == 0)
+            return -1;
         // len represent total message size: split it in packets of numberOfDevices_
         uint8_t nPackets = len / numberOfDevices_;
         mutex_.lock();
