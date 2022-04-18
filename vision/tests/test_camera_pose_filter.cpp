@@ -15,22 +15,27 @@ int main(int argc, char* argv[])
   // Initial pose of the camera
   double const sigma_TWCi_t = 2e-2;
   double const sigma_TWCi_r = common::convertDegreeToRadian(5.0);
-  std::normal_distribution<double> gauss_TWCi_t(0.0,sigma_TWCi_t);
-  std::normal_distribution<double> gauss_TWCi_r(0.0,sigma_TWCi_r);
-  
+  Eigen::Matrix<double,6,6> cov_TWCi = Eigen::Matrix<double,6,6>::Identity();
+  cov_TWCi.block<3,3>(0,0) *= std::pow(sigma_TWCi_r,2);
+  cov_TWCi.block<3,3>(3,3) *= std::pow(sigma_TWCi_t,2);
+
   // Transformation from reference camera frame to camera frame
   double const sigma_TRC_t = 1e-3;
   double const sigma_TRC_r = common::convertDegreeToRadian(3.0);
   std::normal_distribution<double> gauss_TRC_t(0.0, sigma_TRC_t);
   std::normal_distribution<double> gauss_TRC_r(0.0, sigma_TRC_r);
   
-  // Process and measurement noises
+  // Process noise
   double const sigma_TRkRkp1_r = common::convertDegreeToRadian(2.0);
+  std::normal_distribution<double> gauss_TRkRkp1_r(0.0, sigma_TRkRkp1_r);
+  
+  // Process and measurement noises
   double const sigma_TCM_t = 5e-2;
   double const sigma_TCM_r = common::convertDegreeToRadian(3.0);
-  std::normal_distribution<double> process_noise(0.0, sigma_TRkRkp1_r);
-  std::normal_distribution<double> measurement_translation_noise(0.0, sigma_TCM_t);
-  std::normal_distribution<double> measurement_orientation_noise(0.0, sigma_TCM_r);
+  Eigen::Matrix<double,6,6> cov_TCM = Eigen::Matrix<double,6,6>::Identity();
+  cov_TCM.block<3,3>(0,0) *= std::pow(sigma_TCM_r,2);
+  cov_TCM.block<3,3>(3,3) *= std::pow(sigma_TCM_t,2);
+  //~ common::MultivariateGaussianSampler<6> TWCi_sampler(cov_TCM);
 
   //------------------------------------------------------------------------------------------------
   // Define the true geometry of the scene
@@ -43,9 +48,6 @@ int main(int argc, char* argv[])
     * Eigen::AngleAxisd(3*M_PI_4, Eigen::Vector3d::UnitX());
   // ... to continue
 
-  common::MultivariateGaussianSampler3d sampler(Eigen::Vector3d::Zero(), Eigen::Matrix3d::Identity());
-  Eigen::Vector3d sampled_vector = sampler.sample();
-  
   //~ double sampled = process_noise(generator);
 
   #if 0
