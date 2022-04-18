@@ -84,7 +84,7 @@ void CameraThread::runThread()
     this->incrementCameraAngle(camera_angle, this->increment_angle_deg_);
     double const wy = common::convertDegreeToRadian(this->increment_angle_deg_);
     double constexpr cov_wy = 1.0;
-    this->pose_filter_ptr_->predict(wy, cov_wy);
+    this->pose_filter_ptr_->predict(wy, cov_wy, camera::CameraPoseFilter::Axis::Y);
 
     // Take a picture and detect all the markers
     cv::Mat image;

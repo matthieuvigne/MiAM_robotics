@@ -43,8 +43,11 @@ public:
   // Estimation
 
   void predict(
-    double wy,
-    double cov_wy);
+    Eigen::Vector3d const& w,
+    Eigen::Matrix3d const& cov_w);
+
+  enum Axis {X, Y, Z};
+  void predict(double wi, double cov_wi, Axis axis);
 
   void update(
     Eigen::Affine3d const& T_CM,

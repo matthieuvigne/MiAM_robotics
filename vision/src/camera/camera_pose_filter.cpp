@@ -63,13 +63,39 @@ void CameraPoseFilter::setStateAndCovariance(
 
 ///> Could still be optimized 
 void CameraPoseFilter::predict(
-  double dthetay_rad,
-  double cov_dthetay_rad)
+  double dtheta_rad,
+  double cov_dtheta_rad,
+  Axis rotation_axis)
+{
+  Eigen::Vector3d rotation_vector_rad;
+  Eigen::Matrix3d rotation_covariance_rad = Eigen::Matrix3d::Zero();
+  switch(rotation_axis)
+  {
+    case Axis::X:
+      rotation_vector_rad = dtheta_rad * Eigen::Vector3d::UnitX();
+      rotation_covariance_rad(0,0) = cov_dtheta_rad;
+    case Axis::Y:
+      rotation_vector_rad = dtheta_rad * Eigen::Vector3d::UnitY();
+      rotation_covariance_rad(1,1) = cov_dtheta_rad;
+    case Axis::Z:
+      rotation_vector_rad = dtheta_rad * Eigen::Vector3d::UnitZ();
+      rotation_covariance_rad(2,2) = cov_dtheta_rad;
+    default:
+      throw std::runtime_error("Unknown rotation axis");
+  }
+  return this->predict(rotation_vector_rad, rotation_covariance_rad);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void CameraPoseFilter::predict(
+  Eigen::Vector3d const& dtheta_rad,
+  Eigen::Matrix3d const& cov_dtheta_rad)
 {
   // Computation of the intermediary poses
   
   Eigen::Affine3d const T_CR = this->T_RC_.inverse();
-  Eigen::Affine3d const T_Rk_Rkp1(Eigen::AngleAxisd(dthetay_rad,Eigen::Vector3d::UnitY()));
+  Eigen::Affine3d const T_Rk_Rkp1 = common::expMap(dtheta_rad, Eigen::Vector3d::Zero());
   Eigen::Affine3d const T_Ck_Ckp1 = T_CR * T_Rk_Rkp1 * this->T_RC_;
   Eigen::Affine3d const T_W_Ckp1 = this->T_WC_ * T_Ck_Ckp1;
   Eigen::Affine3d const T_W_Rk = this->T_WC_ * T_CR;
@@ -96,19 +122,18 @@ void CameraPoseFilter::predict(
     common::leftProductJacobian(T_W_Rkp1, this->T_RC_);
   Eigen::Matrix<double,6,6> const J_TWRkp1_wrt_TRkRkp1 =
     common::rightProductJacobian(T_W_Rk, T_Rk_Rkp1);
-  Eigen::Vector3d const Jthetay =
-    common::leftJacobianSO3(dthetay_rad * Eigen::Vector3d::UnitY()).col(2);
-  Eigen::Matrix<double,6,1> J_TRkRkp1_wrt_dthetay = Eigen::Matrix<double,6,1>::Zero();
-  J_TRkRkp1_wrt_dthetay.head<3>() = Jthetay;
-  J_TRkRkp1_wrt_dthetay.tail<3>() = common::skew(this->T_WC_.translation()) * Jthetay;
-  Eigen::Matrix<double,6,1> const J_TWCkp1_wrt_dthetay =
-    J_TWCkp1_wrt_T_WRkp1 * J_TWRkp1_wrt_TRkRkp1 * J_TRkRkp1_wrt_dthetay;
+  Eigen::Matrix3d const Jtheta = common::leftJacobianSO3(dtheta_rad);
+  Eigen::Matrix<double,6,3> J_TRkRkp1_wrt_dtheta = Eigen::Matrix<double,6,3>::Zero();
+  J_TRkRkp1_wrt_dtheta.block<3,3>(0,0) = Jtheta;
+  J_TRkRkp1_wrt_dtheta.block<3,3>(3,0) = common::skew(this->T_WC_.translation()) * Jtheta;
+  Eigen::Matrix<double,6,3> const J_TWCkp1_wrt_dtheta =
+    J_TWCkp1_wrt_T_WRkp1 * J_TWRkp1_wrt_TRkRkp1 * J_TRkRkp1_wrt_dtheta;
   
   // Prediction of the state and the covariance
   this->cov_T_WC_ = 
     J_TWCkp1_wrt_TWCk * this->cov_T_WC_ * J_TWCkp1_wrt_TWCk.transpose() +
     J_TWCkp1_wrt_TRC * this->cov_T_RC_ * J_TWCkp1_wrt_TRC.transpose() +
-    J_TWCkp1_wrt_dthetay * cov_dthetay_rad * J_TWCkp1_wrt_dthetay.transpose();
+    J_TWCkp1_wrt_dtheta * cov_dtheta_rad * J_TWCkp1_wrt_dtheta.transpose();
   this->T_WC_ = T_W_Ckp1;
 }
 

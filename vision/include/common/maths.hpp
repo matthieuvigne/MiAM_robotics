@@ -11,6 +11,7 @@ double convertRadianToDegree(double angle_rad);
 
 // Exponential and Logarithm mapping for SO3*R3 Lie group
 Eigen::Affine3d expMap(Eigen::Matrix<double,6,1> const& tau);
+Eigen::Affine3d expMap(Eigen::Vector3d const& rotation, Eigen::Vector3d const& translation);
 Eigen::Matrix<double,6,1> logMap(Eigen::Affine3d const& T);
 Eigen::Matrix3d skew(Eigen::Vector3d const& w);
 

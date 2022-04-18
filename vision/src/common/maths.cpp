@@ -85,12 +85,21 @@ Eigen::Matrix3d leftJacobianSO3(Eigen::Vector3d const& theta)
 
 Eigen::Affine3d expMap(Eigen::Matrix<double,6,1> const& tau)
 {
+  Eigen::Vector3d const rotation = tau.head<3>();
+  Eigen::Vector3d const translation = tau.tail<3>();
+  return expMap(rotation, translation);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Affine3d expMap(Eigen::Vector3d const& rotation, Eigen::Vector3d const& translation)
+{
   Eigen::Affine3d T = Eigen::Affine3d::Identity();
-  Eigen::Vector3d const axis = tau.head<3>().normalized();
-  double const angle = tau.head<3>().norm();
+  Eigen::Vector3d const axis = rotation.normalized();
+  double const angle = rotation.norm();
   Eigen::AngleAxisd const angle_axis(angle,axis);
   T.rotate(angle_axis);
-  T.translation() = tau.tail<3>();
+  T.translation() = translation;
   return T;
 }
 
