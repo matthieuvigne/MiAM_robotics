@@ -11,25 +11,28 @@ PoseSampler::PoseSampler(
   Eigen::Affine3d const& mean,
   double sigma_orientation,
   double sigma_position)
-: mean_                   (mean),
-  cholesky_               (setCholeskyMatrix(sigma_orientation, sigma_position)),
-  max_orientation_error_  (std::numeric_limits<double>::max()),
-  max_position_error_     (std::numeric_limits<double>::max()),
-  generator_              (),
-  distribution_           (0.0, 1.0)
-{}
+: mean_                       (mean),
+  cholesky_                   (setCholeskyMatrix(sigma_orientation, sigma_position)),
+  max_orientation_deviation_  (std::numeric_limits<double>::max()),
+  max_position_deviation_     (std::numeric_limits<double>::max()),
+  generator_                  (),
+  distribution_               (0.0, 1.0)
+{
+  CHECK(sigma_orientation > 0);
+  CHECK(sigma_position    > 0);
+}
 
 //--------------------------------------------------------------------------------------------------
 
 PoseSampler::PoseSampler(
   Eigen::Affine3d const& mean,
   Eigen::Matrix<double,6,6> const& covariance)
-: mean_                   (mean),
-  cholesky_               (setCholeskyMatrix(covariance)),
-  max_orientation_error_  (std::numeric_limits<double>::max()),
-  max_position_error_     (std::numeric_limits<double>::max()),
-  generator_              (),
-  distribution_           (0.0, 1.0)
+: mean_                       (mean),
+  cholesky_                   (setCholeskyMatrix(covariance)),
+  max_orientation_deviation_  (std::numeric_limits<double>::max()),
+  max_position_deviation_     (std::numeric_limits<double>::max()),
+  generator_                  (),
+  distribution_               (0.0, 1.0)
 {}
 
 //--------------------------------------------------------------------------------------------------
@@ -43,26 +46,26 @@ Eigen::Affine3d PoseSampler::sample() const
     tau(i) = distribution_(generator_);
   tau = cholesky_ * tau;
   for(int i=0; i<3; i++) // <- Bound the orientation error
-    tau(i) = std::max(-max_orientation_error_, std::min(tau(i), max_orientation_error_));
+    tau(i) = std::max(-max_orientation_deviation_, std::min(tau(i), max_orientation_deviation_));
   for(int i=3; i<6; i++) // <- Bound the position error
-    tau(i) = std::max(-max_position_error_, std::min(tau(i), max_position_error_));
-  return common::expMap(tau) * mean_;
+    tau(i) = std::max(-max_position_deviation_, std::min(tau(i), max_position_deviation_));
+  return common::so3r3::product(tau,mean_);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void PoseSampler::setMaxOrientationError(double max_orientation_error)
+void PoseSampler::setMaxOrientationDeviation(double max_orientation_dev)
 {
-  CHECK(max_orientation_error > 0.);
-  max_orientation_error_ = max_orientation_error;
+  CHECK(max_orientation_dev > 0.);
+  max_orientation_deviation_ = max_orientation_dev;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void PoseSampler::setMaxPositionError(double max_position_error)
+void PoseSampler::setMaxPositionDeviation(double max_position_dev)
 {
-  CHECK(max_position_error > 0.);
-  max_position_error_ = max_position_error;
+  CHECK(max_position_dev > 0.);
+  max_position_deviation_ = max_position_dev;
 }
 
 //--------------------------------------------------------------------------------------------------

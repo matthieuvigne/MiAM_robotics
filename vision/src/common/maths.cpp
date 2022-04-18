@@ -20,46 +20,6 @@ double convertRadianToDegree(double angle_rad)
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Matrix<double,6,6> leftProductJacobian(
-  Eigen::Affine3d const& T1,
-  Eigen::Affine3d const& T2)
-{
-  Eigen::Matrix3d const& R1 = T1.rotation();
-  Eigen::Vector3d const& t2 = T2.translation();
-  Eigen::Matrix<double,6,6> J = Eigen::Matrix<double,6,6>::Identity();
-  J.block<3,3>(3,0) = - skew(R1*t2);
-  return J;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Matrix<double,6,6> rightProductJacobian(
-  Eigen::Affine3d const& T1,
-  Eigen::Affine3d const& T2)
-{
-  Eigen::Matrix3d const& R1 = T1.rotation();
-  Eigen::Matrix<double,6,6> J = Eigen::Matrix<double,6,6>::Identity();
-  J.block<3,3>(0,0) = R1;
-  J.block<3,3>(3,3) = R1;
-  return J;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Matrix<double,6,6> inverseJacobian(
-  Eigen::Affine3d const& T)
-{
-  Eigen::Vector3d const& t = T.translation();
-  Eigen::Matrix3d const Rt = T.rotation().transpose();
-  Eigen::Matrix<double,6,6> J = Eigen::Matrix<double,6,6>::Identity();
-  J.block<3,3>(0,0) = - Rt;
-  J.block<3,3>(3,3) = - Rt;
-  J.block<3,3>(3,0) = - Rt * skew(t);
-  return J;
-}
-
-//--------------------------------------------------------------------------------------------------
-
 Eigen::Matrix3d skew(Eigen::Vector3d const& w)
 {
   Eigen::Matrix3d S;
@@ -78,6 +38,55 @@ Eigen::Matrix3d leftJacobianSO3(Eigen::Vector3d const& theta)
   if (angle==0) return J;
   Eigen::Matrix3d const S = skew(theta);
   J += ((1-std::cos(angle))/angle)*S + ((angle-std::sin(angle))/std::pow(angle,3))*S*S;
+  return J;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+} // namespace common
+
+//--------------------------------------------------------------------------------------------------
+// Methods for SO3*R3 parameterization
+//--------------------------------------------------------------------------------------------------
+
+namespace common {
+namespace so3r3 {
+
+Eigen::Matrix<double,6,6> leftSe3ProductJacobian(
+  Eigen::Affine3d const& T1,
+  Eigen::Affine3d const& T2)
+{
+  Eigen::Matrix3d const& R1 = T1.rotation();
+  Eigen::Vector3d const& t2 = T2.translation();
+  Eigen::Matrix<double,6,6> J = Eigen::Matrix<double,6,6>::Identity();
+  J.block<3,3>(3,0) = - skew(R1*t2);
+  return J;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Matrix<double,6,6> rightSe3ProductJacobian(
+  Eigen::Affine3d const& T1,
+  Eigen::Affine3d const& T2)
+{
+  Eigen::Matrix3d const& R1 = T1.rotation();
+  Eigen::Matrix<double,6,6> J = Eigen::Matrix<double,6,6>::Identity();
+  J.block<3,3>(0,0) = R1;
+  J.block<3,3>(3,3) = R1;
+  return J;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Matrix<double,6,6> se3InverseJacobian(
+  Eigen::Affine3d const& T)
+{
+  Eigen::Vector3d const& t = T.translation();
+  Eigen::Matrix3d const Rt = T.rotation().transpose();
+  Eigen::Matrix<double,6,6> J = Eigen::Matrix<double,6,6>::Identity();
+  J.block<3,3>(0,0) = - Rt;
+  J.block<3,3>(3,3) = - Rt;
+  J.block<3,3>(3,0) = - Rt * skew(t);
   return J;
 }
 
@@ -124,4 +133,32 @@ Eigen::Matrix<double,6,1> logMap(Eigen::Affine3d const& T)
 
 //--------------------------------------------------------------------------------------------------
 
+Eigen::Affine3d product(Eigen::Affine3d const& T1, Eigen::Affine3d const& T2)
+{
+  Eigen::Affine3d result = T1;
+  result.linear() = T1.rotation() * T2.rotation();
+  result.translation() += T1.rotation() * T2.translation();
+  return result;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Affine3d product(Eigen::Matrix<double,6,1> const& tau, Eigen::Affine3d const& T)
+{
+  return product(expMap(tau), T);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Affine3d inverse(Eigen::Affine3d const T)
+{
+  Eigen::Affine3d result = T;
+  result.linear() = T.rotation().transpose();
+  result.translation() = - T.translation();
+  return result;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+} // namespace so3r3
 } // namespace common

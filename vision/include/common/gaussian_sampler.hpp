@@ -24,9 +24,10 @@ public:
 
 public:
   inline double sample() const;
+  inline void setMaxDeviation(double max_deviation);
 
 private:
-  double const max_dispersion_;
+  double max_deviation_;
   std::default_random_engine mutable generator_;
   std::normal_distribution<double> mutable distribution_;
 
@@ -38,10 +39,21 @@ private:
 
 double GaussianSampler::sample() const
 {
-  double result = this->distribution_(this->generator_);
-  result = std::min(result,  this->max_dispersion_);
-  result = std::max(result, -this->max_dispersion_);
+  double result = distribution_(generator_);
+  double const deviation = result - distribution_.mean();
+  if(deviation > 0.)
+    result = distribution_.mean() + std::min(deviation,  max_deviation_);
+  else
+    result = distribution_.mean() + std::max(deviation, -max_deviation_);
   return result;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void GaussianSampler::setMaxDeviation(double max_deviation)
+{
+  CHECK(max_deviation > 0.);
+  max_deviation_ = max_deviation;
 }
 
 //--------------------------------------------------------------------------------------------------

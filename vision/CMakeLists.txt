@@ -10,6 +10,7 @@ set(CMAKE_BUILD_TYPE Debug)
 add_compile_options(-std=c++17)
 
 option(RPI4 "Target is raspberry pi 4" OFF)
+option(BUILD_TESTS "Set ON to build the tests" ON)
 
 # Recursively include all the source files
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp")
@@ -59,11 +60,16 @@ target_link_libraries(calibrate_camera ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
 # Tests
 
-include(CTest)
-file(GLOB_RECURSE ${PROJECT_NAME}_TESTS "tests/*.cpp")
-add_executable(test_camera_pose_filter tests/test_camera_pose_filter.cpp)
-target_link_libraries(test_camera_pose_filter ${LIBRARY_NAME} ${Eigen_LIBRARIES})
-add_test(NAME test_camera_pose_filter COMMAND test_camera_pose_filter)
+if(BUILD_TESTS)
+  include(CTest)
+  file(GLOB_RECURSE ${PROJECT_NAME}_TESTS "tests/*.cpp")
+  foreach(TEST_SRC IN ITEMS ${${PROJECT_NAME}_TESTS})
+    get_filename_component(TEST_NAME ${TEST_SRC} NAME_WE)
+    add_executable(${TEST_NAME} ${TEST_SRC})
+    target_link_libraries(${TEST_NAME} ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+  endforeach()
+endif()
 
 #~ add_executable(test_serialization scripts/test_serialization.cpp)
 #~ target_link_libraries(test_serialization ${LIBRARY_NAME} ${Eigen_LIBRARIES})

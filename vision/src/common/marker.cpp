@@ -26,8 +26,8 @@ Marker::Marker(
   Eigen::Affine3d const& T_CM = detected_marker.T_CM;
   Eigen::Matrix<double,6,6> const& cov_T_CM = detected_marker.cov_T_CM;
   this->T_WM = T_WC * T_CM;
-  Eigen::Matrix<double,6,6> const J_TWM_wrt_TWC = leftProductJacobian(T_WC, T_CM);
-  Eigen::Matrix<double,6,6> const J_TWM_wrt_TCM = rightProductJacobian(T_WC, T_CM);
+  Eigen::Matrix<double,6,6> const J_TWM_wrt_TWC = so3r3::leftSe3ProductJacobian(T_WC, T_CM);
+  Eigen::Matrix<double,6,6> const J_TWM_wrt_TCM = so3r3::rightSe3ProductJacobian(T_WC, T_CM);
   this->cov_T_WM =
     J_TWM_wrt_TWC * cov_T_WC * J_TWM_wrt_TWC.transpose() +
     J_TWM_wrt_TCM * cov_T_CM * J_TWM_wrt_TCM.transpose();

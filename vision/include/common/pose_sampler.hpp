@@ -26,8 +26,8 @@ public:
 
 public:
 
-  void setMaxOrientationError(double max_orientation_error);
-  void setMaxPositionError(double max_position_error);
+  void setMaxOrientationDeviation(double max_orientation_deviation);
+  void setMaxPositionDeviation(double max_position_deviation);
   Eigen::Affine3d sample() const;
 
 private:
@@ -38,8 +38,8 @@ private:
 private:
   Eigen::Affine3d mean_;
   Eigen::Matrix<double,6,6> cholesky_;
-  double max_orientation_error_;
-  double max_position_error_;
+  double max_orientation_deviation_;
+  double max_position_deviation_;
   std::default_random_engine mutable generator_;
   std::normal_distribution<double> mutable distribution_;
 
