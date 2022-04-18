@@ -137,7 +137,7 @@ Eigen::Affine3d product(Eigen::Affine3d const& T1, Eigen::Affine3d const& T2)
 {
   Eigen::Affine3d result = T1;
   result.linear() = T1.rotation() * T2.rotation();
-  result.translation() += T1.rotation() * T2.translation();
+  result.translation() = T1.translation() + T2.translation();
   return result;
 }
 
