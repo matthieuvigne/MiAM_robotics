@@ -1,11 +1,13 @@
 #include <random>
 
 #include <camera/camera_pose_filter.hpp>
+#include <common/gaussian_sampler.hpp>
 #include <common/maths.hpp>
-#include <common/multivariate_gaussian_sampler.hpp>
+#include <common/pose_sampler.hpp>
 
 int main(int argc, char* argv[])
 {
+  #if 0
   //------------------------------------------------------------------------------------------------
   // Define seeds and noise parameters
   //------------------------------------------------------------------------------------------------
@@ -13,17 +15,44 @@ int main(int argc, char* argv[])
   std::default_random_engine generator;
   
   // Initial pose of the camera
-  double const sigma_TWCi_t = 2e-2;
+  Eigen::Affine3d const T_WC_mean = 
+      Eigen::Translation3d(1.5,2.0,1.0)
+    * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
+    * Eigen::AngleAxisd(3*M_PI_4, Eigen::Vector3d::UnitX());
+
+  Eigen::Affine3d T_WC_error;
+
   double const sigma_TWCi_r = common::convertDegreeToRadian(5.0);
+  std::uniform_real_distribution uniform_TWC_r(-3*sigma_TWCi_r,3*sigma_TWCi_r);
+
+  double const sigma_TWCi_t = 2e-2;
+  std::uniform_real_distribution uniform_TWC_t(-3*sigma_TWCi_t,3*sigma_TWCi_t);
+
+
+
   Eigen::Matrix<double,6,6> cov_TWCi = Eigen::Matrix<double,6,6>::Identity();
   cov_TWCi.block<3,3>(0,0) *= std::pow(sigma_TWCi_r,2);
   cov_TWCi.block<3,3>(3,3) *= std::pow(sigma_TWCi_t,2);
+  common::MultivariateGaussianSampler6d TWCi_sampler(cov_TWCi);
 
   // Transformation from reference camera frame to camera frame
-  double const sigma_TRC_t = 1e-3;
+  Eigen::Affine3d const TRC_mean =
+      Eigen::Translation3d()
+    * Eigen::AngleAxisd(M_PI_4, Eigen::Vector3d::UnitX());
+
+  Eigen::Vector<double,6,1> TRC_error;
+
   double const sigma_TRC_r = common::convertDegreeToRadian(3.0);
-  std::normal_distribution<double> gauss_TRC_t(0.0, sigma_TRC_t);
-  std::normal_distribution<double> gauss_TRC_r(0.0, sigma_TRC_r);
+  std::uniform_real_distribution uniform_TRC_r(-3*sigma_TRC_r,3*sigma_TRC_r);
+  for(int i=0; i<3; i++)
+    TRC_error(i) = uniform_TRC_r(generator);
+
+  double const sigma_TRC_t = 1e-3;
+  std::uniform_real_distribution uniform_TRC_t(-3*sigma_TRC_t,3*sigma_TRC_t);
+  for(int i=3; i<6; i++)
+    TRC_error(i) = uniform_TRC_t(generator);
+
+  Eigen::Affine3d const TRC_true = common::expMap(TRC_error) * TRC_mean;
   
   // Process noise
   double const sigma_TRkRkp1_r = common::convertDegreeToRadian(2.0);
@@ -35,7 +64,7 @@ int main(int argc, char* argv[])
   Eigen::Matrix<double,6,6> cov_TCM = Eigen::Matrix<double,6,6>::Identity();
   cov_TCM.block<3,3>(0,0) *= std::pow(sigma_TCM_r,2);
   cov_TCM.block<3,3>(3,3) *= std::pow(sigma_TCM_t,2);
-  //~ common::MultivariateGaussianSampler<6> TWCi_sampler(cov_TCM);
+  common::MultivariateGaussianSampler6d TCM_sampler(cov_TCM);
 
   //------------------------------------------------------------------------------------------------
   // Define the true geometry of the scene
@@ -50,7 +79,6 @@ int main(int argc, char* argv[])
 
   //~ double sampled = process_noise(generator);
 
-  #if 0
   //------------------------------------------------------------------------------------------------
   // Camera pose filter initialization
   //------------------------------------------------------------------------------------------------
