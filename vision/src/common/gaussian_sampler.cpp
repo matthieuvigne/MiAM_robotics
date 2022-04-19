@@ -16,8 +16,8 @@ GaussianSampler::GaussianSampler(double mean, double sigma, double max_deviation
 : max_deviation_   (max_deviation),
   distribution_    (mean, sigma)
 {
-  CHECK(sigma >= 0.);
-  CHECK(max_deviation >= 0.);
+  CHECK(sigma > 0.);
+  CHECK(max_deviation > 0.);
 }
 
 //--------------------------------------------------------------------------------------------------
