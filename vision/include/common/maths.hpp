@@ -26,6 +26,10 @@ Eigen::Affine3d product(Eigen::Affine3d const& T1, Eigen::Affine3d const& T2);
 Eigen::Affine3d product(Eigen::Matrix<double,6,1> const& tau, Eigen::Affine3d const& T);
 Eigen::Affine3d inverse(Eigen::Affine3d const T);
 
+// Box operators
+Eigen::Affine3d boxplus(Eigen::Matrix<double,6,1> const& tau, Eigen::Affine3d const& T);
+Eigen::Matrix<double,6,1> boxminus(Eigen::Affine3d const& T2, Eigen::Affine3d const& T1);
+
 // Pose Jacobians for SE3 product on the SO3*R3 Lie group
 Eigen::Matrix<double,6,6> leftSe3ProductJacobian(Eigen::Affine3d const& T1, Eigen::Affine3d const& T2);
 Eigen::Matrix<double,6,6> rightSe3ProductJacobian(Eigen::Affine3d const& T1, Eigen::Affine3d const& T2);

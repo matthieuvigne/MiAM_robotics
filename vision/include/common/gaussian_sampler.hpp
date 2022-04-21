@@ -25,6 +25,7 @@ public:
 public:
   inline double sample() const;
   inline void setMaxDeviation(double max_deviation);
+  static double sample(double mean, double stddev);
 
 private:
   double max_deviation_;

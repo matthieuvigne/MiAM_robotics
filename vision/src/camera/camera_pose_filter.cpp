@@ -86,12 +86,15 @@ void CameraPoseFilter::predict(
     case Axis::X:
       rotation_vector_rad = dtheta_rad * Eigen::Vector3d::UnitX();
       rotation_covariance_rad(0,0) = cov_dtheta_rad;
+      break;
     case Axis::Y:
       rotation_vector_rad = dtheta_rad * Eigen::Vector3d::UnitY();
       rotation_covariance_rad(1,1) = cov_dtheta_rad;
+      break;
     case Axis::Z:
       rotation_vector_rad = dtheta_rad * Eigen::Vector3d::UnitZ();
       rotation_covariance_rad(2,2) = cov_dtheta_rad;
+      break;
     default:
       throw std::runtime_error("Unknown rotation axis");
   }

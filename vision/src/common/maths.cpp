@@ -160,5 +160,19 @@ Eigen::Affine3d inverse(Eigen::Affine3d const T)
 
 //--------------------------------------------------------------------------------------------------
 
+Eigen::Affine3d boxplus(Eigen::Matrix<double,6,1> const& tau, Eigen::Affine3d const& T)
+{
+  return product(expMap(tau), T);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Matrix<double,6,1> boxminus(Eigen::Affine3d const& T2, Eigen::Affine3d const& T1)
+{
+  return logMap( product( T2, inverse(T1) ) );
+}
+
+//--------------------------------------------------------------------------------------------------
+
 } // namespace so3r3
 } // namespace common
