@@ -17,6 +17,18 @@ CameraPoseFilter::CameraPoseFilter(
 {}
 
 //--------------------------------------------------------------------------------------------------
+
+CameraPoseFilter::CameraPoseFilter(
+  Eigen::Affine3d const& T_WM,
+  Eigen::Affine3d const& T_RC,
+  double sigma_RRC, double sigma_RtC)
+: CameraPoseFilter(T_WM, T_RC, Eigen::Matrix<double,6,6>::Identity())
+{
+  cov_T_RC_.block<3,3>(0,0) *= std::pow(sigma_RRC,2.0);
+  cov_T_RC_.block<3,3>(3,3) *= std::pow(sigma_RtC,2.0);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Methods
 //--------------------------------------------------------------------------------------------------
 

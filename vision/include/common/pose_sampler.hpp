@@ -9,11 +9,19 @@
 
 namespace common {
 
+//--------------------------------------------------------------------------------------------------
+// Class declaration
+//--------------------------------------------------------------------------------------------------
+
 class PoseSampler {
 
 public:
   POINTER_TYPEDEF(PoseSampler);
   DISALLOW_EVIL_CONSTRUCTORS(PoseSampler);
+
+  PoseSampler(
+    double sigma_orientation,
+    double sigma_position);
 
   PoseSampler(
     Eigen::Affine3d const& mean,
@@ -28,7 +36,13 @@ public:
 
   void setMaxOrientationDeviation(double max_orientation_deviation);
   void setMaxPositionDeviation(double max_position_deviation);
-  Eigen::Affine3d sample() const;
+  Eigen::Affine3d sample(Eigen::Affine3d const& T) const;
+  inline Eigen::Affine3d sample() const;
+
+public:
+
+  static Eigen::Affine3d sample(Eigen::Affine3d const& T, double sigma_r, double sigma_t);
+  static Eigen::Affine3d sample(double sigma_r, double sigma_t);
 
 private:
 
@@ -44,6 +58,17 @@ private:
   std::normal_distribution<double> mutable distribution_;
 
 }; // class PoseSampler
+
+//--------------------------------------------------------------------------------------------------
+// Inline functions
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Affine3d PoseSampler::sample() const
+{
+  return sample(mean_);
+}
+
+//--------------------------------------------------------------------------------------------------
 
 } // namespace common
 
