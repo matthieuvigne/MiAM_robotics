@@ -47,4 +47,14 @@ if(!condition)                                            \
                             + std::string(#condition)   );\
 }
 
+#define CHECKLOG(condition, message)                      \
+if(!condition)                                            \
+{                                                         \
+  throw std::runtime_error(   std::string(__FILENAME__)   \
+                            + std::string(" [")           \
+                            + std::to_string(__LINE__)    \
+                            + std::string("] ")           \
+                            + std::string(#message));     \
+}
+
 #endif // COMMON_MACRO_HPP

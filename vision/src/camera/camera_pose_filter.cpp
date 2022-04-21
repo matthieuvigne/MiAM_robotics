@@ -186,4 +186,23 @@ void CameraPoseFilter::update(
 
 //--------------------------------------------------------------------------------------------------
 
+std::string CameraPoseFilter::printEstimateAndCovariance() const
+{
+  std::stringstream out;
+  std::cout << "TWC_est:\n" << T_WC_.matrix() << std::endl;
+  std::cout << "cov_TWC_est:\n" << cov_T_WC_.matrix() << std::endl;
+  return out.str();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+bool CameraPoseFilter::isCovarianceMatrixIsSymmetric() const
+{
+  double constexpr epsilon = 1e-10;
+  Eigen::Matrix<double,6,6> const diff = cov_T_WC_ - cov_T_WC_.transpose();
+  return (std::fabs(diff.norm()) < epsilon);
+}
+
+//--------------------------------------------------------------------------------------------------
+
 } // namespace camera

@@ -49,7 +49,6 @@ public:
   void predict(
     Eigen::Vector3d const& w,
     Eigen::Matrix3d const& cov_w);
-
   enum Axis {X, Y, Z};
   void predict(double wi, double cov_wi, Axis axis);
 
@@ -58,8 +57,16 @@ public:
     Eigen::Matrix<double,6,6> const& cov_T_CM);
 
   // Getters
+
   inline Eigen::Affine3d const& getState() const;
   inline Eigen::Matrix<double,6,6> const& getStateCovariance() const;
+  inline Eigen::Affine3d const& getTRC() const;
+  inline Eigen::Matrix<double,6,6> const& getCovTRC() const;
+
+  // Print & checks
+  
+  std::string printEstimateAndCovariance() const;
+  bool isCovarianceMatrixIsSymmetric() const;
 
 private:
 
@@ -105,6 +112,20 @@ void CameraPoseFilter::setCovariance(
   Eigen::Matrix<double,6,6> const& cov_T_WC)
 {
   this->cov_T_WC_ = cov_T_WC;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Affine3d const& CameraPoseFilter::getTRC() const
+{
+  return T_RC_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Matrix<double,6,6> const& CameraPoseFilter::getCovTRC() const
+{
+  return cov_T_RC_;
 }
 
 //--------------------------------------------------------------------------------------------------
