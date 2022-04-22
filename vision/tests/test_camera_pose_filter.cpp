@@ -85,12 +85,12 @@ int main(int argc, char* argv[])
   // Simulation of the process
   //------------------------------------------------------------------------------------------------
   
-  //~ // Initialize the results file
-  //~ Eigen::IOFormat const style(3, 0, ";");
-  //~ std::ofstream results_file;
-  //~ results_file.open("results.csv");
-  //~ results_file << "# idx; wx; wy; wz; tx; ty; tz" << std::endl;
-  //~ results_file.close();
+  // Initialize the results file
+  Eigen::IOFormat const style(3, 0, ";");
+  std::ofstream results_file;
+  results_file.open("results.csv");
+  results_file << "# idx; wx; wy; wz; tx; ty; tz" << std::endl;
+  results_file.close();
   
   // Simulate the process and the measurements
   int constexpr max_idx = 500;
@@ -122,14 +122,15 @@ int main(int argc, char* argv[])
     Eigen::Matrix<double,6,6> cov_TCM = Eigen::Matrix<double,6,6>::Identity();
     cov_TCM.block<3,3>(0,0) *= std::pow(sigma_mesr,2.0);
     cov_TCM.block<3,3>(3,3) *= std::pow(sigma_mest,2.0);
-    //~ filter.update(TCM_measured, cov_TCM); -> Covariance symmetry problem !!
-    
-    //~ // Get the current estimated state
-    //~ TWC_est = filter.getState(); 
-    //~ Eigen::Matrix<double,6,1> const error = common::so3r3::boxminus(TWC_est, TWC_true);
-    //~ results_file.open("results.csv", std::ios::app);
-    //~ results_file << error.transpose().format(style) << std::endl;
-    //~ results_file.close();
+    filter.update(TCM_measured, cov_TCM);
+    CHECKLOG( filter.isCovarianceMatrixIsSymmetric(), "Covariance matrix is not symmetric"); 
+
+    // Get the current estimated state
+    TWC_est = filter.getState(); 
+    Eigen::Matrix<double,6,1> const error = common::so3r3::boxminus(TWC_est, TWC_true);
+    results_file.open("results.csv", std::ios::app);
+    results_file << error.transpose().format(style) << std::endl;
+    results_file.close();
   }
   
   return EXIT_SUCCESS;

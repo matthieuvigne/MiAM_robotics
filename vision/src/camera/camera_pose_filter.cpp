@@ -174,14 +174,14 @@ void CameraPoseFilter::update(
     J_TCM_wrt_TWC * this->cov_T_WC_ * J_TCM_wrt_TWC.transpose() + cov_T_CM;
 
   // Compute the gain matrix
-  Eigen::Matrix<double,6,6> const K = this->cov_T_WC_ * J_TCM_wrt_TWC * S.inverse();
+  Eigen::Matrix<double,6,6> const K = cov_T_WC_ * J_TCM_wrt_TWC.transpose() * S.inverse();
   
   // Update the state estimate
-  this->T_WC_ = common::so3r3::expMap(K*innov) * this->T_WC_;
+  T_WC_ = common::so3r3::boxplus(K*innov, T_WC_);
   
   // Update the state covariance matrix
   Eigen::Matrix<double,6,6> const I = Eigen::Matrix<double,6,6>::Identity();
-  this->cov_T_WC_ = (I - K * J_TCM_wrt_TWC) * this->cov_T_WC_;
+  cov_T_WC_ = (I - K * J_TCM_wrt_TWC) * cov_T_WC_;
 }
 
 //--------------------------------------------------------------------------------------------------
