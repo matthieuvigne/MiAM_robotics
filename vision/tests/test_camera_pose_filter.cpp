@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
   //------------------------------------------------------------------------------------------------
   
   // Standard deviations for orientation and translation
-  double const sigma_r = common::convertDegreeToRadian(5.0);
-  double const sigma_t = 2e-2;
+  double const sigma_r = common::convertDegreeToRadian(10.0);
+  double const sigma_t = 5e-2;
   
   // Sample the initial pose of the camera
   std::cout << std::endl;
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
   Eigen::Affine3d const TWM_est =
       Eigen::Translation3d(1.5,1.0,0.0)
     * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ());
-  Eigen::Affine3d const TWM_true = common::PoseSampler::sample(TWM_est, sigma_r, sigma_t);
+  Eigen::Affine3d const TWM_true = common::PoseSampler::sample(TWM_est, 0, 0);
   std::cout << printPoseSampling(TWM_est, TWM_true) << std::endl;
   
   // Sample the transformation between the camera and the rotor's axis
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
   Eigen::Affine3d const TRC_est =
       Eigen::Translation3d(0.0, 0.0, 0.0)
     * Eigen::AngleAxisd(M_PI_4, Eigen::Vector3d::UnitY());
-  Eigen::Affine3d const TRC_true = common::PoseSampler::sample(TRC_est, sigma_r, sigma_t);
+  Eigen::Affine3d const TRC_true = common::PoseSampler::sample(TRC_est, 0, 0);
   std::cout << printPoseSampling(TRC_est, TRC_true) << std::endl;
   
   //------------------------------------------------------------------------------------------------
@@ -78,8 +78,11 @@ int main(int argc, char* argv[])
   cov_TWC.block<3,3>(0,0) *= std::pow(sigma_r, 2.0);
   cov_TWC.block<3,3>(3,3) *= std::pow(sigma_t, 2.0);
   filter.setStateAndCovariance(camera::CameraPoseFilter::InitType::T_WC, TWC_est, cov_TWC);
-  std::cout << filter.printEstimateAndCovariance() << std::endl;
   CHECKLOG( filter.isCovarianceMatrixIsSymmetric(), "Covariance matrix is not symmetric" );
+  std::cout << "True pose of the camera:\n" << TWC_true.matrix() << std::endl;
+  std::cout << "Estimated pose of the camera:\n" << filter.getState().matrix() << std::endl;
+  std::cout << "Error: " << common::so3r3::boxminus(filter.getState(), TWC_true).transpose()
+    << std::endl;
 
   //------------------------------------------------------------------------------------------------
   // Simulation of the process
@@ -94,29 +97,29 @@ int main(int argc, char* argv[])
   
   // Simulate the process and the measurements
   int constexpr max_idx = 500;
-  double camera_angle_rad = 0.0;
   double const max_angle_rad = common::convertDegreeToRadian(30.0);
   double camera_angle_step_rad = common::convertDegreeToRadian(5.0);
-
+  int half_period = 5;
   for(int idx=0; idx<max_idx; idx++)
   {
     // Move the camera and predict
     Eigen::Matrix<double,6,1> tau;
     double constexpr sigma_w = 0.5*M_PI/180.;
-    double const dw = common::GaussianSampler::sample(camera_angle_step_rad,sigma_w);
-    if(std::fabs(camera_angle_rad + dw) >= max_angle_rad)
+    double dw = common::GaussianSampler::sample(camera_angle_step_rad,sigma_w);
+    if( idx%(2*half_period) == half_period )
+    {
       camera_angle_step_rad *= -1.;
-    camera_angle_rad = std::max(-max_angle_rad, std::min(camera_angle_rad + dw, max_angle_rad));
-    tau << 0., 0., dw, 0., 0., 0.;
+      dw *= -1;
+    }
+    tau << 0., dw, 0., 0., 0., 0.;
     Eigen::Affine3d const TRkRkp1 = common::so3r3::expMap(tau);
     TWC_true = TWC_true * TRC_true.inverse() * TRkRkp1 * TRC_true;
     filter.predict(camera_angle_step_rad, sigma_w, camera::CameraPoseFilter::Axis::Y);
-    std::cout << filter.printEstimateAndCovariance() << std::endl;
     CHECKLOG( filter.isCovarianceMatrixIsSymmetric(), "Covariance matrix is not symmetric");
     
     // Update with measurements
-    double constexpr sigma_mesr = 3.0*M_PI/180.;
-    double constexpr sigma_mest = 2e-2;
+    double constexpr sigma_mesr = 1.0*M_PI/180.;
+    double constexpr sigma_mest = 5e-3;
     Eigen::Affine3d const TCM_true = TWC_true.inverse() * TWM_true;
     Eigen::Affine3d const TCM_measured = common::PoseSampler::sample(TCM_true, sigma_mesr, sigma_mest);
     Eigen::Matrix<double,6,6> cov_TCM = Eigen::Matrix<double,6,6>::Identity();
@@ -130,6 +133,7 @@ int main(int argc, char* argv[])
     Eigen::Matrix<double,6,1> const error = common::so3r3::boxminus(TWC_est, TWC_true);
     results_file.open("results.csv", std::ios::app);
     results_file << error.transpose().format(style) << std::endl;
+    std::cout << "Error: " << error.transpose().format(style) << std::endl;
     results_file.close();
   }
   

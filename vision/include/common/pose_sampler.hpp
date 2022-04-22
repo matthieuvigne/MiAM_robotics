@@ -41,8 +41,12 @@ public:
 
 public:
 
-  static Eigen::Affine3d sample(Eigen::Affine3d const& T, double sigma_r, double sigma_t);
-  static Eigen::Affine3d sample(double sigma_r, double sigma_t);
+  static Eigen::Affine3d sample(Eigen::Affine3d const& T, double sigma_r, double sigma_t,
+    double maxdevr = std::numeric_limits<double>::infinity(),
+    double maxdevt = std::numeric_limits<double>::infinity());
+  static Eigen::Affine3d sample(double sigma_r, double sigma_t,
+    double maxdevr = std::numeric_limits<double>::infinity(),
+    double maxdevt = std::numeric_limits<double>::infinity());
 
 private:
 

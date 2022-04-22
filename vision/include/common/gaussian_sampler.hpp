@@ -25,7 +25,8 @@ public:
 public:
   inline double sample() const;
   inline void setMaxDeviation(double max_deviation);
-  static double sample(double mean, double stddev);
+  static double sample(double mean, double stddev,
+    double maxdev = std::numeric_limits<double>::infinity());
 
 private:
   double max_deviation_;

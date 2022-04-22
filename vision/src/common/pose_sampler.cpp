@@ -97,24 +97,29 @@ Eigen::Matrix<double,6,6> PoseSampler::setCholeskyMatrix(
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Affine3d PoseSampler::sample(Eigen::Affine3d const& T, double sigma_r, double sigma_t)
+Eigen::Affine3d PoseSampler::sample(Eigen::Affine3d const& T, double sigma_r, double sigma_t,
+  double maxdevr, double maxdevt)
 {
   // Initialize static Gaussian samplers
   static std::default_random_engine generator;
   static std::normal_distribution<double> N(0.0,1.0);
+  CHECK( maxdevr > 0 );
+  CHECK( maxdevt > 0 );
 
   // Sample the orientation and translation increment
   Eigen::Matrix<double,6,1> tau;
-  for(int i=0; i<3; i++) tau(i) = sigma_r * N(generator);
-  for(int i=3; i<6; i++) tau(i) = sigma_t * N(generator);
+  for(int i=0; i<3; i++)
+    tau(i) = std::max( -maxdevr, std::min( sigma_r * N(generator), maxdevr ) );
+  for(int i=3; i<6; i++)
+    tau(i) = std::max( -maxdevt, std::min( sigma_t * N(generator), maxdevt ) );
   return common::so3r3::product(tau, T);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Affine3d PoseSampler::sample(double sigma_r, double sigma_t)
+Eigen::Affine3d PoseSampler::sample(double sigma_r, double sigma_t, double maxdevr, double maxdevt)
 {
-  return sample(Eigen::Affine3d::Identity(), sigma_r, sigma_t);
+  return sample(Eigen::Affine3d::Identity(), sigma_r, sigma_t, maxdevr, maxdevt);
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -24,11 +24,12 @@ GaussianSampler::GaussianSampler(double mean, double sigma, double max_deviation
 // Functions
 //--------------------------------------------------------------------------------------------------
 
-double GaussianSampler::sample(double mean, double stddev)
+double GaussianSampler::sample(double mean, double stddev, double maxdev)
 {
+  CHECK( maxdev > 0);
   static std::default_random_engine generator;
   static std::normal_distribution<double> N(0.0,1.0);
-  return mean + stddev * N(generator);
+  return std::max( - maxdev, std::min( mean + stddev * N(generator), maxdev ) );
 }
 
 //--------------------------------------------------------------------------------------------------
