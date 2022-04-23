@@ -49,7 +49,7 @@ public:
   void predict(
     Eigen::Vector3d const& w,
     Eigen::Matrix3d const& cov_w);
-  enum Axis {X, Y, Z};
+  enum class Axis {X, Y, Z};
   void predict(double wi, double cov_wi, Axis axis);
 
   void update(
