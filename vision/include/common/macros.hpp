@@ -47,6 +47,16 @@ if(!condition)                                            \
                             + std::string(#condition)   );\
 }
 
+#define CHECK_NOTNULL(pointer)                                \
+if(pointer == 0)                                              \
+{                                                             \
+  throw std::runtime_error(   std::string(__FILENAME__)       \
+                            + std::string("[")                \
+                            + std::to_string(__LINE__)        \
+                            + std::string("]")                \
+                            + std::string("Invalid pointer"));\
+}
+
 #define CHECKLOG(condition, message)                      \
 if(!condition)                                            \
 {                                                         \

@@ -3,6 +3,9 @@
 
 #include <eigen3/Eigen/Dense>
 
+#define RAD M_PI/180.
+#define DEG 180./M_PI
+
 namespace common {
 
 // Degree <-> Radian conversions

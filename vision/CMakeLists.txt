@@ -10,6 +10,7 @@ set(CMAKE_BUILD_TYPE Debug)
 add_compile_options(-std=c++17)
 
 option(RPI4 "Target is raspberry pi 4" OFF)
+option(USE_TEST_BENCH "Set true to simulate the vision module in a test bench" OFF)
 option(BUILD_TESTS "Set ON to build the tests" ON)
 
 # Recursively include all the source files
