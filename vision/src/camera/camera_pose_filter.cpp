@@ -103,6 +103,18 @@ void CameraPoseFilter::predict(
 
 //--------------------------------------------------------------------------------------------------
 
+void CameraPoseFilter::predict(double wrx_rad, double sigma_wrx_rad,
+                               double wry_rad, double sigma_wry_rad,
+                               double wrz_rad, double sigma_wrz_rad)
+{
+  Eigen::Vector3d const w{wrx_rad, wry_rad, wrz_rad};
+  Eigen::Matrix3d const cov_w(Eigen::Vector3d(sigma_wrx_rad,sigma_wry_rad,sigma_wrz_rad)
+    .cwiseAbs2().asDiagonal());
+  return this->predict(w, cov_w);
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void CameraPoseFilter::predict(
   Eigen::Vector3d const& dtheta_rad,
   Eigen::Matrix3d const& cov_dtheta_rad)

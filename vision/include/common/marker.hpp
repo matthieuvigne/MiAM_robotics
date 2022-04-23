@@ -44,6 +44,7 @@ typedef std::vector<DetectedMarker> DetectedMarkerList;
 class Marker;
 typedef std::vector<Marker> MarkerList;
 typedef std::map<MarkerId,Marker> MarkerIdToEstimate;
+typedef std::multimap<MarkerId,Eigen::Affine3d> MarkerIdToPose;
 
 class Marker {
 
@@ -64,6 +65,9 @@ class Marker {
       std::vector<char>::const_iterator it_begin,
       std::vector<char>::const_iterator it_end);
     std::string print() const;
+
+  public:
+    static MarkerId sampleMarkerId(MarkerFamily marker_family);
 
   public:
     MarkerId id = 0;

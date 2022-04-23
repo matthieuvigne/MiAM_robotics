@@ -51,6 +51,9 @@ public:
     Eigen::Matrix3d const& cov_w);
   enum class Axis {X, Y, Z};
   void predict(double wi, double cov_wi, Axis axis);
+  void predict(double wrx_rad, double sigma_wrx_rad,
+               double wry_rad, double sigma_wry_rad,
+               double wrz_rad, double sigma_wrz_rad);
 
   void update(
     Eigen::Affine3d const& T_CM,

@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 
 #include <common/marker.hpp>
@@ -252,6 +253,51 @@ std::string Marker::print() const
   out << "- cov_T_WM: " << std::endl << this->cov_T_WM.matrix() << std::endl;
   
   return out.str();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+MarkerId Marker::sampleMarkerId(MarkerFamily marker_family)
+{
+  MarkerId marker_id;
+  switch(marker_family)
+  {
+    case common::MarkerFamily::CENTRAL_MARKER:
+      marker_id = 42;
+      break;
+    case common::MarkerFamily::PURPLE_TEAM_MARKER:
+      // Marker ids from 51 to 70
+      marker_id = 51 + (std::rand()%20);
+      break;
+    case common::MarkerFamily::PURPLE_TEAM_ROBOT:
+      // Marker ids from 1 to 5
+      marker_id = 1 + (std::rand()%5);
+      break;
+    case common::MarkerFamily::ROCK_SAMPLE:
+      marker_id = 17;
+      break;
+    case common::MarkerFamily::TREASURE_BLUE_SAMPLE:
+      marker_id = 13;
+      break;
+    case common::MarkerFamily::TREASURE_GREEN_SAMPLE:
+      marker_id = 36;
+      break;
+    case common::MarkerFamily::TREASURE_RED_SAMPLE:
+      marker_id = 47;
+      break;
+    case common::MarkerFamily::YELLOW_TEAM_MARKER:
+      // Marker ids from 71 to 91
+      marker_id = 71 + (std::rand()%20);
+      break;
+    case common::MarkerFamily::YELLOW_TEAM_ROBOT:
+      // Marker ids from 6 to 10
+      marker_id = 6 + (std::rand()%5);
+      break;
+    case common::MarkerFamily::UNKNOWN:
+    default:
+      throw std::runtime_error("Unknown marker family");
+  }
+  return marker_id;
 }
 
 //--------------------------------------------------------------------------------------------------

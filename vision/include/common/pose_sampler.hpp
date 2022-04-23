@@ -20,13 +20,13 @@ public:
   DISALLOW_EVIL_CONSTRUCTORS(PoseSampler);
 
   PoseSampler(
-    double sigma_orientation,
-    double sigma_position);
+    double sigma_w,
+    double sigma_t);
 
   PoseSampler(
     Eigen::Affine3d const& mean,
-    double sigma_orientation,
-    double sigma_position);
+    double sigma_w,
+    double sigma_t);
 
   PoseSampler(
     Eigen::Affine3d const& mean,
@@ -34,30 +34,43 @@ public:
 
 public:
 
-  void setMaxOrientationDeviation(double max_orientation_deviation);
-  void setMaxPositionDeviation(double max_position_deviation);
+  void setMaxOrientationDeviation(double maxdev_w);
+  void setMaxPositionDeviation(double maxdev_t);
   Eigen::Affine3d sample(Eigen::Affine3d const& T) const;
   inline Eigen::Affine3d sample() const;
 
 public:
 
-  static Eigen::Affine3d sample(Eigen::Affine3d const& T, double sigma_r, double sigma_t,
-    double maxdevr = std::numeric_limits<double>::infinity(),
-    double maxdevt = std::numeric_limits<double>::infinity());
-  static Eigen::Affine3d sample(double sigma_r, double sigma_t,
-    double maxdevr = std::numeric_limits<double>::infinity(),
-    double maxdevt = std::numeric_limits<double>::infinity());
+  static Eigen::Affine3d sample(
+    Eigen::Affine3d const& T,
+    double sigma_w, double sigma_t,
+    double maxdev_w = std::numeric_limits<double>::infinity(),
+    double maxdev_r = std::numeric_limits<double>::infinity());
+
+  static Eigen::Affine3d sample(
+    Eigen::Affine3d const&T,
+    double sigma_wx, double sigma_wy, double sigma_wz,
+    double sigma_tx, double sigma_ty, double sigma_tz,
+    double maxdev_w = std::numeric_limits<double>::infinity(),
+    double maxdev_t = std::numeric_limits<double>::infinity());
+
+  static Eigen::Affine3d sample(
+    Eigen::Affine3d const&T,
+    double sigma_wx, double sigma_wy, double sigma_wz, 
+    double sigma_tx, double sigma_ty, double sigma_tz,
+    double maxdev_wx, double maxdev_wy, double maxdev_wz,
+    double maxdev_tx, double maxdev_ty, double maxdev_tz);
 
 private:
 
-  Eigen::Matrix<double,6,6> setCholeskyMatrix(double sigma_orientation, double sigma_position);
+  Eigen::Matrix<double,6,6> setCholeskyMatrix(double sigma_w, double sigma_t);
   Eigen::Matrix<double,6,6> setCholeskyMatrix(Eigen::Matrix<double,6,6> const& covariance);
 
 private:
   Eigen::Affine3d mean_;
   Eigen::Matrix<double,6,6> cholesky_;
-  double max_orientation_deviation_;
-  double max_position_deviation_;
+  double maxdev_w_;
+  double maxdev_t_;
   std::default_random_engine mutable generator_;
   std::normal_distribution<double> mutable distribution_;
 
