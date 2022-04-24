@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <common/macros.hpp>
 #include <common/marker.hpp>
 #include <common/maths.hpp>
 

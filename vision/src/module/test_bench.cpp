@@ -1,15 +1,28 @@
 #include <common/pose_gaussian_sampler.hpp>
+#include <common/pose_uniform_sampler.hpp>
 #include <module/test_bench.hpp>
 
 namespace module {
 
-namespace test {
+//--------------------------------------------------------------------------------------------------
+// Static variable definition
+//--------------------------------------------------------------------------------------------------
+
+double TestBench::board_width_ =  3.0;
+double TestBench::board_height_ = 2.0;
+bool TestBench::is_initialized_ = false;
+Eigen::Affine3d TestBench::TWC_ = Eigen::Affine3d::Identity();
+Eigen::Affine3d TestBench::TRC_ = Eigen::Affine3d::Identity();
+double TestBench::camera_sigma_w_ = 1.0*RAD;
+double TestBench::marker_sigma_w_ = 1.0*RAD;
+double TestBench::marker_sigma_t_ = 1.0*CM;
+common::MarkerIdToPose TestBench::markers_;
 
 //--------------------------------------------------------------------------------------------------
 // Functions
 //--------------------------------------------------------------------------------------------------
 
-void initializeTestBench()
+void TestBench::initializeTestBench()
 {
   // Initialize the transformation from the world frame to the camera frame
   Eigen::Affine3d const TWC =
@@ -29,9 +42,16 @@ void initializeTestBench()
     common::Marker::sampleMarkerId(common::MarkerFamily::CENTRAL_MARKER);
   Eigen::Affine3d TWM =
       Eigen::Translation3d(1.5,1.0,0.0)
-    * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ());
+    * Eigen::AngleAxisd();
+  LOG("TWM:\n" << TWM.matrix());
   TWM = common::PoseGaussianSampler::sample(TWM, 1.0*RAD, 5e-3);
+  LOG("sampled TWM:\n" << TWM.matrix());
   markers_.emplace(central_marker_id, TWM);
+
+  // Parameterize the marker sampler
+  common::PoseUniformSampler const marker_sampler(
+    Eigen::Vector3d{-1.0*RAD,-1.0*RAD,-M_PI}, Eigen::Vector3d{1.0*RAD,1.0*RAD,M_PI},
+    Eigen::Vector3d{0.,0.,0.}, Eigen::Vector3d{board_width_,board_height_,0.});
 
   // Add markers for random samples on the field
   int constexpr num_samples = 10;
@@ -39,14 +59,9 @@ void initializeTestBench()
   {
     common::MarkerId const marker_id =
       common::Marker::sampleMarkerId(common::MarkerFamily::ROCK_SAMPLE);
-    Eigen::Affine3d TWS =
-      Eigen::Translation3d(0.,0.,0.)
-      * Eigen::AngleAxisd(0.,Eigen::Vector3d::UnitZ());
-    //~ TWS = common::PoseGaussianSampler::sample(TWS, 
+    Eigen::Affine3d const TWS = marker_sampler.sample();
+    markers_.emplace(marker_id, TWS);
   }
-
-  // Sample the robots and marker poses
-  // [TODO]
 
   // Set the initialization indicator
   is_initialized_ = true;
@@ -54,7 +69,7 @@ void initializeTestBench()
 
 //--------------------------------------------------------------------------------------------------
 
-void rotateCamera(double wx, double wy, double wz)
+void TestBench::rotateCamera(double wx, double wy, double wz)
 {
   CHECK(is_initialized_);
   Eigen::Matrix<double,6,1> tau;
@@ -65,7 +80,7 @@ void rotateCamera(double wx, double wy, double wz)
 
 //--------------------------------------------------------------------------------------------------
 
-void detectMarkers(common::DetectedMarkerList* detected_markers_ptr)
+void TestBench::detectMarkers(common::DetectedMarkerList* detected_markers_ptr)
 {
   // Get the reference to the detected markers
   CHECK(is_initialized_);
@@ -80,7 +95,7 @@ void detectMarkers(common::DetectedMarkerList* detected_markers_ptr)
 
 //--------------------------------------------------------------------------------------------------
 
-void setCameraRotationProcessNoise(double camera_sigma_w)
+void TestBench::setCameraRotationProcessNoise(double camera_sigma_w)
 {
   CHECK(camera_sigma_w >= 0);
   camera_sigma_w_ = camera_sigma_w;
@@ -88,7 +103,7 @@ void setCameraRotationProcessNoise(double camera_sigma_w)
 
 //--------------------------------------------------------------------------------------------------
 
-void setMarkerRotationMeasurementNoise(double marker_sigma_w)
+void TestBench::setMarkerRotationMeasurementNoise(double marker_sigma_w)
 {
   CHECK(marker_sigma_w >= 0);
   marker_sigma_w_ = marker_sigma_w;
@@ -96,14 +111,12 @@ void setMarkerRotationMeasurementNoise(double marker_sigma_w)
 
 //--------------------------------------------------------------------------------------------------
 
-void setMarkerPositionMeasurementNoise(double marker_sigma_t)
+void TestBench::setMarkerPositionMeasurementNoise(double marker_sigma_t)
 {
   CHECK(marker_sigma_t >= 0);
   marker_sigma_t_ = marker_sigma_t;
 }
 
 //--------------------------------------------------------------------------------------------------
-
-} // namespace test
 
 } // namespace module

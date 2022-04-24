@@ -7,61 +7,62 @@
 
 namespace module {
 
-namespace test {
-
 //--------------------------------------------------------------------------------------------------
-// Variables
+// Class declaration
 //--------------------------------------------------------------------------------------------------
 
-namespace /*Anonymous*/ {
+class TestBench {
 
-// Test bench
-bool is_initialized_ = false;
+public:
+  DISALLOW_EVIL_CONSTRUCTORS(TestBench);
 
-// Board dimensions
-double constexpr board_width_ = 3.0;
-double constexpr board_height_ = 2.0;
+public:
 
-// Camera and marker true poses
-Eigen::Affine3d TWC_; ///< Transformation from the world frame to the camera frame
-Eigen::Affine3d TRC_; ///< Transformation from the reference frame to the camera frame
+  // Initialization and parameter settings
+  static void initializeTestBench();
+  inline static bool isInitialized(){ return is_initialized_; }
+  static void setCameraRotationProcessNoise(double camera_sigma_w);
+  static void setMarkerRotationMeasurementNoise(double marker_sigma_w);
+  static void setMarkerPositionMeasurementNoise(double marker_sigma_t);
 
-// Robots and samples true poses
-common::MarkerIdToPose markers_; // [TODO] << Add the central marker to the list
+  // Getters
+  inline static Eigen::Affine3d const& getTWC(){ CHECK(is_initialized_); return TWC_; }
+  inline static Eigen::Affine3d const& getTRC(){ CHECK(is_initialized_); return TRC_; }
+  inline static double getCameraRotationProcessNoise(){ return camera_sigma_w_; };
+  inline static double getMarkerRotationMeasurementNoise(){ return marker_sigma_w_; }
+  inline static double getMarkerPositionMeasurementNoise(){ return marker_sigma_t_; }
+  inline static common::MarkerIdToPose const& getTrueMarkerPoses(){ return markers_; }
 
-// Process noise and measurement noise parameters
-double camera_sigma_w_ = 1.0*RAD; 
-double marker_sigma_w_ = 1.0*RAD;
-double marker_sigma_t_ = 1.0*CM;
+  // Simulation of the test bench
+  static void rotateCamera(double wx_rad, double wy_rad, double wz_rad);
+  static void detectMarkers(common::DetectedMarkerList* detected_markers);  
 
-} // anonymous namespace
+public:
+
+  // Board dimensions
+  static double board_width_;
+  static double board_height_;
+
+private:
+
+  // Test bench
+  static bool is_initialized_;
+
+  // Camera and marker true poses
+  static Eigen::Affine3d TWC_; ///< Transformation from the world frame to the camera frame
+  static Eigen::Affine3d TRC_; ///< Transformation from the reference frame to the camera frame
+
+  // Robots and samples true poses
+  static common::MarkerIdToPose markers_; // [TODO] << Add the central marker to the list
+
+  // Process noise and measurement noise parameters
+  static double camera_sigma_w_; 
+  static double marker_sigma_w_;
+  static double marker_sigma_t_;
+
+}; // class TestBench
 
 //--------------------------------------------------------------------------------------------------
-// Functions
-//--------------------------------------------------------------------------------------------------
-
-// Initialization and parameter settings
-void initializeTestBench();
-inline bool isInitialized(){ return is_initialized_; }
-void setCameraRotationProcessNoise(double camera_sigma_w);
-void setMarkerRotationMeasurementNoise(double marker_sigma_w);
-void setMarkerPositionMeasurementNoise(double marker_sigma_t);
-
-// Getters
-inline Eigen::Affine3d const& getTWC(){ CHECK(is_initialized_); return TWC_; }
-inline Eigen::Affine3d const& getTRC(){ CHECK(is_initialized_); return TRC_; }
-inline double getCameraRotationProcessNoise(){ return camera_sigma_w_; };
-inline double getMarkerRotationMeasurementNoise(){ return marker_sigma_w_; }
-inline double getMarkerPositionMeasurementNoise(){ return marker_sigma_t_; }
-inline common::MarkerIdToPose const& getTrueMarkerPoses(){ return markers_; }
-
-// Simulation of the test bench
-void rotateCamera(double wx_rad, double wy_rad, double wz_rad);
-void detectMarkers(common::DetectedMarkerList* detected_markers);
-
-//--------------------------------------------------------------------------------------------------
-
-} // namespace test
 
 } // namespace module
 

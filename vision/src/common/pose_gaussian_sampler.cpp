@@ -102,8 +102,10 @@ Eigen::Affine3d PoseGaussianSampler::sample(
   double sigma_w, double sigma_t,
   double maxdev_w, double maxdev_t)
 {
-  return sample(T, sigma_w, maxdev_w, sigma_w, maxdev_w, sigma_w, maxdev_w,
-                   sigma_t, maxdev_t, sigma_t, maxdev_t, sigma_t, maxdev_t);
+  return sample(T, sigma_w, sigma_w, sigma_w,
+                   sigma_t, sigma_t, sigma_t,
+                   maxdev_w, maxdev_w, maxdev_w,
+                   maxdev_t, maxdev_t, maxdev_t);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -114,8 +116,10 @@ Eigen::Affine3d PoseGaussianSampler::sample(
   double sigma_tx, double sigma_ty, double sigma_tz,
   double maxdev_w, double maxdev_t)
 {
-  return sample(T, sigma_wx, maxdev_w, sigma_wy, maxdev_w, sigma_wz, maxdev_w,
-                   sigma_tx, maxdev_t, sigma_ty, maxdev_t, sigma_tz, maxdev_t);
+  return sample(T, sigma_wx, sigma_wy, sigma_wz,
+                   sigma_tx, sigma_ty, sigma_tz,
+                   maxdev_w, maxdev_w, maxdev_w,
+                   maxdev_t, maxdev_t, maxdev_t);
 }
 
 //--------------------------------------------------------------------------------------------------

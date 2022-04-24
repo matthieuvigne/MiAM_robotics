@@ -12,8 +12,8 @@ public:
   DISALLOW_EVIL_CONSTRUCTORS(PoseUniformSampler);
   PoseUniformSampler(
     double min_wx, double min_wy, double min_wz,
-    double min_tx, double min_ty, double min_tz,
     double max_wx, double max_wy, double max_wz,
+    double min_tx, double min_ty, double min_tz,
     double max_tx, double max_ty, double max_tz);
   PoseUniformSampler(
     Eigen::Vector3d const& min_w, Eigen::Vector3d const& min_t,
