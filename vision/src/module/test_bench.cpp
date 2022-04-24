@@ -80,6 +80,30 @@ void detectMarkers(common::DetectedMarkerList* detected_markers_ptr)
 
 //--------------------------------------------------------------------------------------------------
 
+void setCameraRotationProcessNoise(double camera_sigma_w)
+{
+  CHECK(camera_sigma_w >= 0);
+  camera_sigma_w_ = camera_sigma_w;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void setMarkerRotationMeasurementNoise(double marker_sigma_w)
+{
+  CHECK(marker_sigma_w >= 0);
+  marker_sigma_w_ = marker_sigma_w;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void setMarkerPositionMeasurementNoise(double marker_sigma_t)
+{
+  CHECK(marker_sigma_t >= 0);
+  marker_sigma_t_ = marker_sigma_t;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 } // namespace test
 
 } // namespace module

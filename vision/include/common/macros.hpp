@@ -38,7 +38,7 @@
     << __LINE__ << "] " << message << std::endl
 
 #define CHECK(condition)                                  \
-if(!condition)                                            \
+if(!(condition))                                          \
 {                                                         \
   throw std::runtime_error(   std::string(__FILENAME__)   \
                             + std::string(" [")           \
@@ -58,7 +58,7 @@ if(pointer == 0)                                              \
 }
 
 #define CHECKLOG(condition, message)                      \
-if(!condition)                                            \
+if(!(condition))                                          \
 {                                                         \
   throw std::runtime_error(   std::string(__FILENAME__)   \
                             + std::string(" [")           \

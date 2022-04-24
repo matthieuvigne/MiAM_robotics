@@ -29,20 +29,35 @@ Eigen::Affine3d TRC_; ///< Transformation from the reference frame to the camera
 // Robots and samples true poses
 common::MarkerIdToPose markers_; // [TODO] << Add the central marker to the list
 
+// Process noise and measurement noise parameters
+double camera_sigma_w_ = 1.0*RAD; 
+double marker_sigma_w_ = 1.0*RAD;
+double marker_sigma_t_ = 1.0*CM;
+
 } // anonymous namespace
 
 //--------------------------------------------------------------------------------------------------
 // Functions
 //--------------------------------------------------------------------------------------------------
 
-// Actions
+// Initialization and parameter settings
 void initializeTestBench();
+inline bool isInitialized(){ return is_initialized_; }
+void setCameraRotationProcessNoise(double camera_sigma_w);
+void setMarkerRotationMeasurementNoise(double marker_sigma_w);
+void setMarkerPositionMeasurementNoise(double marker_sigma_t);
+
+// Simulation of the test bench
 void rotateCamera(double wx_rad, double wy_rad, double wz_rad);
 void detectMarkers(common::DetectedMarkerList* detected_markers);
 
 // Getters
-Eigen::Affine3d const& getTWC(){ CHECK(is_initialized_); return TWC_; }
-Eigen::Affine3d const& getTRC(){ CHECK(is_initialized_); return TRC_; }
+inline Eigen::Affine3d const& getTWC(){ CHECK(is_initialized_); return TWC_; }
+inline Eigen::Affine3d const& getTRC(){ CHECK(is_initialized_); return TRC_; }
+inline double getCameraRotationProcessNoise(){ return camera_sigma_w_; };
+inline double getMarkerRotationMeasurementNoise(){ return marker_sigma_w_; }
+inline double getMarkerPositionMeasurementNoise(){ return marker_sigma_t_; }
+inline common::MarkerIdToPose const& getTrueMarkerPoses(){ return markers_; }
 
 //--------------------------------------------------------------------------------------------------
 

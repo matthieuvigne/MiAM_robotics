@@ -5,6 +5,8 @@
 
 #define RAD M_PI/180.
 #define DEG 180./M_PI
+#define CM  1e-2
+#define MM  1e-3
 
 namespace common {
 
