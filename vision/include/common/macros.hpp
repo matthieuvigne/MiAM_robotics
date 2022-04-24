@@ -25,7 +25,7 @@
   }                                                   \
   template<typename T>                                \
   T const& getAs() const {                            \
-      CHECK_NOTULL(this);                             \
+      CHECK_NOTNULL(this);                            \
       T const* result = dynamic_cast<T const*>(this); \
       CHECK_NOTNULL(result);                          \
       return *this;                                   \

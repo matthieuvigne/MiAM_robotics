@@ -47,10 +47,6 @@ void setCameraRotationProcessNoise(double camera_sigma_w);
 void setMarkerRotationMeasurementNoise(double marker_sigma_w);
 void setMarkerPositionMeasurementNoise(double marker_sigma_t);
 
-// Simulation of the test bench
-void rotateCamera(double wx_rad, double wy_rad, double wz_rad);
-void detectMarkers(common::DetectedMarkerList* detected_markers);
-
 // Getters
 inline Eigen::Affine3d const& getTWC(){ CHECK(is_initialized_); return TWC_; }
 inline Eigen::Affine3d const& getTRC(){ CHECK(is_initialized_); return TRC_; }
@@ -58,6 +54,10 @@ inline double getCameraRotationProcessNoise(){ return camera_sigma_w_; };
 inline double getMarkerRotationMeasurementNoise(){ return marker_sigma_w_; }
 inline double getMarkerPositionMeasurementNoise(){ return marker_sigma_t_; }
 inline common::MarkerIdToPose const& getTrueMarkerPoses(){ return markers_; }
+
+// Simulation of the test bench
+void rotateCamera(double wx_rad, double wy_rad, double wz_rad);
+void detectMarkers(common::DetectedMarkerList* detected_markers);
 
 //--------------------------------------------------------------------------------------------------
 

@@ -2,7 +2,7 @@
 
 #include <common/gaussian_sampler.hpp>
 #include <common/maths.hpp>
-#include <common/pose_sampler.hpp>
+#include <common/pose_gaussian_sampler.hpp>
 
 //--------------------------------------------------------------------------------------------------
 // Utility functions
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
   // Initialize the pose sampler
   double constexpr sigma_orientation = M_PI;
   double constexpr sigma_position = 10.0;
-  common::PoseSampler sampler(Eigen::Affine3d::Identity(), sigma_orientation, sigma_position);
+  common::PoseGaussianSampler sampler(Eigen::Affine3d::Identity(), sigma_orientation, sigma_position);
 
   // Initialize the Gaussian sampler
   common::GaussianSampler orientation_sampler(0,3*M_PI/180.);

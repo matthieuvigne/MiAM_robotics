@@ -1,4 +1,4 @@
-#include <common/pose_sampler.hpp>
+#include <common/pose_gaussian_sampler.hpp>
 #include <module/test_bench.hpp>
 
 namespace module {
@@ -16,13 +16,13 @@ void initializeTestBench()
       Eigen::Translation3d(1.5,2.0,1.0)
     * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
     * Eigen::AngleAxisd(3*M_PI_4, Eigen::Vector3d::UnitX());
-  TWC_ = common::PoseSampler::sample(TWC, 3.0*RAD, 1e-2);
+  TWC_ = common::PoseGaussianSampler::sample(TWC, 3.0*RAD, 1e-2);
 
   // Initialize the transformation from the reference frame to the camera frame
   Eigen::Affine3d const TRC =
       Eigen::Translation3d(0.0, 0.0, 0.0)
     * Eigen::AngleAxisd(M_PI_4, Eigen::Vector3d::UnitY());
-  TRC_ = common::PoseSampler::sample(TRC, 1.0*RAD, 1e-3);
+  TRC_ = common::PoseGaussianSampler::sample(TRC, 1.0*RAD, 1e-3);
 
   // Initialize the central marker
   common::MarkerId const central_marker_id =
@@ -30,7 +30,7 @@ void initializeTestBench()
   Eigen::Affine3d TWM =
       Eigen::Translation3d(1.5,1.0,0.0)
     * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ());
-  TWM = common::PoseSampler::sample(TWM, 1.0*RAD, 5e-3);
+  TWM = common::PoseGaussianSampler::sample(TWM, 1.0*RAD, 5e-3);
   markers_.emplace(central_marker_id, TWM);
 
   // Add markers for random samples on the field
@@ -42,7 +42,7 @@ void initializeTestBench()
     Eigen::Affine3d TWS =
       Eigen::Translation3d(0.,0.,0.)
       * Eigen::AngleAxisd(0.,Eigen::Vector3d::UnitZ());
-    //~ TWS = common::PoseSampler::sample(TWS, 
+    //~ TWS = common::PoseGaussianSampler::sample(TWS, 
   }
 
   // Sample the robots and marker poses

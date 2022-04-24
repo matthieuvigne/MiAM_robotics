@@ -1,5 +1,5 @@
 #include <common/maths.hpp>
-#include <common/pose_sampler.hpp>
+#include <common/pose_gaussian_sampler.hpp>
 
 namespace common {
 
@@ -7,39 +7,37 @@ namespace common {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-PoseSampler::PoseSampler(
+PoseGaussianSampler::PoseGaussianSampler(
   Eigen::Affine3d const& mean,
-  double sigma_w,
-  double sigma_t)
-: mean_           (mean),
+  double sigma_w, double sigma_t)
+: PoseSamplerBase (Type::GAUSSIAN),
+  mean_           (mean),
   cholesky_       (setCholeskyMatrix(sigma_w, sigma_t)),
   maxdev_w_       (std::numeric_limits<double>::max()),
   maxdev_t_       (std::numeric_limits<double>::max()),
-  generator_      (),
   distribution_   (0.0, 1.0)
 {
-  CHECK(sigma_w > 0);
-  CHECK(sigma_t    > 0);
+  CHECK(sigma_w >= 0);
+  CHECK(sigma_t >= 0);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-PoseSampler::PoseSampler(
-  double sigma_w,
-  double sigma_t)
-: PoseSampler(Eigen::Affine3d::Identity(), sigma_w, sigma_t)
+PoseGaussianSampler::PoseGaussianSampler(
+  double sigma_w, double sigma_t)
+: PoseGaussianSampler(Eigen::Affine3d::Identity(), sigma_w, sigma_t)
 {}
 
 //--------------------------------------------------------------------------------------------------
 
-PoseSampler::PoseSampler(
+PoseGaussianSampler::PoseGaussianSampler(
   Eigen::Affine3d const& mean,
   Eigen::Matrix<double,6,6> const& covariance)
-: mean_           (mean),
+: PoseSamplerBase (Type::GAUSSIAN),
+  mean_           (mean),
   cholesky_       (setCholeskyMatrix(covariance)),
   maxdev_w_       (std::numeric_limits<double>::max()),
   maxdev_t_       (std::numeric_limits<double>::max()),
-  generator_      (),
   distribution_   (0.0, 1.0)
 {}
 
@@ -47,38 +45,40 @@ PoseSampler::PoseSampler(
 // Methods
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Affine3d PoseSampler::sample(Eigen::Affine3d const& T) const
+Eigen::Affine3d PoseGaussianSampler::sample() const
 {
+  // Sample
   Eigen::Matrix<double,6,1> tau;
-  for(int i=0; i<6; i++)
-    tau(i) = distribution_(generator_);
+  for(int i=0; i<6; i++) tau(i) = distribution_(generator_);
   tau = cholesky_ * tau;
+
+  // Bound the sampled deviation
   for(int i=0; i<3; i++) // <- Bound the orientation error
     tau(i) = std::max(-maxdev_w_, std::min(tau(i), maxdev_w_));
   for(int i=3; i<6; i++) // <- Bound the position error
     tau(i) = std::max(-maxdev_t_, std::min(tau(i), maxdev_t_));
-  return common::so3r3::product(tau,T);
+  return common::so3r3::product(tau,mean_);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void PoseSampler::setMaxOrientationDeviation(double maxdev_w)
+void PoseGaussianSampler::setMaxOrientationDeviation(double maxdev_w)
 {
-  CHECK(maxdev_w > 0.);
+  CHECK(maxdev_w >= 0.);
   maxdev_w_ = maxdev_w;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void PoseSampler::setMaxPositionDeviation(double maxdev_t)
+void PoseGaussianSampler::setMaxPositionDeviation(double maxdev_t)
 {
-  CHECK(maxdev_t > 0.);
+  CHECK(maxdev_t >= 0.);
   maxdev_t_ = maxdev_t;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Matrix<double,6,6> PoseSampler::setCholeskyMatrix(
+Eigen::Matrix<double,6,6> PoseGaussianSampler::setCholeskyMatrix(
   double sigma_w, double sigma_t)
 {
   Eigen::Matrix<double,6,6> cholesky = Eigen::Matrix<double,6,6>::Identity();
@@ -89,7 +89,7 @@ Eigen::Matrix<double,6,6> PoseSampler::setCholeskyMatrix(
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Matrix<double,6,6> PoseSampler::setCholeskyMatrix(
+Eigen::Matrix<double,6,6> PoseGaussianSampler::setCholeskyMatrix(
   Eigen::Matrix<double,6,6> const& covariance)
 {
   return Eigen::Matrix<double,6,6>(covariance.llt().matrixL());
@@ -97,7 +97,7 @@ Eigen::Matrix<double,6,6> PoseSampler::setCholeskyMatrix(
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Affine3d PoseSampler::sample(
+Eigen::Affine3d PoseGaussianSampler::sample(
   Eigen::Affine3d const& T,
   double sigma_w, double sigma_t,
   double maxdev_w, double maxdev_t)
@@ -108,7 +108,7 @@ Eigen::Affine3d PoseSampler::sample(
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Affine3d PoseSampler::sample(
+Eigen::Affine3d PoseGaussianSampler::sample(
   Eigen::Affine3d const&T,
   double sigma_wx, double sigma_wy, double sigma_wz,
   double sigma_tx, double sigma_ty, double sigma_tz,
@@ -120,7 +120,7 @@ Eigen::Affine3d PoseSampler::sample(
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Affine3d PoseSampler::sample(
+Eigen::Affine3d PoseGaussianSampler::sample(
   Eigen::Affine3d const&T,
   double sigma_wx, double sigma_wy, double sigma_wz, 
   double sigma_tx, double sigma_ty, double sigma_tz,

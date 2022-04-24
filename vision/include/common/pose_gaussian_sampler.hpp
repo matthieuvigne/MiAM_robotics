@@ -1,11 +1,7 @@
-#ifndef COMMON_POSE_SAMPLER_HPP
-#define COMMON_POSE_SAMPLER_HPP
+#ifndef COMMON_POSE_GAUSSIAN_SAMPLER_HPP
+#define COMMON_POSE_GAUSSIAN_SAMPLER_HPP
 
-#include <random>
-
-#include <eigen3/Eigen/Dense>
-
-#include <common/macros.hpp>
+#include <common/pose_sampler_base.hpp>
 
 namespace common {
 
@@ -13,31 +9,20 @@ namespace common {
 // Class declaration
 //--------------------------------------------------------------------------------------------------
 
-class PoseSampler {
+class PoseGaussianSampler : public PoseSamplerBase {
 
 public:
-  POINTER_TYPEDEF(PoseSampler);
-  DISALLOW_EVIL_CONSTRUCTORS(PoseSampler);
-
-  PoseSampler(
-    double sigma_w,
-    double sigma_t);
-
-  PoseSampler(
-    Eigen::Affine3d const& mean,
-    double sigma_w,
-    double sigma_t);
-
-  PoseSampler(
-    Eigen::Affine3d const& mean,
-    Eigen::Matrix<double,6,6> const& covariance);
+  POINTER_TYPEDEF(PoseGaussianSampler);
+  DISALLOW_EVIL_CONSTRUCTORS(PoseGaussianSampler);
+  PoseGaussianSampler(double sigma_w, double sigma_t);
+  PoseGaussianSampler(Eigen::Affine3d const& mean, double sigma_w, double sigma_t);
+  PoseGaussianSampler(Eigen::Affine3d const& mean, Eigen::Matrix<double,6,6> const& covariance);
 
 public:
 
   void setMaxOrientationDeviation(double maxdev_w);
   void setMaxPositionDeviation(double maxdev_t);
-  Eigen::Affine3d sample(Eigen::Affine3d const& T) const;
-  inline Eigen::Affine3d sample() const;
+  Eigen::Affine3d sample() const;
 
 public:
 
@@ -67,26 +52,17 @@ private:
   Eigen::Matrix<double,6,6> setCholeskyMatrix(Eigen::Matrix<double,6,6> const& covariance);
 
 private:
-  Eigen::Affine3d mean_;
-  Eigen::Matrix<double,6,6> cholesky_;
+
+  Eigen::Affine3d const& mean_;
   double maxdev_w_;
   double maxdev_t_;
-  std::default_random_engine mutable generator_;
+  Eigen::Matrix<double,6,6> cholesky_;
   std::normal_distribution<double> mutable distribution_;
 
-}; // class PoseSampler
-
-//--------------------------------------------------------------------------------------------------
-// Inline functions
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Affine3d PoseSampler::sample() const
-{
-  return sample(mean_);
-}
+}; // class PoseGaussianSampler
 
 //--------------------------------------------------------------------------------------------------
 
 } // namespace common
 
-#endif // COMMON_POSE_SAMPLER_HPP
+#endif // COMMON_POSE_GAUSSIAN_SAMPLER_HPP

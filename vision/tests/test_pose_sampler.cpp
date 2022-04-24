@@ -1,5 +1,5 @@
 #include <common/maths.hpp>
-#include <common/pose_sampler.hpp>
+#include <common/pose_gaussian_sampler.hpp>
 
 int main(int argc, char* argv[])
 {
@@ -7,10 +7,13 @@ int main(int argc, char* argv[])
   Eigen::Affine3d const T_mean = Eigen::Affine3d::Identity();
   double sigma_orientation = common::convertDegreeToRadian(10.0);
   double sigma_position = 1e-1;
-  common::PoseSampler sampler(T_mean, sigma_orientation, sigma_position);
+  common::PoseGaussianSampler sampler(T_mean, sigma_orientation, sigma_position);
   sampler.setMaxOrientationDeviation(common::convertDegreeToRadian(7.0));
   sampler.setMaxPositionDeviation(8e-2);
-  
+
+  common::PoseGaussianSampler::Type type = sampler.getType();
+  Eigen::Affine3d pose = sampler.sample();
+
   // Sample a lot of poses
   size_t constexpr num_poses = 1e4;
   Eigen::Matrix<double,6,1> sum = Eigen::Matrix<double,6,1>::Zero();

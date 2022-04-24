@@ -6,7 +6,7 @@
 #include <camera/camera_pose_filter.hpp>
 #include <common/gaussian_sampler.hpp>
 #include <common/maths.hpp>
-#include <common/pose_sampler.hpp>
+#include <common/pose_gaussian_sampler.hpp>
 
 //--------------------------------------------------------------------------------------------------
 // Utility functions
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
       Eigen::Translation3d(1.5,2.0,1.0)
     * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
     * Eigen::AngleAxisd(3*M_PI_4, Eigen::Vector3d::UnitX());
-  Eigen::Affine3d TWC_true = common::PoseSampler::sample(TWC_est, sigma_r, sigma_t);
+  Eigen::Affine3d TWC_true = common::PoseGaussianSampler::sample(TWC_est, sigma_r, sigma_t);
   std::cout << printPoseSampling(TWC_est, TWC_true) << std::endl;
 
   // Sample the pose of the central marker
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
   Eigen::Affine3d const TWM_est =
       Eigen::Translation3d(1.5,1.0,0.0)
     * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ());
-  Eigen::Affine3d const TWM_true = common::PoseSampler::sample(TWM_est, 0, 0);
+  Eigen::Affine3d const TWM_true = common::PoseGaussianSampler::sample(TWM_est, 0, 0);
   std::cout << printPoseSampling(TWM_est, TWM_true) << std::endl;
   
   // Sample the transformation between the camera and the rotor's axis
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
   Eigen::Affine3d const TRC_est =
       Eigen::Translation3d(0.0, 0.0, 0.0)
     * Eigen::AngleAxisd(M_PI_4, Eigen::Vector3d::UnitY());
-  Eigen::Affine3d const TRC_true = common::PoseSampler::sample(TRC_est, 0, 0);
+  Eigen::Affine3d const TRC_true = common::PoseGaussianSampler::sample(TRC_est, 0, 0);
   std::cout << printPoseSampling(TRC_est, TRC_true) << std::endl;
   
   //------------------------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
     double constexpr sigma_mesr = 1.0*M_PI/180.;
     double constexpr sigma_mest = 5e-3;
     Eigen::Affine3d const TCM_true = TWC_true.inverse() * TWM_true;
-    Eigen::Affine3d const TCM_measured = common::PoseSampler::sample(TCM_true, sigma_mesr, sigma_mest);
+    Eigen::Affine3d const TCM_measured = common::PoseGaussianSampler::sample(TCM_true, sigma_mesr, sigma_mest);
     Eigen::Matrix<double,6,6> cov_TCM = Eigen::Matrix<double,6,6>::Identity();
     cov_TCM.block<3,3>(0,0) *= std::pow(sigma_mesr,2.0);
     cov_TCM.block<3,3>(3,3) *= std::pow(sigma_mest,2.0);
