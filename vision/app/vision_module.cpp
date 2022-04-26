@@ -1,6 +1,9 @@
 #include <iostream>
 
 #include <module/module.hpp>
+#ifdef USE_TEST_BENCH
+  #include <module/test_bench.hpp>
+#endif
 
 // Camera thread: at each turn, increment the camera, except if reception of a specific request
 // Server thread: receive and process the client's requests
@@ -8,6 +11,15 @@
 // Main routine
 int main(int argc, char* argv[])
 {
+  // Initialize the test bench if needed
+  #ifdef USE_TEST_BENCH
+    LOG("Initializing the test bench");
+    module::TestBench::initializeTestBench();
+    LOG("Test bench initialized");
+  #else
+    LOG("USE TEST BENCH not defined");
+  #endif
+
   // Set the camera parameters
   camera::CameraParams camera_params;
   camera_params.name = "camera";

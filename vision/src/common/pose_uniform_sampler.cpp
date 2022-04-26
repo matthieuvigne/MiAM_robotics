@@ -53,7 +53,6 @@ Eigen::Affine3d PoseUniformSampler::sample() const
     CHECK( (coeff>=0.) && (coeff<=1.0) );
     tau(3+i) = min_t_(i) + coeff * (max_t_(i) - min_t_(i));
   }
-  std::cout << tau.transpose() << std::endl;
   return common::so3r3::expMap(tau);
 }
 

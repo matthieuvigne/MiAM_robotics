@@ -32,10 +32,11 @@ public:
   inline static double getMarkerRotationMeasurementNoise(){ return marker_sigma_w_; }
   inline static double getMarkerPositionMeasurementNoise(){ return marker_sigma_t_; }
   inline static common::MarkerIdToPose const& getTrueMarkerPoses(){ return markers_; }
+  static double getCameraRotationTime(double angle_rad);
 
   // Simulation of the test bench
   static void rotateCamera(double wx_rad, double wy_rad, double wz_rad);
-  static void detectMarkers(common::DetectedMarkerList* detected_markers);  
+  static void detectMarkers(common::DetectedMarkerList* detected_markers);
 
 public:
 
@@ -51,6 +52,7 @@ private:
   // Camera and marker true poses
   static Eigen::Affine3d TWC_; ///< Transformation from the world frame to the camera frame
   static Eigen::Affine3d TRC_; ///< Transformation from the reference frame to the camera frame
+  static double camera_angular_speed_;
 
   // Robots and samples true poses
   static common::MarkerIdToPose markers_; // [TODO] << Add the central marker to the list

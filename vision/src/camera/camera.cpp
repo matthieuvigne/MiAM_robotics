@@ -70,7 +70,8 @@ Camera::Camera(CameraParams const& params)
       break;
     }
 
-    default: throw("Unrecognized distortion model.");
+    default:
+      throw std::runtime_error("Unrecognized distortion model.");
   }
   configureCamera();
 }

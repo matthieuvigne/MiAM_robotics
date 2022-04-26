@@ -3,11 +3,11 @@
 #include <miam_utils/raspberry_pi/RPiGPIO.h>
 #include <yaml-cpp/yaml.h>
 
+#include <camera/distortion_null.hpp>
+#include <camera/distortion_radtan.hpp>
 #include <common/yaml_serialization.hpp>
 #include <module/module.hpp>
 #include <network/socket_exception.hpp>
-#include <camera/distortion_null.hpp>
-#include <camera/distortion_radtan.hpp>
 
 namespace module {
 
@@ -60,8 +60,7 @@ Module::Module(std::string const& filename)
 Module::Module(ModuleParams const& params)
 {
   // Setup RPi GPIO for servo control.
-  #if TEST
-  #else
+  #ifdef RPI4
   RPi_enableGPIO();
   RPi_enablePWM(true, false);
   RPi_setPWMClock(PiPWMClockFrequency::F1200kHz);

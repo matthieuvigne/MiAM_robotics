@@ -13,6 +13,7 @@ double TestBench::board_height_ = 2.0;
 bool TestBench::is_initialized_ = false;
 Eigen::Affine3d TestBench::TWC_ = Eigen::Affine3d::Identity();
 Eigen::Affine3d TestBench::TRC_ = Eigen::Affine3d::Identity();
+double TestBench::camera_angular_speed_ = 10*RAD; // w=10 deg/s
 double TestBench::camera_sigma_w_ = 1.0*RAD;
 double TestBench::marker_sigma_w_ = 1.0*RAD;
 double TestBench::marker_sigma_t_ = 1.0*CM;
@@ -43,9 +44,7 @@ void TestBench::initializeTestBench()
   Eigen::Affine3d TWM =
       Eigen::Translation3d(1.5,1.0,0.0)
     * Eigen::AngleAxisd();
-  LOG("TWM:\n" << TWM.matrix());
   TWM = common::PoseGaussianSampler::sample(TWM, 1.0*RAD, 5e-3);
-  LOG("sampled TWM:\n" << TWM.matrix());
   markers_.emplace(central_marker_id, TWM);
 
   // Parameterize the marker sampler
@@ -86,11 +85,25 @@ void TestBench::detectMarkers(common::DetectedMarkerList* detected_markers_ptr)
   CHECK(is_initialized_);
   CHECK_NOTNULL(detected_markers_ptr);
   common::DetectedMarkerList& detected_markers = *detected_markers_ptr;
+  detected_markers.clear();
 
   // For each marker, check whether it is visible and get its estimate
-  // Test1: report all the markers with simple covariance independently of their visibility
-  // Test2: check the visibility of the markers and compute their "true" associated covariance
-  // [TODO]
+  for(common::MarkerIdToPose::value_type const& pair : markers_)
+  {
+    // Check if the marker is visible
+    // [TODO]
+
+    // Add the marker
+    common::DetectedMarker marker;
+    marker.marker_id = pair.first;
+    Eigen::Affine3d const& TWM = pair.second;
+    Eigen::Affine3d const TCM = TWC_.inverse() * TWM;
+    marker.T_CM = common::PoseGaussianSampler::sample(TCM, marker_sigma_w_, marker_sigma_t_);
+    marker.cov_T_CM.setIdentity();
+    marker.cov_T_CM.block<3,3>(0,0) *= std::pow(marker_sigma_w_,2.0);
+    marker.cov_T_CM.block<3,3>(3,3) *= std::pow(marker_sigma_t_,2.0);
+    detected_markers.push_back(marker);
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -115,6 +128,13 @@ void TestBench::setMarkerPositionMeasurementNoise(double marker_sigma_t)
 {
   CHECK(marker_sigma_t >= 0);
   marker_sigma_t_ = marker_sigma_t;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+double TestBench::getCameraRotationTime(double angle_rad)
+{
+  return angle_rad / camera_angular_speed_;
 }
 
 //--------------------------------------------------------------------------------------------------

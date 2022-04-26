@@ -10,7 +10,7 @@ set(CMAKE_BUILD_TYPE Debug)
 add_compile_options(-std=c++17)
 
 option(RPI4 "Target is raspberry pi 4" OFF)
-option(USE_TEST_BENCH "Set true to simulate the vision module in a test bench" OFF)
+option(USE_TEST_BENCH "Set true to simulate the vision module in a test bench" ON)
 option(BUILD_TESTS "Set ON to build the tests" ON)
 
 # Recursively include all the source files
@@ -48,10 +48,17 @@ else()
     target_link_libraries(${LIBRARY_NAME} ${OpenCV_LIBS} ${raspicam_CV_LIBS} ${YAMLCPP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MIAMUTILSLIB_LIBRARIES})
 endif()
 
+if(USE_TEST_BENCH)
+  target_compile_definitions(${LIBRARY_NAME} PRIVATE USE_TEST_BENCH=1)
+endif()
+
 # Application
 
 add_executable(vision_module app/vision_module.cpp)
 target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+if(USE_TEST_BENCH)
+  target_compile_definitions(vision_module PRIVATE USE_TEST_BENCH=1)
+endif()
 
 add_executable(dummy_client app/dummy_client.cpp)
 target_link_libraries(dummy_client ${LIBRARY_NAME} ${Eigen_LIBRARIES})
