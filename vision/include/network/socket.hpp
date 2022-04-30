@@ -33,20 +33,20 @@ class Socket
 
     // Server initialization
     bool create();
-    bool bind ( int const port );
+    bool bind(int const port);
     bool listen() const;
-    bool accept ( Socket& ) const;
+    bool accept(Socket&) const;
 
     // Client initialization
-    bool connect ( std::string const host, int const port );
+    bool connect(std::string const host, int const port);
 
     // Data Transimission
-    bool send ( std::string const ) const;
-    int recv ( std::string& ) const;
+    bool send(std::string const) const;
+    int recv(std::string&) const;
 
     // Checks
-    void set_non_blocking ( bool const );
-    bool is_valid() const { return m_sock != -1; }
+    void set_non_blocking(bool const);
+    inline bool is_valid() const { return m_sock != -1; }
 
  private:
 

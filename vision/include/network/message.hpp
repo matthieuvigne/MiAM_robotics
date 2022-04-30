@@ -68,8 +68,9 @@ void Message::setParams(void* params)
 MessageType Message::deserializeType(std::string const& message)
 {
   MessageType message_type = MessageType::UNKNOWN;
-  size_t constexpr type_size_bytes = sizeof(MessageType);
-  std::memcpy(&message_type, message.data(), type_size_bytes);
+  size_t constexpr type_byte = sizeof(uint16_t);
+  size_t constexpr type_size = sizeof(MessageType);
+  std::memcpy(&message_type, &message[type_byte], type_size);
   return message_type;
 }
 

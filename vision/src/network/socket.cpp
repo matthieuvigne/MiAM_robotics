@@ -4,6 +4,8 @@
 #include <fcntl.h>
 #include <iostream>
 
+#include <common/macros.hpp>
+
 namespace network {
 
 //--------------------------------------------------------------------------------------------------
@@ -75,7 +77,7 @@ bool Socket::listen() const
 
 //--------------------------------------------------------------------------------------------------
 
-bool Socket::accept ( Socket& new_socket ) const
+bool Socket::accept(Socket& new_socket) const
 {
   int addr_length = sizeof(m_addr);
   new_socket.m_sock = ::accept( m_sock, (sockaddr*) &m_addr, (socklen_t*) &addr_length );
@@ -86,42 +88,27 @@ bool Socket::accept ( Socket& new_socket ) const
 
 //--------------------------------------------------------------------------------------------------
 
-bool Socket::send ( const std::string s ) const
+bool Socket::send(std::string const s) const
 {
   int status = ::send( m_sock, s.c_str(), s.size(), MSG_NOSIGNAL );
-  if ( status == -1 )
-    return false;
+  if(status == -1) return false;
   return true;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-int Socket::recv ( std::string& s ) const
+int Socket::recv(std::string& s) const
 {
-  char buf [ MAXRECV + 1 ];
-  s = "";
-  memset ( buf, 0, MAXRECV + 1 );
-
-  int status = ::recv ( m_sock, buf, MAXRECV, 0 );
-  if ( status == -1 )
-  {
-    std::cout << "status == -1   errno == " << errno << "  in Socket::recv\n";
-    return 0;
-  }
-  else if ( status == 0 )
-  {
-    return 0;
-  }
-  else
-  {
-    s = buf;
-    return status;
-  }
+  char buf[MAXRECV+1];
+  memset(buf, '\0', MAXRECV+1);
+  int status = ::recv(m_sock, buf, MAXRECV, 0);
+  s = std::string(buf,MAXRECV);
+  return status;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool Socket::connect( std::string const host, int const port )
+bool Socket::connect(std::string const host, int const port)
 {
   if(!this->is_valid())
     return false;
@@ -139,7 +126,7 @@ bool Socket::connect( std::string const host, int const port )
 
 //--------------------------------------------------------------------------------------------------
 
-void Socket::set_non_blocking( bool const b )
+void Socket::set_non_blocking(bool const b)
 {
   int opts;
   opts = fcntl ( m_sock, F_GETFL );

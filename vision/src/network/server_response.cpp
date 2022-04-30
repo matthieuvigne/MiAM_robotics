@@ -26,10 +26,11 @@ bool ServerResponse::serializeParams(std::vector<char>* serialized_params) const
   {
     case MessageType::GET_MEASUREMENTS:
     {
-      if(serialized_params == NULL) return false;
-      common::MarkerIdToEstimate const& markers =
-        *static_cast<common::MarkerIdToEstimate*>(this->params_);
-      common::Marker::serialize(markers, serialized_params);
+      CHECK_NOTNULL(serialized_params);
+      common::MarkerIdToEstimate const* markers_ptr =
+        static_cast<common::MarkerIdToEstimate const*>(this->params_);
+      CHECK_NOTNULL(markers_ptr);
+      common::Marker::serialize(*markers_ptr, serialized_params);
     }
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:

@@ -82,8 +82,7 @@ class Marker {
     static int constexpr MESSAGE_SIZE_BYTES =  1 * sizeof(MarkerId)     + /*Marker id*/
                                                1 * sizeof(MarkerFamily) + /*Marker family*/
                                                1 * sizeof(int64_t)      + /*timestamp*/
-                                               7 * sizeof(double)       + /*Pose*/
-                                              21 * sizeof(double);        /*Covariance*/
+                                               7 * sizeof(double);        /*Pose*/
 
 }; // class Marker
 

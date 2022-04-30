@@ -29,13 +29,16 @@ ServerThread::~ServerThread(){
 void ServerThread::serverThread()
 {
   // Wait for the client's connection
+  LOG("Server thread is launched");
   ClientRequest::UniquePtr request_ptr;
   ServerResponse::UniquePtr response_ptr;
   while(true)
   {
     // Wait for the client's connection
+    LOG("Waiting for the client's connection");
     ServerSocket client_sock;
     this->accept(client_sock);
+    LOG("Accepted a client");
 
     // Wait for the client's requests
     while(true)
@@ -48,19 +51,17 @@ void ServerThread::serverThread()
       bool shut_down = false;
       void* response_params_ptr = NULL;
       MessageType const request_type = ClientRequest::deserializeType(received_message);
+      common::MarkerIdToEstimate estimates;
       switch(request_type)
       {
         case MessageType::GET_MEASUREMENTS:
         {
-          // No parameters associated to the request
-          common::MarkerIdToEstimate estimates;
-          this->camera_thread_ptr_->getMarkers(&estimates);
+          camera_thread_ptr_->getMarkers(&estimates);
           response_params_ptr = &estimates;
           break;
         }
         case MessageType::SHUT_DOWN:
         {
-          // No parameters associated to the request
           shut_down = true;
           break;
         }
