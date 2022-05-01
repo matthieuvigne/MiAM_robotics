@@ -29,6 +29,8 @@ struct ModuleParams {
   Eigen::Affine3d T_RC;
   Eigen::Matrix<double,6,6> cov_T_RC;
   
+  static ModuleParams getDefaultParams();
+  
 }; // struct ModuleParams
 
 //--------------------------------------------------------------------------------------------------

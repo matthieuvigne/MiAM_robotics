@@ -377,4 +377,24 @@ bool Camera::takePicture(cv::Mat & image, double const& timeout)
 
 //--------------------------------------------------------------------------------------------------
 
+CameraParams CameraParams::getDefaultParams()
+{
+  // Set the camera parameters
+  camera::CameraParams params;
+  params.name = "camera";
+  params.resolution[camera::CameraParams::WIDTH]  = 1280;
+  params.resolution[camera::CameraParams::HEIGHT] =  960;
+  params.intrinsics[camera::CameraParams::FX]     = 1368.818;
+  params.intrinsics[camera::CameraParams::FY]     = 1358.929;
+  params.intrinsics[camera::CameraParams::CX]     =  542.308;
+  params.intrinsics[camera::CameraParams::CY]     =  476.351;
+  params.distortion_model = camera::DistortionModel::Type::NoDistortion;
+  //~ camera_params.distortion_coeffs = {0.332, -1.130, 0.002, -0.031, 1.429};
+  params.distortion_coeffs = {0., 0., 0., 0., 0.};
+  params.pose = Eigen::Affine3d::Identity();
+  return params;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 } // namespace camera

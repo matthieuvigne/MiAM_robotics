@@ -14,12 +14,15 @@ namespace module {
 class TestBench {
 
 public:
+  enum class Mode { PERFECT, NOISY };
+
+public:
   DISALLOW_EVIL_CONSTRUCTORS(TestBench);
 
 public:
 
   // Initialization and parameter settings
-  static void initializeTestBench();
+  static void initializeTestBench(Mode mode = Mode::NOISY);
   inline static bool isInitialized(){ return is_initialized_; }
   static void setCameraRotationProcessNoise(double camera_sigma_w);
   static void setMarkerRotationMeasurementNoise(double marker_sigma_w);
@@ -35,8 +38,8 @@ public:
   static double getCameraRotationTime(double angle_rad);
 
   // Simulation of the test bench
-  static void rotateCamera(double wx_rad, double wy_rad, double wz_rad);
-  static void detectMarkers(common::DetectedMarkerList* detected_markers);
+  static void rotateCamera(double wx_rad, double wy_rad, double wz_rad); 
+  static void detectMarkers(common::DetectedMarkerList* detected_markers, Mode mode = Mode::NOISY);
 
 public:
 

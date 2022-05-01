@@ -45,7 +45,9 @@ struct CameraParams {
   DistortionModel::Type distortion_model;
   std::vector<double> distortion_coeffs;
   Eigen::Affine3d pose;
+  static CameraParams getDefaultParams();
 }; // struct CameraParams
+
 
 //--------------------------------------------------------------------------------------------------
 // Class definition

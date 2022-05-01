@@ -23,20 +23,20 @@ common::MarkerIdToPose TestBench::markers_;
 // Functions
 //--------------------------------------------------------------------------------------------------
 
-void TestBench::initializeTestBench()
+void TestBench::initializeTestBench(Mode mode)
 {
   // Initialize the transformation from the world frame to the camera frame
   Eigen::Affine3d const TWC =
       Eigen::Translation3d(1.5,2.0,1.0)
     * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
     * Eigen::AngleAxisd(3*M_PI_4, Eigen::Vector3d::UnitX());
-  TWC_ = common::PoseGaussianSampler::sample(TWC, 3.0*RAD, 1e-2);
+  if(mode == Mode::NOISY) TWC_ = common::PoseGaussianSampler::sample(TWC, 3.0*RAD, 1e-2);
 
   // Initialize the transformation from the reference frame to the camera frame
   Eigen::Affine3d const TRC =
       Eigen::Translation3d(0.0, 0.0, 0.0)
     * Eigen::AngleAxisd(M_PI_4, Eigen::Vector3d::UnitY());
-  TRC_ = common::PoseGaussianSampler::sample(TRC, 1.0*RAD, 1e-3);
+  if(mode == Mode::NOISY) TRC_ = common::PoseGaussianSampler::sample(TRC, 1.0*RAD, 1e-3);
 
   // Initialize the central marker
   common::MarkerId const central_marker_id =
@@ -44,15 +44,13 @@ void TestBench::initializeTestBench()
   Eigen::Affine3d TWM =
       Eigen::Translation3d(1.5,1.0,0.0)
     * Eigen::AngleAxisd();
-  TWM = common::PoseGaussianSampler::sample(TWM, 1.0*RAD, 5e-3);
+  if(mode == Mode::NOISY) TWM = common::PoseGaussianSampler::sample(TWM, 1.0*RAD, 5e-3);
   markers_.emplace(central_marker_id, TWM);
 
-  // Parameterize the marker sampler
+  // Sample the other sample markers
   common::PoseUniformSampler const marker_sampler(
     Eigen::Vector3d{-1.0*RAD,-1.0*RAD,-M_PI}, Eigen::Vector3d{1.0*RAD,1.0*RAD,M_PI},
     Eigen::Vector3d{0.,0.,0.}, Eigen::Vector3d{board_width_,board_height_,0.});
-
-  // Add markers for random samples on the field
   int constexpr num_samples = 10;
   for(int sample_idx=0; sample_idx<num_samples; sample_idx++)
   {
@@ -79,7 +77,7 @@ void TestBench::rotateCamera(double wx, double wy, double wz)
 
 //--------------------------------------------------------------------------------------------------
 
-void TestBench::detectMarkers(common::DetectedMarkerList* detected_markers_ptr)
+void TestBench::detectMarkers(common::DetectedMarkerList* detected_markers_ptr, Mode mode)
 {
   // Get the reference to the detected markers
   CHECK(is_initialized_);
@@ -93,12 +91,22 @@ void TestBench::detectMarkers(common::DetectedMarkerList* detected_markers_ptr)
     // Check if the marker is visible
     // [TODO]
 
-    // Add the marker
+    // Simulate the observation of the marker
     common::DetectedMarker marker;
     marker.marker_id = pair.first;
     Eigen::Affine3d const& TWM = pair.second;
     Eigen::Affine3d const TCM = TWC_.inverse() * TWM;
-    marker.T_CM = common::PoseGaussianSampler::sample(TCM, marker_sigma_w_, marker_sigma_t_);
+    switch(mode)
+    {
+      case Mode::PERFECT:
+        marker.T_CM = TCM;
+        break;
+      case Mode::NOISY:
+        marker.T_CM = common::PoseGaussianSampler::sample(TCM, marker_sigma_w_, marker_sigma_t_);
+        break;
+      default:
+        throw std::runtime_error("Unknown measurement mode");
+    }
     marker.cov_T_CM.setIdentity();
     marker.cov_T_CM.block<3,3>(0,0) *= std::pow(marker_sigma_w_,2.0);
     marker.cov_T_CM.block<3,3>(3,3) *= std::pow(marker_sigma_t_,2.0);

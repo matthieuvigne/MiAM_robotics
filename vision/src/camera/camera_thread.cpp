@@ -43,6 +43,7 @@ CameraThread::~CameraThread()
 void CameraThread::runThread()
 {
   // Initialization : scan the board looking for the central marker to initialize
+  // ----------------------------------------------------------------------------
   bool initialized = false;
   double camera_angle = 0.;
   while(!initialized)
@@ -50,14 +51,14 @@ void CameraThread::runThread()
     // Detect the markers
     common::DetectedMarkerList detected_markers;
     #ifdef USE_TEST_BENCH
-      module::TestBench::detectMarkers(&detected_markers);
+      module::TestBench::Mode const measurement_mode = module::TestBench::Mode::PERFECT;
+      module::TestBench::detectMarkers(&detected_markers, measurement_mode);
     #else
       // Increment position and take picture
       cv::Mat image;
-      this->rotateCameraToAnglePosition(camera_angle);
-      this->camera_ptr_->takePicture(image);
-      //~ cv::imwrite("test.jpg", image);
-      this->camera_ptr_->detectMarkers(image, &detected_markers);
+      rotateCameraToAnglePosition(camera_angle);
+      camera_ptr_->takePicture(image);
+      camera_ptr_->detectMarkers(image, &detected_markers);
     #endif
 
     // Check if the central marker (n°42) is detected
@@ -68,24 +69,43 @@ void CameraThread::runThread()
     // If so => initialize the camera pose filter and go to the next step
     if(it != detected_markers.cend())
     {
+      // /!\ Protect the initialization of the filter
       CHECK(static_cast<int>(it->marker_id) == 42);
       Eigen::Affine3d const T_CM = it->T_CM;
       Eigen::Matrix<double,6,6> const cov_T_CM = it->cov_T_CM;
-      this->pose_filter_ptr_->setStateAndCovariance(
-        CameraPoseFilter::InitType::T_CM, T_CM, cov_T_CM);
+      pose_filter_ptr_->setStateAndCovariance(CameraPoseFilter::InitType::T_CM, T_CM, cov_T_CM);
+        
+      // Check the camera initialization
+      #if USE_TEST_BENCH
+        LOG("Check the camera initialization");
+        Eigen::Affine3d const& TWCest = pose_filter_ptr_->getState();
+        Eigen::Affine3d const& TWCtrue = module::TestBench::getTWC();
+        Eigen::Matrix<double,6,1> const error = common::so3r3::boxminus(TWCest,TWCtrue);
+        LOG("Initialization error: " << error.transpose());
+      #endif
+        
       break;
     }
   }
+  return;
 
   // Routine : scan the board and detect all the markers
+  // ---------------------------------------------------
   while(true)
   {
     // Check if a specific request has been received
     // If so, realize it (don't forget to propagate the filter while doing it).
     // Rotate the camera and propagate the pose camera filter
-    this->incrementCameraAngle(camera_angle, this->increment_angle_deg_);
-    double const wy = common::convertDegreeToRadian(this->increment_angle_deg_);
-    double constexpr cov_wy = 1.0;
+    double const wy = increment_angle_deg_*RAD;
+    double constexpr cov_wy = 1.0*RAD;
+    #if USE_TEST_BENCH
+      module::TestBench::rotateCamera(0.0, wy, 0.0);
+      double const cam_rotation_time_sec = module::TestBench::getCameraRotationTime(wy);
+      LOG("Camera rotation time: " << cam_rotation_time_sec);
+      std::this_thread::sleep_for(std::chrono::duration<double>(cam_rotation_time_sec));
+    #else
+      this->incrementCameraAngle(camera_angle, this->increment_angle_deg_);
+    #endif
     this->pose_filter_ptr_->predict(wy, cov_wy, camera::CameraPoseFilter::Axis::Y);
 
     // Take a picture and detect all the markers

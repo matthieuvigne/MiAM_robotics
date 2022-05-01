@@ -87,7 +87,7 @@ bool Message::deserialize(std::string const& message)
   }
   catch(std::length_error&)
   {
-    // Failed to deseralize, just drop the message.
+    LOG("Failed to deserialize the message -> dropped");
   }
   return false;
 }

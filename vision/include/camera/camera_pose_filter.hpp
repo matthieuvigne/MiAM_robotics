@@ -65,6 +65,7 @@ public:
   inline Eigen::Matrix<double,6,6> const& getStateCovariance() const;
   inline Eigen::Affine3d const& getTRC() const;
   inline Eigen::Matrix<double,6,6> const& getCovTRC() const;
+  inline Eigen::Affine3d const& getTWM() const;
 
   // Print & checks
   
@@ -129,6 +130,13 @@ Eigen::Affine3d const& CameraPoseFilter::getTRC() const
 Eigen::Matrix<double,6,6> const& CameraPoseFilter::getCovTRC() const
 {
   return cov_T_RC_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Affine3d const& CameraPoseFilter::getTWM() const
+{
+  return T_WM_;
 }
 
 //--------------------------------------------------------------------------------------------------

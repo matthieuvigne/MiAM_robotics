@@ -5,6 +5,7 @@
 
 #include <camera/distortion_null.hpp>
 #include <camera/distortion_radtan.hpp>
+#include <common/maths.hpp>
 #include <common/yaml_serialization.hpp>
 #include <module/module.hpp>
 #include <network/socket_exception.hpp>
@@ -100,6 +101,26 @@ void Module::join()
 {
   this->camera_thread_ptr_->join();
   this->server_thread_ptr_->join();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+ModuleParams ModuleParams::getDefaultParams()
+{
+  module::ModuleParams parameters;
+  parameters.board_height = 2.0;
+  parameters.board_width  = 3.0;
+  parameters.camera_params = camera::CameraParams::getDefaultParams();
+  parameters.T_WM =
+      Eigen::Translation3d(1.5,1.0,0.0)
+    * Eigen::AngleAxisd();
+  parameters.T_RC =
+      Eigen::Translation3d(0.0, 0.0, 0.0)
+    * Eigen::AngleAxisd(M_PI_4, Eigen::Vector3d::UnitY());
+  parameters.cov_T_RC = Eigen::Matrix<double,6,6>::Identity();
+  for(int i=0; i<3; i++) parameters.cov_T_RC(i,i) = std::pow(1.0*RAD,2.0);
+  for(int i=3; i<6; i++) parameters.cov_T_RC(i,i) = std::pow(5e-3,2.0);
+  return parameters;
 }
 
 //--------------------------------------------------------------------------------------------------

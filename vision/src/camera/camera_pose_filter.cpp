@@ -44,11 +44,11 @@ void CameraPoseFilter::setStateAndCovariance(
     {
       // Initialize the pose
       Eigen::Affine3d const& T_WC = T;
-      this->T_WC_ = T_WC;
+      T_WC_ = T_WC;
     
       // Initialize the covariance matrix
       Eigen::Matrix<double,6,6> const& cov_T_WC = cov_T;
-      this->cov_T_WC_ = cov_T_WC;
+      cov_T_WC_ = cov_T_WC;
       break;
     }
 
@@ -57,17 +57,23 @@ void CameraPoseFilter::setStateAndCovariance(
       // Initialize the pose
       Eigen::Affine3d const& T_CM = T;
       Eigen::Affine3d const T_MC = T_CM.inverse();
-      this->T_WC_ = this->T_WM_ * T_MC;
+      T_WC_ = T_WM_ * T_MC;
       
       // Initialize the covariance matrix
       Eigen::Matrix<double,6,6> const& cov_T_CM = cov_T;
-      Eigen::Matrix<double,6,6> const J_TWC_wrt_TMC = common::so3r3::rightSe3ProductJacobian(this->T_WM_, T_MC);
-      Eigen::Matrix<double,6,6> const J_TMC_wrt_TCM = common::so3r3::se3InverseJacobian(T_CM);
-      Eigen::Matrix<double,6,6> const J_TWC_wrt_TCM = J_TWC_wrt_TMC * J_TMC_wrt_TCM;
-      this->cov_T_WC_ = J_TWC_wrt_TCM * cov_T_CM * J_TWC_wrt_TCM.transpose();
-      this->cov_T_WC_ *= 1.25;
+      Eigen::Matrix<double,6,6> const J_TWC_wrt_TMC =
+        common::so3r3::rightSe3ProductJacobian(T_WM_, T_MC);
+      Eigen::Matrix<double,6,6> const J_TMC_wrt_TCM =
+        common::so3r3::se3InverseJacobian(T_CM);
+      Eigen::Matrix<double,6,6> const J_TWC_wrt_TCM =
+        J_TWC_wrt_TMC * J_TMC_wrt_TCM;
+      cov_T_WC_ = J_TWC_wrt_TCM * cov_T_CM * J_TWC_wrt_TCM.transpose();
+      cov_T_WC_ *= 1.25;
       break;
     }
+    
+    default:
+      throw std::runtime_error("Unknown initialization type");
   }
 }
 
