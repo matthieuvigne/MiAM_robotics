@@ -5,46 +5,61 @@
 namespace module {
 
 //--------------------------------------------------------------------------------------------------
-// Static variable definition
+// Static and global variable definition
 //--------------------------------------------------------------------------------------------------
 
-double TestBench::board_width_ =  3.0;
-double TestBench::board_height_ = 2.0;
 bool TestBench::is_initialized_ = false;
-Eigen::Affine3d TestBench::TWC_ = Eigen::Affine3d::Identity();
-Eigen::Affine3d TestBench::TRC_ = Eigen::Affine3d::Identity();
-double TestBench::camera_angular_speed_ = 10*RAD; // w=10 deg/s
-double TestBench::camera_sigma_w_ = 1.0*RAD;
-double TestBench::marker_sigma_w_ = 1.0*RAD;
-double TestBench::marker_sigma_t_ = 1.0*CM;
-common::MarkerIdToPose TestBench::markers_;
+TestBench::UniquePtr test_bench_ptr = nullptr;
 
 //--------------------------------------------------------------------------------------------------
 // Functions
 //--------------------------------------------------------------------------------------------------
 
-void TestBench::initializeTestBench(Mode mode)
+TestBench::Options TestBench::Options::getDefaultOptions()
 {
-  // Initialize the transformation from the world frame to the camera frame
-  Eigen::Affine3d const TWC =
-      Eigen::Translation3d(1.5,2.0,1.0)
+  Options options;
+  options.TWC = Eigen::Translation3d(1.5,2.0,1.0)
     * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
     * Eigen::AngleAxisd(3*M_PI_4, Eigen::Vector3d::UnitX());
-  if(mode == Mode::NOISY) TWC_ = common::PoseGaussianSampler::sample(TWC, 3.0*RAD, 1e-2);
+  options.TRC = Eigen::Translation3d(0.0, 0.0, 0.0)
+    * Eigen::AngleAxisd(M_PI_4, Eigen::Vector3d::UnitY());
+  options.TWM = Eigen::Translation3d(1.5,1.0,0.0)
+    * Eigen::AngleAxisd();
+  return options;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void TestBench::init(Options const& options)
+{
+  test_bench_ptr.reset(new TestBench(options));
+}
+
+//--------------------------------------------------------------------------------------------------
+
+TestBench::TestBench(Options const& options)
+{
+  // Check this is the only test bench
+  if(is_initialized_)
+    throw std::runtime_error("Cannot initialize multiple test benches");
+  is_initialized_ = true;
+
+  // Initialize the transformation from the world frame to the camera frame
+  TWC_ = options.TWC;
+  if(options.mode == Mode::NOISY)
+    TWC_ = common::PoseGaussianSampler::sample(TWC_, options.TWCi_sigma_w, options.TWCi_sigma_t);
 
   // Initialize the transformation from the reference frame to the camera frame
-  Eigen::Affine3d const TRC =
-      Eigen::Translation3d(0.0, 0.0, 0.0)
-    * Eigen::AngleAxisd(M_PI_4, Eigen::Vector3d::UnitY());
-  if(mode == Mode::NOISY) TRC_ = common::PoseGaussianSampler::sample(TRC, 1.0*RAD, 1e-3);
+  TRC_ = options.TRC;
+  if(options.mode == Mode::NOISY)
+    TRC_ = common::PoseGaussianSampler::sample(TRC_, options.TRC_sigma_w, options.TRC_sigma_t);
 
   // Initialize the central marker
   common::MarkerId const central_marker_id =
     common::Marker::sampleMarkerId(common::MarkerFamily::CENTRAL_MARKER);
-  Eigen::Affine3d TWM =
-      Eigen::Translation3d(1.5,1.0,0.0)
-    * Eigen::AngleAxisd();
-  if(mode == Mode::NOISY) TWM = common::PoseGaussianSampler::sample(TWM, 1.0*RAD, 5e-3);
+  Eigen::Affine3d TWM = options.TWM;
+  if(options.mode == Mode::NOISY)
+    TWM = common::PoseGaussianSampler::sample(TWM, options.TWM_sigma_w, options.TWM_sigma_t);
   markers_.emplace(central_marker_id, TWM);
 
   // Sample the other sample markers
@@ -59,9 +74,11 @@ void TestBench::initializeTestBench(Mode mode)
     Eigen::Affine3d const TWS = marker_sampler.sample();
     markers_.emplace(marker_id, TWS);
   }
-
-  // Set the initialization indicator
-  is_initialized_ = true;
+  
+  // Set the process and measurement noise parameters
+  camera_sigma_w_ = options.camera_sigma_w;
+  marker_sigma_w_ = options.marker_sigma_w;
+  marker_sigma_t_ = options.marker_sigma_t;
 }
 
 //--------------------------------------------------------------------------------------------------

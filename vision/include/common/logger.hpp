@@ -9,8 +9,6 @@
 
 namespace common {
 
-// https://stackoverflow.com/questions/43105684/in-c-trying-to-write-a-newline-after-each-operator-overload-cascade
-
 //--------------------------------------------------------------------------------------------------
 // Class declaration
 //--------------------------------------------------------------------------------------------------
@@ -63,7 +61,7 @@ Logger::RvalLog Logger::operator <<(T const& message)
   mutex_.lock();
   logfile_.open(filename_, std::ofstream::app);
   logfile_ << message;
-  return RvalLog(&logfile_, &mutex_); // << message;
+  return RvalLog(&logfile_, &mutex_);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -78,11 +76,11 @@ extern Logger::UniquePtr global_logger_ptr;
 // Macros declaration
 //--------------------------------------------------------------------------------------------------
 
-#define LOGGER                                                    \
-  if(common::global_logger_ptr == nullptr)                        \
-    throw std::runtime_error("Logger has not been initialized");  \
-  (*common::global_logger_ptr) << "[" << __FILENAME__ << ": l."   \
-    << __LINE__ << "] "
+#define LOGGER                                                  \
+if(common::global_logger_ptr == nullptr)                        \
+  throw std::runtime_error("Logger has not been initialized");  \
+(*common::global_logger_ptr) << "[" << __FILENAME__ << ": l."   \
+  << __LINE__ << "] "
 
 //--------------------------------------------------------------------------------------------------
 

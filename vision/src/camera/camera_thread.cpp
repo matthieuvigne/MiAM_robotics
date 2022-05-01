@@ -6,7 +6,7 @@
 #include <camera/camera_thread.hpp>
 
 #ifdef USE_TEST_BENCH
-  #include <module/test_bench.hpp>
+#include <module/test_bench.hpp>
 #endif
 
 namespace camera {
@@ -51,14 +51,13 @@ void CameraThread::runThread()
     // Detect the markers
     common::DetectedMarkerList detected_markers;
     #ifdef USE_TEST_BENCH
-      module::TestBench::Mode const measurement_mode = module::TestBench::Mode::PERFECT;
-      module::TestBench::detectMarkers(&detected_markers, measurement_mode);
+    TEST_BENCH_PTR->detectMarkers(&detected_markers, module::TestBench::Mode::PERFECT);
     #else
-      // Increment position and take picture
-      cv::Mat image;
-      rotateCameraToAnglePosition(camera_angle);
-      camera_ptr_->takePicture(image);
-      camera_ptr_->detectMarkers(image, &detected_markers);
+    // Increment position and take picture
+    cv::Mat image;
+    rotateCameraToAnglePosition(camera_angle);
+    camera_ptr_->takePicture(image);
+    camera_ptr_->detectMarkers(image, &detected_markers);
     #endif
 
     // Check if the central marker (n°42) is detected
@@ -77,11 +76,11 @@ void CameraThread::runThread()
         
       // Check the camera initialization
       #if USE_TEST_BENCH
-        LOG("Check the camera initialization");
-        Eigen::Affine3d const& TWCest = pose_filter_ptr_->getState();
-        Eigen::Affine3d const& TWCtrue = module::TestBench::getTWC();
-        Eigen::Matrix<double,6,1> const error = common::so3r3::boxminus(TWCest,TWCtrue);
-        LOG("Initialization error: " << error.transpose());
+      //~ LOG("Check the camera initialization");
+      Eigen::Affine3d const& TWCest = pose_filter_ptr_->getState();
+      Eigen::Affine3d const& TWCtrue = TEST_BENCH_PTR->getTWC();
+      Eigen::Matrix<double,6,1> const error = common::so3r3::boxminus(TWCest,TWCtrue);
+      //~ LOG("Initialization error: " << error.transpose());
       #endif
         
       break;
@@ -99,23 +98,23 @@ void CameraThread::runThread()
     double const wy = increment_angle_deg_*RAD;
     double constexpr cov_wy = 1.0*RAD;
     #if USE_TEST_BENCH
-      module::TestBench::rotateCamera(0.0, wy, 0.0);
-      double const cam_rotation_time_sec = module::TestBench::getCameraRotationTime(wy);
-      LOG("Camera rotation time: " << cam_rotation_time_sec);
-      std::this_thread::sleep_for(std::chrono::duration<double>(cam_rotation_time_sec));
+    TEST_BENCH_PTR->rotateCamera(0.0, wy, 0.0);
+    double const cam_rotation_time_sec = TEST_BENCH_PTR->getCameraRotationTime(wy);
+    //~ LOG("Camera rotation time: " << cam_rotation_time_sec);
+    std::this_thread::sleep_for(std::chrono::duration<double>(cam_rotation_time_sec));
     #else
-      this->incrementCameraAngle(camera_angle, this->increment_angle_deg_);
+    incrementCameraAngle(camera_angle, increment_angle_deg_);
     #endif
-    this->pose_filter_ptr_->predict(wy, cov_wy, camera::CameraPoseFilter::Axis::Y);
+    pose_filter_ptr_->predict(wy, cov_wy, camera::CameraPoseFilter::Axis::Y);
 
     // Take a picture and detect all the markers
     common::DetectedMarkerList detected_markers;
     #if USE_TEST_BENCH
-      module::TestBench::detectMarkers(&detected_markers);
+    TEST_BENCH_PTR->detectMarkers(&detected_markers);
     #else
-      cv::Mat image;
-      this->camera_ptr_->takePicture(image);
-      this->camera_ptr_->detectMarkers(image, &detected_markers);
+    cv::Mat image;
+    camera_ptr_->takePicture(image);
+    camera_ptr_->detectMarkers(image, &detected_markers);
     #endif
 
     // Check if the central marker is detected => if so: update the filter
@@ -186,12 +185,12 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
 
   // Move the camera to this new angle
   #if USE_TEST_BENCH
-    double true_delta_angle = new_angle - camera_angle;
-    module::TestBench::rotateCamera(0.0, true_delta_angle*RAD, 0.0);
-    double const rot_time_sec = module::TestBench::getCameraRotationTime(true_delta_angle*RAD);
-    std::this_thread::sleep_for(std::chrono::duration<double>(rot_time_sec));
+  double true_delta_angle = new_angle - camera_angle;
+  TEST_BENCH_PTR->rotateCamera(0.0, true_delta_angle*RAD, 0.0);
+  double const rot_time_sec = TEST_BENCH_PTR->getCameraRotationTime(true_delta_angle*RAD);
+  std::this_thread::sleep_for(std::chrono::duration<double>(rot_time_sec));
   #else
-    this->rotateCameraToAnglePosition(new_angle);
+  rotateCameraToAnglePosition(new_angle);
   #endif
   
   // Set the new camera angle
