@@ -56,7 +56,7 @@ void CameraThread::runThread()
       cv::Mat image;
       this->rotateCameraToAnglePosition(camera_angle);
       this->camera_ptr_->takePicture(image);
-      cv::imwrite("test.jpg", image);
+      //~ cv::imwrite("test.jpg", image);
       this->camera_ptr_->detectMarkers(image, &detected_markers);
     #endif
 

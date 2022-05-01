@@ -67,11 +67,10 @@ bool Message::serialize(std::string* message_ptr) const
 bool Message::deserialize(std::string const& message)
 {
   // Get the size of the message
-  size_t current_byte= 0u;
+  size_t current_byte = 0u;
   uint16_t msg_size_bytes = 0u;
   std::memcpy(&msg_size_bytes, &message[current_byte], sizeof(uint16_t));
   current_byte += sizeof(uint16_t);
-  LOG("Received message size: " << msg_size_bytes);
 
   // Get the type of the message
   std::memcpy(&type_, &message[current_byte], sizeof(MessageType));
@@ -80,7 +79,7 @@ bool Message::deserialize(std::string const& message)
   // Get the associated parameters of the client's message according the message's type
   if(current_byte == msg_size_bytes) return true;
   std::string::const_iterator params_begin = message.cbegin() + current_byte;
-  std::string::const_iterator params_end = message.cend() + msg_size_bytes;
+  std::string::const_iterator params_end = message.cbegin() + msg_size_bytes;
   try
   {
     std::vector<char> const params_bytes(params_begin, params_end);

@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
   
   // Send messages to the client
   int request_idx = 0;
-  int constexpr max_num_requests = 20;
+  int constexpr max_num_requests = 10;
   common::MarkerIdToEstimate markers;
   while(true)
   {    
@@ -28,11 +28,10 @@ int main(int argc, char* argv[])
     client << request_str;
 
     // Get the response from the server
-    //~ std::string response_str;
-    //~ client >> response_str;
-    //~ LOG("Server response size: " << response_str.size());
-    //~ response_ptr.reset(new network::ServerResponse(message_type, &markers));
-    //~ response_ptr->deserialize(response_str);
+    std::string response_str;
+    client >> response_str;
+    response_ptr.reset(new network::ServerResponse(message_type, &markers));
+    response_ptr->deserialize(response_str);
     
     // Prepare for next iteration
     request_idx += 1;
@@ -41,15 +40,15 @@ int main(int argc, char* argv[])
   }
   
   // Send the shutdown request to the server
-  //~ std::string request_str;
-  //~ network::MessageType const message_type = network::MessageType::SHUT_DOWN;
-  //~ request_ptr.reset(new network::ClientRequest(message_type));
-  //~ request_ptr->serialize(&request_str);
-  //~ client << request_str;
+  std::string request_str;
+  network::MessageType const message_type = network::MessageType::SHUT_DOWN;
+  request_ptr.reset(new network::ClientRequest(message_type));
+  request_ptr->serialize(&request_str);
+  client << request_str;
   
   // Get the response from the server
-  //~ std::string response_str;
-  //~ client >> response_str;
-  //~ response_ptr.reset(new network::ServerResponse(message_type));
-  //~ response_ptr->deserialize(response_str);
+  std::string response_str;
+  client >> response_str;
+  response_ptr.reset(new network::ServerResponse(message_type));
+  response_ptr->deserialize(response_str);
 }
