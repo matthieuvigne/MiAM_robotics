@@ -1,5 +1,6 @@
 #include <miam_utils/raspberry_pi/RPiGPIO.h>
 
+#include <common/logger.hpp>
 #include <common/marker.hpp>
 #include <common/maths.hpp>
 #include <common/time.hpp>
@@ -44,6 +45,7 @@ void CameraThread::runThread()
 {
   // Initialization : scan the board looking for the central marker to initialize
   // ----------------------------------------------------------------------------
+  LOGGER << "Camera thread initialization";
   bool initialized = false;
   double camera_angle = 0.;
   while(!initialized)
@@ -52,6 +54,7 @@ void CameraThread::runThread()
     common::DetectedMarkerList detected_markers;
     #ifdef USE_TEST_BENCH
     TEST_BENCH_PTR->detectMarkers(&detected_markers, module::TestBench::Mode::PERFECT);
+    LOGGER << "Detected " << detected_markers.size() << " markers.";
     #else
     // Increment position and take picture
     cv::Mat image;
@@ -69,20 +72,12 @@ void CameraThread::runThread()
     if(it != detected_markers.cend())
     {
       // /!\ Protect the initialization of the filter
+      LOGGER << "Found the central marker";
       CHECK(static_cast<int>(it->marker_id) == 42);
       Eigen::Affine3d const T_CM = it->T_CM;
       Eigen::Matrix<double,6,6> const cov_T_CM = it->cov_T_CM;
       pose_filter_ptr_->setStateAndCovariance(CameraPoseFilter::InitType::T_CM, T_CM, cov_T_CM);
-        
-      // Check the camera initialization
-      #if USE_TEST_BENCH
-      //~ LOG("Check the camera initialization");
-      Eigen::Affine3d const& TWCest = pose_filter_ptr_->getState();
-      Eigen::Affine3d const& TWCtrue = TEST_BENCH_PTR->getTWC();
-      Eigen::Matrix<double,6,1> const error = common::so3r3::boxminus(TWCest,TWCtrue);
-      //~ LOG("Initialization error: " << error.transpose());
-      #endif
-        
+      LOGGER << "Initialized the camera pose filter";
       break;
     }
   }
@@ -90,6 +85,7 @@ void CameraThread::runThread()
 
   // Routine : scan the board and detect all the markers
   // ---------------------------------------------------
+  LOGGER << "Camera thread's routine";
   while(true)
   {
     // Check if a specific request has been received

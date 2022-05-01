@@ -5,6 +5,7 @@
 
 #include <camera/distortion_null.hpp>
 #include <camera/distortion_radtan.hpp>
+#include <common/logger.hpp>
 #include <common/maths.hpp>
 #include <common/yaml_serialization.hpp>
 #include <module/module.hpp>
@@ -60,6 +61,8 @@ Module::Module(std::string const& filename)
 
 Module::Module(ModuleParams const& params)
 {
+  LOGGER << "Initialization of the module";
+
   // Setup RPi GPIO for servo control.
   #ifdef RPI4
   RPi_enableGPIO();
@@ -68,22 +71,23 @@ Module::Module(ModuleParams const& params)
   #endif
 
   // Get the board dimensions
-  this->board_.height = params.board_height;
-  this->board_.width = params.board_width;
+  board_.height = params.board_height;
+  board_.width = params.board_width;
   
   // Build the camera and launch its thread
+  LOGGER << "Build the camera and launch the camera thread";
   camera::Camera::UniquePtr camera_ptr(new camera::Camera(params.camera_params));
   Eigen::Affine3d const& T_WM = params.T_WM;
   Eigen::Affine3d const& T_RC = params.T_RC;
   Eigen::Matrix<double,6,6> const& cov_T_RC = params.cov_T_RC;
-  this->camera_thread_ptr_.reset(new camera::CameraThread(T_WM, T_RC, cov_T_RC,
-    std::move(camera_ptr)));
-    
+  camera_thread_ptr_.reset(new camera::CameraThread(T_WM, T_RC, cov_T_RC, std::move(camera_ptr)));
+
   // Launch the server's thread
+  LOGGER << "Launch the server's thread";
   int const port = 30000;
   try {
-    this->server_thread_ptr_.reset(new network::ServerThread(port));
-    this->server_thread_ptr_->setCameraThread(this->camera_thread_ptr_.get());
+    server_thread_ptr_.reset(new network::ServerThread(port));
+    server_thread_ptr_->setCameraThread(camera_thread_ptr_.get());
   } catch(network::SocketException const& e) {
     std::cout << e.description() << std::endl;
   }

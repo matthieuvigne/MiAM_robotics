@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
 
+#include <common/logger.hpp>
 #include <common/marker.hpp>
 #include <network/client.hpp>
 #include <network/client_request.hpp>
@@ -9,6 +10,10 @@
 // Dummy client main routine
 int main(int argc, char* argv[])
 {
+  // Initialize the logger
+  std::string const filename = "dummy_client_logs.txt";
+  common::Logger::init(filename);
+
   // Initialize the client
   network::Client client("localhost", 30000);
   network::ClientRequest::UniquePtr request_ptr = nullptr;

@@ -48,8 +48,8 @@ public:
 public:
 
   // Board dimensions
-  double board_width_  = 2.0;
-  double board_height_ = 3.0;
+  double board_width_  = 3.0;
+  double board_height_ = 2.0;
 
 private:
 

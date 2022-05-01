@@ -30,7 +30,7 @@ public:
     public:
       RvalLog(std::ofstream* os, std::mutex* mtx) : os_(os), mutex_(mtx) {};
       RvalLog(RvalLog&& rhs) : os_(rhs.os_) { rhs.os_ = nullptr; rhs.mutex_ = nullptr; }
-      ~RvalLog(){ if(os_){ *os_ << std::endl; os_->close(); mutex_->unlock(); }}
+      ~RvalLog(){ if(os_){ *os_ << std::endl; os_->close(); if(mutex_) mutex_->unlock(); }}
     public:
       template<typename T>
       RvalLog operator <<(T const& t) && { *os_ << t; return std::move(*this); }
