@@ -11,18 +11,19 @@ int main(int argc, char* argv[])
 {
   // Initialize the logger
   std::string const filename = "vision_module_logs.txt";
-  common::Logger::init(filename);
+  INIT_LOGGERS(filename);
+  CONSOLE << "Loggers have been initialized.";
 
   // Initialize the test bench if required
   #ifdef USE_TEST_BENCH
   module::TestBench::Options options = module::TestBench::Options::getDefaultOptions();
   options.mode = module::TestBench::Mode::NOISY;
   module::TestBench::init(options);
-  LOGGER << "Test bench initialized";
+  CONSOLE << "Test bench has been initialized.";
   #endif
 
   // Initialize the vision module (launches the internal camera and server threads)
-  LOGGER << "Module initialization";
+  CONSOLE << "Module initialization";
   module::ModuleParams parameters = module::ModuleParams::getDefaultParams();
   module::Module::UniquePtr module_ptr(new module::Module(parameters));
   module_ptr->join();

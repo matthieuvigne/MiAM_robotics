@@ -6,54 +6,69 @@
 #include <network/client.hpp>
 #include <network/client_request.hpp>
 #include <network/server_response.hpp>
+#include <network/socket_exception.hpp>
 
 // Dummy client main routine
 int main(int argc, char* argv[])
 {
   // Initialize the logger
   std::string const filename = "dummy_client_logs.txt";
-  common::Logger::init(filename);
+  common::FileLogger::init(filename);
+  LOGFILE << "Initialized the logger";
 
-  // Initialize the client
-  network::Client client("localhost", 30000);
-  network::ClientRequest::UniquePtr request_ptr = nullptr;
-  network::ServerResponse::UniquePtr response_ptr = nullptr;
-  
-  // Send messages to the client
-  int request_idx = 0;
-  int constexpr max_num_requests = 10;
-  common::MarkerIdToEstimate markers;
   while(true)
-  {    
-    // Build and send the request to the server
-    std::string request_str;
-    network::MessageType const message_type = network::MessageType::GET_MEASUREMENTS;
-    request_ptr.reset(new network::ClientRequest(message_type));
-    request_ptr->serialize(&request_str);
-    client << request_str;
+  {
+    try
+    {
+      // Initialize the client
+      network::Client client("localhost", 30000);
+      network::ClientRequest::UniquePtr request_ptr = nullptr;
+      network::ServerResponse::UniquePtr response_ptr = nullptr;
+      LOGFILE << "Initialized the client";
+      
+      // Send messages to the client
+      int request_idx = 0;
+      int constexpr max_num_requests = 10;
+      common::MarkerIdToEstimate markers;
+      while(true)
+      {    
+        // Build and send the request to the server
+        std::string request_str;
+        network::MessageType const message_type = network::MessageType::GET_MEASUREMENTS;
+        request_ptr.reset(new network::ClientRequest(message_type));
+        request_ptr->serialize(&request_str);
+        client << request_str;
+        LOGFILE << "Sent request to the server";
 
-    // Get the response from the server
-    std::string response_str;
-    client >> response_str;
-    response_ptr.reset(new network::ServerResponse(message_type, &markers));
-    response_ptr->deserialize(response_str);
-    
-    // Prepare for next iteration
-    request_idx += 1;
-    if(request_idx >= max_num_requests) break;
-    std::this_thread::sleep_for(std::chrono::duration<double>(1.0));
+        // Get the response from the server
+        std::string response_str;
+        client >> response_str;
+        response_ptr.reset(new network::ServerResponse(message_type, &markers));
+        response_ptr->deserialize(response_str);
+        LOGFILE << "Received and deserialized response from the server";
+        
+        // Prepare for next iteration
+        request_idx += 1;
+        if(request_idx >= max_num_requests) break;
+        std::this_thread::sleep_for(std::chrono::duration<double>(1.0));
+      }
+      
+      // Send the shutdown request to the server
+      std::string request_str;
+      network::MessageType const message_type = network::MessageType::SHUT_DOWN;
+      request_ptr.reset(new network::ClientRequest(message_type));
+      request_ptr->serialize(&request_str);
+      client << request_str;
+      
+      // Get the response from the server
+      std::string response_str;
+      client >> response_str;
+      response_ptr.reset(new network::ServerResponse(message_type));
+      response_ptr->deserialize(response_str);
+    }
+    catch(network::SocketException const& e)
+    {
+      LOGFILE << e.description();
+    }
   }
-  
-  // Send the shutdown request to the server
-  std::string request_str;
-  network::MessageType const message_type = network::MessageType::SHUT_DOWN;
-  request_ptr.reset(new network::ClientRequest(message_type));
-  request_ptr->serialize(&request_str);
-  client << request_str;
-  
-  // Get the response from the server
-  std::string response_str;
-  client >> response_str;
-  response_ptr.reset(new network::ServerResponse(message_type));
-  response_ptr->deserialize(response_str);
 }

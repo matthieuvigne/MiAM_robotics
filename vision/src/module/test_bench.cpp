@@ -40,7 +40,7 @@ void TestBench::init(Options const& options)
 
 TestBench::TestBench(Options const& options)
 {
-  LOGGER << "Test Bench initialization";
+  LOGFILE << "Test Bench initialization";
 
   // Check this is the only test bench
   if(is_initialized_)
@@ -51,13 +51,13 @@ TestBench::TestBench(Options const& options)
   TWC_ = options.TWC;
   if(options.mode == Mode::NOISY)
     TWC_ = common::PoseGaussianSampler::sample(TWC_, options.TWCi_sigma_w, options.TWCi_sigma_t);
-  LOGGER << "TWC:\n" << TWC_.matrix();
+  LOGFILE << "TWC:\n" << TWC_.matrix();
 
   // Initialize the transformation from the reference frame to the camera frame
   TRC_ = options.TRC;
   if(options.mode == Mode::NOISY)
     TRC_ = common::PoseGaussianSampler::sample(TRC_, options.TRC_sigma_w, options.TRC_sigma_t);
-  LOGGER << "TRC:\n" << TRC_.matrix();
+  LOGFILE << "TRC:\n" << TRC_.matrix();
 
   // Initialize the central marker
   common::MarkerId const central_marker_id =
@@ -66,7 +66,7 @@ TestBench::TestBench(Options const& options)
   if(options.mode == Mode::NOISY)
     TWM = common::PoseGaussianSampler::sample(TWM, options.TWM_sigma_w, options.TWM_sigma_t);
   markers_.emplace(central_marker_id, TWM);
-  LOGGER << "TWM:\n" << TWM.matrix();
+  LOGFILE << "TWM:\n" << TWM.matrix();
 
   // Sample the other sample markers
   common::PoseUniformSampler const marker_sampler(
@@ -79,7 +79,7 @@ TestBench::TestBench(Options const& options)
       common::Marker::sampleMarkerId(common::MarkerFamily::ROCK_SAMPLE);
     Eigen::Affine3d const TWS = marker_sampler.sample();
     markers_.emplace(marker_id, TWS);
-    LOGGER << "Marker with id " << static_cast<int>(marker_id) << " -> TWS:\n" << TWS.matrix();
+    LOGFILE << "Marker with id " << static_cast<int>(marker_id) << " -> TWS:\n" << TWS.matrix();
   }
   
   // Set the process and measurement noise parameters

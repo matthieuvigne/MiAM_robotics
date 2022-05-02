@@ -45,7 +45,7 @@ void CameraThread::runThread()
 {
   // Initialization : scan the board looking for the central marker to initialize
   // ----------------------------------------------------------------------------
-  LOGGER << "Camera thread initialization";
+  LOGFILE << "Camera thread initialization";
   bool initialized = false;
   double camera_angle = 0.;
   while(!initialized)
@@ -54,7 +54,7 @@ void CameraThread::runThread()
     common::DetectedMarkerList detected_markers;
     #ifdef USE_TEST_BENCH
     TEST_BENCH_PTR->detectMarkers(&detected_markers, module::TestBench::Mode::PERFECT);
-    LOGGER << "Detected " << detected_markers.size() << " markers.";
+    LOGFILE << "Detected " << detected_markers.size() << " markers.";
     #else
     // Increment position and take picture
     cv::Mat image;
@@ -72,12 +72,12 @@ void CameraThread::runThread()
     if(it != detected_markers.cend())
     {
       // /!\ Protect the initialization of the filter
-      LOGGER << "Found the central marker";
+      LOGFILE << "Found the central marker";
       CHECK(static_cast<int>(it->marker_id) == 42);
       Eigen::Affine3d const T_CM = it->T_CM;
       Eigen::Matrix<double,6,6> const cov_T_CM = it->cov_T_CM;
       pose_filter_ptr_->setStateAndCovariance(CameraPoseFilter::InitType::T_CM, T_CM, cov_T_CM);
-      LOGGER << "Initialized the camera pose filter";
+      LOGFILE << "Initialized the camera pose filter";
       break;
     }
   }
@@ -85,7 +85,7 @@ void CameraThread::runThread()
 
   // Routine : scan the board and detect all the markers
   // ---------------------------------------------------
-  LOGGER << "Camera thread's routine";
+  LOGFILE << "Camera thread's routine";
   while(true)
   {
     // Check if a specific request has been received

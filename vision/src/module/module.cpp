@@ -61,7 +61,7 @@ Module::Module(std::string const& filename)
 
 Module::Module(ModuleParams const& params)
 {
-  LOGGER << "Initialization of the module";
+  LOGFILE << "Initialization of the module";
 
   // Setup RPi GPIO for servo control.
   #ifdef RPI4
@@ -75,7 +75,7 @@ Module::Module(ModuleParams const& params)
   board_.width = params.board_width;
   
   // Build the camera and launch its thread
-  LOGGER << "Build the camera and launch the camera thread";
+  LOGFILE << "Build the camera and launch the camera thread";
   camera::Camera::UniquePtr camera_ptr(new camera::Camera(params.camera_params));
   Eigen::Affine3d const& T_WM = params.T_WM;
   Eigen::Affine3d const& T_RC = params.T_RC;
@@ -83,7 +83,7 @@ Module::Module(ModuleParams const& params)
   camera_thread_ptr_.reset(new camera::CameraThread(T_WM, T_RC, cov_T_RC, std::move(camera_ptr)));
 
   // Launch the server's thread
-  LOGGER << "Launch the server's thread";
+  LOGFILE << "Launch the server's thread";
   int const port = 30000;
   try {
     server_thread_ptr_.reset(new network::ServerThread(port));
