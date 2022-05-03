@@ -25,7 +25,7 @@ struct ModuleParams {
   Eigen::Affine3d T_WM;
   
   // Camera
-  camera::CameraParams camera_params;
+  camera::Camera::Params camera_params;
   Eigen::Affine3d T_RC;
   Eigen::Matrix<double,6,6> cov_T_RC;
   

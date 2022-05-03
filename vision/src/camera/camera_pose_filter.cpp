@@ -7,6 +7,17 @@ namespace camera {
 // Constructors and destructors
 //--------------------------------------------------------------------------------------------------
 
+CameraPoseFilter::CameraPoseFilter(Params const& params)
+: team_     (params.team),
+  T_WC_     (params.T_WC),
+  cov_T_WC_ (params.cov_TWC),
+  T_WM_     (Eigen::Translation3d(1.5,1.0,0.0) * Eigen::AngleAxisd()),
+  T_RC_     (params.T_RC),
+  cov_T_RC_ (params.cov_TRC)
+{}
+
+//--------------------------------------------------------------------------------------------------
+
 CameraPoseFilter::CameraPoseFilter(
   Eigen::Affine3d const& T_WM,
   Eigen::Affine3d const& T_RC,
@@ -30,6 +41,49 @@ CameraPoseFilter::CameraPoseFilter(
 
 //--------------------------------------------------------------------------------------------------
 // Methods
+//--------------------------------------------------------------------------------------------------
+
+CameraPoseFilter::Params CameraPoseFilter::Params::getDefaultParams(Team team)
+{
+  Params params;
+  
+  // Team information
+  params.team = team;
+  
+  // Pose of the camera wrt. the reference frame
+  params.T_RC = Eigen::Translation3d() * Eigen::AngleAxisd(-M_PI_4,Eigen::Vector3d::UnitX());
+  params.cov_TRC.setIdentity();
+  params.cov_TRC.block<3,3>(0,0) *= std::pow(3.0*RAD,2.0);  // Orientation uncertainty
+  params.cov_TRC.block<3,3>(3,3) *= std::pow(1e-3,2.0);     // Position uncertainty
+  
+  // Pose of the camera wrt. the global frame
+  switch(params.team)
+  {
+    case Team::UNKNOWN:
+      params.T_WC = Eigen::Translation3d(1.50,1.80,1.00)
+        * Eigen::AngleAxisd(M_PI,Eigen::Vector3d::UnitZ())
+        * Eigen::AngleAxisd(-3*M_PI_4,Eigen::Vector3d::UnitX());
+      break;
+    case Team::PURPLE:
+      params.T_WC = Eigen::Translation3d(1.60,1.80,1.00)
+        * Eigen::AngleAxisd(M_PI,Eigen::Vector3d::UnitZ())
+        * Eigen::AngleAxisd(-3*M_PI_4,Eigen::Vector3d::UnitX());
+      break;
+    case Team::YELLOW:
+      params.T_WC = Eigen::Translation3d(1.40,1.80,1.00)
+        * Eigen::AngleAxisd(M_PI,Eigen::Vector3d::UnitZ())
+        * Eigen::AngleAxisd(-3*M_PI_4,Eigen::Vector3d::UnitX());
+      break;
+    default:
+      throw std::runtime_error("Unknown team");
+  }
+  params.cov_TWC.setIdentity();
+  params.cov_TWC.block<3,3>(0,0) *= std::pow(5.0*RAD,2.0);  // Orientation uncertainty
+  params.cov_TWC.block<3,3>(3,3) *= std::pow(3e-2,2.0);     // Position uncertainty
+  
+  return params;
+}
+
 //--------------------------------------------------------------------------------------------------
 
 void CameraPoseFilter::setStateAndCovariance(
@@ -163,11 +217,10 @@ void CameraPoseFilter::predict(
     J_TWCkp1_wrt_T_WRkp1 * J_TWRkp1_wrt_TRkRkp1 * J_TRkRkp1_wrt_dtheta;
   
   // Prediction of the state and the covariance
-  this->cov_T_WC_ = 
-    J_TWCkp1_wrt_TWCk * this->cov_T_WC_ * J_TWCkp1_wrt_TWCk.transpose() +
-    J_TWCkp1_wrt_TRC * this->cov_T_RC_ * J_TWCkp1_wrt_TRC.transpose() +
-    J_TWCkp1_wrt_dtheta * cov_dtheta_rad * J_TWCkp1_wrt_dtheta.transpose();
-  this->T_WC_ = T_W_Ckp1;
+  cov_T_WC_ = J_TWCkp1_wrt_TWCk * cov_T_WC_ * J_TWCkp1_wrt_TWCk.transpose() +
+              J_TWCkp1_wrt_TRC * cov_T_RC_ * J_TWCkp1_wrt_TRC.transpose() +
+              J_TWCkp1_wrt_dtheta * cov_dtheta_rad * J_TWCkp1_wrt_dtheta.transpose();
+  T_WC_ = T_W_Ckp1;
 }
 
 //--------------------------------------------------------------------------------------------------

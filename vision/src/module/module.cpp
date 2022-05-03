@@ -114,7 +114,7 @@ ModuleParams ModuleParams::getDefaultParams()
   module::ModuleParams parameters;
   parameters.board_height = 2.0;
   parameters.board_width  = 3.0;
-  parameters.camera_params = camera::CameraParams::getDefaultParams();
+  parameters.camera_params = camera::Camera::Params::getDefaultParams();
   parameters.T_WM =
       Eigen::Translation3d(1.5,1.0,0.0)
     * Eigen::AngleAxisd();

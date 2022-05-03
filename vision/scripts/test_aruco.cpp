@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
     Eigen::Matrix<double,6,6> I = Eigen::Matrix<double,6,6>::Zero();
     
     // Compute the predictif markers' coordinates
-    for(int corner_idx=1; corner_idx<num_corners; ++corner_idx)
+    for(int corner_idx=0; corner_idx<num_corners; ++corner_idx)
     {
       // Get the corner's coordinates w.r.t. the marker's frame
       Eigen::Vector3d M_p_Ci;

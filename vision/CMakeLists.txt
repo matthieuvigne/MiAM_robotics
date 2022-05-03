@@ -66,6 +66,9 @@ target_link_libraries(dummy_client ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 add_executable(calibrate_camera app/calibrate_camera.cpp)
 target_link_libraries(calibrate_camera ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
+add_executable(detect_markers app/detect_markers.cpp)
+target_link_libraries(detect_markers ${LIBRARY_NAME})
+
 # Tests
 
 if(BUILD_TESTS)

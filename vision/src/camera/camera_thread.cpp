@@ -45,7 +45,16 @@ void CameraThread::runThread()
 {
   // Initialization : scan the board looking for the central marker to initialize
   // ----------------------------------------------------------------------------
-  LOGFILE << "Camera thread initialization";
+  /* Camera angle <- à calculer depuis le LogMap de rotation(TWC).
+   * Simplifier le filtre <- enlever TRC ? Non, car ce serait négliger les erreurs de calage.
+   * Question : orientation des tags ?
+   * Si UNKNOWN -> deux hypothèses TWC1 et TWC2 pour la pose.
+   * Pendant une durée T, on repère les mesures du marqueur central TCM avec covTCM
+   * Pour chaque hypothèse : innov = TCM - (inv(TWC)*TWM) / covTCM
+   * On cumule les innovations: pinnov(1:k) = pinnov(1:k-1)*pinnov(k)
+   * Puis à la fin, on garde l'hypothèse avec le meilleur pinnov.
+   */
+  CONSOLE << "Camera thread initialization";
   bool initialized = false;
   double camera_angle = 0.;
   while(!initialized)
@@ -54,7 +63,7 @@ void CameraThread::runThread()
     common::DetectedMarkerList detected_markers;
     #ifdef USE_TEST_BENCH
     TEST_BENCH_PTR->detectMarkers(&detected_markers, module::TestBench::Mode::PERFECT);
-    LOGFILE << "Detected " << detected_markers.size() << " markers.";
+    CONSOLE << "Detected " << detected_markers.size() << " markers.";
     #else
     // Increment position and take picture
     cv::Mat image;
@@ -72,20 +81,19 @@ void CameraThread::runThread()
     if(it != detected_markers.cend())
     {
       // /!\ Protect the initialization of the filter
-      LOGFILE << "Found the central marker";
+      CONSOLE << "Found the central marker";
       CHECK(static_cast<int>(it->marker_id) == 42);
       Eigen::Affine3d const T_CM = it->T_CM;
       Eigen::Matrix<double,6,6> const cov_T_CM = it->cov_T_CM;
       pose_filter_ptr_->setStateAndCovariance(CameraPoseFilter::InitType::T_CM, T_CM, cov_T_CM);
-      LOGFILE << "Initialized the camera pose filter";
+      CONSOLE << "Initialized the camera pose filter";
       break;
     }
   }
-  return;
 
   // Routine : scan the board and detect all the markers
   // ---------------------------------------------------
-  LOGFILE << "Camera thread's routine";
+  CONSOLE << "Camera thread's routine";
   while(true)
   {
     // Check if a specific request has been received

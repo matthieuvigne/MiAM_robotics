@@ -36,19 +36,6 @@ enum class ProjectionResult {
   UNINITIALIZED
 }; // ProjectionResult
 
-struct CameraParams {
-  std::string name;
-  enum {WIDTH, HEIGHT};
-  double resolution[2];
-  enum {FX, FY, CX, CY};
-  double intrinsics[4];
-  DistortionModel::Type distortion_model;
-  std::vector<double> distortion_coeffs;
-  Eigen::Affine3d pose;
-  static CameraParams getDefaultParams();
-}; // struct CameraParams
-
-
 //--------------------------------------------------------------------------------------------------
 // Class definition
 //--------------------------------------------------------------------------------------------------
@@ -65,6 +52,18 @@ public:
     double cy;
   };
 
+  struct Params {
+    std::string name;
+    enum {WIDTH, HEIGHT};
+    std::array<double,2> resolution;
+    enum {FX, FY, CX, CY};
+    std::array<double,4> intrinsics;
+    DistortionModel::Type distortion_model;
+    std::vector<double> distortion_coeffs;
+    Eigen::Affine3d pose;
+    static Params getDefaultParams();
+  }; // struct CameraParams
+
 public:
 
   DISALLOW_EVIL_CONSTRUCTORS(Camera);
@@ -76,7 +75,7 @@ public:
     DistortionModel::UniquePtr& distortion,
     Eigen::Affine3d const& pose);
 
-  Camera(CameraParams const& params);
+  Camera(Params const& params);
 
   virtual ~Camera() = default;
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -104,6 +103,9 @@ public:
   bool takePicture(cv::Mat & image, double const& timeout = 1.0);
 
   // Get all detected markers with covariances
+  //~ Eigen::Matrix<double,6,6> computeMarkerCovariance(
+    //~ Eigen::Affine3d const& TCM,) const;
+  
   bool detectMarkers(
     cv::Mat const& image,
     common::DetectedMarkerList* detected_markers) const;

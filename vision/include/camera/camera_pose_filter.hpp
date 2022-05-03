@@ -16,10 +16,20 @@ class CameraPoseFilter {
 public:
 
   POINTER_TYPEDEF(CameraPoseFilter);
+  enum class Team { UNKNOWN, YELLOW, PURPLE};
+  struct Params {
+    Team team;
+    Eigen::Affine3d T_WC;
+    Eigen::Affine3d T_RC;
+    Eigen::Matrix<double,6,6> cov_TRC;
+    Eigen::Matrix<double,6,6> cov_TWC;
+    static Params getDefaultParams(Team team);
+  }; // struct Params
 
 public:
 
   DISALLOW_EVIL_CONSTRUCTORS(CameraPoseFilter);
+  CameraPoseFilter(Params const& params);
   CameraPoseFilter(
     Eigen::Affine3d const& T_WM,
     Eigen::Affine3d const& T_RC,
@@ -73,6 +83,9 @@ public:
   bool isCovarianceMatrixIsSymmetric() const;
 
 private:
+
+  // Team
+  Team team_;
 
   // Filter state and covariance
   Eigen::Affine3d T_WC_;

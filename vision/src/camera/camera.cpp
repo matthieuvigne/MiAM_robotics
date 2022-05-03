@@ -31,7 +31,7 @@ Camera::Camera(
 
 //--------------------------------------------------------------------------------------------------
 
-Camera::Camera(CameraParams const& params)
+Camera::Camera(Camera::Params const& params)
 : name_             (params.name),
   pose_             (params.pose),
   dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_250)),
@@ -75,6 +75,8 @@ Camera::Camera(CameraParams const& params)
   }
   configureCamera();
 }
+
+//--------------------------------------------------------------------------------------------------
 
 void Camera::configureCamera()
 {
@@ -255,6 +257,7 @@ bool Camera::detectMarkers(
     this->detector_params_, rejected_candidates);
 
   // Estimate the relative pose of the markers w.r.t. the camera
+  // Marker corners are returned with the top-left corner first <- TO CHECK
   std::vector<cv::Vec3d> rvecs, tvecs;
   double constexpr marker_length = 0.05;
   cv::Mat camera_matrix, distortion_coeffs;
@@ -292,7 +295,7 @@ bool Camera::detectMarkers(
     Eigen::Matrix<double,6,6> information_matrix = Eigen::Matrix<double,6,6>::Zero();
 
     // Compute the predictif markers' coordinates
-    for(int corner_idx=1; corner_idx<num_corners; ++corner_idx)
+    for(int corner_idx=0; corner_idx<num_corners; ++corner_idx)
     {
       // Get the corner's coordinates w.r.t. the marker's frame
       Eigen::Vector3d M_p_Ci;
@@ -321,7 +324,7 @@ bool Camera::detectMarkers(
       // Project the point onto the image plane
       Eigen::Vector2d I_p_Ci;
       Eigen::Matrix<double,2,3> J_IpCi_CpCi;
-      this->project(C_p_Ci, &I_p_Ci, &J_IpCi_CpCi);
+      project(C_p_Ci, &I_p_Ci, &J_IpCi_CpCi);
 
       // Update the Fisher Information Matrix
       Eigen::Matrix<double,2,6> const J_IpCi_TCM = J_IpCi_CpCi * J_CpCi_TCM;
@@ -377,17 +380,17 @@ bool Camera::takePicture(cv::Mat & image, double const& timeout)
 
 //--------------------------------------------------------------------------------------------------
 
-CameraParams CameraParams::getDefaultParams()
+Camera::Params Camera::Params::getDefaultParams()
 {
   // Set the camera parameters
-  camera::CameraParams params;
+  camera::Camera::Params params;
   params.name = "camera";
-  params.resolution[camera::CameraParams::WIDTH]  = 1280;
-  params.resolution[camera::CameraParams::HEIGHT] =  960;
-  params.intrinsics[camera::CameraParams::FX]     = 1368.818;
-  params.intrinsics[camera::CameraParams::FY]     = 1358.929;
-  params.intrinsics[camera::CameraParams::CX]     =  542.308;
-  params.intrinsics[camera::CameraParams::CY]     =  476.351;
+  params.resolution[camera::Camera::Params::WIDTH]  = 1280;
+  params.resolution[camera::Camera::Params::HEIGHT] =  960;
+  params.intrinsics[camera::Camera::Params::FX]     = 1368.818;
+  params.intrinsics[camera::Camera::Params::FY]     = 1358.929;
+  params.intrinsics[camera::Camera::Params::CX]     =  542.308;
+  params.intrinsics[camera::Camera::Params::CY]     =  476.351;
   params.distortion_model = camera::DistortionModel::Type::NoDistortion;
   //~ camera_params.distortion_coeffs = {0.332, -1.130, 0.002, -0.031, 1.429};
   params.distortion_coeffs = {0., 0., 0., 0., 0.};
