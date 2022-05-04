@@ -30,8 +30,8 @@ Module::Module(std::string const& filename)
   // Get the board dimensions
   YAML::Node const& board = params["board"];
   assert(board.IsMap());
-  this->board_.width = board["width"].as<double>();
-  this->board_.height = board["height"].as<double>();
+  board_.width = board["width"].as<double>();
+  board_.height = board["height"].as<double>();
   
   // Build the camera and launch its thread
   YAML::Node const camera_node = params["camera"];
@@ -44,14 +44,14 @@ Module::Module(std::string const& filename)
     common::yaml_serialization::deserializePose(params["T_RC"]);
   Eigen::Matrix<double,6,6> const cov_T_RC =
     common::yaml_serialization::deserializePoseCovariance(params["cov_T_RC"]);
-  this->camera_thread_ptr_.reset(new camera::CameraThread(T_WM, T_RC, cov_T_RC,
+  camera_thread_ptr_.reset(new camera::CameraThread(T_WM, T_RC, cov_T_RC,
     std::move(camera_ptr)));
 
   // Launch the server's thread
   int const port = 30000;
   try {
-      this->server_thread_ptr_.reset(new network::ServerThread(port));
-      this->server_thread_ptr_->setCameraThread(this->camera_thread_ptr_.get());
+      server_thread_ptr_.reset(new network::ServerThread(port));
+      server_thread_ptr_->setCameraThread(camera_thread_ptr_.get());
   } catch(network::SocketException const& e) {
       std::cout << e.description() << std::endl;
   }

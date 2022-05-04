@@ -22,6 +22,7 @@ class CameraThread {
 public:
 
   POINTER_TYPEDEF(CameraThread);
+  enum class Team { UNKNOWN, YELLOW, PURPLE};
   CameraThread(
     Eigen::Affine3d const& T_WM,
     Eigen::Affine3d const& T_RC,
@@ -34,6 +35,7 @@ public:
 
   inline void join();
   void getMarkers(common::MarkerIdToEstimate* estimates) const;
+  void setTeam(Team team) const;
 
 private:
 
@@ -51,11 +53,13 @@ private:
   CameraPoseFilter::UniquePtr pose_filter_ptr_; ///< Camera pose filter
 
   // Camera rotation
+  double camera_angle_deg_ = 0.0;
   double const max_angle_deg_ = 30.0;
   double const increment_angle_deg_ = 5.0;
 
   // Thread
   mutable std::mutex mutex_;
+  mutable std::unique_ptr<Team> team_ptr_ = nullptr;
   common::MarkerIdToEstimate marker_id_to_estimate_;
   std::unique_ptr<std::thread> thread_ptr_;
 
@@ -67,7 +71,7 @@ private:
 
 void CameraThread::join()
 {
-  this->thread_ptr_->join();
+  thread_ptr_->join();
 }
 
 //--------------------------------------------------------------------------------------------------

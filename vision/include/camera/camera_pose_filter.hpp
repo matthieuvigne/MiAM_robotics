@@ -45,9 +45,6 @@ public:
 
   // Initialization
 
-  inline void setState(Eigen::Affine3d const& T_WC);
-  inline void setCovariance(Eigen::Matrix<double,6,6> const& cov_T_WC);
-
   enum class InitType { T_WC, T_CM };
   void setStateAndCovariance(
     InitType init_type,
@@ -79,6 +76,7 @@ public:
 
   // Print & checks
   
+  inline bool isInitialized() const { return is_initialized_; }
   std::string printEstimateAndCovariance() const;
   bool isCovarianceMatrixIsSymmetric() const;
 
@@ -90,6 +88,7 @@ private:
   // Filter state and covariance
   Eigen::Affine3d T_WC_;
   Eigen::Matrix<double,6,6> cov_T_WC_;
+  bool is_initialized_ = false;
 
   // Parameters
   Eigen::Affine3d const T_WM_;
@@ -104,31 +103,14 @@ private:
 
 Eigen::Affine3d const& CameraPoseFilter::getState() const
 {
-  return this->T_WC_;
+  return T_WC_;
 }
 
 //--------------------------------------------------------------------------------------------------
 
 Eigen::Matrix<double,6,6> const& CameraPoseFilter::getStateCovariance() const
 {
-  return this->cov_T_WC_;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void CameraPoseFilter::setState(
-  Eigen::Affine3d const& T_WC)
-{
-  // Set the position
-  this->T_WC_ = T_WC;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void CameraPoseFilter::setCovariance(
-  Eigen::Matrix<double,6,6> const& cov_T_WC)
-{
-  this->cov_T_WC_ = cov_T_WC;
+  return cov_T_WC_;
 }
 
 //--------------------------------------------------------------------------------------------------

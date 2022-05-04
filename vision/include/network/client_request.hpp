@@ -15,6 +15,7 @@ class ClientRequest : public Message {
 public:
   POINTER_TYPEDEF(ClientRequest);
   DISALLOW_EVIL_CONSTRUCTORS(ClientRequest);
+  enum class Initialization { UNKNOWN, PURPLE_TEAM, YELLOW_TEAM };
   ClientRequest(MessageType type, void* params = NULL);
   ClientRequest(std::string const& message);
   virtual ~ClientRequest(){}

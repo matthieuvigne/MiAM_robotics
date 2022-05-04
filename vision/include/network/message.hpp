@@ -12,7 +12,7 @@ namespace network {
 // Struct declaration
 //--------------------------------------------------------------------------------------------------
 
-enum class MessageType {UNKNOWN, GET_MEASUREMENTS, SHUT_DOWN};
+enum class MessageType {UNKNOWN, INITIALIZATION, GET_MEASUREMENTS, SHUT_DOWN};
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration
@@ -25,12 +25,11 @@ public:
   DISALLOW_EVIL_CONSTRUCTORS(Message);
 
 public:
-  Message(MessageType type, void* params = NULL);
+  Message(MessageType type);
   Message(std::string const& message);
   virtual ~Message(){}
 
 public:
-  inline void setParams(void* params);
   bool serialize(std::string* message) const;
   bool deserialize(std::string const& message);
   inline MessageType getType() const;
@@ -43,7 +42,7 @@ protected:
 
 protected:
   MessageType type_ = MessageType::UNKNOWN;
-  void* params_ = NULL;
+  std::shared_ptr<void> params_ = nullptr;
 
 }; // class Message
 
@@ -53,14 +52,14 @@ protected:
 
 MessageType Message::getType() const
 {
-  return this->type_;
+  return type_;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void Message::setParams(void* params)
+void const* Message::getParams() const
 {
-  this->params_ = params;
+  return params_.get();
 }
 
 //--------------------------------------------------------------------------------------------------

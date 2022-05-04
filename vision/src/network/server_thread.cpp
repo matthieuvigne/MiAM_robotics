@@ -50,10 +50,29 @@ void ServerThread::serverThread()
       // Deserialize the client's request and respond
       bool shut_down = false;
       void* response_params_ptr = NULL;
-      MessageType const request_type = ClientRequest::deserializeType(received_message);
+      //~ MessageType const request_type = ClientRequest::deserializeType(received_message);
+      ClientRequest const client_request(received_message);
       common::MarkerIdToEstimate estimates;
-      switch(request_type)
+      switch(client_request.getType())
       {
+        case MessageType::INITIALIZATION:
+        {
+          ClientRequest::Initialization team =
+            *static_cast<ClientRequest::Initialization const*>(client_request.getParams());
+          switch(team)
+          {
+            case ClientRequest::Initialization::PURPLE_TEAM:
+              camera_thread_ptr_->setTeam(camera::CameraThread::Team::PURPLE);
+              break;
+            case ClientRequest::Initialization::YELLOW_TEAM:
+              camera_thread_ptr_->setTeam(camera::CameraThread::Team::YELLOW);
+              break;
+            case ClientRequest::Initialization::UNKNOWN:
+            default:
+              break;
+          }
+          break;
+        }
         case MessageType::GET_MEASUREMENTS:
         {
           camera_thread_ptr_->getMarkers(&estimates);
@@ -69,7 +88,7 @@ void ServerThread::serverThread()
         default:
           break;
       }
-      response_ptr.reset(new ServerResponse(request_type, response_params_ptr));
+      response_ptr.reset(new ServerResponse(client_request.getType(), response_params_ptr));
 
       // Send the response to the client
       std::string response_str;

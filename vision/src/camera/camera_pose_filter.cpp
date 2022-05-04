@@ -230,19 +230,18 @@ void CameraPoseFilter::update(
   Eigen::Matrix<double,6,6> const& cov_T_CM)
 {
   // Predict the measurement
-  Eigen::Affine3d const T_CM_pred = this->T_WC_.inverse() * this->T_WM_;
+  Eigen::Affine3d const T_CM_pred = T_WC_.inverse() * T_WM_;
   
   // Compute innovation in Lie algebra
   // T_CM_mes = exp(tau)*T_CM_pred => tau = log(T_CM_mes*T_CM_pred^-1)
   Eigen::Matrix<double,6,1> const innov = common::so3r3::logMap(T_CM*T_CM_pred.inverse());
   
   // Compute the innovation covariance
-  Eigen::Affine3d const T_CW = this->T_WC_.inverse();
-  Eigen::Matrix<double,6,6> const J_TCM_wrt_TCW = common::so3r3::leftSe3ProductJacobian(T_CW, this->T_WM_);
-  Eigen::Matrix<double,6,6> const J_TCW_wrt_TWC = common::so3r3::se3InverseJacobian(this->T_WC_);
+  Eigen::Affine3d const T_CW = T_WC_.inverse();
+  Eigen::Matrix<double,6,6> const J_TCM_wrt_TCW = common::so3r3::leftSe3ProductJacobian(T_CW, T_WM_);
+  Eigen::Matrix<double,6,6> const J_TCW_wrt_TWC = common::so3r3::se3InverseJacobian(T_WC_);
   Eigen::Matrix<double,6,6> const J_TCM_wrt_TWC = J_TCM_wrt_TCW * J_TCW_wrt_TWC;
-  Eigen::Matrix<double,6,6> const S =
-    J_TCM_wrt_TWC * cov_T_WC_ * J_TCM_wrt_TWC.transpose() + cov_T_CM;
+  Eigen::Matrix<double,6,6> const S = J_TCM_wrt_TWC * cov_T_WC_ * J_TCM_wrt_TWC.transpose() + cov_T_CM;
 
   // Compute the gain matrix
   Eigen::Matrix<double,6,6> const K = cov_T_WC_ * J_TCM_wrt_TWC.transpose() * S.inverse();

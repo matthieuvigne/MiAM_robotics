@@ -17,17 +17,16 @@ namespace network {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-Message::Message(MessageType type, void* params)
-: type_   (type),
-  params_ (params)
+Message::Message(MessageType type)
+: type_   (type)
 {}
 
 //--------------------------------------------------------------------------------------------------
 
 Message::Message(std::string const& message)
-: Message(MessageType::UNKNOWN, NULL)
+: Message(MessageType::UNKNOWN)
 {
-  this->deserialize(message);
+  deserialize(message);
 }
 
 //--------------------------------------------------------------------------------------------------

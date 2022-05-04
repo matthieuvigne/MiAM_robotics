@@ -18,6 +18,7 @@ TestBench::UniquePtr test_bench_ptr = nullptr;
 
 TestBench::Options TestBench::Options::getDefaultOptions()
 {
+  // Add team option
   Options options;
   options.TWC = Eigen::Translation3d(1.5,2.0,1.0)
     * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
@@ -97,6 +98,18 @@ void TestBench::rotateCamera(double wx, double wy, double wz)
   tau << wx, wy, wz, 0.0, 0.0, 0.0;
   Eigen::Affine3d const TRkRkp1 = common::so3r3::expMap(tau);
   TWC_ = TWC_ * TRC_.inverse() * TRkRkp1 * TRC_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void TestBench::rotateCameraToAnglePosition(double angle_rad)
+{
+  CHECK(is_initialized_);
+  Eigen::Affine3d TWR = TWC_ * TRC_.inverse();
+  Eigen::Quaterniond const qWR = 
+      Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
+    * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitX());
+  TWC_ = Eigen::Translation3d(TWR.translation()) * qWR * TRC_;
 }
 
 //--------------------------------------------------------------------------------------------------

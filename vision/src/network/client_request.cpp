@@ -10,8 +10,25 @@ namespace network {
 //--------------------------------------------------------------------------------------------------
 
 ClientRequest::ClientRequest(MessageType type, void* params)
-: Message(type, params)
-{}
+: Message(type)
+{
+  switch(type_)
+  {
+    case MessageType::INITIALIZATION:
+    {
+      Initialization const initialization = params ? 
+        *static_cast<Initialization*>(params)
+        : Initialization::UNKNOWN;
+      params_.reset(new Initialization(initialization));
+    }
+    case MessageType::GET_MEASUREMENTS:
+    case MessageType::SHUT_DOWN:
+    case MessageType::UNKNOWN:
+      break;
+    default:
+      throw std::runtime_error("Unknown message type");
+  }
+}
 
 //--------------------------------------------------------------------------------------------------
 
@@ -25,10 +42,15 @@ ClientRequest::ClientRequest(std::string const& message)
 
 bool ClientRequest::serializeParams(std::vector<char>* params_ptr) const
 {
-  if(params_ptr == NULL) return false;
-  std::vector<char> params = *params_ptr;
-  switch(this->type_)
+  CHECK_NOTNULL(params_ptr);
+  switch(type_)
   {
+    case MessageType::INITIALIZATION:
+    {
+      Initialization const initialization = *static_cast<Initialization const*>(params_.get());
+      std::memcpy(params_ptr, &initialization, sizeof(MessageType));
+      break;
+    }
     case MessageType::UNKNOWN:
     case MessageType::GET_MEASUREMENTS:
     case MessageType::SHUT_DOWN:
@@ -43,8 +65,14 @@ bool ClientRequest::serializeParams(std::vector<char>* params_ptr) const
 
 bool ClientRequest::deserializeParams(std::vector<char> const& params)
 {
-  switch(this->type_)
+  switch(type_)
   {
+    case MessageType::INITIALIZATION:
+    {
+      Initialization initialization;
+      std::memcpy(params_.get(), params.data(), sizeof(Initialization));
+      break;
+    }
     case MessageType::GET_MEASUREMENTS:
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:

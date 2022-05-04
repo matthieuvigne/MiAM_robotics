@@ -26,8 +26,8 @@ CameraThread::CameraThread(
   cov_T_RC_   (cov_T_RC),
   camera_ptr_ (std::move(camera_ptr))
 {
-  this->pose_filter_ptr_.reset(new CameraPoseFilter(T_WM, T_RC, cov_T_RC));
-  this->thread_ptr_.reset(new std::thread([=](){this->runThread();}));
+  //~ pose_filter_ptr_.reset(new CameraPoseFilter(T_WM, T_RC, cov_T_RC));
+  thread_ptr_.reset(new std::thread([=](){this->runThread();}));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -43,68 +43,39 @@ CameraThread::~CameraThread()
 
 void CameraThread::runThread()
 {
-  // Initialization : scan the board looking for the central marker to initialize
-  // ----------------------------------------------------------------------------
-  /* Camera angle <- à calculer depuis le LogMap de rotation(TWC).
-   * Simplifier le filtre <- enlever TRC ? Non, car ce serait négliger les erreurs de calage.
-   * Question : orientation des tags ?
-   * Si UNKNOWN -> deux hypothèses TWC1 et TWC2 pour la pose.
-   * Pendant une durée T, on repère les mesures du marqueur central TCM avec covTCM
-   * Pour chaque hypothèse : innov = TCM - (inv(TWC)*TWM) / covTCM
-   * On cumule les innovations: pinnov(1:k) = pinnov(1:k-1)*pinnov(k)
-   * Puis à la fin, on garde l'hypothèse avec le meilleur pinnov.
-   */
-  CONSOLE << "Camera thread initialization";
-  bool initialized = false;
-  double camera_angle = 0.;
-  while(!initialized)
-  {
-    // Detect the markers
-    common::DetectedMarkerList detected_markers;
-    #ifdef USE_TEST_BENCH
-    TEST_BENCH_PTR->detectMarkers(&detected_markers, module::TestBench::Mode::PERFECT);
-    CONSOLE << "Detected " << detected_markers.size() << " markers.";
-    #else
-    // Increment position and take picture
-    cv::Mat image;
-    rotateCameraToAnglePosition(camera_angle);
-    camera_ptr_->takePicture(image);
-    camera_ptr_->detectMarkers(image, &detected_markers);
-    #endif
+  // Rotate camera to the zero position
+  camera_angle_deg_ = 0.0;
+  #if USE_TEST_BENCH
+  TEST_BENCH_PTR->rotateCameraToAnglePosition(camera_angle_deg_*RAD);
+  #else
+  rotateCameraToAnglePosition(camera_angle_deg_);
+  #endif
 
-    // Check if the central marker (n°42) is detected
-    common::DetectedMarkerList::const_iterator it = detected_markers.cbegin();
-    for(it; it != detected_markers.cend(); ++it)
-      if(it->marker_id == 42) break;
-
-    // If so => initialize the camera pose filter and go to the next step
-    if(it != detected_markers.cend())
-    {
-      // /!\ Protect the initialization of the filter
-      CONSOLE << "Found the central marker";
-      CHECK(static_cast<int>(it->marker_id) == 42);
-      Eigen::Affine3d const T_CM = it->T_CM;
-      Eigen::Matrix<double,6,6> const cov_T_CM = it->cov_T_CM;
-      pose_filter_ptr_->setStateAndCovariance(CameraPoseFilter::InitType::T_CM, T_CM, cov_T_CM);
-      CONSOLE << "Initialized the camera pose filter";
-      break;
-    }
-  }
-
-  // Routine : scan the board and detect all the markers
-  // ---------------------------------------------------
-  CONSOLE << "Camera thread's routine";
+  // Initialize the camera pose filter and get the measurements
   while(true)
   {
-    // Check if a specific request has been received
-    // If so, realize it (don't forget to propagate the filter while doing it).
+    // Check if the client has sent a team indication
+    // [TODO] REPLACE WITH A CONDITION VARIABLE
+    mutex_.lock();
+    Team team = Team::UNKNOWN;
+    if(team_ptr_)
+    {
+        team = *team_ptr_;
+        team_ptr_ = nullptr;
+    }
+    mutex_.unlock();
+    CameraPoseFilter::Team cam_team;
+    if(team == Team::PURPLE) cam_team = CameraPoseFilter::Team::PURPLE;
+    else cam_team = CameraPoseFilter::Team::YELLOW;
+    CameraPoseFilter::Params filter_params = CameraPoseFilter::Params::getDefaultParams(cam_team);
+    pose_filter_ptr_.reset(new CameraPoseFilter(filter_params));
+
     // Rotate the camera and propagate the pose camera filter
     double const wy = increment_angle_deg_*RAD;
     double constexpr cov_wy = 1.0*RAD;
     #if USE_TEST_BENCH
     TEST_BENCH_PTR->rotateCamera(0.0, wy, 0.0);
     double const cam_rotation_time_sec = TEST_BENCH_PTR->getCameraRotationTime(wy);
-    //~ LOG("Camera rotation time: " << cam_rotation_time_sec);
     std::this_thread::sleep_for(std::chrono::duration<double>(cam_rotation_time_sec));
     #else
     incrementCameraAngle(camera_angle, increment_angle_deg_);
@@ -129,7 +100,7 @@ void CameraThread::runThread()
       {
         Eigen::Affine3d const T_CM = it->T_CM;
         Eigen::Matrix<double,6,6> const cov_T_CM = it->cov_T_CM;
-        this->pose_filter_ptr_->update(T_CM, cov_T_CM);
+        pose_filter_ptr_->update(T_CM, cov_T_CM);
       }
     }
 
@@ -141,21 +112,21 @@ void CameraThread::runThread()
       common::DetectedMarker const& detected_marker = *it;
       common::Marker marker_estimate(T_WC, cov_T_WC, detected_marker);
       std::lock_guard<std::mutex> const lock(this->mutex_);
-      this->marker_id_to_estimate_[marker_estimate.id] = marker_estimate;
+      marker_id_to_estimate_[marker_estimate.id] = marker_estimate;
     }
   }
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void CameraThread::rotateCameraToAnglePosition(double angle)
+void CameraThread::rotateCameraToAnglePosition(double angle_deg)
 {
   // Angle must be provided in degrees
   // Get the corresponding signal value
-  // Angle -90: camera at position 500
-  // Angle   0: camera at position 1500
-  // Angle +90: camera at position 2500
-  double coeff = angle / this->max_angle_deg_;
+  // Angle -90°: camera at position 500
+  // Angle   0°: camera at position 1500
+  // Angle +90°: camera at position 2500
+  double coeff = angle_deg / max_angle_deg_;
   coeff = std::max(-1.0,std::min(coeff,1.0));
   int const signal = 1500 + 1000*coeff;
 
@@ -209,6 +180,14 @@ void CameraThread::getMarkers(common::MarkerIdToEstimate* estimates_ptr) const
   estimates.clear();
   std::lock_guard<std::mutex> const lock(this->mutex_);
   estimates.insert(this->marker_id_to_estimate_.cbegin(), this->marker_id_to_estimate_.cend());
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void CameraThread::setTeam(Team team) const
+{
+  std::lock_guard<std::mutex> const lock(mutex_);
+  team_ptr_.reset(new Team(team));
 }
 
 //--------------------------------------------------------------------------------------------------
