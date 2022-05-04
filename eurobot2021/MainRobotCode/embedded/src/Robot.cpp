@@ -10,7 +10,7 @@
 #include "Strategy.h"
 
 // Update loop frequency
-const double LOOP_PERIOD = 0.010;
+const double LOOP_PERIOD = 0.005;
 
 const int START_SWITCH = 21;
 const int RAIL_SWITCH = 13;
@@ -253,7 +253,7 @@ bool Robot::setupBeforeMatchStart()
             if (testMode_)
             {
                 usleep(1000000);
-                isPlayingRightSide_ = false;
+                isPlayingRightSide_ = true;
                 return true;
             }
             moveRail(0.5);
@@ -580,7 +580,7 @@ void Robot::updateRangeMeasurement()
     // To update this: place the robot a fixed distance (10cm) from
     // a flat surface, and look at the measurement v    alue.
     // This offset thus integrates sensor position, sensor offset...
-    int const OFFSET[2] = {119, 106};
+    int const OFFSET[2] = {105, 106};
 
     // Perform average of last N values.
     #define N_AVG 3
