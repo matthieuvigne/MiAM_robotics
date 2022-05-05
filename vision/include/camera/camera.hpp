@@ -67,22 +67,9 @@ public:
 public:
 
   DISALLOW_EVIL_CONSTRUCTORS(Camera);
-
-  Camera(
-    std::string const& name,
-    uint32_t image_width, uint32_t image_height,
-    double fx, double fy, double cx, double cy,
-    DistortionModel::UniquePtr& distortion,
-    Eigen::Affine3d const& pose);
-
   Camera(Params const& params);
-
   virtual ~Camera() = default;
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  static Camera::UniquePtr buildCameraFromYaml(
-    std::string const& camera_name,
-    YAML::Node const& camera_node);
 
 public:
 
@@ -99,20 +86,14 @@ public:
     Eigen::Vector2d* point_2d,
     Eigen::Matrix<double,2,3>* out_jacobian) const;
 
-  // Take picture
+  // Take picture and detect markers on it
   bool takePicture(cv::Mat & image, double const& timeout = 1.0);
-
-  // Get all detected markers with covariances
-  //~ Eigen::Matrix<double,6,6> computeMarkerCovariance(
-    //~ Eigen::Affine3d const& TCM,) const;
-  
-  bool detectMarkers(
-    cv::Mat const& image,
-    common::DetectedMarkerList* detected_markers) const;
+  bool detectMarkers(cv::Mat const& image, common::DetectedMarkerList* detected_markers) const;
 
 private:
   void configureCamera();
 
+private:
   // Camera name
   std::string const name_;
 
@@ -142,21 +123,21 @@ private:
 
 uint32_t Camera::getImageWidth() const
 {
-  return this->image_width_;
+  return image_width_;
 }
 
 //--------------------------------------------------------------------------------------------------
 
 uint32_t Camera::getImageHeight() const
 {
-  return this->image_height_;
+  return image_height_;
 }
 
 //--------------------------------------------------------------------------------------------------
 
 DistortionModel const& Camera::getDistortionModel() const
 {
-  return *(this->distortion_);
+  return *distortion_;
 }
 
 //--------------------------------------------------------------------------------------------------

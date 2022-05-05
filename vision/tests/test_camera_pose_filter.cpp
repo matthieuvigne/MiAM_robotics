@@ -73,7 +73,9 @@ int main(int argc, char* argv[])
   // Initialize the state and the covariance
   std::cout << "Initialize the state estimate and its covariance matrix:" << std::endl;
   std::cout << "--------------------------------------------------------" << std::endl;
-  camera::CameraPoseFilter filter(TWM_est, TRC_est, sigma_r, sigma_t);
+  camera::CameraPoseFilter::Params params;
+  //~ camera::CameraPoseFilter filter(TWM_est, TRC_est, sigma_r, sigma_t);
+  camera::CameraPoseFilter filter(params);
   Eigen::Matrix<double,6,6> cov_TWC = Eigen::Matrix<double,6,6>::Identity();
   cov_TWC.block<3,3>(0,0) *= std::pow(sigma_r, 2.0);
   cov_TWC.block<3,3>(3,3) *= std::pow(sigma_t, 2.0);

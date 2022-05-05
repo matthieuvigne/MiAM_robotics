@@ -30,14 +30,6 @@ public:
 
   DISALLOW_EVIL_CONSTRUCTORS(CameraPoseFilter);
   CameraPoseFilter(Params const& params);
-  CameraPoseFilter(
-    Eigen::Affine3d const& T_WM,
-    Eigen::Affine3d const& T_RC,
-    Eigen::Matrix<double,6,6> const& cov_T_RC);
-  CameraPoseFilter(
-    Eigen::Affine3d const& T_WM,
-    Eigen::Affine3d const& T_RC,
-    double sigma_RRC, double sigma_RtC);
   virtual ~CameraPoseFilter(){}
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -60,7 +52,7 @@ public:
   void predict(double wi, double cov_wi, Axis axis);
   void predict(double wrx_rad, double sigma_wrx_rad,
                double wry_rad, double sigma_wry_rad,
-               double wrz_rad, double sigma_wrz_rad);
+               double wrz_rad, double sigma_wrz_rad); // -> simplify
 
   void update(
     Eigen::Affine3d const& T_CM,

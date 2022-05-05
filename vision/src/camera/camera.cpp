@@ -10,27 +10,6 @@ namespace camera {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-Camera::Camera(
-  std::string const& name,
-  uint32_t image_width, uint32_t image_height,
-  double fx, double fy, double cx, double cy,
-  DistortionModel::UniquePtr& distortion,
-  Eigen::Affine3d const& pose)
-: name_             (name),
-  image_width_      (image_width),
-  image_height_     (image_height),
-  intrinsics_       {fx,fy,cx,cy},
-  distortion_       (std::move(distortion)),
-  dictionary_       (cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_250)),
-  detector_params_  (cv::aruco::DetectorParameters::create()),
-  pose_             (pose)
-{
-  assert(this->distortion_ != nullptr);
-  configureCamera();
-}
-
-//--------------------------------------------------------------------------------------------------
-
 Camera::Camera(Camera::Params const& params)
 : name_             (params.name),
   pose_             (params.pose),
@@ -38,35 +17,35 @@ Camera::Camera(Camera::Params const& params)
   detector_params_  (cv::aruco::DetectorParameters::create())
 {
   // Get the image resolution
-  this->image_width_ = params.resolution[0];
-  this->image_height_ = params.resolution[1];
+  image_width_ = params.resolution[0];
+  image_height_ = params.resolution[1];
 
   // Get the intrinsic parameters
-  this->intrinsics_.fx = params.intrinsics[0];
-  this->intrinsics_.fy = params.intrinsics[1];
-  this->intrinsics_.cx = params.intrinsics[2];
-  this->intrinsics_.cy = params.intrinsics[3];
+  intrinsics_.fx = params.intrinsics[0];
+  intrinsics_.fy = params.intrinsics[1];
+  intrinsics_.cx = params.intrinsics[2];
+  intrinsics_.cy = params.intrinsics[3];
 
   // Build the camera distortion model
   switch(params.distortion_model)
   {
     case DistortionModel::Type::NoDistortion:
     {
-      this->distortion_ = DistortionModel::UniquePtr(new DistortionNull());
+      distortion_ = DistortionModel::UniquePtr(new DistortionNull());
       break;
     }
 
     case DistortionModel::Type::RadTan:
     {
       Eigen::Map<Eigen::VectorXd const> const coeffs(params.distortion_coeffs.data(), 5u);
-      this->distortion_ = DistortionModel::UniquePtr(new DistortionRadTan(coeffs));
+      distortion_ = DistortionModel::UniquePtr(new DistortionRadTan(coeffs));
       break;
     }
 
     case DistortionModel::Type::Fisheye:
     {
       Eigen::Map<Eigen::VectorXd const> const coeffs(params.distortion_coeffs.data(), 4u);
-      this->distortion_ = DistortionModel::UniquePtr(new DistortionFisheye(coeffs));
+      distortion_ = DistortionModel::UniquePtr(new DistortionFisheye(coeffs));
       break;
     }
 
@@ -74,82 +53,6 @@ Camera::Camera(Camera::Params const& params)
       throw std::runtime_error("Unrecognized distortion model.");
   }
   configureCamera();
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Camera::configureCamera()
-{
-  #ifdef RPI4
-    isRunningOnRPi_ = !camera_.initCamera(this->image_width_, this->image_height_, formats::RGB888, 4, 0);
-    if (isRunningOnRPi_)
-    {
-      ControlList controls_;
-      int64_t frame_time = 1000000 / 30; // 30FPS
-      controls_.set(controls::FrameDurationLimits, { frame_time, frame_time });
-      controls_.set(controls::Brightness, 0.1);
-      controls_.set(controls::Contrast, 1.0);
-      camera_.set(controls_);
-      camera_.startCamera();
-    }
-  #else
-    camera_handler_ = raspicam::RaspiCam_Cv();
-    camera_handler_.set(cv::CAP_PROP_FRAME_WIDTH, this->image_width_);
-    camera_handler_.set(cv::CAP_PROP_FRAME_HEIGHT, this->image_height_);
-    camera_handler_.set(cv::CAP_PROP_FORMAT, CV_8UC1);
-    camera_handler_.set(cv::CAP_PROP_BRIGHTNESS, 75);
-    camera_handler_.set(cv::CAP_PROP_CONTRAST, 75);
-    isRunningOnRPi_ = camera_handler_.getId().length() > 0;
-  #endif
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Camera::UniquePtr Camera::buildCameraFromYaml(
-  std::string const& camera_name,
-  YAML::Node const& camera_node)
-{
-  // Parse the camera resolution
-  std::vector<double> const resolution = camera_node["resolution"].as<std::vector<double>>();
-  int32_t const image_width = static_cast<int32_t>(resolution[0]);
-  int32_t const image_height = static_cast<int32_t>(resolution[1]);
-
-  // Get the intrinsic parameters
-  std::vector<double> const intrinsics = camera_node["intrinsics"].as<std::vector<double>>();
-  double const fx = intrinsics[0];
-  double const fy = intrinsics[1];
-  double const cx = intrinsics[2];
-  double const cy = intrinsics[3];
-
-  // Get the camera distortion model
-  YAML::Node const& distortion_node = camera_node["distortion"];
-  std::string const model_type = distortion_node["model"].as<std::string>();
-  DistortionModel::UniquePtr distortion_ptr = nullptr;
-  if(model_type == "null")
-  {
-    distortion_ptr = DistortionModel::UniquePtr(new DistortionNull());
-  }
-  else if(model_type == "radial-tangential")
-  {
-    std::vector<double> distortion_coeffs =
-      distortion_node["coeffs"].as<std::vector<double>>();
-    Eigen::Map<Eigen::VectorXd> coeffs(distortion_coeffs.data(), 5u);
-    distortion_ptr = DistortionModel::UniquePtr(new DistortionRadTan(coeffs));
-  }
-  else if(model_type == "fisheye")
-  {
-    std::vector<double> distortion_coeffs =
-      distortion_node["coeffs"].as<std::vector<double>>();
-    Eigen::Map<Eigen::VectorXd> coeffs(distortion_coeffs.data(), 4u);
-    distortion_ptr = DistortionModel::UniquePtr(new DistortionFisheye(coeffs));
-  }
-  assert(distortion_ptr != nullptr);
-
-  // Build and return the camera
-  Camera::UniquePtr camera_ptr(new Camera(
-    camera_name, image_width, image_height,
-    fx, fy, cx, cy, distortion_ptr, Eigen::Affine3d::Identity()));
-  return std::move(camera_ptr);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -396,6 +299,33 @@ Camera::Params Camera::Params::getDefaultParams()
   params.distortion_coeffs = {0., 0., 0., 0., 0.};
   params.pose = Eigen::Affine3d::Identity();
   return params;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Camera::configureCamera()
+{
+  #ifdef RPI4
+  isRunningOnRPi_ = !camera_.initCamera(image_width_, image_height_, formats::RGB888, 4, 0);
+  if(isRunningOnRPi_)
+  {
+    ControlList controls_;
+    int64_t frame_time = 1000000 / 30; // 30FPS
+    controls_.set(controls::FrameDurationLimits, { frame_time, frame_time });
+    controls_.set(controls::Brightness, 0.1);
+    controls_.set(controls::Contrast, 1.0);
+    camera_.set(controls_);
+    camera_.startCamera();
+  }
+  #else
+  camera_handler_ = raspicam::RaspiCam_Cv();
+  camera_handler_.set(cv::CAP_PROP_FRAME_WIDTH, image_width_);
+  camera_handler_.set(cv::CAP_PROP_FRAME_HEIGHT, image_height_);
+  camera_handler_.set(cv::CAP_PROP_FORMAT, CV_8UC1);
+  camera_handler_.set(cv::CAP_PROP_BRIGHTNESS, 75);
+  camera_handler_.set(cv::CAP_PROP_CONTRAST, 75);
+  isRunningOnRPi_ = camera_handler_.getId().length() > 0;
+  #endif
 }
 
 //--------------------------------------------------------------------------------------------------
