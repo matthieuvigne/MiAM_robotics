@@ -14,6 +14,8 @@
 using namespace miam::trajectory;
 using miam::RobotPosition;
 
+#define MOVE_OR_ABORT(a) if (!robot->waitForTrajectoryFinished()) { std::cout << a << std::endl; return;}
+
 // #define SKIP_TO_GRABBING_SAMPLES 1
 // #define SKIP_TO_PUSHING_SAMPLES 1
 // #define SKIP_TO_GRABBING_SAMPLES_SIDE_DIST 1
@@ -132,69 +134,20 @@ void setTraectoryToFollowFallback(RobotInterface *robot, TrajectoryVector const&
         robot->wait(100);
 }
 
-void matchStrategy(RobotInterface *robot, ServoHandler *servo)
+// Handle the statue: grab it, swap, and drop the real statue.
+// Abort as soon as one action fails.
+void handleStatue(RobotInterface *robot, ServoHandler *servo)
 {
-    std::cout << "Strategy thread started." << std::endl;
-
-    // Update config.
-    setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
-                                                    robotdimensions::maxWheelAccelerationTrajectory,
-                                                    robotdimensions::wheelSpacing);
-
-    // Create required variables.
-    RobotPosition targetPosition;
-    TrajectoryVector traj;
-    RobotPosition endPosition;
-    std::vector<RobotPosition> positions;
-    bool wasMoveSuccessful = true;
-    robot->updateScore(2);
-
-    #ifndef SKIP_TO_GRABBING_SAMPLES
-
-    // Set initial position
-    targetPosition.x = robotdimensions::CHASSIS_BACK;
-    targetPosition.y = 1200;
-    targetPosition.theta = 0;
-    robot->resetPosition(targetPosition, true, true, true);
-    robot->wait(0.05);
-
-    // Start fallback thread
-    std::thread fallbackThread = std::thread(&matchEndBackToBase, robot);
-
-    //**********************************************************
-    // Go get the statue
-    //**********************************************************
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.x = 350;
-    positions.push_back(targetPosition);
-    targetPosition.y = 430 + 80;
-    positions.push_back(targetPosition);
-
-    // Move at 45degree angle toward the statue
-    targetPosition.x += 80;
-    targetPosition.y -= 80;
-    positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.4);
-    setTraectoryToFollowFallback(robot, traj);
-
-    servo->closeTube(0);
-    servo->closeTube(2);
-    servo->activatePump(true);
-    robot->moveRail(0.7);
-    servo->closeValve();
-    robot->wait(0.5);
-    servo->moveStatue(statue::TRANSPORT);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
     //Go back
+    RobotPosition targetPosition = robot->getCurrentPosition();
+    RobotPosition endPosition(230 + robotdimensions::CHASSIS_BACK,
+                              230 + robotdimensions::CHASSIS_BACK,
+                              0.0);
 
-    targetPosition = robot->getCurrentPosition();
-    endPosition.x = 230 + robotdimensions::CHASSIS_BACK;
-    endPosition.y = 230 + robotdimensions::CHASSIS_BACK;
-    traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition, 0.0, true);
+    TrajectoryVector traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition, 0.0, true);
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("handleStatue failed to complete");
 
     servo->moveStatue(statue::CATCH);
     servo->activateMagnet(true);
@@ -205,23 +158,21 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //**********************************************************
     // Drop the fake statue
     //**********************************************************
-
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 140.0);
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
+    MOVE_OR_ABORT("handleStatue failed to complete");
 
     targetPosition = robot->getCurrentPosition();
     traj.clear();
     traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI)));
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("handleStatue failed to complete");
 
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 20.0);
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("handleStatue failed to complete");
 
     // Place fake statue
     robot->moveRail(0.4);
@@ -233,7 +184,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -30.0);
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("handleStatue failed to complete");
 
     robot->moveRail(0.8);
     servo->moveSuction(1, suction::HORIZONTAL);
@@ -241,7 +192,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     //**********************************************************
     // Drop the real statue
     //**********************************************************
-    positions.clear();
+    std::vector<RobotPosition> positions;
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x += 80;
@@ -255,31 +206,28 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     traj = computeTrajectoryRoundedCorner(positions, 300.0, 0.3, true);
 
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("handleStatue failed to complete");
 
     servo->activateMagnet(false);
     servo->moveStatue(statue::DROP);
     robot->wait(0.1);
     servo->moveStatue(statue::TRANSPORT);
     robot->updateScore(20);
+}
 
-
-    //**********************************************************
-    // Go to the side distributor
-    //**********************************************************
-
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
+void moveSideSample(RobotInterface *robot, ServoHandler *servo)
+{
+    std::vector<RobotPosition> positions;
+    RobotPosition targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.y = 1680 ;
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_FRONT + 30;
     positions.push_back(targetPosition);
-    traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 300.0, 0.5);
+    TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 300.0, 0.5);
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
     servo->moveStatue(statue::FOLD);
+    MOVE_OR_ABORT("moveSideSample failed to complete");
 
     servo->closeTube(0);
     servo->closeTube(2);
@@ -292,70 +240,122 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -150.0);
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    // robot->moveRail(0.4);
+    MOVE_OR_ABORT("moveSideSample failed to complete");
 
     targetPosition = robot->getCurrentPosition();
     traj.clear();
     traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_4)));
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, 200.0);
-    // setTraectoryToFollowFallback(robot, traj);
-    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("moveSideSample failed to complete");
 
     servo->activatePump(false);
     servo->openValve();
     robot->wait(1.0);
+}
 
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, -200.0);
-    // setTraectoryToFollowFallback(robot, traj);
-    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
+void handleSideTripleSamples(RobotInterface *robot, ServoHandler *servo)
+{
+    std::vector<RobotPosition> positions;
+    RobotPosition targetPosition = robot->getCurrentPosition();
+    positions.push_back(targetPosition);
+    targetPosition.x = robotdimensions::CHASSIS_BACK + 200 + 40 + 10 + 20;
+    targetPosition.y = 750;
+    positions.push_back(targetPosition);
+    targetPosition.x = robotdimensions::CHASSIS_BACK + 120 + 40 + 10 + 20;
+    targetPosition.y = 750;
+    positions.push_back(targetPosition);
+    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
+    setTraectoryToFollowFallback(robot, traj);
+    MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
 
-    std::cout<< robot->getCurrentPosition() << std::endl;
-    // robot->wait(5.0);
-    #endif
+    // go grab the 1st sample
+    servo->moveSuction(1, suction::LOWER_SAMPLE);
+    servo->closeValve();
+    servo->openTube(2);
+    servo->closeTube(0);
+    servo->closeTube(1);
+    servo->activatePump(true);
+    robot->moveRail(0.25);
 
-    #ifndef SKIP_TO_PUSHING_SAMPLES
-
-    #ifdef SKIP_TO_GRABBING_SAMPLES
-
-    targetPosition.x = 292;
-    targetPosition.y = 1667 ;
-    targetPosition.theta = 4.66973;
-    robot->resetPosition(targetPosition, true, true, true);
-
-    #endif
-
-    //**********************************************************
-    // Grab the three samples on the ground, and drop them
-    //**********************************************************
-    positions.clear();
     targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, 50);
+    setTraectoryToFollowFallback(robot, traj);
+    MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+    robot->wait(1.0);
+    robot->moveRail(0.6);
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, -200);
+    setTraectoryToFollowFallback(robot, traj);
+    MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+    targetPosition = robot->getCurrentPosition();
+    traj.clear();
+    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI_2)));
+    setTraectoryToFollowFallback(robot, traj);
+    MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+    dropElements(robot, servo);
+    robot->wait(0.5);
+
+    targetPosition = robot->getCurrentPosition();
+    traj.clear();
+    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_2)));
+    setTraectoryToFollowFallback(robot, traj);
+    MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+    // go grab the 2d sample
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, 230);
+    setTraectoryToFollowFallback(robot, traj);
+
+    servo->moveSuction(1, suction::LOWER_SAMPLE);
+    servo->closeValve();
+    servo->openTube(2);
+    servo->closeTube(0);
+    servo->closeTube(1);
+    servo->activatePump(true);
+    robot->moveRail(0.25);
+    MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+    robot->wait(1.0);
+    robot->moveRail(0.6);
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, -130);
+    setTraectoryToFollowFallback(robot, traj);
+    MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+    targetPosition = robot->getCurrentPosition();
+    traj.clear();
+    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI_2)));
+    setTraectoryToFollowFallback(robot, traj);
+    MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+    dropElements(robot, servo);
+    robot->wait(0.5);
+}
+
+
+void moveThreeSamples(RobotInterface *robot, ServoHandler *servo)
+{
+    std::vector<RobotPosition> positions;
+    RobotPosition targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.y = 1325;
     positions.push_back(targetPosition);
     targetPosition.x = 650;
     positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
+    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     setTraectoryToFollowFallback(robot, traj);
-
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::HORIZONTAL);
-
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
+    MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 60.0);
     setTraectoryToFollowFallback(robot, traj);
-
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
     servo->closeValve();
     for (int i = 0; i < 3; i++)
@@ -372,8 +372,6 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = 770;
-    // targetPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 25;
-    // targetPosition.theta = M_PI_2;
     positions.push_back(targetPosition);
     targetPosition.x = 770;
     targetPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 70 - 30;
@@ -384,83 +382,27 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     robot->wait(1.0);
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::LOWER_SAMPLE);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("moveThreeSamples failed to complete");
+
     dropElements(robot, servo);
     robot->moveRail(0.3);
-
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, -15);
-    // setTraectoryToFollowFallback(robot, traj);
-    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-
-    // for (int i = 0; i < 3; i++)
-    //     servo->moveSuction(i, suction::DROP_SAMPLE);
-    // robot->wait(0.3);
-
-
     robot->wait(2.0);
     robot->updateScore(9);
 
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -90);
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("moveThreeSamples failed to complete");
+}
 
-
-    std::cout<< robot->getCurrentPosition() << std::endl;
-
-    #endif
-
-    #ifndef SKIP_TO_GRABBING_SAMPLES_SIDE_DIST
-
-    #ifdef SKIP_TO_PUSHING_SAMPLES
-
-    targetPosition.x = 766.546;
-    targetPosition.y = 1635.35 ;
-    targetPosition.theta = 7.8531;
-    robot->resetPosition(targetPosition, true, true, true);
-
-    #endif
-
-
-
-
-    //**********************************************************
-    // Push the samples on the field
-    //**********************************************************
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.x = 1200;
-    targetPosition.y = 800 ;
-    positions.push_back(targetPosition);
-    targetPosition.x = 800;
-    targetPosition.y = 450 ;
-    positions.push_back(targetPosition);
-    targetPosition.x = 460 ;
-    targetPosition.y = 230 ;
-    positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
-    setTraectoryToFollowFallback(robot, traj);
-    // Move the rail so it doesn't hit the fake statue
-    robot->moveRail(0.9);
-    for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::FOLD);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->updateScore(15);
-
-    //**********************************************************
-    // Flip the dig zone
-    //**********************************************************
-
-    std::cout << "Before dig zone" << std::endl;
+void handleDigZone(RobotInterface *robot, ServoHandler *servo)
+{
     const int spacing_between_sites = 185;
     const int site_y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -10;
     const int first_site_x = 730 - 15;
 
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
+    std::vector<RobotPosition> positions;
+    RobotPosition targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x -= 100 * std::cos(targetPosition.theta);
     targetPosition.y -= 100 * std::sin(targetPosition.theta);
@@ -468,9 +410,9 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
     targetPosition.x = 620;
     targetPosition.y = site_y;
     positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
+    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("handleDigZone failed to complete");
 
     std::cout << "First correction" << std::endl;
     // Check with range sensor: are we at the right place ?
@@ -501,7 +443,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
     traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.3, true);
     setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+    MOVE_OR_ABORT("handleDigZone failed to complete");
 
     servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
@@ -531,7 +473,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
         positions.push_back(targetPosition);
         traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.3, true);
         setTraectoryToFollowFallback(robot, traj);
-        wasMoveSuccessful = robot->waitForTrajectoryFinished();
+        MOVE_OR_ABORT("handleDigZone failed to complete");
         testExcavationSite(robot, servo);
     }
 
@@ -554,7 +496,7 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
         targetPosition.y = site_y;
         traj = computeTrajectoryStraightLineToPoint(robot->getCurrentPosition(), targetPosition, 0.0, true);
         setTraectoryToFollowFallback(robot, traj);
-        wasMoveSuccessful = robot->waitForTrajectoryFinished();
+        MOVE_OR_ABORT("handleDigZone failed to complete");
 
         if (know_targeted_site_is_ours)
         {
@@ -641,161 +583,148 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
 
         targeted_site++;
     }
-
     robot->updateScore(5);
+}
+
+void matchStrategy(RobotInterface *robot, ServoHandler *servo)
+{
+    std::cout << "Strategy thread started." << std::endl;
+
+    // Update config.
+    setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
+                                                    robotdimensions::maxWheelAccelerationTrajectory,
+                                                    robotdimensions::wheelSpacing);
+
+    // Create required variables.
+    RobotPosition targetPosition;
+    TrajectoryVector traj;
+    RobotPosition endPosition;
+    std::vector<RobotPosition> positions;
+    bool wasMoveSuccessful = true;
+    robot->updateScore(2);
+
+    #ifndef SKIP_TO_GRABBING_SAMPLES
+
+    // Set initial position
+    targetPosition.x = robotdimensions::CHASSIS_BACK;
+    targetPosition.y = 1200;
+    targetPosition.theta = 0;
+    robot->resetPosition(targetPosition, true, true, true);
+    robot->wait(0.05);
+
+    // Start fallback thread
+#ifndef SIMULATION
+    std::thread fallbackThread = std::thread(&matchEndBackToBase, robot);
+#endif
+
+    //**********************************************************
+    // Go get the statue
+    //**********************************************************
+    targetPosition = robot->getCurrentPosition();
+    positions.push_back(targetPosition);
+    targetPosition.x = 350;
+    positions.push_back(targetPosition);
+    targetPosition.y = 430 + 80;
+    positions.push_back(targetPosition);
+
+    // Move at 45degree angle toward the statue
+    targetPosition.x += 80;
+    targetPosition.y -= 80;
+    positions.push_back(targetPosition);
+    traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.4);
+    setTraectoryToFollowFallback(robot, traj);
+
+    servo->closeTube(0);
+    servo->closeTube(2);
+    servo->activatePump(true);
+    robot->moveRail(0.7);
+    servo->closeValve();
+    robot->wait(0.5);
+    servo->moveStatue(statue::TRANSPORT);
+    wasMoveSuccessful = robot->waitForTrajectoryFinished();
+
+    if (wasMoveSuccessful)
+        handleStatue(robot, servo);
+
+    //**********************************************************
+    // Go to the side distributor
+    //**********************************************************
+    moveSideSample(robot, servo);
+
+    #endif
+
+    #ifndef SKIP_TO_PUSHING_SAMPLES
+
+    #ifdef SKIP_TO_GRABBING_SAMPLES
+
+    targetPosition.x = 292;
+    targetPosition.y = 1667 ;
+    targetPosition.theta = 4.66973;
+    robot->resetPosition(targetPosition, true, true, true);
+
+    #endif
+
+    //**********************************************************
+    // Grab the three samples on the ground, and drop them
+    //**********************************************************
+    moveThreeSamples(robot, servo);
+
+    #endif
+
+    #ifndef SKIP_TO_GRABBING_SAMPLES_SIDE_DIST
+
+    #ifdef SKIP_TO_PUSHING_SAMPLES
+
+    targetPosition.x = 766.546;
+    targetPosition.y = 1635.35 ;
+    targetPosition.theta = 7.8531;
+    robot->resetPosition(targetPosition, true, true, true);
+
+    #endif
+
+    //**********************************************************
+    // Push the samples on the field
+    //**********************************************************
+    positions.clear();
+    targetPosition = robot->getCurrentPosition();
+    positions.push_back(targetPosition);
+    targetPosition.x = 1200;
+    targetPosition.y = 800 ;
+    positions.push_back(targetPosition);
+    targetPosition.x = 800;
+    targetPosition.y = 450 ;
+    positions.push_back(targetPosition);
+    targetPosition.x = 460 ;
+    targetPosition.y = 230 ;
+    positions.push_back(targetPosition);
+    traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
+    setTraectoryToFollowFallback(robot, traj);
+    // Move the rail so it doesn't hit the fake statue
+    robot->moveRail(0.9);
+    for (int i = 0; i < 3; i++)
+        servo->moveSuction(i, suction::FOLD);
+    (void) robot->waitForTrajectoryFinished();
+    robot->updateScore(15);
+
+    //**********************************************************
+    // Flip the dig zone
+    //**********************************************************
+    handleDigZone(robot, servo);
 
     //**********************************************************
     // Go to the side tripledist
     //**********************************************************
-
-
     servo->moveArm(true, arm::FOLD);
     servo->moveFinger(true, finger::FOLD);
     servo->moveArm(false, arm::FOLD);
     servo->moveFinger(false, finger::FOLD);
-
-
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.x = robotdimensions::CHASSIS_BACK + 200 + 40 + 10 + 20;
-    targetPosition.y = 750;
-    positions.push_back(targetPosition);
-    targetPosition.x = robotdimensions::CHASSIS_BACK + 120 + 40 + 10 + 20;
-    targetPosition.y = 750;
-    positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
-    setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
     #endif
 
-    // go grab the 1st sample
-    servo->moveSuction(1, suction::LOWER_SAMPLE);
-    servo->closeValve();
-    servo->openTube(2);
-    servo->closeTube(0);
-    servo->closeTube(1);
-    servo->activatePump(true);
-    robot->moveRail(0.25);
-
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 50);
-    setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    robot->wait(1.0);
-    robot->moveRail(0.6);
-
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -200);
-    setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    targetPosition = robot->getCurrentPosition();
-    traj.clear();
-    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI_2)));
-    setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    dropElements(robot, servo);
-    robot->wait(0.5);
-
-    targetPosition = robot->getCurrentPosition();
-    traj.clear();
-    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_2)));
-    setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    // go grab the 2d sample
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 230);
-    setTraectoryToFollowFallback(robot, traj);
-
-    servo->moveSuction(1, suction::LOWER_SAMPLE);
-    servo->closeValve();
-    servo->openTube(2);
-    servo->closeTube(0);
-    servo->closeTube(1);
-    servo->activatePump(true);
-    robot->moveRail(0.25);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    robot->wait(1.0);
-    robot->moveRail(0.6);
-
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -130);
-    setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    targetPosition = robot->getCurrentPosition();
-    traj.clear();
-    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI_2)));
-    setTraectoryToFollowFallback(robot, traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    dropElements(robot, servo);
-    robot->wait(0.5);
+    handleSideTripleSamples(robot, servo);
 
 
-    // // go grab the 3d sample
 
-    // targetPosition = robot->getCurrentPosition();
-    // traj.clear();
-    // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_2)));
-    // setTraectoryToFollowFallback(robot, traj);
-    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, 180);
-    // setTraectoryToFollowFallback(robot, traj);
-    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    // servo->moveSuction(2, suction::DROP_SAMPLE);
-
-    // robot->moveRail(0.25);
-    // // robot->wait(1.0);
-
-    // servo->closeValve();
-    // servo->openTube(2);
-    // servo->closeTube(0);
-    // servo->closeTube(1);
-    // servo->activatePump(true);
-
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, 55);
-    // setTraectoryToFollowFallback(robot, traj);
-    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    // robot->wait(1.0);
-
-    // robot->moveRail(0.6);
-    // robot->wait(0.5);
-
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, -170);
-    // setTraectoryToFollowFallback(robot, traj);
-    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    // targetPosition = robot->getCurrentPosition();
-    // traj.clear();
-    // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI_2)));
-    // setTraectoryToFollowFallback(robot, traj);
-    // wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    // dropElements(robot, servo);
-    // robot->wait(0.5);
-
-    // // targetPosition = robot->getCurrentPosition();
-    // // traj.clear();
-    // // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_2)));
-    // // setTraectoryToFollowFallback(robot, traj);
-    // // wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    // // targetPosition = robot->getCurrentPosition();
-    // // traj = computeTrajectoryStraightLine(targetPosition, 170);
-    // // setTraectoryToFollowFallback(robot, traj);
-    // // wasMoveSuccessful = robot->waitForTrajectoryFinished();
 
 
     //**********************************************************
@@ -815,7 +744,6 @@ void matchStrategy(RobotInterface *robot, ServoHandler *servo)
         robot->updateScore(20);
         MATCH_COMPLETED = true;
     }
-
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }

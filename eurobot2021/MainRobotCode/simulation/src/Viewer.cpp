@@ -187,6 +187,7 @@ void Viewer::recompute()
     for(auto r : robots_)
         r->recomputeStrategy(obstacleX_, obstacleY_, obstacleSize_, rightSideButton_->get_active());
     // Re-equalize time vectors.
+    trajectoryLength_ = 0.0;
     for(auto r : robots_)
         trajectoryLength_ = std::max(trajectoryLength_, r->getTrajectoryLength());
     for(auto r : robots_)

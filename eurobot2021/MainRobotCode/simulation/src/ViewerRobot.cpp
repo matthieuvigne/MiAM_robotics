@@ -74,7 +74,7 @@ bool ViewerRobot::followTrajectory(miam::trajectory::Trajectory *traj)
         if (!isRobotPositionInit_)
         {
             isRobotPositionInit_ = true;
-            for (int i = 0; i < trajectory_.size(); i++)
+            for (uint i = 0; i < trajectory_.size(); i++)
                 trajectory_.at(i).position = viewerPoint.position;
         }
         currentTrajectoryTime += TIMESTEP;
