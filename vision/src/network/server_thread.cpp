@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <common/logger.hpp>
 #include <network/client_request.hpp>
 #include <network/server_response.hpp>
 #include <network/server_thread.hpp>
@@ -13,13 +14,13 @@ namespace network {
 ServerThread::ServerThread(int port)
 : ServerSocket(port)
 {
-  this->thread_ptr_.reset(new std::thread([=](){this->serverThread();}));
+  thread_ptr_.reset(new std::thread([=](){serverThread();}));
 }
 
 //--------------------------------------------------------------------------------------------------
 
 ServerThread::~ServerThread(){
-  this->thread_ptr_->join();  
+  thread_ptr_->join();  
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -29,16 +30,16 @@ ServerThread::~ServerThread(){
 void ServerThread::serverThread()
 {
   // Wait for the client's connection
-  LOG("Server thread is launched");
+  CONSOLE << "Server thread is launched";
   ClientRequest::UniquePtr request_ptr;
   ServerResponse::UniquePtr response_ptr;
   while(true)
   {
     // Wait for the client's connection
-    LOG("Waiting for the client's connection");
+    CONSOLE << "Waiting for the client's connection";
     ServerSocket client_sock;
-    this->accept(client_sock);
-    LOG("Accepted a client");
+    accept(client_sock);
+    CONSOLE << "Accepted a client";
 
     // Wait for the client's requests
     while(true)
@@ -49,34 +50,21 @@ void ServerThread::serverThread()
 
       // Deserialize the client's request and respond
       bool shut_down = false;
-      void* response_params_ptr = NULL;
-      //~ MessageType const request_type = ClientRequest::deserializeType(received_message);
+      std::shared_ptr<void> response_params_ptr = nullptr;
       ClientRequest const client_request(received_message);
-      common::MarkerIdToEstimate estimates;
       switch(client_request.getType())
       {
         case MessageType::INITIALIZATION:
         {
-          ClientRequest::Initialization team =
-            *static_cast<ClientRequest::Initialization const*>(client_request.getParams());
-          switch(team)
-          {
-            case ClientRequest::Initialization::PURPLE_TEAM:
-              camera_thread_ptr_->setTeam(camera::CameraThread::Team::PURPLE);
-              break;
-            case ClientRequest::Initialization::YELLOW_TEAM:
-              camera_thread_ptr_->setTeam(camera::CameraThread::Team::YELLOW);
-              break;
-            case ClientRequest::Initialization::UNKNOWN:
-            default:
-              break;
-          }
+          common::Team const& team = client_request.getParamsAs<common::Team>();
+          camera_thread_ptr_->setTeam(team);
           break;
         }
         case MessageType::GET_MEASUREMENTS:
         {
-          camera_thread_ptr_->getMarkers(&estimates);
-          response_params_ptr = &estimates;
+          std::shared_ptr<common::MarkerIdToEstimate> estimates(new common::MarkerIdToEstimate);
+          camera_thread_ptr_->getMarkers(estimates.get());
+          response_params_ptr = std::move(estimates);
           break;
         }
         case MessageType::SHUT_DOWN:

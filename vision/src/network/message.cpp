@@ -2,14 +2,9 @@
 #include <vector>
 #include <iostream>
 
+#include <common/logger.hpp>
+#include <common/time.hpp>
 #include <network/message.hpp>
-//~ #include <network/socket.hpp>
-
-/* À modifier:
- * -----------
- * - ajouter la taille au début du message
- * - ne pas communiquer la covariance
- */
 
 namespace network {
 
@@ -17,9 +12,22 @@ namespace network {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-Message::Message(MessageType type)
-: type_   (type)
-{}
+Message::Message(MessageType type, std::shared_ptr<void> params)
+: type_         (type),
+  timestamp_ns_ (common::convertToNanoseconds(common::Time::now())),
+  params_       (std::move(params))
+{
+  switch(type_)
+  {
+    case MessageType::INITIALIZATION:
+    case MessageType::GET_MEASUREMENTS:
+    case MessageType::SHUT_DOWN:
+    case MessageType::UNKNOWN:
+      break;
+    default:
+      throw std::runtime_error("Unknown message type");
+  }
+}
 
 //--------------------------------------------------------------------------------------------------
 
@@ -43,6 +51,10 @@ bool Message::serialize(std::string* message_ptr) const
   std::vector<char> type_str(sizeof(MessageType));
   std::memcpy(type_str.data(), &type_, sizeof(MessageType));
 
+  // Append the current timestamp
+  std::vector<char> timestamp_str(sizeof(int64_t));
+  std::memcpy(timestamp_str.data(), &timestamp_ns_, sizeof(int64_t));
+
   // Append the supplementary data
   std::vector<char> params_str;
   serializeParams(&params_str);
@@ -56,6 +68,7 @@ bool Message::serialize(std::string* message_ptr) const
   // Build the message
   message  = std::string(size_str.data(), size_str.size());
   message += std::string(type_str.data(), type_str.size());
+  message += std::string(timestamp_str.data(), timestamp_str.size());
   message += std::string(params_str.size(), params_str.size());
   message.shrink_to_fit();
   return true;
@@ -75,6 +88,10 @@ bool Message::deserialize(std::string const& message)
   std::memcpy(&type_, &message[current_byte], sizeof(MessageType));
   current_byte += sizeof(MessageType);
 
+  // Get the timestamp of the message
+  std::memcpy(&timestamp_ns_, &message[current_byte], sizeof(int64_t));
+  current_byte += sizeof(int64_t);
+
   // Get the associated parameters of the client's message according the message's type
   if(current_byte == msg_size_bytes) return true;
   std::string::const_iterator params_begin = message.cbegin() + current_byte;
@@ -86,7 +103,7 @@ bool Message::deserialize(std::string const& message)
   }
   catch(std::length_error&)
   {
-    LOG("Failed to deserialize the message -> dropped");
+    CONSOLE << "Failed to deserialize the message -> dropped";
   }
   return false;
 }

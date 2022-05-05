@@ -24,12 +24,12 @@ int main(int argc, char* argv[])
       network::Client client("localhost", 30000);
       network::ClientRequest::UniquePtr request_ptr = nullptr;
       network::ServerResponse::UniquePtr response_ptr = nullptr;
-      LOGFILE << "Initialized the client";
+      CONSOLE << "Initialized the client";
       
       // Send messages to the client
       int request_idx = 0;
       int constexpr max_num_requests = 10;
-      common::MarkerIdToEstimate markers;
+      std::shared_ptr<common::MarkerIdToEstimate> markers = nullptr;
       while(true)
       {    
         // Build and send the request to the server
@@ -38,14 +38,15 @@ int main(int argc, char* argv[])
         request_ptr.reset(new network::ClientRequest(message_type));
         request_ptr->serialize(&request_str);
         client << request_str;
-        LOGFILE << "Sent request to the server";
+        CONSOLE << "Sent request to the server";
 
         // Get the response from the server
         std::string response_str;
         client >> response_str;
-        response_ptr.reset(new network::ServerResponse(message_type, &markers));
+        markers.reset(new common::MarkerIdToEstimate);
+        response_ptr.reset(new network::ServerResponse(message_type, markers));
         response_ptr->deserialize(response_str);
-        LOGFILE << "Received and deserialized response from the server";
+        CONSOLE << "Received and deserialized response from the server";
         
         // Prepare for next iteration
         request_idx += 1;
@@ -68,7 +69,7 @@ int main(int argc, char* argv[])
     }
     catch(network::SocketException const& e)
     {
-      LOGFILE << e.description();
+      CONSOLE << e.description();
     }
   }
 }

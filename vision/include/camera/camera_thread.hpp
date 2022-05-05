@@ -1,12 +1,14 @@
 #ifndef CAMERA_CAMERA_THREAD_HPP
 #define CAMERA_CAMERA_THREAD_HPP
 
+#include <condition_variable>
 #include <mutex>
 #include <queue>
 #include <thread>
 
 #include <eigen3/Eigen/Dense>
 
+#include <common/common.hpp>
 #include <common/macros.hpp>
 #include <camera/camera.hpp>
 #include <camera/camera_pose_filter.hpp>
@@ -22,12 +24,13 @@ class CameraThread {
 public:
 
   POINTER_TYPEDEF(CameraThread);
-  enum class Team { UNKNOWN, YELLOW, PURPLE};
-  CameraThread(
-    Eigen::Affine3d const& T_WM,
-    Eigen::Affine3d const& T_RC,
-    Eigen::Matrix<double,6,6> const& cov_T_RC,
-    Camera::UniquePtr camera);
+  struct Params {
+    Eigen::Affine3d T_WM;
+    Eigen::Affine3d T_RC;
+    Eigen::Matrix<double,6,6> cov_T_RC;
+    Camera::UniquePtr camera_ptr;
+  }; // struct Params
+  CameraThread(Params& params);
   virtual ~CameraThread();
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -35,7 +38,7 @@ public:
 
   inline void join();
   void getMarkers(common::MarkerIdToEstimate* estimates) const;
-  void setTeam(Team team) const;
+  void setTeam(common::Team team) const;
 
 private:
 
@@ -59,7 +62,8 @@ private:
 
   // Thread
   mutable std::mutex mutex_;
-  mutable std::unique_ptr<Team> team_ptr_ = nullptr;
+  mutable std::condition_variable condition_;
+  mutable std::unique_ptr<common::Team> team_ptr_ = nullptr;
   common::MarkerIdToEstimate marker_id_to_estimate_;
   std::unique_ptr<std::thread> thread_ptr_;
 

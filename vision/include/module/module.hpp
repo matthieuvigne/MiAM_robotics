@@ -43,7 +43,6 @@ public:
 
   POINTER_TYPEDEF(Module);
   DISALLOW_EVIL_CONSTRUCTORS(Module);
-  Module(std::string const& filename);
   Module(ModuleParams const& params);
   virtual ~Module();
   

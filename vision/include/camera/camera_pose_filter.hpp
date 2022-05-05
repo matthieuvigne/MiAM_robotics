@@ -3,6 +3,7 @@
 
 #include <eigen3/Eigen/Dense>
 
+#include <common/common.hpp>
 #include <common/macros.hpp>
 
 namespace camera {
@@ -16,14 +17,13 @@ class CameraPoseFilter {
 public:
 
   POINTER_TYPEDEF(CameraPoseFilter);
-  enum class Team { UNKNOWN, YELLOW, PURPLE};
   struct Params {
-    Team team;
+    common::Team team;
     Eigen::Affine3d T_WC;
     Eigen::Affine3d T_RC;
     Eigen::Matrix<double,6,6> cov_TRC;
     Eigen::Matrix<double,6,6> cov_TWC;
-    static Params getDefaultParams(Team team);
+    static Params getDefaultParams(common::Team team);
   }; // struct Params
 
 public:
@@ -83,7 +83,7 @@ public:
 private:
 
   // Team
-  Team team_;
+  common::Team team_;
 
   // Filter state and covariance
   Eigen::Affine3d T_WC_;

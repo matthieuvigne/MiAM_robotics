@@ -43,7 +43,7 @@ CameraPoseFilter::CameraPoseFilter(
 // Methods
 //--------------------------------------------------------------------------------------------------
 
-CameraPoseFilter::Params CameraPoseFilter::Params::getDefaultParams(Team team)
+CameraPoseFilter::Params CameraPoseFilter::Params::getDefaultParams(common::Team team)
 {
   Params params;
   
@@ -59,17 +59,17 @@ CameraPoseFilter::Params CameraPoseFilter::Params::getDefaultParams(Team team)
   // Pose of the camera wrt. the global frame
   switch(params.team)
   {
-    case Team::UNKNOWN:
+    case common::Team::UNKNOWN:
       params.T_WC = Eigen::Translation3d(1.50,1.80,1.00)
         * Eigen::AngleAxisd(M_PI,Eigen::Vector3d::UnitZ())
         * Eigen::AngleAxisd(-3*M_PI_4,Eigen::Vector3d::UnitX());
       break;
-    case Team::PURPLE:
+    case common::Team::PURPLE:
       params.T_WC = Eigen::Translation3d(1.60,1.80,1.00)
         * Eigen::AngleAxisd(M_PI,Eigen::Vector3d::UnitZ())
         * Eigen::AngleAxisd(-3*M_PI_4,Eigen::Vector3d::UnitX());
       break;
-    case Team::YELLOW:
+    case common::Team::YELLOW:
       params.T_WC = Eigen::Translation3d(1.40,1.80,1.00)
         * Eigen::AngleAxisd(M_PI,Eigen::Vector3d::UnitZ())
         * Eigen::AngleAxisd(-3*M_PI_4,Eigen::Vector3d::UnitX());

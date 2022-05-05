@@ -25,7 +25,7 @@ public:
   DISALLOW_EVIL_CONSTRUCTORS(Message);
 
 public:
-  Message(MessageType type);
+  Message(MessageType type, std::shared_ptr<void> params = nullptr);
   Message(std::string const& message);
   virtual ~Message(){}
 
@@ -33,15 +33,19 @@ public:
   bool serialize(std::string* message) const;
   bool deserialize(std::string const& message);
   inline MessageType getType() const;
-  inline void const* getParams() const;
+  template<typename T> T const& getParamsAs() const;
+  template<typename T> T const* getParamsPtrAs() const;
   inline static MessageType deserializeType(std::string const& message);
 
 protected:
+  template<typename T> T& getParamsAs();
+  template<typename T> T* getParamsPtrAs();
   virtual bool serializeParams(std::vector<char>* params) const = 0;
   virtual bool deserializeParams(std::vector<char> const& params) = 0;
 
 protected:
   MessageType type_ = MessageType::UNKNOWN;
+  int64_t timestamp_ns_ = 0;
   std::shared_ptr<void> params_ = nullptr;
 
 }; // class Message
@@ -57,9 +61,40 @@ MessageType Message::getType() const
 
 //--------------------------------------------------------------------------------------------------
 
-void const* Message::getParams() const
+template<typename T>
+T* Message::getParamsPtrAs()
 {
-  return params_.get();
+  return static_cast<T*>(params_.get());
+}
+
+//--------------------------------------------------------------------------------------------------
+
+template<typename T>
+T const* Message::getParamsPtrAs() const
+{
+  return static_cast<T const*>(params_.get());
+}
+
+//--------------------------------------------------------------------------------------------------
+
+template<typename T>
+T& Message::getParamsAs()
+{
+  CHECK_NOTNULL(params_.get());
+  T* result = getParamsPtrAs<T>();
+  CHECK_NOTNULL(result);
+  return *result;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+template<typename T>
+T const& Message::getParamsAs() const
+{
+  CHECK_NOTNULL(params_.get());
+  T const* result = getParamsPtrAs<T>();
+  CHECK_NOTNULL(result);
+  return *result;
 }
 
 //--------------------------------------------------------------------------------------------------

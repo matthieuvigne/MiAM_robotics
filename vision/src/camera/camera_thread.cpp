@@ -16,25 +16,21 @@ namespace camera {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-CameraThread::CameraThread(
-  Eigen::Affine3d const& T_WM,
-  Eigen::Affine3d const& T_RC,
-  Eigen::Matrix<double,6,6> const& cov_T_RC,
-  Camera::UniquePtr camera_ptr)
-: T_WM_       (T_WM),
-  T_RC_       (T_RC),
-  cov_T_RC_   (cov_T_RC),
-  camera_ptr_ (std::move(camera_ptr))
+CameraThread::CameraThread(Params& params)
+: T_WM_       (params.T_WM),
+  T_RC_       (params.T_RC),
+  cov_T_RC_   (params.cov_T_RC),
+  camera_ptr_ (std::move(params.camera_ptr))
 {
-  //~ pose_filter_ptr_.reset(new CameraPoseFilter(T_WM, T_RC, cov_T_RC));
-  thread_ptr_.reset(new std::thread([=](){this->runThread();}));
+  pose_filter_ptr_ = nullptr;
+  thread_ptr_.reset(new std::thread([=](){runThread();}));
 }
 
 //--------------------------------------------------------------------------------------------------
 
 CameraThread::~CameraThread()
 {
-  this->thread_ptr_->join();
+  thread_ptr_->join();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -55,24 +51,21 @@ void CameraThread::runThread()
   while(true)
   {
     // Check if the client has sent a team indication
-    // [TODO] REPLACE WITH A CONDITION VARIABLE
-    mutex_.lock();
-    Team team = Team::UNKNOWN;
+    std::unique_lock<std::mutex> locker(mutex_);
+    condition_.wait(locker, [&](){ return (pose_filter_ptr_!=nullptr) or (team_ptr_!=nullptr);});
     if(team_ptr_)
     {
-        team = *team_ptr_;
-        team_ptr_ = nullptr;
+      common::Team team = *std::move(team_ptr_);
+      CameraPoseFilter::Params filter_params = CameraPoseFilter::Params::getDefaultParams(team);
+      pose_filter_ptr_.reset(new CameraPoseFilter(filter_params));
     }
-    mutex_.unlock();
-    CameraPoseFilter::Team cam_team;
-    if(team == Team::PURPLE) cam_team = CameraPoseFilter::Team::PURPLE;
-    else cam_team = CameraPoseFilter::Team::YELLOW;
-    CameraPoseFilter::Params filter_params = CameraPoseFilter::Params::getDefaultParams(cam_team);
-    pose_filter_ptr_.reset(new CameraPoseFilter(filter_params));
+    locker.unlock();
+    // [TODO] INITIALIZE the filter (read the filter's indicator).
+    // Really needs a condition variable ?
 
     // Rotate the camera and propagate the pose camera filter
     double const wy = increment_angle_deg_*RAD;
-    double constexpr cov_wy = 1.0*RAD;
+    double constexpr cov_wy = 1.0*RAD; // <- depends on the initialization
     #if USE_TEST_BENCH
     TEST_BENCH_PTR->rotateCamera(0.0, wy, 0.0);
     double const cam_rotation_time_sec = TEST_BENCH_PTR->getCameraRotationTime(wy);
@@ -178,16 +171,18 @@ void CameraThread::getMarkers(common::MarkerIdToEstimate* estimates_ptr) const
 {
   common::MarkerIdToEstimate& estimates = *estimates_ptr;
   estimates.clear();
-  std::lock_guard<std::mutex> const lock(this->mutex_);
-  estimates.insert(this->marker_id_to_estimate_.cbegin(), this->marker_id_to_estimate_.cend());
+  std::lock_guard<std::mutex> lock(mutex_);
+  estimates.insert(marker_id_to_estimate_.cbegin(), marker_id_to_estimate_.cend());
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void CameraThread::setTeam(Team team) const
+void CameraThread::setTeam(common::Team team) const
 {
-  std::lock_guard<std::mutex> const lock(mutex_);
-  team_ptr_.reset(new Team(team));
+  mutex_.lock();
+  team_ptr_.reset(new common::Team(team));
+  mutex_.unlock();
+  condition_.notify_one();
 }
 
 //--------------------------------------------------------------------------------------------------
