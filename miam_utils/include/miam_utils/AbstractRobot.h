@@ -12,6 +12,7 @@
 
     #include <memory>
     #include <vector>
+    #include <mutex>
 
     /// \brief Class representing the robot wheeled base.
     /// \details This class simply centralizes variables linked to robot motion.
@@ -48,7 +49,9 @@
             ///          and returns immediately: use waitForTrajectoryFinish
             ///
             /// \param[in] trajectories Vector of trajectory to follow.
-            virtual bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories);
+            /// \param[in] matchEndLock If set, this trajectory cannot be overwritten.
+            virtual bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories,
+                                               bool const& matchEndLock = false);
 
             /// \brief Wait for the current trajectory following to be finished.
             /// \return true if trajectory following was successful, false otherwise.
@@ -104,5 +107,6 @@
             double matchStartTime_;   ///< Start time of the match, for end timer.
 
             bool wasTrajectoryFollowingSuccessful_; ///< Flag describing the success of the trajectory following process.
+            std::mutex newTrajectoryMutex_;
     };
  #endif

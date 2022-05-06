@@ -33,6 +33,7 @@
     #include "ServoHandler.h"
     #include "LoggerFields.h"
     #include "RobotInterface.h"
+    #include "Strategy.h"
 
     // Right and left macros, for array addressing.
     int const RIGHT = 0;
@@ -55,16 +56,15 @@
     {
         //~ double const transverseKp = 0.1;
 
-        double const linearKp = 3.0;
-        //~ double const linearKp = 0.0;
-        double const linearKd = 0.0;
+        double const linearKp = 4.0;
+        double const linearKd = 0.02;
         double const linearKi = 0.1;
 
-        double const transverseKp = 0.005;
+        double const transverseKp = 0.006;
 
-        double const rotationKp = 10.0;
+        double const rotationKp = 12.0;
         //~ double const rotationKp = 0.0;
-        double const rotationKd = 0.01;
+        double const rotationKd = 0.02;
         double const rotationKi = 0.0;
 
         double const railKp = 20.0;
@@ -259,6 +259,7 @@
             double rangeMeasurements_[2] = {0, 0};
             void updateRangeMeasurement(); // Range measurement thread
 
+            Strategy strategy_;
     };
 
     extern Robot robot;    ///< The robot instance, representing the current robot.

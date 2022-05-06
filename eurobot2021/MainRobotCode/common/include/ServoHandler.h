@@ -34,8 +34,7 @@
             FOLD = 0,
             HORIZONTAL = 1,
             DROP_SAMPLE = 2,
-            DROP_FAKE_STATUE = 3,
-            HOLD_FAKE_STATUE = 4,
+            DROP_STATUE = 4,
             LOWER_SAMPLE = 5,
             VERTICAL = 6
         };

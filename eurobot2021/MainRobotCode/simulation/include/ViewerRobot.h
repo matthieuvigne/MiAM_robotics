@@ -13,13 +13,12 @@
     #include "RobotInterface.h"
     #include "ServoHandler.h"
     #include "MaestroMock.h"
+    #include "Strategy.h"
 
     // Replay timestep.
     static double const TIMESTEP = 0.01;
 
     using miam::RobotPosition;
-
-    typedef std::function<void(RobotInterface *, ServoHandler *)> strategyFunction_t;
 
     struct ViewerTrajectoryPoint{
         double time;
@@ -46,8 +45,7 @@
         public:
             /// \brief Constructor.
             ViewerRobot(std::string const& imageFileName,
-                        strategyFunction_t const& setupFunction,
-                        strategyFunction_t const& strategyFunction,
+                        Strategy const& strategy,
                         double const& r = 1.0, double const& g = 0.0, double const& b = 0.0);
 
             /// \brief Get current robot position.
@@ -58,7 +56,7 @@
 
             /// \brief Mock trajectory following.
             /// \details Returns true on succes, false if obstacle was encounterd.
-            bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories) override;
+            bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories, bool const&) override;
 
             /// \brief Mock trajectory following.
             /// \details Returns true on succes, false if obstacle was encounterd.
@@ -78,7 +76,6 @@
 
             ///< Function computing the strategy, for a given obstacle position.
             void recomputeStrategy(int const& obstacleX, int const& obstacleY, int const& obstacleSize, bool const& isPlayingRightSide);
-
 
             ///< Increment robot score.
             void updateScore(int const& scoreIncrement) override;
@@ -106,9 +103,7 @@
 
         private:
             bool followTrajectory(miam::trajectory::Trajectory * traj); ///< Perform actual trajectory following.
-
-            strategyFunction_t const setupFunction_;
-            strategyFunction_t const strategyFunction_;
+            Strategy strategy_;
             ServoHandler handler_;
             MaestroMock servoMock_;
             std::vector<ViewerTrajectoryPoint> trajectory_;

@@ -38,7 +38,7 @@ int main (int argc, char *argv[])
     // Create handler.
     Viewer *viewer = nullptr;
     refBuilder->get_widget_derived("mainWindow", viewer, "./config/tableAgeOfBots.png");
-    ViewerRobot mainRobot("./config/mainRobotAgeOfBots.png", setupRobot, matchStrategy);
+    ViewerRobot mainRobot("./config/mainRobotAgeOfBots.png", Strategy());
     viewer->addRobot(mainRobot);
 
     return app->run(*viewer);

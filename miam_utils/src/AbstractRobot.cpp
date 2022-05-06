@@ -46,10 +46,13 @@ void AbstractRobot::resetPosition(miam::RobotPosition const& resetPosition, bool
 }
 
 
-bool AbstractRobot::setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories)
+bool AbstractRobot::setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories, bool const& matchEndLock)
 {
+    newTrajectoryMutex_.lock();
     newTrajectories_ = trajectories;
     wasTrajectoryFollowingSuccessful_ = true;
+    if (!matchEndLock)
+        newTrajectoryMutex_.unlock();
     return true;
 }
 

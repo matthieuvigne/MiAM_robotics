@@ -6,11 +6,9 @@
 
 
 ViewerRobot::ViewerRobot(std::string const& imageFileName,
-                         strategyFunction_t const& setupFunction,
-                         strategyFunction_t const& strategyFunction,
+                         Strategy const& strategy,
                          double const& r, double const& g, double const& b):
-    setupFunction_(setupFunction),
-    strategyFunction_(strategyFunction),
+    strategy_(strategy),
     handler_(&servoMock_),
     r_(r),
     g_(g),
@@ -82,9 +80,7 @@ bool ViewerRobot::followTrajectory(miam::trajectory::Trajectory *traj)
     return true;
 }
 
-
-
-bool ViewerRobot::setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories)
+bool ViewerRobot::setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories, bool const&)
 {
     trajectoryFollowingStatus_ = true;
     for(std::shared_ptr<miam::trajectory::Trajectory> t: trajectories)
@@ -286,8 +282,8 @@ void ViewerRobot::recomputeStrategy(int const& obstacleX, int const& obstacleY, 
     servoMock_.init("", 0);
     clearScore();
     isRobotPositionInit_ = false;
-    setupFunction_(this, &this->handler_);
-    strategyFunction_(this, &this->handler_);
+    strategy_.setup(this, &this->handler_);
+    strategy_.match();
 }
 
 

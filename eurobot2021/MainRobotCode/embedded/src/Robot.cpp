@@ -7,7 +7,6 @@
 #include <iomanip>
 
 #include "Robot.h"
-#include "Strategy.h"
 
 // Update loop frequency
 const double LOOP_PERIOD = 0.005;
@@ -53,6 +52,8 @@ Robot::Robot(bool const& testMode, bool const& disableLidar):
     char timestamp[100];
     std::strftime(timestamp, sizeof(timestamp), "%Y%m%dT%H%M%SZ", std::localtime(&t));
     std::string filename = "logs/log" + std::string(timestamp) + ".csv";
+    if (testMode_)
+        filename = "/tmp/log" + std::string(timestamp) + ".csv";
     std::string headers = getHeaderStringList();
     // Log robot dimensions in header.
     std::string info = "wheelRadius:" + std::to_string(robotdimensions::wheelRadius) + \
@@ -246,7 +247,9 @@ bool Robot::setupBeforeMatchStart()
             screen_.setText("", 1);
             screen_.setLCDBacklight(255, 255, 255);
             calibrateRail();
-            setupRobot(this, &(this->servos_));
+
+            strategy_.setup(this, &this->servos_);
+
             // Set status.
             stepperMotors_.getError();
             microcontrollerData_ = uCListener_getData();
@@ -296,7 +299,7 @@ bool Robot::setupBeforeMatchStart()
         {
             initStatueHigh_ = !initStatueHigh_;
             if (initStatueHigh_)
-                moveRail(0.65);
+                moveRail(0.68);
             else
                 moveRail(0.5);
         }
@@ -382,7 +385,7 @@ void Robot::lowLevelLoop()
                 matchStartTime_ = currentTime_;
                 metronome.resetLag();
                 // Start strategy thread.
-                strategyThread = std::thread(&matchStrategy, static_cast<RobotInterface*>(this), &servos_);
+                strategyThread = std::thread(&Strategy::match, strategy_);
                 strategyThread.detach();
                 // Start range aquisition
                 std::thread measureThread = std::thread(&Robot::updateRangeMeasurement, this);
