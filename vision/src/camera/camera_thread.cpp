@@ -72,7 +72,7 @@ void CameraThread::runThread()
     double const cam_rotation_time_sec = TEST_BENCH_PTR->getCameraRotationTime(dtheta_deg*RAD);
     std::this_thread::sleep_for(std::chrono::duration<double>(cam_rotation_time_sec));
     #else
-    incrementCameraAngle(camera_angle, increment_angle_deg_);
+    incrementCameraAngle(camera_angle_deg_, increment_angle_deg_);
     #endif
     pose_filter_ptr_->predict(dtheta_deg*RAD);
 
@@ -161,7 +161,7 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
   #else
   rotateCameraToAnglePosition(new_angle);
   #endif
-  
+
   // Set the new camera angle
   camera_angle = new_angle;
 }

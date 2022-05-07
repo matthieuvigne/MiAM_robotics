@@ -178,16 +178,16 @@ void Strategy::match()
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = 1200;
-    targetPosition.y = 800 ;
+    targetPosition.y = 800;
     positions.push_back(targetPosition);
-    targetPosition.x = 1000;
-    targetPosition.y = 550 ;
+    targetPosition.x = 950;
+    targetPosition.y = 650;
     positions.push_back(targetPosition);
-    targetPosition.x = 600;
-    targetPosition.y = 375 ;
+    targetPosition.x = 450;
+    targetPosition.y = 450;
     positions.push_back(targetPosition);
-    targetPosition.x = 420 ;
-    targetPosition.y = 300 ;
+    targetPosition.x = 360;
+    targetPosition.y = 360;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
@@ -199,7 +199,7 @@ void Strategy::match()
     servo->moveClaw(claw::SIDE);
     (void) robot->waitForTrajectoryFinished();
     robot->updateScore(15);
-    servo->moveClaw(claw::FRONT);
+    servo->moveClaw(claw::FOLD);
 
     //**********************************************************
     // Flip the dig zone

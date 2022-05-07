@@ -39,7 +39,6 @@ void Strategy::handleStatue()
     servo->activateMagnet(true);
     robot->wait(0.6);
     std::cout << robot->getCurrentPosition() << std::endl;
-    while(true) ;;
     servo->moveStatue(statue::TRANSPORT);
     robot->updateScore(5);
 
@@ -267,8 +266,11 @@ void Strategy::handleDigZone()
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
-    targetPosition.x -= 100 * std::cos(targetPosition.theta);
-    targetPosition.y -= 100 * std::sin(targetPosition.theta);
+    targetPosition.x -= 40 * std::cos(targetPosition.theta);
+    targetPosition.y -= 40 * std::sin(targetPosition.theta);
+    positions.push_back(targetPosition);
+    targetPosition.x = 600;
+    targetPosition.y = site_y;
     positions.push_back(targetPosition);
     targetPosition.x = 620;
     targetPosition.y = site_y;
