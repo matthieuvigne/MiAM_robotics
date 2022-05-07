@@ -16,12 +16,10 @@ namespace camera {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-CameraThread::CameraThread(Params& params)
-: T_WM_       (params.T_WM),
-  T_RC_       (params.T_RC),
-  cov_T_RC_   (params.cov_T_RC),
-  camera_ptr_ (std::move(params.camera_ptr))
+CameraThread::CameraThread()
 {
+  camera::Camera::Params const camera_params = camera::Camera::Params::getDefaultParams();
+  camera_ptr_.reset(new camera::Camera(camera_params));
   pose_filter_ptr_ = nullptr;
   thread_ptr_.reset(new std::thread([=](){runThread();}));
 }

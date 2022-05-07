@@ -148,26 +148,21 @@ bool Camera::detectMarkers(
   common::DetectedMarkerList* detected_markers_ptr
 ) const
 {
-  // Check the inputs
-  assert(detected_markers_ptr != NULL);
-
   // Get all the markers on the image
+  CHECK_NOTNULL(detected_markers_ptr);
   std::vector<int> detected_marker_ids;
   std::vector<std::vector<cv::Point2f>> marker_corners;
   std::vector<std::vector<cv::Point2f>> rejected_candidates;
   cv::Ptr<cv::aruco::DetectorParameters> parameters = cv::aruco::DetectorParameters::create();
-  cv::aruco::detectMarkers(image, this->dictionary_, marker_corners, detected_marker_ids,
-    this->detector_params_, rejected_candidates);
+  cv::aruco::detectMarkers(image, dictionary_, marker_corners, detected_marker_ids,
+    detector_params_, rejected_candidates);
 
   // Estimate the relative pose of the markers w.r.t. the camera
-  // Marker corners are returned with the top-left corner first <- TO CHECK
-  std::vector<cv::Vec3d> rvecs, tvecs;
-  double constexpr marker_length = 0.05;
+  // Marker corners are returned with the top-left corner first
+  // Beware: the central marker has different dimensions than the regular markers
   cv::Mat camera_matrix, distortion_coeffs;
-  this->distortion_->getDistortionCoeffs(&distortion_coeffs);
-  this->getCameraMatrix(&camera_matrix);
-  cv::aruco::estimatePoseSingleMarkers(marker_corners, marker_length,
-    camera_matrix, distortion_coeffs, rvecs, tvecs);
+  distortion_->getDistortionCoeffs(&distortion_coeffs);
+  getCameraMatrix(&camera_matrix);
 
   // Compute the covariance matrix for all detected markers
   typedef Eigen::Matrix<double,6,6,Eigen::RowMajor> Matrix6d;
@@ -177,10 +172,14 @@ bool Camera::detectMarkers(
     // Initialize the structure
     common::DetectedMarker marker;
     marker.marker_id = static_cast<common::MarkerId>(detected_marker_ids[marker_idx]);
+    double const marker_length = (marker_idx==42) ? 0.10 : 0.05;
 
-    // Get the marker's estimated relative pose
-    Eigen::Map<Eigen::Vector3d> C_t_CM((double*) tvecs[marker_idx].val);
-    Eigen::Map<Eigen::Vector3d> rvec((double*) rvecs[marker_idx].val);
+    // Estimate the marker pose
+    cv::Vec3d rvecs, tvecs;
+    cv::aruco::estimatePoseSingleMarkers(marker_corners[marker_idx], marker_length,
+      camera_matrix, distortion_coeffs, rvecs, tvecs);
+    Eigen::Map<Eigen::Vector3d> C_t_CM((double*) tvecs.val);
+    Eigen::Map<Eigen::Vector3d> rvec((double*) rvecs.val);
     double const angle = rvec.norm();
     Eigen::Vector3d const axis = rvec.normalized();
     Eigen::Matrix3d const R_CM = Eigen::AngleAxisd(angle,axis).toRotationMatrix();
@@ -192,7 +191,8 @@ bool Camera::detectMarkers(
     // Get the marker's corner image coordinates
     int constexpr num_corners = 4;
     std::vector<cv::Point2f> const& corners = marker_corners[marker_idx];
-    if(corners.size() != num_corners) throw "Wrong number of corners!";
+    if(corners.size() != num_corners)
+      throw std::runtime_error("Wrong number of corners!");
 
     // Initialize the Fisher Information Matrix
     Eigen::Matrix<double,6,6> information_matrix = Eigen::Matrix<double,6,6>::Zero();
@@ -204,17 +204,17 @@ bool Camera::detectMarkers(
       Eigen::Vector3d M_p_Ci;
       switch(corner_idx)
       {
-        case 0:
-          M_p_Ci = Eigen::Vector3d(-marker_length/2.,marker_length/2.,0);
+        case 0: // top-left corner
+          M_p_Ci = Eigen::Vector3d(0,0,0);
           break;
-        case 1:
-          M_p_Ci = Eigen::Vector3d(marker_length/2.,marker_length/2.,0);
+        case 1: // top-right corner
+          M_p_Ci = Eigen::Vector3d(marker_length,0,0);
           break;
-        case 2:
-          M_p_Ci = Eigen::Vector3d(marker_length/2.,-marker_length/2.,0);
+        case 2: // bottom-right corner
+          M_p_Ci = Eigen::Vector3d(marker_length,marker_length,0);
           break;
-        case 3:
-          M_p_Ci = Eigen::Vector3d(-marker_length/2.,-marker_length/2.,0);
+        case 3: // bottom-left corner
+          M_p_Ci = Eigen::Vector3d(0,marker_length,0);
           break;
       }
 
@@ -296,7 +296,6 @@ Camera::Params Camera::Params::getDefaultParams()
   params.intrinsics[camera::Camera::Params::CX]     =  542.308;
   params.intrinsics[camera::Camera::Params::CY]     =  476.351;
   params.distortion_model = camera::DistortionModel::Type::NoDistortion;
-  //~ camera_params.distortion_coeffs = {0.332, -1.130, 0.002, -0.031, 1.429};
   params.distortion_coeffs = {0., 0., 0., 0., 0.};
   params.pose = Eigen::Affine3d::Identity();
   return params;

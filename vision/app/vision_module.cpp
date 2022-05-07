@@ -22,8 +22,7 @@ int main(int argc, char* argv[])
   #endif
 
   // Initialize the vision module (launches the internal camera and server threads)
-  module::ModuleParams parameters = module::ModuleParams::getDefaultParams();
-  module::Module::UniquePtr module_ptr(new module::Module(parameters));
+  module::Module::UniquePtr module_ptr(new module::Module);
   module_ptr->join();
   return EXIT_SUCCESS;
 }

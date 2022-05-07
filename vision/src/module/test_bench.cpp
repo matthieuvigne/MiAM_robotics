@@ -1,3 +1,4 @@
+#include <common/common.hpp>
 #include <common/logger.hpp>
 #include <common/pose_gaussian_sampler.hpp>
 #include <common/pose_uniform_sampler.hpp>
@@ -25,8 +26,8 @@ TestBench::Options TestBench::Options::getDefaultOptions()
     * Eigen::AngleAxisd(3*M_PI_4, Eigen::Vector3d::UnitX());
   options.TRC = Eigen::Translation3d(0.0, 0.0, 0.0)
     * Eigen::AngleAxisd(M_PI_4, Eigen::Vector3d::UnitY());
-  options.TWM = Eigen::Translation3d(1.5,1.0,0.0)
-    * Eigen::AngleAxisd();
+  options.TWM = common::getTWM();
+
   return options;
 }
 

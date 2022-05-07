@@ -1,9 +1,12 @@
+#include <common/common.hpp>
 #include <common/logger.hpp>
 #include <camera/camera_pose_filter.hpp>
 
 #define NUM_REQUIRED_UPDATES 10
 
 namespace camera {
+
+// Mauvais repère, pas la même taille pour le 42
 
 //--------------------------------------------------------------------------------------------------
 // Constructors and destructors
@@ -17,7 +20,7 @@ CameraPoseFilter::CameraPoseFilter(Params const& params)
   elevation_deg_        (45.0),
   sigma_elevation_deg_  (params.sigma_elevation_deg),
   qWR_                  (initializeQwr()),
-  TWM_                  (Eigen::Translation3d(1.5,1.0,0.0)*Eigen::AngleAxisd()),
+  TWM_                  (common::getTWM()),
   is_initialized_       (false),
   num_updates_          (0)
 {}
@@ -114,7 +117,8 @@ void CameraPoseFilter::update(
 {
   // Predict the measurement
   Eigen::Affine3d const TWC = getTWC();
-  Eigen::Affine3d const TRC = Eigen::Translation3d() * getQrc(azimuth_deg_, elevation_deg_);
+  Eigen::Affine3d const TRC = Eigen::Translation3d(Eigen::Vector3d::Zero())
+    * getQrc(azimuth_deg_, elevation_deg_);
   Eigen::Affine3d const TWR = Eigen::Translation3d(WpC_) * qWR_;
   Eigen::Affine3d const predicted_TCM = TRC.inverse() * TWR.inverse() * TWM_;
   

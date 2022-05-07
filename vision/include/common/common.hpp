@@ -1,6 +1,8 @@
 #ifndef COMMON_COMMON_HPP
 #define COMMON_COMMON_HPP
 
+#include <eigen3/Eigen/Dense>
+
 namespace common {
 
 enum class Team {
@@ -8,6 +10,8 @@ enum class Team {
   PURPLE,
   YELLOW
 }; // enum class Team
+
+Eigen::Affine3d getTWM();
 
 } // namespace common
 

@@ -24,13 +24,7 @@ class CameraThread {
 public:
 
   POINTER_TYPEDEF(CameraThread);
-  struct Params {
-    Eigen::Affine3d T_WM;
-    Eigen::Affine3d T_RC;
-    Eigen::Matrix<double,6,6> cov_T_RC;
-    Camera::UniquePtr camera_ptr;
-  }; // struct Params
-  CameraThread(Params& params);
+  CameraThread();
   virtual ~CameraThread();
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -49,11 +43,8 @@ private:
 private:
 
   // Camera and pose estimation filter
-  Eigen::Affine3d T_WM_; ///< Relative pose from world to central marker
-  Eigen::Affine3d T_RC_; ///< Relative pose from reference to camera
-  Eigen::Matrix<double,6,6> cov_T_RC_; /// Relative pose covariance
-  Camera::UniquePtr camera_ptr_; ///< Camera
-  CameraPoseFilter::UniquePtr pose_filter_ptr_; ///< Camera pose filter
+  Camera::UniquePtr camera_ptr_;
+  CameraPoseFilter::UniquePtr pose_filter_ptr_;
 
   // Camera rotation
   double camera_angle_deg_ = 0.0;
