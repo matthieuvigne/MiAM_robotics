@@ -42,7 +42,8 @@ public:
   double getCameraRotationTime(double angle_rad);
 
   // Simulation of the test bench
-  void rotateCamera(double wx_rad, double wy_rad, double wz_rad);
+  //~ void rotateCamera(double wx_rad, double wy_rad, double wz_rad);
+  void rotateCamera(double dtheta_rad);
   void rotateCameraToAnglePosition(double angle_rad); 
   void detectMarkers(common::DetectedMarkerList* detected_markers, Mode mode = Mode::NOISY);
 

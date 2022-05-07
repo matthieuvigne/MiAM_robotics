@@ -41,7 +41,7 @@ void TestBench::init(Options const& options)
 
 TestBench::TestBench(Options const& options)
 {
-  LOGFILE << "Test Bench initialization";
+  CONSOLE << "Test Bench initialization";
 
   // Check this is the only test bench
   if(is_initialized_)
@@ -52,13 +52,13 @@ TestBench::TestBench(Options const& options)
   TWC_ = options.TWC;
   if(options.mode == Mode::NOISY)
     TWC_ = common::PoseGaussianSampler::sample(TWC_, options.TWCi_sigma_w, options.TWCi_sigma_t);
-  LOGFILE << "TWC:\n" << TWC_.matrix();
+  CONSOLE << "TWC:\n" << TWC_.matrix();
 
   // Initialize the transformation from the reference frame to the camera frame
   TRC_ = options.TRC;
   if(options.mode == Mode::NOISY)
     TRC_ = common::PoseGaussianSampler::sample(TRC_, options.TRC_sigma_w, options.TRC_sigma_t);
-  LOGFILE << "TRC:\n" << TRC_.matrix();
+  CONSOLE << "TRC:\n" << TRC_.matrix();
 
   // Initialize the central marker
   common::MarkerId const central_marker_id =
@@ -67,7 +67,7 @@ TestBench::TestBench(Options const& options)
   if(options.mode == Mode::NOISY)
     TWM = common::PoseGaussianSampler::sample(TWM, options.TWM_sigma_w, options.TWM_sigma_t);
   markers_.emplace(central_marker_id, TWM);
-  LOGFILE << "TWM:\n" << TWM.matrix();
+  CONSOLE << "TWM:\n" << TWM.matrix();
 
   // Sample the other sample markers
   common::PoseUniformSampler const marker_sampler(
@@ -80,7 +80,7 @@ TestBench::TestBench(Options const& options)
       common::Marker::sampleMarkerId(common::MarkerFamily::ROCK_SAMPLE);
     Eigen::Affine3d const TWS = marker_sampler.sample();
     markers_.emplace(marker_id, TWS);
-    LOGFILE << "Marker with id " << static_cast<int>(marker_id) << " -> TWS:\n" << TWS.matrix();
+    CONSOLE << "Marker with id " << static_cast<int>(marker_id) << " -> TWS:\n" << TWS.matrix();
   }
   
   // Set the process and measurement noise parameters
@@ -91,11 +91,11 @@ TestBench::TestBench(Options const& options)
 
 //--------------------------------------------------------------------------------------------------
 
-void TestBench::rotateCamera(double wx, double wy, double wz)
+void TestBench::rotateCamera(double dtheta_rad)
 {
   CHECK(is_initialized_);
   Eigen::Matrix<double,6,1> tau;
-  tau << wx, wy, wz, 0.0, 0.0, 0.0;
+  tau << 0.0, dtheta_rad, 0.0, 0.0, 0.0, 0.0;
   Eigen::Affine3d const TRkRkp1 = common::so3r3::expMap(tau);
   TWC_ = TWC_ * TRC_.inverse() * TRkRkp1 * TRC_;
 }

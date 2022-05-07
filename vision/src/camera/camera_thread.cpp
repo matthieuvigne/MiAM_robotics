@@ -50,30 +50,33 @@ void CameraThread::runThread()
   // Initialize the camera pose filter and get the measurements
   while(true)
   {
-    // Check if the client has sent a team indication
-    std::unique_lock<std::mutex> locker(mutex_);
-    condition_.wait(locker, [&](){ return (pose_filter_ptr_!=nullptr) or (team_ptr_!=nullptr);});
-    if(team_ptr_)
+    // Check if the client has sent an initialization message
+    if(pose_filter_ptr_ == nullptr)
     {
-      common::Team team = *std::move(team_ptr_);
-      CameraPoseFilter::Params filter_params = CameraPoseFilter::Params::getDefaultParams(team);
-      pose_filter_ptr_.reset(new CameraPoseFilter(filter_params));
+      CONSOLE << "Waiting to initialize the pose camera filter";
+      std::unique_lock<std::mutex> locker(mutex_);
+      condition_.wait(locker, [&](){ return (team_ptr_!=nullptr); });
+      if(team_ptr_)
+      {
+        common::Team team = *std::move(team_ptr_);
+        CameraPoseFilter::Params filter_params = CameraPoseFilter::Params::getDefaultParams(team);
+        pose_filter_ptr_.reset(new CameraPoseFilter(filter_params));
+      }
+      locker.unlock();
+      CONSOLE << "Pose camera filter initialized";
     }
-    locker.unlock();
-    // [TODO] INITIALIZE the filter (read the filter's indicator).
-    // Really needs a condition variable ?
+    CHECK_NOTNULL(pose_filter_ptr_);
 
     // Rotate the camera and propagate the pose camera filter
-    double const wy = increment_angle_deg_*RAD;
-    double constexpr cov_wy = 1.0*RAD; // <- depends on the initialization
+    double const dtheta_deg = (pose_filter_ptr_->isInitialized()) ? increment_angle_deg_ : 0.0;
     #if USE_TEST_BENCH
-    TEST_BENCH_PTR->rotateCamera(0.0, wy, 0.0);
-    double const cam_rotation_time_sec = TEST_BENCH_PTR->getCameraRotationTime(wy);
+    TEST_BENCH_PTR->rotateCamera(dtheta_deg*RAD);
+    double const cam_rotation_time_sec = TEST_BENCH_PTR->getCameraRotationTime(dtheta_deg*RAD);
     std::this_thread::sleep_for(std::chrono::duration<double>(cam_rotation_time_sec));
     #else
     incrementCameraAngle(camera_angle, increment_angle_deg_);
     #endif
-    pose_filter_ptr_->predict(wy, cov_wy, camera::CameraPoseFilter::Axis::Y);
+    pose_filter_ptr_->predict(dtheta_deg*RAD);
 
     // Take a picture and detect all the markers
     common::DetectedMarkerList detected_markers;
@@ -98,13 +101,13 @@ void CameraThread::runThread()
     }
 
     // Update the pose estimate of all the markers
-    Eigen::Affine3d const& T_WC = this->pose_filter_ptr_->getState();
-    Eigen::Matrix<double,6,6> const& cov_T_WC = this->pose_filter_ptr_->getStateCovariance();
+    Eigen::Affine3d const& T_WC = pose_filter_ptr_->getState();
+    Eigen::Matrix<double,6,6> const& cov_T_WC = pose_filter_ptr_->getStateCovariance();
     for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)
     {
       common::DetectedMarker const& detected_marker = *it;
       common::Marker marker_estimate(T_WC, cov_T_WC, detected_marker);
-      std::lock_guard<std::mutex> const lock(this->mutex_);
+      std::lock_guard<std::mutex> const lock(mutex_);
       marker_id_to_estimate_[marker_estimate.id] = marker_estimate;
     }
   }
@@ -154,7 +157,7 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
   // Move the camera to this new angle
   #if USE_TEST_BENCH
   double true_delta_angle = new_angle - camera_angle;
-  TEST_BENCH_PTR->rotateCamera(0.0, true_delta_angle*RAD, 0.0);
+  TEST_BENCH_PTR->rotateCamera(true_delta_angle*RAD);
   double const rot_time_sec = TEST_BENCH_PTR->getCameraRotationTime(true_delta_angle*RAD);
   std::this_thread::sleep_for(std::chrono::duration<double>(rot_time_sec));
   #else

@@ -1,5 +1,7 @@
-#include <common/maths.hpp>
+#include <common/logger.hpp>
 #include <camera/camera_pose_filter.hpp>
+
+#define NUM_REQUIRED_UPDATES 10
 
 namespace camera {
 
@@ -63,103 +65,13 @@ CameraPoseFilter::Params CameraPoseFilter::Params::getDefaultParams(common::Team
 
 //--------------------------------------------------------------------------------------------------
 
-void CameraPoseFilter::setStateAndCovariance(
-  InitType init_type,
-  Eigen::Affine3d const& T,
-  Eigen::Matrix<double,6,6> const cov_T)
-{
-  switch(init_type)
-  {
-
-    case InitType::T_WC:
-    {
-      // Initialize the pose
-      Eigen::Affine3d const& T_WC = T;
-      T_WC_ = T_WC;
-    
-      // Initialize the covariance matrix
-      Eigen::Matrix<double,6,6> const& cov_T_WC = cov_T;
-      cov_T_WC_ = cov_T_WC;
-      break;
-    }
-
-    case InitType::T_CM:
-    {
-      // Initialize the pose
-      Eigen::Affine3d const& T_CM = T;
-      Eigen::Affine3d const T_MC = T_CM.inverse();
-      T_WC_ = T_WM_ * T_MC;
-      
-      // Initialize the covariance matrix
-      Eigen::Matrix<double,6,6> const& cov_T_CM = cov_T;
-      Eigen::Matrix<double,6,6> const J_TWC_wrt_TMC =
-        common::so3r3::rightSe3ProductJacobian(T_WM_, T_MC);
-      Eigen::Matrix<double,6,6> const J_TMC_wrt_TCM =
-        common::so3r3::se3InverseJacobian(T_CM);
-      Eigen::Matrix<double,6,6> const J_TWC_wrt_TCM =
-        J_TWC_wrt_TMC * J_TMC_wrt_TCM;
-      cov_T_WC_ = J_TWC_wrt_TCM * cov_T_CM * J_TWC_wrt_TCM.transpose();
-      cov_T_WC_ *= 1.25;
-      break;
-    }
-    
-    default:
-      throw std::runtime_error("Unknown initialization type");
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
-
-///> Could still be optimized 
-void CameraPoseFilter::predict(
-  double dtheta_rad,
-  double cov_dtheta_rad,
-  Axis rotation_axis)
-{
-  Eigen::Vector3d rotation_vector_rad;
-  Eigen::Matrix3d rotation_covariance_rad = Eigen::Matrix3d::Zero();
-  switch(rotation_axis)
-  {
-    case Axis::X:
-      rotation_vector_rad = dtheta_rad * Eigen::Vector3d::UnitX();
-      rotation_covariance_rad(0,0) = cov_dtheta_rad;
-      break;
-    case Axis::Y:
-      rotation_vector_rad = dtheta_rad * Eigen::Vector3d::UnitY();
-      rotation_covariance_rad(1,1) = cov_dtheta_rad;
-      break;
-    case Axis::Z:
-      rotation_vector_rad = dtheta_rad * Eigen::Vector3d::UnitZ();
-      rotation_covariance_rad(2,2) = cov_dtheta_rad;
-      break;
-    default:
-      throw std::runtime_error("Unknown rotation axis");
-  }
-  return this->predict(rotation_vector_rad, rotation_covariance_rad);
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void CameraPoseFilter::predict(double wrx_rad, double sigma_wrx_rad,
-                               double wry_rad, double sigma_wry_rad,
-                               double wrz_rad, double sigma_wrz_rad)
-{
-  Eigen::Vector3d const w{wrx_rad, wry_rad, wrz_rad};
-  Eigen::Matrix3d const cov_w(Eigen::Vector3d(sigma_wrx_rad,sigma_wry_rad,sigma_wrz_rad)
-    .cwiseAbs2().asDiagonal());
-  return this->predict(w, cov_w);
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void CameraPoseFilter::predict(
-  Eigen::Vector3d const& dtheta_rad,
-  Eigen::Matrix3d const& cov_dtheta_rad)
+void CameraPoseFilter::predict(double dtheta_rad, double sigma_dtheta_rad)
 {
   // Computation of the intermediary poses
   
   Eigen::Affine3d const T_CR = T_RC_.inverse();
-  Eigen::Affine3d const T_Rk_Rkp1 = common::so3r3::expMap(dtheta_rad, Eigen::Vector3d::Zero());
+  Eigen::Vector3d const dthetas_rad{0., dtheta_rad, 0.};
+  Eigen::Affine3d const T_Rk_Rkp1 = common::so3r3::expMap(dthetas_rad, Eigen::Vector3d::Zero());
   Eigen::Affine3d const T_Ck_Ckp1 = T_CR * T_Rk_Rkp1 * T_RC_;
   Eigen::Affine3d const T_W_Ckp1 = T_WC_ * T_Ck_Ckp1;
   Eigen::Affine3d const T_W_Rk = T_WC_ * T_CR;
@@ -186,17 +98,17 @@ void CameraPoseFilter::predict(
     common::so3r3::leftSe3ProductJacobian(T_W_Rkp1, T_RC_);
   Eigen::Matrix<double,6,6> const J_TWRkp1_wrt_TRkRkp1 =
     common::so3r3::rightSe3ProductJacobian(T_W_Rk, T_Rk_Rkp1);
-  Eigen::Matrix3d const Jtheta = common::leftJacobianSO3(dtheta_rad);
+  Eigen::Matrix3d const Jtheta = common::leftJacobianSO3(dthetas_rad);
   Eigen::Matrix<double,6,3> J_TRkRkp1_wrt_dtheta = Eigen::Matrix<double,6,3>::Zero();
   J_TRkRkp1_wrt_dtheta.block<3,3>(0,0) = Jtheta;
   J_TRkRkp1_wrt_dtheta.block<3,3>(3,0) = common::skew(T_WC_.translation()) * Jtheta;
-  Eigen::Matrix<double,6,3> const J_TWCkp1_wrt_dtheta =
-    J_TWCkp1_wrt_T_WRkp1 * J_TWRkp1_wrt_TRkRkp1 * J_TRkRkp1_wrt_dtheta;
+  Eigen::Matrix<double,6,1> const J_TWCkp1_wrt_dtheta =
+    J_TWCkp1_wrt_T_WRkp1 * J_TWRkp1_wrt_TRkRkp1 * J_TRkRkp1_wrt_dtheta.col(1);
   
   // Prediction of the state and the covariance
   cov_T_WC_ = J_TWCkp1_wrt_TWCk * cov_T_WC_ * J_TWCkp1_wrt_TWCk.transpose() +
               J_TWCkp1_wrt_TRC * cov_T_RC_ * J_TWCkp1_wrt_TRC.transpose() +
-              J_TWCkp1_wrt_dtheta * cov_dtheta_rad * J_TWCkp1_wrt_dtheta.transpose();
+              J_TWCkp1_wrt_dtheta * std::pow(sigma_dtheta_rad,2) * J_TWCkp1_wrt_dtheta.transpose();
   T_WC_ = T_W_Ckp1;
 }
 
@@ -229,6 +141,13 @@ void CameraPoseFilter::update(
   // Update the state covariance matrix
   Eigen::Matrix<double,6,6> const I = Eigen::Matrix<double,6,6>::Identity();
   cov_T_WC_ = (I - K * J_TCM_wrt_TWC) * cov_T_WC_;
+  
+  // Decide whether the filter is initialized
+  if(!is_initialized_ && (++num_updates_==NUM_REQUIRED_UPDATES))
+  {
+    is_initialized_ = true;
+    CONSOLE << "Pose camera filter is initialized";
+  }
 }
 
 //--------------------------------------------------------------------------------------------------

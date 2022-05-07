@@ -48,7 +48,7 @@ Module::Module(ModuleParams const& params)
     server_thread_ptr_.reset(new network::ServerThread(port));
     server_thread_ptr_->setCameraThread(camera_thread_ptr_.get());
   } catch(network::SocketException const& e) {
-    std::cout << e.description() << std::endl;
+    CONSOLE << e.description();
   }
 }
 

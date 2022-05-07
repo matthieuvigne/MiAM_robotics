@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
   Eigen::Matrix<double,6,6> cov_TWC = Eigen::Matrix<double,6,6>::Identity();
   cov_TWC.block<3,3>(0,0) *= std::pow(sigma_r, 2.0);
   cov_TWC.block<3,3>(3,3) *= std::pow(sigma_t, 2.0);
-  filter.setStateAndCovariance(camera::CameraPoseFilter::InitType::T_WC, TWC_est, cov_TWC);
+  //~ filter.setStateAndCovariance(camera::CameraPoseFilter::InitType::T_WC, TWC_est, cov_TWC);
   CHECKLOG( filter.isCovarianceMatrixIsSymmetric(), "Covariance matrix is not symmetric" );
   std::cout << "True pose of the camera:\n" << TWC_true.matrix() << std::endl;
   std::cout << "Estimated pose of the camera:\n" << filter.getState().matrix() << std::endl;
@@ -116,7 +116,8 @@ int main(int argc, char* argv[])
     tau << 0., dw, 0., 0., 0., 0.;
     Eigen::Affine3d const TRkRkp1 = common::so3r3::expMap(tau);
     TWC_true = TWC_true * TRC_true.inverse() * TRkRkp1 * TRC_true;
-    filter.predict(camera_angle_step_rad, sigma_w, camera::CameraPoseFilter::Axis::Y);
+    //~ filter.predict(camera_angle_step_rad, sigma_w, camera::CameraPoseFilter::Axis::Y);
+    //~ filter.predict(camera_angle_step_rad, sigma_w, camera::CameraPoseFilter::Axis::Y);
     CHECKLOG( filter.isCovarianceMatrixIsSymmetric(), "Covariance matrix is not symmetric");
     
     // Update with measurements
