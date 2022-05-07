@@ -15,8 +15,8 @@ using namespace miam::trajectory;
 using miam::RobotPosition;
 
 
-// #define SKIP_TO_GRABBING_SAMPLES 1
-// #define SKIP_TO_PUSHING_SAMPLES 1
+#define SKIP_TO_GRABBING_SAMPLES 1
+#define SKIP_TO_PUSHING_SAMPLES 1
 // #define SKIP_TO_GRABBING_SAMPLES_SIDE_DIST 1
 
 // This function is responsible for trying to bring the robot back to base,
@@ -95,7 +95,7 @@ void Strategy::match()
     bool wasMoveSuccessful = true;
     robot->updateScore(2);
 
-    #ifndef SKIP_TO_GRABBING_SAMPLES
+#ifndef SKIP_TO_GRABBING_SAMPLES
 
     // Set initial position
     targetPosition.x = robotdimensions::CHASSIS_BACK;
@@ -158,6 +158,9 @@ void Strategy::match()
     //**********************************************************
     moveThreeSamples();
 
+    std::cout << robot->getCurrentPosition() << std::endl;
+    robot->wait(1000);
+
     #endif
 
     #ifndef SKIP_TO_GRABBING_SAMPLES_SIDE_DIST
@@ -199,6 +202,20 @@ void Strategy::match()
     servo->moveClaw(claw::SIDE);
     (void) robot->waitForTrajectoryFinished();
     robot->updateScore(15);
+
+    // move back and fold
+    // positions.clear();
+    targetPosition = robot->getCurrentPosition();
+    // positions.push_back(targetPosition);
+    // targetPosition.x -= 100 * std::cos(targetPosition.theta);
+    // targetPosition.y -= 100 * std::sin(targetPosition.theta);
+    // positions.push_back(targetPosition);
+    // traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
+    traj = computeTrajectoryStraightLine(targetPosition, -150);
+    robot->setTrajectoryToFollow(traj);
+
+    (void) robot->waitForTrajectoryFinished(); 
+
     servo->moveClaw(claw::FOLD);
 
     //**********************************************************
@@ -225,6 +242,7 @@ void Strategy::match()
     positions.push_back(targetPosition);
     targetPosition.x = 975;
     targetPosition.y = 600;
+    targetPosition.theta = -M_PI_2
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);

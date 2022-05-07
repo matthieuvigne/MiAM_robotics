@@ -584,7 +584,7 @@ void Robot::updateRangeMeasurement()
     // a flat surface, and look at the measurement value.
     // Don't forget to add robot width.
     // This offset thus integrates sensor position, sensor offset...
-    int const OFFSET[2] = {83, 75};
+    int const OFFSET[2] = {78, 75};
 
     // Perform average of last N values.
     #define N_AVG 3

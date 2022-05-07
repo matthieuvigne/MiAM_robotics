@@ -52,7 +52,7 @@ void ServoHandler::moveArm(bool const& rightArm, arm const& pose)
     {
         switch (pose)
         {
-            case arm::MEASURE: maestro_->setPosition(RIGHT_ARM, 1620); break;
+            case arm::MEASURE: maestro_->setPosition(RIGHT_ARM, 1645); break;
             case arm::RAISE: maestro_->setPosition(RIGHT_ARM, 1500); break;
             case arm::FOLD: maestro_->setPosition(RIGHT_ARM, 700); break;
             default: break;

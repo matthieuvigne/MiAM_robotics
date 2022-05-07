@@ -54,10 +54,15 @@ ExcavationSquareColor Strategy::testExcavationSite()
     robot->wait(0.8);
     ExcavationSquareColor const color = robot->getExcavationReadings(robot->isPlayingRightSide());
 
+    std::cout << "Mesured: " << static_cast<int>(color) << std::endl;
+
     if (shouldPushExcavationSite(color))
     {
+        std::cout << "Detected right color : push!" << std::endl;
         pushExcavationSite();
         robot->updateScore(5);
+    } else {
+        std::cout << "Wrong color" << std::endl;
     }
     servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
 

@@ -57,13 +57,14 @@ void Strategy::handleStatue()
     MOVE_OR_ABORT("handleStatue failed to complete");
 
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 20.0);
+    traj = computeTrajectoryStraightLine(targetPosition, 30.0);
     robot->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("handleStatue failed to complete");
 
     // Place fake statue
-    robot->moveRail(0.3);
+    robot->moveRail(0.2);
     servo->moveSuction(1, suction::DROP_STATUE);
+    robot->wait(0.5); // wait to avoid dropping too brutally
     dropElements();
     robot->wait(0.2);
     robot->updateScore(10);
@@ -71,10 +72,11 @@ void Strategy::handleStatue()
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -30.0);
     robot->setTrajectoryToFollow(traj);
-    MOVE_OR_ABORT("handleStatue failed to complete");
 
     robot->moveRail(0.8);
     servo->moveSuction(1, suction::HORIZONTAL);
+
+    MOVE_OR_ABORT("handleStatue failed to complete");
 
     //**********************************************************
     // Drop the real statue
@@ -177,25 +179,43 @@ void Strategy::handleSideTripleSamples()
         robot->wait(1.0);
         robot->moveRail(0.6);
         targetPosition = robot->getCurrentPosition();
-        traj = computeTrajectoryStraightLine(targetPosition, -60);
+        traj = computeTrajectoryStraightLine(targetPosition, -45);
         robot->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
 
+        // rotate -80 degres and move forward 70mm
         targetPosition = robot->getCurrentPosition();
-        positions.clear();
-        positions.push_back(targetPosition);
-        targetPosition.y += 70;
-        positions.push_back(targetPosition);
-        traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
+        traj.clear();
+        traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI * 80.0 / 180.0)));
         robot->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
-
+        targetPosition = robot->getCurrentPosition();
+        robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, 70));
+        MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         dropElements();
         robot->wait(0.3);
         servo->moveSuction(1, suction::LOWER_SAMPLE);
+
+        // inverse movement
         targetPosition = robot->getCurrentPosition();
         robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+        // targetPosition = robot->getCurrentPosition();
+        // positions.clear();
+        // positions.push_back(targetPosition);
+        // targetPosition.y += 70;
+        // positions.push_back(targetPosition);
+        // traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
+        // robot->setTrajectoryToFollow(traj);
+        // MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+        // dropElements();
+        // robot->wait(0.3);
+        // servo->moveSuction(1, suction::LOWER_SAMPLE);
+        // targetPosition = robot->getCurrentPosition();
+        // robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
+        // MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
     }
 }
 
@@ -248,7 +268,7 @@ void Strategy::moveThreeSamples()
 
     dropElements();
     robot->moveRail(0.35);
-    robot->wait(0.5);
+    robot->wait(1.5); // wait a little longer to drop samples correctly
     robot->updateScore(9);
 
     targetPosition = robot->getCurrentPosition();
@@ -266,9 +286,9 @@ void Strategy::handleDigZone()
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
-    targetPosition.x -= 40 * std::cos(targetPosition.theta);
-    targetPosition.y -= 40 * std::sin(targetPosition.theta);
-    positions.push_back(targetPosition);
+    // targetPosition.x -= 40 * std::cos(targetPosition.theta);
+    // targetPosition.y -= 40 * std::sin(targetPosition.theta);
+    // positions.push_back(targetPosition);
     targetPosition.x = 600;
     targetPosition.y = site_y;
     positions.push_back(targetPosition);
@@ -381,6 +401,7 @@ void Strategy::handleDigZone()
 
         if (know_targeted_site_is_ours)
         {
+            std::cout << "Site known to be pushed : no measurement required" << std::endl;
             // bascule
             pushExcavationSite();
             robot->updateScore(5);
