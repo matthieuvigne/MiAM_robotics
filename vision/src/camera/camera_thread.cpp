@@ -126,9 +126,8 @@ void CameraThread::rotateCameraToAnglePosition(double angle_deg)
   int const signal = 1500 + 1000*coeff;
 
   // Send the new position order to the servo
-  // At 1200kHz, 24000 ticks = 20ms
-  int constexpr channel = 0;
-  RPi_setPWM(channel, static_cast<int>(1.2 * signal), 24000);
+  std::string const command = "echo " + std::to_string(1000 * signal) + " > /sys/class/pwm/pwmchip0/pwm0/duty_cycle";
+  system(command.c_str());
 }
 
 //--------------------------------------------------------------------------------------------------

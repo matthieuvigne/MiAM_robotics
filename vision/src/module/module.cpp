@@ -21,15 +21,17 @@ Module::Module(ModuleParams const& params)
 {
   // Setup RPi GPIO for servo control.
   #ifdef RPI4
-  RPi_enableGPIO();
-  RPi_enablePWM(true, false);
-  RPi_setPWMClock(PiPWMClockFrequency::F1200kHz);
+    system("echo 0 > /sys/class/pwm/pwmchip0/export");
+    usleep(50000);
+    system("echo 0 > /sys/class/pwm/pwmchip0/pwm0/enable");
+    system("echo 20000000 > /sys/class/pwm/pwmchip0/pwm0/period");
+    system("echo 1 > /sys/class/pwm/pwmchip0/pwm0/enable");
   #endif
 
   // Get the board dimensions
   board_.height = params.board_height;
   board_.width = params.board_width;
-  
+
   // Build the camera and launch its thread
   camera::CameraThread::Params thread_params;
   thread_params.camera_ptr.reset(new camera::Camera(params.camera_params));
