@@ -84,17 +84,17 @@ bool Marker::serialize(
   
   // Serialize the header
   std::vector<char>::iterator byte_it = it_begin;
-  std::memcpy(&(*byte_it), &this->id, sizeof(uint8_t));
+  std::memcpy(&(*byte_it), &id, sizeof(uint8_t));
   byte_it += sizeof(uint8_t);
-  std::memcpy(&(*byte_it), &this->family, sizeof(uint8_t));
+  std::memcpy(&(*byte_it), &family, sizeof(uint8_t));
   byte_it += sizeof(uint8_t);
-  std::memcpy(&(*byte_it), &this->timestamp_ns, sizeof(int64_t));
+  std::memcpy(&(*byte_it), &timestamp_ns, sizeof(int64_t));
   byte_it += sizeof(int64_t);
   
   // Serialize the pose
   Eigen::Matrix<double,7,1> pose;
   pose.head<4>() = Eigen::Quaterniond(this->T_WM.rotation()).coeffs();
-  pose.tail<3>() = this->T_WM.translation();
+  pose.tail<3>() = T_WM.translation();
   std::memcpy(&(*byte_it), pose.data(), 7*sizeof(double));
   byte_it += 7*sizeof(double);
   

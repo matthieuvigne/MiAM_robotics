@@ -11,7 +11,7 @@ add_compile_options(-std=c++17)
 
 option(RPI4 "Target is raspberry pi 4" OFF)
 option(USE_TEST_BENCH "Set true to simulate the vision module in a test bench" ON)
-option(BUILD_TESTS "Set ON to build the tests" ON)
+option(BUILD_TESTS "Set ON to build the tests" OFF)
 
 # Recursively include all the source files
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp")

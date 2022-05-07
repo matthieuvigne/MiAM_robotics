@@ -31,7 +31,6 @@ ServerThread::~ServerThread(){
 void ServerThread::serverThread()
 {
   // Wait for the client's connection
-  CONSOLE << "Server thread is launched";
   ClientRequest::UniquePtr request_ptr;
   ServerResponse::UniquePtr response_ptr;
   while(true)
@@ -39,10 +38,8 @@ void ServerThread::serverThread()
     try
     {
       // Wait for the client's connection
-      CONSOLE << "Waiting for the client's connection";
       ServerSocket client_sock;
       accept(client_sock);
-      CONSOLE << "Accepted a client";
 
       // Wait for the client's requests
       while(true)

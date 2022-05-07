@@ -19,8 +19,6 @@ namespace module {
 
 Module::Module(ModuleParams const& params)
 {
-  CONSOLE << "Initialization of the module";
-
   // Setup RPi GPIO for servo control.
   #ifdef RPI4
   RPi_enableGPIO();
@@ -33,7 +31,6 @@ Module::Module(ModuleParams const& params)
   board_.width = params.board_width;
   
   // Build the camera and launch its thread
-  CONSOLE << "Build the camera and launch the camera thread";
   camera::CameraThread::Params thread_params;
   thread_params.camera_ptr.reset(new camera::Camera(params.camera_params));
   thread_params.T_WM = params.T_WM;
@@ -42,7 +39,6 @@ Module::Module(ModuleParams const& params)
   camera_thread_ptr_.reset(new camera::CameraThread(thread_params));
 
   // Launch the server's thread
-  CONSOLE << "Launch the server's thread";
   int const port = 30000;
   try {
     server_thread_ptr_.reset(new network::ServerThread(port));

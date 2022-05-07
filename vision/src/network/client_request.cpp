@@ -18,8 +18,10 @@ ClientRequest::ClientRequest(MessageType type, std::shared_ptr<void> params)
 //--------------------------------------------------------------------------------------------------
 
 ClientRequest::ClientRequest(std::string const& message)
-: Message(message)
-{}
+: Message(MessageType::UNKNOWN)
+{
+  deserialize(message);
+}
 
 //--------------------------------------------------------------------------------------------------
 // Functions
@@ -28,15 +30,14 @@ ClientRequest::ClientRequest(std::string const& message)
 bool ClientRequest::serializeParams(std::vector<char>* params_ptr) const
 {
   CHECK_NOTNULL(params_ptr);
+  std::vector<char>& params = *params_ptr;
   switch(type_)
   {
     case MessageType::INITIALIZATION:
     {
-      CONSOLE << "OK";
       common::Team const& team = getParamsAs<common::Team>();
-      CONSOLE << "OK";
-      std::memcpy(params_ptr, &team, sizeof(common::Team));
-      CONSOLE << "OK";
+      params.resize(sizeof(common::Team));
+      std::memcpy(params.data(), &team, sizeof(common::Team));
       break;
     }
     case MessageType::UNKNOWN:

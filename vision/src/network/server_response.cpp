@@ -1,3 +1,4 @@
+#include <common/logger.hpp>
 #include <network/server_response.hpp>
 
 namespace network {
@@ -13,8 +14,10 @@ ServerResponse::ServerResponse(MessageType type, std::shared_ptr<void> params)
 //--------------------------------------------------------------------------------------------------
 
 ServerResponse::ServerResponse(std::string const& message)
-: Message(message)
-{}
+: Message(MessageType::UNKNOWN)
+{
+  deserialize(message);
+}
 
 //--------------------------------------------------------------------------------------------------
 // Methods

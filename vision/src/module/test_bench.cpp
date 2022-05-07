@@ -41,8 +41,6 @@ void TestBench::init(Options const& options)
 
 TestBench::TestBench(Options const& options)
 {
-  CONSOLE << "Test Bench initialization";
-
   // Check this is the only test bench
   if(is_initialized_)
     throw std::runtime_error("Cannot initialize multiple test benches");
@@ -52,13 +50,11 @@ TestBench::TestBench(Options const& options)
   TWC_ = options.TWC;
   if(options.mode == Mode::NOISY)
     TWC_ = common::PoseGaussianSampler::sample(TWC_, options.TWCi_sigma_w, options.TWCi_sigma_t);
-  CONSOLE << "TWC:\n" << TWC_.matrix();
 
   // Initialize the transformation from the reference frame to the camera frame
   TRC_ = options.TRC;
   if(options.mode == Mode::NOISY)
     TRC_ = common::PoseGaussianSampler::sample(TRC_, options.TRC_sigma_w, options.TRC_sigma_t);
-  CONSOLE << "TRC:\n" << TRC_.matrix();
 
   // Initialize the central marker
   common::MarkerId const central_marker_id =
@@ -67,7 +63,6 @@ TestBench::TestBench(Options const& options)
   if(options.mode == Mode::NOISY)
     TWM = common::PoseGaussianSampler::sample(TWM, options.TWM_sigma_w, options.TWM_sigma_t);
   markers_.emplace(central_marker_id, TWM);
-  CONSOLE << "TWM:\n" << TWM.matrix();
 
   // Sample the other sample markers
   common::PoseUniformSampler const marker_sampler(
@@ -80,7 +75,6 @@ TestBench::TestBench(Options const& options)
       common::Marker::sampleMarkerId(common::MarkerFamily::ROCK_SAMPLE);
     Eigen::Affine3d const TWS = marker_sampler.sample();
     markers_.emplace(marker_id, TWS);
-    CONSOLE << "Marker with id " << static_cast<int>(marker_id) << " -> TWS:\n" << TWS.matrix();
   }
   
   // Set the process and measurement noise parameters

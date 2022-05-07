@@ -53,7 +53,6 @@ void CameraThread::runThread()
     // Check if the client has sent an initialization message
     if(pose_filter_ptr_ == nullptr)
     {
-      CONSOLE << "Waiting to initialize the pose camera filter";
       std::unique_lock<std::mutex> locker(mutex_);
       condition_.wait(locker, [&](){ return (team_ptr_!=nullptr); });
       if(team_ptr_)
@@ -63,7 +62,6 @@ void CameraThread::runThread()
         pose_filter_ptr_.reset(new CameraPoseFilter(filter_params));
       }
       locker.unlock();
-      CONSOLE << "Pose camera filter initialized";
     }
     CHECK_NOTNULL(pose_filter_ptr_);
 

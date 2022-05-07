@@ -26,7 +26,6 @@ int main(int argc, char* argv[])
       network::Client client("localhost", 30000);
       network::ClientRequest::UniquePtr request_ptr = nullptr;
       network::ServerResponse::UniquePtr response_ptr = nullptr;
-      CONSOLE << "Initialized the client";
       
       // Send messages to the server
       int request_idx = 0;
@@ -49,11 +48,8 @@ int main(int argc, char* argv[])
           *team_ptr = common::Team::PURPLE;
           request_ptr.reset(new network::ClientRequest(message_type, team_ptr));
         }
-        CONSOLE << "Message pointer initialized";
         request_ptr->serialize(&request_str);
-        CONSOLE << "Message serialized";
         client << request_str;
-        CONSOLE << "Sent request to the server";
 
         // Get the response from the server
         std::string response_str;
@@ -61,7 +57,6 @@ int main(int argc, char* argv[])
         markers.reset(new common::MarkerIdToEstimate);
         response_ptr.reset(new network::ServerResponse(message_type, markers));
         response_ptr->deserialize(response_str);
-        CONSOLE << "Received and deserialized response from the server";
         
         // Prepare for next iteration
         request_idx += 1;

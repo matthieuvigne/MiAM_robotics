@@ -146,7 +146,6 @@ void CameraPoseFilter::update(
   if(!is_initialized_ && (++num_updates_==NUM_REQUIRED_UPDATES))
   {
     is_initialized_ = true;
-    CONSOLE << "Pose camera filter is initialized";
   }
 }
 
@@ -155,8 +154,8 @@ void CameraPoseFilter::update(
 std::string CameraPoseFilter::printEstimateAndCovariance() const
 {
   std::stringstream out;
-  std::cout << "TWC_est:\n" << T_WC_.matrix() << std::endl;
-  std::cout << "cov_TWC_est:\n" << cov_T_WC_.matrix() << std::endl;
+  CONSOLE << "TWC_est:\n" << T_WC_.matrix();
+  CONSOLE << "cov_TWC_est:\n" << cov_T_WC_.matrix();
   return out.str();
 }
 

@@ -26,7 +26,7 @@ public:
 
 public:
   Message(MessageType type, std::shared_ptr<void> params = nullptr);
-  Message(std::string const& message);
+  //~ Message(std::string const& message);
   virtual ~Message(){}
 
 public:
