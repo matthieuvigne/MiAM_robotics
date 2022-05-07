@@ -135,7 +135,7 @@ void CameraPoseFilter::update(
   Eigen::Affine3d const TRM = TWR.inverse() * TWM_;
   Eigen::Matrix<double,6,6> J_TCM_wrt_TCR = common::so3r3::leftSe3ProductJacobian(TRC.inverse(), TRM);
   Eigen::Matrix<double,6,6> J_TCR_wrt_TRC = common::so3r3::se3InverseJacobian(TRC);
-  Eigen::Matrix<double,6,1> J_TRC_wrt_azimuth = Eigen::Matrix<double,6,1>::Unit(0)*RAD;
+  Eigen::Matrix<double,6,1> J_TRC_wrt_azimuth = - Eigen::Matrix<double,6,1>::Unit(0)*RAD;
   Eigen::Matrix<double,6,1> J_TCM_wrt_azimuth = J_TCM_wrt_TCR * J_TCR_wrt_TRC * J_TRC_wrt_azimuth;
 
   Eigen::Matrix<double,6,4> J_TCM_wrt_state;
@@ -167,7 +167,7 @@ Eigen::Matrix<double,6,6> CameraPoseFilter::getCovTWC() const
   Eigen::Affine3d TWR = Eigen::Translation3d(WpC_) * qWR_;
   Eigen::Affine3d TRC = Eigen::Translation3d() * getQrc(azimuth_deg_, elevation_deg_);
   Eigen::Matrix<double,6,6> J_TWC_wrt_TRC = common::so3r3::rightSe3ProductJacobian(TWR, TRC);
-  Eigen::Matrix<double,6,1> J_TRC_wrt_azimuth = Eigen::Matrix<double,6,1>::Unit(0)*RAD;
+  Eigen::Matrix<double,6,1> J_TRC_wrt_azimuth = - Eigen::Matrix<double,6,1>::Unit(0)*RAD;
   Eigen::Matrix<double,6,1> J_TWC_wrt_azimuth = J_TWC_wrt_TRC * J_TRC_wrt_azimuth;
   
   Eigen::Matrix<double,6,4> J_TWC_wrt_state;
