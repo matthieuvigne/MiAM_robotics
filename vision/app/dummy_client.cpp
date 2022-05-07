@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
       network::ServerResponse::UniquePtr response_ptr = nullptr;
       CONSOLE << "Initialized the client";
       
-      // Send messages to the client
+      // Send messages to the server
       int request_idx = 0;
       int constexpr max_num_requests = 10;
       std::shared_ptr<common::MarkerIdToEstimate> markers = nullptr;
@@ -34,7 +34,9 @@ int main(int argc, char* argv[])
       {    
         // Build and send the request to the server
         std::string request_str;
-        network::MessageType const message_type = network::MessageType::GET_MEASUREMENTS;
+        network::MessageType const message_type = (request_idx>0)
+          ? network::MessageType::GET_MEASUREMENTS
+          : network::MessageType::INITIALIZATION;
         request_ptr.reset(new network::ClientRequest(message_type));
         request_ptr->serialize(&request_str);
         client << request_str;

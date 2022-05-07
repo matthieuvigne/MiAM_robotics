@@ -33,6 +33,7 @@ public:
   bool serialize(std::string* message) const;
   bool deserialize(std::string const& message);
   inline MessageType getType() const;
+  inline int64_t getTimestampNanoseconds() const;
   template<typename T> T const& getParamsAs() const;
   template<typename T> T const* getParamsPtrAs() const;
   inline static MessageType deserializeType(std::string const& message);
@@ -57,6 +58,13 @@ protected:
 MessageType Message::getType() const
 {
   return type_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+int64_t Message::getTimestampNanoseconds() const
+{
+  return timestamp_ns_;
 }
 
 //--------------------------------------------------------------------------------------------------

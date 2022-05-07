@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <common/logger.hpp>
 #include <network/server_socket.hpp>
 #include <network/socket_exception.hpp>
 
@@ -23,10 +24,7 @@ ServerSocket::ServerSocket (int port)
 
 //--------------------------------------------------------------------------------------------------
 
-ServerSocket::~ServerSocket()
-{
-  std::cout << "Shutting down the server" << std::endl;
-}
+ServerSocket::~ServerSocket(){}
 
 //--------------------------------------------------------------------------------------------------
 // Methods
