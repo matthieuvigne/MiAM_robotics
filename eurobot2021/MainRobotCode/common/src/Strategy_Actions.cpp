@@ -58,7 +58,7 @@ void Strategy::handleStatue()
     MOVE_OR_ABORT("handleStatue failed to complete");
 
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 30.0);
+    traj = computeTrajectoryStraightLine(targetPosition, 50.0);
     robot->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("handleStatue failed to complete");
 
@@ -69,8 +69,30 @@ void Strategy::handleStatue()
     robot->wait(0.2);
     robot->updateScore(10);
 
+    // get the 2 samples on the side of the statue
+    robot->moveRail(0.8);
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -30.0);
+    traj = computeTrajectoryStraightLine(targetPosition, 80.0);
+    robot->setTrajectoryToFollow(traj);
+
+
+    MOVE_OR_ABORT("handleStatue failed to complete");
+
+    servo->moveSuction(0, suction::HORIZONTAL);
+    servo->moveSuction(2, suction::HORIZONTAL);
+    servo->moveSuction(1, suction::DROP_STATUE);
+
+    servo->openTube(0);
+    servo->closeTube(1);
+    servo->openTube(2);
+    servo->activatePump(true);
+    servo->openValve();
+    robot->moveRail(0.58);
+    robot->wait(1.0);
+    robot->moveRail(0.9);
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, -50.0);
     robot->setTrajectoryToFollow(traj);
 
     MOVE_OR_ABORT("handleStatue failed to complete");
@@ -91,6 +113,19 @@ void Strategy::handleStatue()
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 300.0, 0.3, true);
     robot->setTrajectoryToFollow(traj);
+
+    // drop samples when y > 1200
+    while (!robot->isTrajectoryFinished()) {
+        targetPosition = robot->getCurrentPosition();
+        if (targetPosition.y > 970) {
+            servo->activatePump(false);
+            servo->openValve() ;
+            servo->openTube(0);
+            servo->openTube(1);
+            servo->openTube(2);
+            break;
+        }
+    }
 
     // raise back rail and suction
     robot->moveRail(0.8);
@@ -352,10 +387,25 @@ void Strategy::handleDigZone()
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
 
     // Test all sites.
-    bool is_cross_detected = testExcavationSite() == ExcavationSquareColor::RED;
+
     // Test the first 3 sites
+    ExcavationSquareColor color_detected = testExcavationSite();
+    bool is_cross_detected = color_detected == ExcavationSquareColor::RED;
+    int number_of_sites_pushed = 0;
+    if (shouldPushExcavationSite(color_detected))
+    {
+        number_of_sites_pushed++;
+    }
+    
     for (int i = 1; i < 3; i++)
     {
+
+        // if already pushed 2 sites, skip
+        if (number_of_sites_pushed >= 2) 
+        {
+            break;
+        }
+
         // Check range
         measured_y = robot->getRangeSensorMeasurement(robot->isPlayingRightSide());
         targetPosition = robot->getCurrentPosition();
@@ -379,13 +429,20 @@ void Strategy::handleDigZone()
         MOVE_OR_ABORT("handleDigZone failed to complete");
 
         // if cross is already detected, no need to measure
-        if (is_cross_detected) {
+        if (is_cross_detected | (i == 1))
+        {
             std::cout << "Site known to be pushed : no measurement required" << std::endl;
             pushExcavationSite();
+            number_of_sites_pushed++;
             robot->updateScore(5);
-        } else {
-            
-            is_cross_detected = testExcavationSite() == ExcavationSquareColor::RED;
+        } else 
+        {
+            color_detected = testExcavationSite();
+            is_cross_detected = color_detected == ExcavationSquareColor::RED;
+            if (shouldPushExcavationSite(color_detected)) 
+            {
+                number_of_sites_pushed++;
+            }
         }
     }
 

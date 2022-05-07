@@ -234,9 +234,11 @@ void Strategy::match()
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
-    targetPosition.x = 975;
-    targetPosition.y = 600;
-    targetPosition.theta = -M_PI_2;
+    targetPosition.x = 925;
+    targetPosition.y = 620;
+    positions.push_back(targetPosition);
+    targetPosition.x = 930;
+    targetPosition.y = 620;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
