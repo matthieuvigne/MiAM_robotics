@@ -18,11 +18,11 @@
 
             double const stepSize = 2 * M_PI / 600.0; ///< Size of a motor step, in rad.
 
-            double const maxWheelSpeed = 500; ///< Maximum wheel speed, in mm/s.
-            double const maxWheelAcceleration = 800; ///< Maximum wheel acceleration, in mm/s^2.
+            double const maxWheelSpeed = 800; ///< Maximum wheel speed, in mm/s.
+            double const maxWheelAcceleration = 1000; ///< Maximum wheel acceleration, in mm/s^2.
 
             double const maxWheelSpeedTrajectory = 500; ///< Maximum wheel speed, in mm/s, for trajectory generation.
-            double const maxWheelAccelerationTrajectory = 400; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
+            double const maxWheelAccelerationTrajectory = 600; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
             // Chassis physical dimensions
             double const CHASSIS_FRONT = 115.0;

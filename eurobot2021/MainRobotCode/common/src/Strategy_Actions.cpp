@@ -54,7 +54,7 @@ void Strategy::handleStatue()
     traj.clear();
     traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI)));
     robot->setTrajectoryToFollow(traj);
-    robot->moveRail(0.15);
+    robot->moveRail(0.1);
     MOVE_OR_ABORT("handleStatue failed to complete");
 
     targetPosition = robot->getCurrentPosition();
@@ -64,9 +64,9 @@ void Strategy::handleStatue()
 
     // Place fake statue
     servo->moveSuction(1, suction::DROP_STATUE);
-    // robot->wait(0.5); // wait to avoid dropping too brutally
+    robot->wait(0.5); // wait to avoid dropping too brutally
     dropElements();
-    // robot->wait(0.2);
+    robot->wait(0.2);
     robot->updateScore(10);
 
     targetPosition = robot->getCurrentPosition();
@@ -112,11 +112,11 @@ void Strategy::moveSideSample()
     positions.push_back(targetPosition);
     targetPosition.y = 1680 ;
     positions.push_back(targetPosition);
-    targetPosition.x = robotdimensions::CHASSIS_FRONT + 30;
+    targetPosition.x = robotdimensions::CHASSIS_FRONT + 20;
     positions.push_back(targetPosition);
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 300.0, 0.5);
     robot->setTrajectoryToFollow(traj);
-    usleep(1000000);
+    robot->wait(1.0);
     servo->moveStatue(statue::FOLD);
     MOVE_OR_ABORT("moveSideSample failed to complete");
 
@@ -177,7 +177,7 @@ void Strategy::handleSideTripleSamples()
         robot->moveRail(0.25);
         robot->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
-        robot->wait(1.0);
+        robot->wait(0.5);
         robot->moveRail(0.6);
         targetPosition = robot->getCurrentPosition();
         traj = computeTrajectoryStraightLine(targetPosition, -45);
@@ -273,12 +273,18 @@ void Strategy::moveThreeSamples()
     dropElements();
     robot->moveRail(0.35);
 
-    traj = computeTrajectoryStraightLine(targetPosition, -8.0);
-    robot->setTrajectoryToFollow(traj);
-    MOVE_OR_ABORT("moveThreeSamples failed to complete");
-    traj = computeTrajectoryStraightLine(targetPosition, 8.0);
-    robot->setTrajectoryToFollow(traj);
-    MOVE_OR_ABORT("moveThreeSamples failed to complete");
+    robot->wait(0.5);
+
+    // traj = computeTrajectoryStraightLine(targetPosition, -10.0);
+    // robot->setTrajectoryToFollow(traj);
+    // MOVE_OR_ABORT("moveThreeSamples failed to complete");
+
+    for (int i = 0; i < 3; i++)
+        servo->moveSuction(i, suction::DROP_SAMPLE);
+
+    // traj = computeTrajectoryStraightLine(targetPosition, 10.0);
+    // robot->setTrajectoryToFollow(traj);
+    // MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
     robot->wait(0.5); // wait a little longer to drop samples correctly
     robot->updateScore(9);
@@ -338,7 +344,7 @@ void Strategy::handleDigZone()
     targetPosition.x = first_site_x;
     positions.push_back(targetPosition);
 
-    traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.3, true);
+    traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
     robot->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("handleDigZone failed to complete");
 
@@ -368,7 +374,7 @@ void Strategy::handleDigZone()
         targetPosition.x = first_site_x + i * spacing_between_sites;
         targetPosition.y = site_y;
         positions.push_back(targetPosition);
-        traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.3, true);
+        traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
         robot->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleDigZone failed to complete");
 
@@ -416,7 +422,7 @@ void Strategy::handleDigZone()
         targetPosition.x = first_site_x + (targeted_site + 3) * spacing_between_sites;
         targetPosition.y = site_y;
         positions.push_back(targetPosition);
-        traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.3, true);
+        traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
         robot->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleDigZone failed to complete");
 

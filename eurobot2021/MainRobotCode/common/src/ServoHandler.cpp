@@ -166,7 +166,7 @@ void ServoHandler::moveSuction(int const& suctionNumber, suction const& position
             case suction::HORIZONTAL:  maestro_->setPosition(SERVO_SUCTION[1], 1050); break;
             case suction::DROP_STATUE: maestro_->setSpeed(SERVO_SUCTION[1], 1050);
                                        usleep(5000);
-                                       maestro_->setPosition(SERVO_SUCTION[1], 2100);
+                                       maestro_->setPosition(SERVO_SUCTION[1], 2000);
                                        usleep(500000);
                                        maestro_->setSpeed(SERVO_SUCTION[1], 0); break;
             case suction::VERTICAL:  maestro_->setPosition(SERVO_SUCTION[1], 1700); break;

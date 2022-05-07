@@ -198,7 +198,7 @@ void Strategy::match()
     robot->moveRail(0.9);
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::FOLD);
-    usleep(2000000);
+    robot->wait(0.5);
     servo->moveClaw(claw::SIDE);
     (void) robot->waitForTrajectoryFinished();
     robot->updateScore(15);

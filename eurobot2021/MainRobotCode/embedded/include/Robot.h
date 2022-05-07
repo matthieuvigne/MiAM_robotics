@@ -56,15 +56,15 @@
     {
         //~ double const transverseKp = 0.1;
 
-        double const linearKp = 4.0;
-        double const linearKd = 0.02;
-        double const linearKi = 0.1;
+        double const linearKp = 3.5; // previously 3.0
+        double const linearKd = 0.01; // previously 0.0
+        double const linearKi = 0.0; // previously 0.1
 
-        double const transverseKp = 0.006;
+        double const transverseKp = 0.005;
 
-        double const rotationKp = 12.0;
+        double const rotationKp = 10.0;
         //~ double const rotationKp = 0.0;
-        double const rotationKd = 0.02;
+        double const rotationKd = 0.01;
         double const rotationKi = 0.0;
 
         double const railKp = 20.0;
