@@ -20,10 +20,9 @@ public:
   POINTER_TYPEDEF(CameraPoseFilter);
   struct Params {
     common::Team team;
-    Eigen::Affine3d T_WC;
-    Eigen::Affine3d T_RC;
-    Eigen::Matrix<double,6,6> cov_TRC;
-    Eigen::Matrix<double,6,6> cov_TWC;
+    double sigma_position;
+    double sigma_azimuth_deg;
+    double sigma_elevation_deg;
     static Params getDefaultParams(common::Team team);
   }; // struct Params
 
@@ -37,20 +36,22 @@ public:
 public:
 
   // Estimation
-  void predict(double dtheta_rad, double sigma_dtheta = 1.0*RAD);
-  void update(Eigen::Affine3d const& T_CM, Eigen::Matrix<double,6,6> const& cov_T_CM);
+  void predict(double azimuth_deg);
+  void update(Eigen::Affine3d const& TCM, Eigen::Matrix<double,6,6> const& covTCM);
 
   // Getters
-  inline Eigen::Affine3d const& getState() const;
-  inline Eigen::Matrix<double,6,6> const& getStateCovariance() const;
-  inline Eigen::Affine3d const& getTRC() const;
-  inline Eigen::Matrix<double,6,6> const& getCovTRC() const;
-  inline Eigen::Affine3d const& getTWM() const;
-
-  // Print & checks
+  Eigen::Affine3d getTWC() const;
+  Eigen::Matrix<double,6,6> getCovTWC() const;
+  inline Eigen::Vector3d getWpC() const { return WpC_; }
+  inline double getAzimuthDeg() const { return azimuth_deg_; }
   inline bool isInitialized() const { return is_initialized_; }
-  std::string printEstimateAndCovariance() const;
-  bool isCovarianceMatrixIsSymmetric() const;
+
+private:
+
+  inline static Eigen::Quaterniond initializeQwr();
+  static Eigen::Matrix4d initializeCovariance(double sigma_pos, double sigma_azimuth_deg);
+  static Eigen::Vector3d initializeWpc(common::Team team);
+  static Eigen::Quaterniond getQrc(double azimuth_deg, double elevation_deg);
 
 private:
 
@@ -58,15 +59,17 @@ private:
   common::Team team_;
 
   // Filter state and covariance
-  Eigen::Affine3d T_WC_;
-  Eigen::Matrix<double,6,6> cov_T_WC_;
-  bool is_initialized_ = false;
-  int num_updates_ = 0;
-
+  Eigen::Vector3d WpC_;
+  double azimuth_deg_;
+  Eigen::Matrix4d cov_; ///< [elevation (deg), position (m)]
+  
   // Parameters
-  Eigen::Affine3d const T_WM_;
-  Eigen::Affine3d const T_RC_;
-  Eigen::Matrix<double,6,6> cov_T_RC_;
+  double const elevation_deg_;
+  double const sigma_elevation_deg_;
+  Eigen::Quaterniond const qWR_;
+  Eigen::Affine3d const TWM_;
+  bool is_initialized_;
+  int num_updates_;
 
 }; // class CameraPoseFilter
 
@@ -74,37 +77,12 @@ private:
 // Inline functions
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Affine3d const& CameraPoseFilter::getState() const
+Eigen::Quaterniond CameraPoseFilter::initializeQwr()
 {
-  return T_WC_;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Matrix<double,6,6> const& CameraPoseFilter::getStateCovariance() const
-{
-  return cov_T_WC_;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Affine3d const& CameraPoseFilter::getTRC() const
-{
-  return T_RC_;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Matrix<double,6,6> const& CameraPoseFilter::getCovTRC() const
-{
-  return cov_T_RC_;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Affine3d const& CameraPoseFilter::getTWM() const
-{
-  return T_WM_;
+  Eigen::Quaterniond const qWR =
+      Eigen::AngleAxisd( M_PI_2, Eigen::Vector3d::UnitZ())
+    * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitY());
+  return qWR;
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -74,7 +74,7 @@ void CameraThread::runThread()
     #else
     incrementCameraAngle(camera_angle_deg_, increment_angle_deg_);
     #endif
-    pose_filter_ptr_->predict(dtheta_deg*RAD);
+    pose_filter_ptr_->predict(dtheta_deg);
 
     // Take a picture and detect all the markers
     common::DetectedMarkerList detected_markers;
@@ -92,19 +92,20 @@ void CameraThread::runThread()
     {
       if(it->marker_id == 42)
       {
+        // Covariances have already been converted from radians to degrees
         Eigen::Affine3d const T_CM = it->T_CM;
-        Eigen::Matrix<double,6,6> const cov_T_CM = it->cov_T_CM;
-        pose_filter_ptr_->update(T_CM, cov_T_CM);
+        Eigen::Matrix<double,6,6> const cov_TCM = it->cov_T_CM;
+        pose_filter_ptr_->update(T_CM, cov_TCM);
       }
     }
 
     // Update the pose estimate of all the markers
-    Eigen::Affine3d const& T_WC = pose_filter_ptr_->getState();
-    Eigen::Matrix<double,6,6> const& cov_T_WC = pose_filter_ptr_->getStateCovariance();
+    Eigen::Affine3d const& TWC = pose_filter_ptr_->getTWC();
+    Eigen::Matrix<double,6,6> const cov_TWC = pose_filter_ptr_->getCovTWC();
     for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)
     {
       common::DetectedMarker const& detected_marker = *it;
-      common::Marker marker_estimate(T_WC, cov_T_WC, detected_marker);
+      common::Marker marker_estimate(TWC, cov_TWC, detected_marker);
       std::lock_guard<std::mutex> const lock(mutex_);
       marker_id_to_estimate_[marker_estimate.id] = marker_estimate;
     }
