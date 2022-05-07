@@ -23,6 +23,41 @@ using miam::RobotPosition;
 // at the end of the match.
 bool MATCH_COMPLETED = false;
 
+
+
+bool goBackToDigSite(RobotInterface *robot)
+{
+    RobotPosition targetPosition;
+    std::vector<RobotPosition> positions;
+
+    positions.clear();
+    targetPosition = robot->getCurrentPosition();
+    positions.push_back(targetPosition);
+    targetPosition.x = 925;
+    targetPosition.y = 620;
+    positions.push_back(targetPosition);
+    targetPosition.x = 930;
+    targetPosition.y = 620;
+    positions.push_back(targetPosition);
+    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
+    robot->setTrajectoryToFollow(traj, true);
+
+    // // Compute falback trajectory.
+    // RobotPosition currentPosition = robot->getCurrentPosition();
+    // RobotPosition targetPosition;
+    // targetPosition.x = 950;
+    // targetPosition.y = 600;
+    // TrajectoryVector traj = computeTrajectoryStraightLineToPoint(currentPosition, targetPosition);
+    // robot->setTrajectoryToFollow(traj, true);
+    // if (robot->waitForTrajectoryFinished())
+    // {
+    //     robot->updateScore(20);
+    // }
+
+    return robot->waitForTrajectoryFinished();
+}
+
+
 void matchEndBackToBase(RobotInterface *robot)
 {
     double const FALLBACK_TIME = 95.0;
@@ -31,19 +66,13 @@ void matchEndBackToBase(RobotInterface *robot)
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
         MATCH_COMPLETED = true;
-        // Compute falback trajectory.
-        RobotPosition currentPosition = robot->getCurrentPosition();
-        RobotPosition targetPosition;
-        targetPosition.x = 950;
-        targetPosition.y = 600;
-        TrajectoryVector traj = computeTrajectoryStraightLineToPoint(currentPosition, targetPosition);
-        robot->setTrajectoryToFollow(traj, true);
-        if (robot->waitForTrajectoryFinished())
+        if (goBackToDigSite(robot))
         {
             robot->updateScore(20);
         }
     }
 }
+
 
 Strategy::Strategy()
 {
@@ -92,7 +121,6 @@ void Strategy::match()
     TrajectoryVector traj;
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
-    bool wasMoveSuccessful = true;
     robot->updateScore(2);
 
 #ifndef SKIP_TO_GRABBING_SAMPLES
@@ -113,32 +141,14 @@ void Strategy::match()
     //**********************************************************
     // Go get the statue
     //**********************************************************
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.x = 450;
-    positions.push_back(targetPosition);
-    targetPosition.y = 450;
-    positions.push_back(targetPosition);
-
-    traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.4);
-    robot->setTrajectoryToFollow(traj);
-
-    servo->closeTube(0);
-    servo->closeTube(2);
-    servo->activatePump(true);
-    robot->moveRail(0.7);
-    servo->openValve();
-    robot->wait(0.5);
-    servo->moveStatue(statue::TRANSPORT);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-
-    if (wasMoveSuccessful)
-        handleStatue();
+    if (!handleStatue())
+        stopEverything();
 
     //**********************************************************
     // Go to the side distributor
     //**********************************************************
-    moveSideSample();
+    if (!moveSideSample())
+        stopEverything();
 
     #endif
 
@@ -156,7 +166,8 @@ void Strategy::match()
     //**********************************************************
     // Grab the three samples on the ground, and drop them
     //**********************************************************
-    moveThreeSamples();
+    if (!moveThreeSamples())
+        stopEverything();
 
     std::cout << robot->getCurrentPosition() << std::endl;
     // robot->wait(1000);
@@ -177,45 +188,14 @@ void Strategy::match()
     //**********************************************************
     // Push the samples on the field
     //**********************************************************
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.x = 1300;
-    targetPosition.y = 700;
-    positions.push_back(targetPosition);
-    targetPosition.x = 950;
-    targetPosition.y = 650;
-    positions.push_back(targetPosition);
-    targetPosition.x = 450;
-    targetPosition.y = 450;
-    positions.push_back(targetPosition);
-    targetPosition.x = 350;
-    targetPosition.y = 350;
-    positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
-    robot->setTrajectoryToFollow(traj);
-    // Move the rail so it doesn't hit the fake statue
-    robot->moveRail(0.9);
-    for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::FOLD);
-    robot->wait(0.5);
-    servo->moveClaw(claw::SIDE);
-    (void) robot->waitForTrajectoryFinished();
-    robot->updateScore(15);
-
-    // move back and fold arms
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -150);
-    robot->setTrajectoryToFollow(traj);
-
-    (void) robot->waitForTrajectoryFinished(); 
-
-    servo->moveClaw(claw::FOLD);
+    if (!pushSamplesBelowShelter())
+        stopEverything();
 
     //**********************************************************
     // Flip the dig zone
     //**********************************************************
-    handleDigZone();
+    if (!handleDigZone())
+        stopEverything();
 
     //**********************************************************
     // Go to the side tripledist
@@ -226,27 +206,16 @@ void Strategy::match()
     servo->moveFinger(false, finger::FOLD);
     #endif
 
-    handleSideTripleSamples();
+    if (!handleSideTripleSamples())
+        stopEverything();
 
     //**********************************************************
     // Rotate to come back to the campment
     //**********************************************************
-    positions.clear();
-    targetPosition = robot->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.x = 925;
-    targetPosition.y = 620;
-    positions.push_back(targetPosition);
-    targetPosition.x = 930;
-    targetPosition.y = 620;
-    positions.push_back(targetPosition);
-    traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
-    robot->setTrajectoryToFollow(traj);
-    wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    if (wasMoveSuccessful && !MATCH_COMPLETED)
+    MATCH_COMPLETED = goBackToDigSite(robot);
+    if (MATCH_COMPLETED)
     {
         robot->updateScore(20);
-        MATCH_COMPLETED = true;
     }
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;

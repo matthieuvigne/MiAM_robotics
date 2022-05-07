@@ -29,7 +29,7 @@ Robot::Robot(bool const& testMode, bool const& disableLidar):
     servos_(&maestro_),
     lidar_(-M_PI_4),
     ignoreDetection_(false),
-    avoidanceTimeout_(250),
+    avoidanceTimeout_(1000),
     testMode_(testMode),
     disableLidar_(disableLidar),
     score_(0),
@@ -64,9 +64,9 @@ Robot::Robot(bool const& testMode, bool const& disableLidar):
 
     // Set initial positon.
     RobotPosition initialPosition;
-    initialPosition.x = 150 + 75;
-    initialPosition.y = 1100 + 150 + 30;
-    initialPosition.theta = -M_PI_2;
+    initialPosition.x = 120;
+    initialPosition.y = 1200;
+    initialPosition.theta = 0;
     currentPosition_.set(initialPosition);
     currentBaseSpeed_.linear = 0;
     currentBaseSpeed_.angular = 0;

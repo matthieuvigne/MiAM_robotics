@@ -21,12 +21,6 @@ bool Robot::isLidarPointWithinTable(LidarPoint const& point)
   if(T_x_fi < table_dimensions::table_max_x and T_x_fi > table_dimensions::table_min_x
     and T_y_fi < table_dimensions::table_max_y and T_y_fi > table_dimensions::table_min_y )
   {
-      // Remove ramp.
-      if(T_y_fi < table_dimensions::ramp_max_y
-        and T_x_fi > table_dimensions::ramp_min_x
-        and T_x_fi < table_dimensions::ramp_max_x)
-            return false;
-    //~ std::cout <<  T_x_fi << " " << T_y_fi << "r" << point.r << " theta" << point.theta << "np" << lastNumberOfPoints << std::endl;
     return true;
   }
 
@@ -55,6 +49,7 @@ double Robot::avoidOtherRobots()
     forward = (trajectoryPoint.linearVelocity >= 0);
   }
 
+  int nPointsInTable = 0;
   for(const DetectedRobot& robot : lidar_.detectedRobots_)
   {
     // Get the Lidar Point, symeterize it if needed and check its projection
@@ -63,10 +58,11 @@ double Robot::avoidOtherRobots()
       : LidarPoint(robot.point.r, robot.point.theta);
 
     if(!this->isLidarPointWithinTable(point)) continue;
+    nPointsInTable += 1;
 
     double x = point.r * std::cos(point.theta + (forward ? 0: M_PI));
     double y = point.r * std::sin(point.theta + (forward ? 0: M_PI));
-
+    
     if (x > 0)
     {
         if (x < detection::x_max)
@@ -98,6 +94,10 @@ double Robot::avoidOtherRobots()
     }
   }
 
+
+  logger_.setData(LOGGER_LIDAR_N_OBSTACLES, lidar_.detectedRobots_.size());
+  logger_.setData(LOGGER_LIDAR_N_OBSTACLES_IN_TABLE, nPointsInTable);
+    
   // Before match: just return coeff, don't trigger memory.
   if (!hasMatchStarted_ || currentTrajectories_.size() == 0)
   {

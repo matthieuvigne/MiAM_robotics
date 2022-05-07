@@ -91,13 +91,10 @@
 
     // Dimensions of the table
     namespace table_dimensions {
-      double constexpr table_max_x = 2900;
-      double constexpr table_max_y = 1900;
-      double constexpr table_min_x = 100;
-      double constexpr table_min_y = 100;
-      double constexpr ramp_min_x = 450;
-      double constexpr ramp_max_x = 2550;
-      double constexpr ramp_max_y = 450;
+      double constexpr table_max_x = 2950;
+      double constexpr table_max_y = 1950;
+      double constexpr table_min_x = 50;
+      double constexpr table_min_y = 50;
     } // namespace table dimensions
 
     class Robot : public RobotInterface

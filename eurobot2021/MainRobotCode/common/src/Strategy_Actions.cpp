@@ -14,15 +14,36 @@
 using namespace miam::trajectory;
 using miam::RobotPosition;
 
-#define MOVE_OR_ABORT(a) if (!robot->waitForTrajectoryFinished()) { std::cout << a << std::endl; return;}
+#define MOVE_OR_ABORT(a) if (!robot->waitForTrajectoryFinished()) { std::cout << a << std::endl; return(false);}
 
 // Handle the statue: grab it, swap, and drop the real statue.
 // Abort as soon as one action fails.
-void Strategy::handleStatue()
+bool Strategy::handleStatue()
 {
-    //Go back
-    RobotPosition targetPosition = robot->getCurrentPosition();
     std::vector<RobotPosition> positions;
+
+    RobotPosition targetPosition = robot->getCurrentPosition();
+    positions.push_back(targetPosition);
+    targetPosition.x = 450;
+    positions.push_back(targetPosition);
+    targetPosition.y = 450;
+    positions.push_back(targetPosition);
+
+    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.4);
+    robot->setTrajectoryToFollow(traj);
+
+    servo->closeTube(0);
+    servo->closeTube(2);
+    servo->activatePump(true);
+    robot->moveRail(0.7);
+    servo->openValve();
+    robot->wait(0.5);
+    servo->moveStatue(statue::TRANSPORT);
+    MOVE_OR_ABORT("handleStatue failed to complete");
+
+    //Go back
+    targetPosition = robot->getCurrentPosition();
+    positions.clear();
     positions.push_back(targetPosition);
     targetPosition.x = 250 + robotdimensions::CHASSIS_BACK;
     targetPosition.y = 250 + robotdimensions::CHASSIS_BACK;
@@ -31,7 +52,7 @@ void Strategy::handleStatue()
     targetPosition.y = 225 + robotdimensions::CHASSIS_BACK;
     positions.push_back(targetPosition);
 
-    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200, 0.3, true);
+    traj = computeTrajectoryRoundedCorner(positions, 200, 0.3, true);
     robot->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("handleStatue failed to complete");
 
@@ -138,9 +159,11 @@ void Strategy::handleStatue()
     servo->activateMagnet(false);
     servo->moveStatue(statue::TRANSPORT);
     robot->updateScore(20);
+
+    return(true);
 }
 
-void Strategy::moveSideSample()
+bool Strategy::moveSideSample()
 {
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
@@ -177,9 +200,11 @@ void Strategy::moveSideSample()
     servo->activatePump(false);
     servo->openValve();
     robot->moveRail(0.3);
+
+    return(true);
 }
 
-void Strategy::handleSideTripleSamples()
+bool Strategy::handleSideTripleSamples()
 {
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
@@ -253,9 +278,11 @@ void Strategy::handleSideTripleSamples()
         // robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
         // MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
     }
+
+    return(true);
 }
 
-void Strategy::moveThreeSamples()
+bool Strategy::moveThreeSamples()
 {
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
@@ -328,9 +355,11 @@ void Strategy::moveThreeSamples()
     traj = computeTrajectoryStraightLine(targetPosition, -90);
     robot->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
+
+    return(true);
 }
 
-void Strategy::handleDigZone()
+bool Strategy::handleDigZone()
 {
     const int spacing_between_sites = 185;
     const int site_y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -10;
@@ -570,4 +599,48 @@ void Strategy::handleDigZone()
         targeted_site++;
     }
     robot->updateScore(5);
+
+    return(true);
+}
+
+bool Strategy::pushSamplesBelowShelter() 
+{
+    RobotPosition targetPosition = robot->getCurrentPosition();
+    std::vector<RobotPosition> positions;
+
+    positions.clear();
+    positions.push_back(targetPosition);
+    targetPosition.x = 1300;
+    targetPosition.y = 700;
+    positions.push_back(targetPosition);
+    targetPosition.x = 950;
+    targetPosition.y = 650;
+    positions.push_back(targetPosition);
+    targetPosition.x = 450;
+    targetPosition.y = 450;
+    positions.push_back(targetPosition);
+    targetPosition.x = 350;
+    targetPosition.y = 350;
+    positions.push_back(targetPosition);
+    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
+    robot->setTrajectoryToFollow(traj);
+    // Move the rail so it doesn't hit the fake statue
+    robot->moveRail(0.9);
+    for (int i = 0; i < 3; i++)
+        servo->moveSuction(i, suction::FOLD);
+    robot->wait(0.5);
+    servo->moveClaw(claw::SIDE);
+    (void) robot->waitForTrajectoryFinished();
+    robot->updateScore(15);
+
+    // move back and fold arms
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, -150);
+    robot->setTrajectoryToFollow(traj);
+
+    (void) robot->waitForTrajectoryFinished(); 
+
+    servo->moveClaw(claw::FOLD);
+
+    return(true);
 }

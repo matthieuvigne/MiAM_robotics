@@ -24,18 +24,21 @@
         private:
             RobotInterface *robot;
             ServoHandler *servo;
+
             // Actions
-            void handleStatue();
-            void moveSideSample();
-            void handleSideTripleSamples();
-            void moveThreeSamples();
-            void handleDigZone();
+            bool handleStatue();
+            bool moveSideSample();
+            bool handleSideTripleSamples();
+            bool moveThreeSamples();
+            bool handleDigZone();
+            bool pushSamplesBelowShelter();
 
             // Utility functions
             void pushExcavationSite();
             bool shouldPushExcavationSite(ExcavationSquareColor color);
             void dropElements();
             ExcavationSquareColor testExcavationSite();
+            void stopEverything();
     };
 
  #endif
