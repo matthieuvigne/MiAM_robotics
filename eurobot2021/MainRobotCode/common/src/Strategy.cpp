@@ -30,6 +30,7 @@ void matchEndBackToBase(RobotInterface *robot)
     if (!MATCH_COMPLETED)
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
+        MATCH_COMPLETED = true;
         // Compute falback trajectory.
         RobotPosition currentPosition = robot->getCurrentPosition();
         RobotPosition targetPosition;
@@ -40,7 +41,6 @@ void matchEndBackToBase(RobotInterface *robot)
         if (robot->waitForTrajectoryFinished())
         {
             robot->updateScore(20);
-            MATCH_COMPLETED = true;
         }
     }
 }
@@ -63,6 +63,7 @@ void Strategy::setup(RobotInterface *robot, ServoHandler *servo)
     servo->moveFinger(true, finger::FOLD);
     servo->moveArm(false, arm::FOLD);
     servo->moveFinger(false, finger::FOLD);
+    servo->moveClaw(claw::FOLD);
 
     //init ventouse & rail
     for (int i = 0; i < 3; i++)
@@ -179,11 +180,14 @@ void Strategy::match()
     targetPosition.x = 1200;
     targetPosition.y = 800 ;
     positions.push_back(targetPosition);
-    targetPosition.x = 800;
-    targetPosition.y = 450 ;
+    targetPosition.x = 1000;
+    targetPosition.y = 550 ;
     positions.push_back(targetPosition);
-    targetPosition.x = 460 ;
-    targetPosition.y = 230 ;
+    targetPosition.x = 600;
+    targetPosition.y = 375 ;
+    positions.push_back(targetPosition);
+    targetPosition.x = 420 ;
+    targetPosition.y = 300 ;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
@@ -191,8 +195,11 @@ void Strategy::match()
     robot->moveRail(0.9);
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::FOLD);
+    usleep(2000000);
+    servo->moveClaw(claw::SIDE);
     (void) robot->waitForTrajectoryFinished();
     robot->updateScore(15);
+    servo->moveClaw(claw::FRONT);
 
     //**********************************************************
     // Flip the dig zone
@@ -222,7 +229,7 @@ void Strategy::match()
     traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();
-    if (wasMoveSuccessful)
+    if (wasMoveSuccessful && !MATCH_COMPLETED)
     {
         robot->updateScore(20);
         MATCH_COMPLETED = true;

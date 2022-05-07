@@ -38,6 +38,8 @@ void Strategy::handleStatue()
     servo->moveStatue(statue::CATCH);
     servo->activateMagnet(true);
     robot->wait(0.6);
+    std::cout << robot->getCurrentPosition() << std::endl;
+    while(true) ;;
     servo->moveStatue(statue::TRANSPORT);
     robot->updateScore(5);
 

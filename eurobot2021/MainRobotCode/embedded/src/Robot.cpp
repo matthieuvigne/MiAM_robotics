@@ -580,10 +580,11 @@ ExcavationSquareColor Robot::getExcavationReadings(bool readRightSide)
 void Robot::updateRangeMeasurement()
 {
     // Offset from measurement to position of center of robot.
-    // To update this: place the robot a fixed distance (10cm) from
-    // a flat surface, and look at the measurement v    alue.
+    // To update this: place the robot a fixed distance (e.g. 10cm) from
+    // a flat surface, and look at the measurement value.
+    // Don't forget to add robot width.
     // This offset thus integrates sensor position, sensor offset...
-    int const OFFSET[2] = {105, 106};
+    int const OFFSET[2] = {83, 75};
 
     // Perform average of last N values.
     #define N_AVG 3

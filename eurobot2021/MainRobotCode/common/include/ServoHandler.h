@@ -39,6 +39,13 @@
             VERTICAL = 6
         };
 
+        enum class claw
+        {
+            FOLD = 0,
+            FRONT = 1,
+            SIDE = 2
+        };
+
         /// \brief Helper class for controlling the robot servos.
         class ServoHandler
         {
@@ -63,8 +70,9 @@
 
                 void moveRail(int velocity);
 
-
                 void activatePump(bool const& pumpOn);
+
+                void moveClaw(claw const& pose);
 
                 // Statue-related functions
                 void activateMagnet(bool const& magnetOn);

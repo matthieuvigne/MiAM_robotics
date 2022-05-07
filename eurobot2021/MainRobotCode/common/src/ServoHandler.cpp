@@ -215,3 +215,18 @@ void ServoHandler::moveStatue(statue const& pose)
         default: break;
     }
 }
+
+void ServoHandler::moveClaw(claw const& pose)
+{
+    int const FOLD_POS[2] = {775, 2150};
+    switch(pose)
+    {
+        case claw::FOLD: maestro_->setPosition(RIGHT_CLAW, FOLD_POS[0]);
+                         maestro_->setPosition(LEFT_CLAW, FOLD_POS[1]); break;
+        case claw::FRONT: maestro_->setPosition(RIGHT_CLAW, FOLD_POS[0] + 650);
+                         maestro_->setPosition(LEFT_CLAW, FOLD_POS[1] - 650); break;
+        case claw::SIDE: maestro_->setPosition(RIGHT_CLAW, FOLD_POS[0] + 1550);
+                         maestro_->setPosition(LEFT_CLAW, FOLD_POS[1] - 1550); break;
+        default: break;
+    }
+}

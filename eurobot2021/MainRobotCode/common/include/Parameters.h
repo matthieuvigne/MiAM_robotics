@@ -48,7 +48,9 @@
             RIGHT_FINGER = 11,
             LEFT_ARM = 12,
             LEFT_FINGER = 13,
-            STATUE = 14
+            STATUE = 14,
+            RIGHT_CLAW = 15,
+            LEFT_CLAW = 16
         };
 
         std::string const SERVO_NAMES[18] = {
@@ -67,8 +69,8 @@
             "Left arm",
             "Left finger",
             "Statue",
-            "",
-            "",
+            "Right claw",
+            "Left claw",
             ""
         };
 
