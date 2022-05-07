@@ -80,8 +80,8 @@ private:
 Eigen::Quaterniond CameraPoseFilter::initializeQwr()
 {
   Eigen::Quaterniond const qWR =
-      Eigen::AngleAxisd( M_PI_2, Eigen::Vector3d::UnitZ())
-    * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitY());
+      Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ())
+    * Eigen::AngleAxisd( M_PI_2, Eigen::Vector3d::UnitY());
   return qWR;
 }
 
