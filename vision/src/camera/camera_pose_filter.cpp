@@ -16,7 +16,9 @@ CameraPoseFilter::CameraPoseFilter(Params const& params)
   T_WM_     (Eigen::Translation3d(1.5,1.0,0.0) * Eigen::AngleAxisd()),
   T_RC_     (params.T_RC),
   cov_T_RC_ (params.cov_TRC)
-{}
+{
+  
+}
 
 //--------------------------------------------------------------------------------------------------
 // Methods
