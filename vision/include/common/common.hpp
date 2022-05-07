@@ -13,6 +13,10 @@ enum class Team {
 
 Eigen::Affine3d getTWM();
 
+Eigen::Vector3d getWpCi(Team team);
+Eigen::Quaterniond getqWR();
+Eigen::Quaterniond getqRC(double azimuth_deg, double elevation_deg);
+  
 } // namespace common
 
 #endif // COMMON_COMMON_HPP

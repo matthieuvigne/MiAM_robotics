@@ -48,10 +48,7 @@ public:
 
 private:
 
-  inline static Eigen::Quaterniond initializeQwr();
   static Eigen::Matrix4d initializeCovariance(double sigma_pos, double sigma_azimuth_deg);
-  static Eigen::Vector3d initializeWpc(common::Team team);
-  static Eigen::Quaterniond getQrc(double azimuth_deg, double elevation_deg);
 
 private:
 
@@ -72,18 +69,6 @@ private:
   int num_updates_;
 
 }; // class CameraPoseFilter
-
-//--------------------------------------------------------------------------------------------------
-// Inline functions
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Quaterniond CameraPoseFilter::initializeQwr()
-{
-  Eigen::Quaterniond const qWR =
-      Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ())
-    * Eigen::AngleAxisd( M_PI_2, Eigen::Vector3d::UnitY());
-  return qWR;
-}
 
 //--------------------------------------------------------------------------------------------------
 

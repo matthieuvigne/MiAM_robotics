@@ -14,12 +14,12 @@ namespace camera {
 
 CameraPoseFilter::CameraPoseFilter(Params const& params)
 : team_                 (params.team),
-  WpC_                  (initializeWpc(params.team)),
+  WpC_                  (common::getWpCi(params.team)),
   azimuth_deg_          (0.00),
   cov_                  (initializeCovariance(params.sigma_position, params.sigma_azimuth_deg)),
   elevation_deg_        (45.0),
   sigma_elevation_deg_  (params.sigma_elevation_deg),
-  qWR_                  (initializeQwr()),
+  qWR_                  (common::getqWR()),
   TWM_                  (common::getTWM()),
   is_initialized_       (false),
   num_updates_          (0)
@@ -27,28 +27,6 @@ CameraPoseFilter::CameraPoseFilter(Params const& params)
 
 //--------------------------------------------------------------------------------------------------
 // Methods
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Vector3d CameraPoseFilter::initializeWpc(common::Team team)
-{
-  Eigen::Vector3d WpC;
-  switch(team)
-  {
-    case common::Team::UNKNOWN:
-      WpC = Eigen::Vector3d{1.50,1.80,1.00};
-      break;
-    case common::Team::PURPLE:
-      WpC = Eigen::Vector3d{1.60,1.80,1.00};
-      break;
-    case common::Team::YELLOW:
-      WpC = Eigen::Vector3d{1.40,1.80,1.00};
-      break;
-    default:
-      throw std::runtime_error("Unknown team");
-  }
-  return WpC;
-}
-
 //--------------------------------------------------------------------------------------------------
 
 Eigen::Matrix4d CameraPoseFilter::initializeCovariance(
@@ -62,24 +40,9 @@ Eigen::Matrix4d CameraPoseFilter::initializeCovariance(
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Quaterniond CameraPoseFilter::getQrc(double azimuth_deg, double elevation_deg)
-{
-  /* Sign conventions:
-   * 500  = -90°  (looks left)
-   * 1500 =   0°  (looks front)
-   * 2500 = +90°  (looks right)
-   */
-  Eigen::Quaterniond qRC;
-  qRC = Eigen::AngleAxisd(azimuth_deg*RAD,   Eigen::Vector3d::UnitX())
-      * Eigen::AngleAxisd(elevation_deg*RAD, Eigen::Vector3d::UnitY());
-  return qRC;
-}
-
-//--------------------------------------------------------------------------------------------------
-
 Eigen::Affine3d CameraPoseFilter::getTWC() const
 {
-  Eigen::Quaterniond const qRC = getQrc(azimuth_deg_, elevation_deg_);
+  Eigen::Quaterniond const qRC = common::getqRC(azimuth_deg_, elevation_deg_);
   Eigen::Affine3d TWC = Eigen::Translation3d(WpC_) * qWR_ * qRC;
   return TWC;
 }
@@ -118,7 +81,7 @@ void CameraPoseFilter::update(
   // Predict the measurement
   Eigen::Affine3d const TWC = getTWC();
   Eigen::Affine3d const TRC = Eigen::Translation3d(Eigen::Vector3d::Zero())
-    * getQrc(azimuth_deg_, elevation_deg_);
+    * common::getqRC(azimuth_deg_, elevation_deg_);
   Eigen::Affine3d const TWR = Eigen::Translation3d(WpC_) * qWR_;
   Eigen::Affine3d const predicted_TCM = TRC.inverse() * TWR.inverse() * TWM_;
   
@@ -169,7 +132,8 @@ Eigen::Matrix<double,6,6> CameraPoseFilter::getCovTWC() const
   Eigen::Matrix<double,6,3> J_TWC_wrt_WpC = Eigen::Matrix<double,6,6>::Identity().block<6,3>(0,3);
   
   Eigen::Affine3d TWR = Eigen::Translation3d(WpC_) * qWR_;
-  Eigen::Affine3d TRC = Eigen::Translation3d() * getQrc(azimuth_deg_, elevation_deg_);
+  Eigen::Affine3d TRC = Eigen::Translation3d(Eigen::Vector3d::Zero())
+    * common::getqRC(azimuth_deg_, elevation_deg_);
   Eigen::Matrix<double,6,6> J_TWC_wrt_TRC = common::so3r3::rightSe3ProductJacobian(TWR, TRC);
   Eigen::Matrix<double,6,1> J_TRC_wrt_azimuth = Eigen::Matrix<double,6,1>::Unit(0)/DEG;
   Eigen::Matrix<double,6,1> J_TWC_wrt_azimuth = J_TWC_wrt_TRC * J_TRC_wrt_azimuth;
