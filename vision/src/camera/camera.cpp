@@ -237,7 +237,7 @@ bool Camera::detectMarkers(
 
     // Assign the covariance matrix
     marker.cov_T_CM = information_matrix.inverse();
-    marker.cov_T_CM.block<3,3>(0,0) *= std::pow(DEG, 2.0); // conversion to degrees
+    marker.cov_T_CM.block<3,3>(0,0) *= std::pow(DEG,2); // conversion to degrees
     detected_markers_ptr->push_back(marker);
   }
 
