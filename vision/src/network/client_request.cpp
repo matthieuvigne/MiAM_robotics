@@ -2,6 +2,7 @@
 #include <vector>
 
 #include <common/common.hpp>
+#include <common/logger.hpp>
 #include <network/client_request.hpp>
 
 namespace network {
@@ -31,8 +32,11 @@ bool ClientRequest::serializeParams(std::vector<char>* params_ptr) const
   {
     case MessageType::INITIALIZATION:
     {
+      CONSOLE << "OK";
       common::Team const& team = getParamsAs<common::Team>();
+      CONSOLE << "OK";
       std::memcpy(params_ptr, &team, sizeof(common::Team));
+      CONSOLE << "OK";
       break;
     }
     case MessageType::UNKNOWN:

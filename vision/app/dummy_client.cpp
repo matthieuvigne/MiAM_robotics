@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
 
+#include <common/common.hpp>
 #include <common/logger.hpp>
 #include <common/marker.hpp>
 #include <network/client.hpp>
@@ -12,9 +13,10 @@
 int main(int argc, char* argv[])
 {
   // Initialize the logger
-  std::string const filename = "dummy_client_logs.txt";
-  common::FileLogger::init(filename);
-  LOGFILE << "Initialized the logger";
+  //~ std::string const filename = "dummy_client_logs.txt";
+  //~ common::FileLogger::init(filename);
+  //~ LOGFILE << "Initialized the logger";
+  common::ConsoleLogger::init();
 
   while(true)
   {
@@ -34,11 +36,22 @@ int main(int argc, char* argv[])
       {    
         // Build and send the request to the server
         std::string request_str;
-        network::MessageType const message_type = (request_idx>0)
-          ? network::MessageType::GET_MEASUREMENTS
-          : network::MessageType::INITIALIZATION;
-        request_ptr.reset(new network::ClientRequest(message_type));
+        network::MessageType message_type;
+        if(request_idx>0)
+        {
+          message_type = network::MessageType::GET_MEASUREMENTS;
+          request_ptr.reset(new network::ClientRequest(message_type));
+        }
+        else
+        {
+          message_type = network::MessageType::INITIALIZATION;          
+          std::shared_ptr<common::Team> team_ptr(new common::Team);
+          *team_ptr = common::Team::PURPLE;
+          request_ptr.reset(new network::ClientRequest(message_type, team_ptr));
+        }
+        CONSOLE << "Message pointer initialized";
         request_ptr->serialize(&request_str);
+        CONSOLE << "Message serialized";
         client << request_str;
         CONSOLE << "Sent request to the server";
 
@@ -71,6 +84,7 @@ int main(int argc, char* argv[])
     }
     catch(network::SocketException const& e)
     {
+      CONSOLE << "Client lost the connection with the server";
       CONSOLE << e.description();
     }
   }

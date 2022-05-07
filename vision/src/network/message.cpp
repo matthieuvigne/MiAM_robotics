@@ -46,24 +46,30 @@ bool Message::serialize(std::string* message_ptr) const
   // Get the reference
   CHECK_NOTNULL(message_ptr);
   std::string& message = *message_ptr;
+  CONSOLE << "OK";
 
   // Append the type of the message
   std::vector<char> type_str(sizeof(MessageType));
   std::memcpy(type_str.data(), &type_, sizeof(MessageType));
+  CONSOLE << "OK";
 
   // Append the current timestamp
   std::vector<char> timestamp_str(sizeof(int64_t));
   std::memcpy(timestamp_str.data(), &timestamp_ns_, sizeof(int64_t));
+  CONSOLE << "OK";
 
   // Append the supplementary data
   std::vector<char> params_str;
   serializeParams(&params_str);
+  CONSOLE << "OK";
 
   // Get the message size
   std::vector<char> size_str(sizeof(uint16_t));
-  uint16_t const msg_size = sizeof(uint16_t) + type_str.size() + params_str.size();
+  uint16_t const msg_size = sizeof(uint16_t) + timestamp_str.size() + type_str.size()
+    + params_str.size();
   std::memcpy(size_str.data(), &msg_size, sizeof(uint16_t));
   CHECK(size_str.size() == sizeof(uint16_t));
+  CONSOLE << "OK";
 
   // Build the message
   message  = std::string(size_str.data(), size_str.size());
@@ -71,6 +77,7 @@ bool Message::serialize(std::string* message_ptr) const
   message += std::string(timestamp_str.data(), timestamp_str.size());
   message += std::string(params_str.size(), params_str.size());
   message.shrink_to_fit();
+  CONSOLE << "OK";
   return true;
 }
 
