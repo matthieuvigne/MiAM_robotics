@@ -16,7 +16,8 @@ int main(int argc, char* argv[])
 
   // Initialize the test bench if required
   #ifdef USE_TEST_BENCH
-  module::TestBench::Options options = module::TestBench::Options::getDefaultOptions();
+  common::Team team = common::Team::PURPLE;
+  module::TestBench::Options options = module::TestBench::Options::getDefaultOptions(team);
   options.mode = module::TestBench::Mode::PERFECT;
   module::TestBench::init(options);
   #endif

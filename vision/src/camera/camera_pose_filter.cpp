@@ -112,9 +112,8 @@ void CameraPoseFilter::update(
   // Recall: the measurement covariance should be of the form [orientation (deg), position (m)]
   Eigen::Matrix<double,6,6> S = J_TCM_wrt_state * cov_ * J_TCM_wrt_state.transpose() + cov_TCM;
   Eigen::Matrix<double,4,6> K = cov_ * J_TCM_wrt_state.transpose() * S.inverse();
-  Eigen::Vector4d new_state = K * innov;
-  azimuth_deg_ = new_state(0);
-  WpC_ = new_state.tail<3>();
+  azimuth_deg_ += K.row(0) * innov;
+  WpC_ += K.bottomRows(3) * innov;
   Eigen::Matrix4d I4 = Eigen::Matrix4d::Identity();
   cov_ = (I4 - K*J_TCM_wrt_state)*cov_;
   

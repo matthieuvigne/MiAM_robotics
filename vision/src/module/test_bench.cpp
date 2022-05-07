@@ -17,10 +17,11 @@ TestBench::UniquePtr test_bench_ptr = nullptr;
 // Functions
 //--------------------------------------------------------------------------------------------------
 
-TestBench::Options TestBench::Options::getDefaultOptions()
+TestBench::Options TestBench::Options::getDefaultOptions(common::Team team)
 {
   // Add team option
   Options options;
+  options.team = team;
   options.TWC = Eigen::Translation3d(1.5,2.0,1.0)
     * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
     * Eigen::AngleAxisd(3*M_PI_4, Eigen::Vector3d::UnitX());

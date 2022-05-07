@@ -1,6 +1,7 @@
 #ifndef MODULE_TEST_BENCH_HPP
 #define MODULE_TEST_BENCH_HPP
 
+#include <common/common.hpp>
 #include <common/macros.hpp>
 #include <common/marker.hpp>
 #include <common/maths.hpp>
@@ -42,7 +43,6 @@ public:
   double getCameraRotationTime(double angle_rad);
 
   // Simulation of the test bench
-  //~ void rotateCamera(double wx_rad, double wy_rad, double wz_rad);
   void rotateCamera(double dtheta_rad);
   void rotateCameraToAnglePosition(double angle_rad); 
   void detectMarkers(common::DetectedMarkerList* detected_markers, Mode mode = Mode::NOISY);
@@ -50,8 +50,8 @@ public:
 public:
 
   // Board dimensions
-  double board_width_  = 3.0;
-  double board_height_ = 2.0;
+  double const board_width_  = 3.0;
+  double const board_height_ = 2.0;
 
 private:
 
@@ -76,6 +76,9 @@ private:
 //--------------------------------------------------------------------------------------------------
 
 struct TestBench::Options {
+  
+  // Team
+  common::Team team;
 
   // Pose
   Eigen::Affine3d TWC;  ///< Camera pose wrt. the world frame
@@ -95,7 +98,7 @@ struct TestBench::Options {
   double TWM_sigma_t  = 5e-3;       ///< Central marker pose sampling position stddev
 
   // Functions
-  static Options getDefaultOptions();
+  static Options getDefaultOptions(common::Team team);
 
 }; // struct TestBench::Options
 

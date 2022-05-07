@@ -191,7 +191,6 @@ bool Camera::detectMarkers(
 
     // Get the marker's corner image coordinates
     int constexpr num_corners = 4;
-    //~ std::vector<cv::Point2f> const& corners = marker_corners[marker_idx];
     if(corners[0].size() != num_corners)
       throw std::runtime_error("Wrong number of corners!");
 
