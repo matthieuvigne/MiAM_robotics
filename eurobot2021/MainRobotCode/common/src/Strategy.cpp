@@ -15,8 +15,8 @@ using namespace miam::trajectory;
 using miam::RobotPosition;
 
 
-#define SKIP_TO_GRABBING_SAMPLES 1
-#define SKIP_TO_PUSHING_SAMPLES 1
+// #define SKIP_TO_GRABBING_SAMPLES 1
+// #define SKIP_TO_PUSHING_SAMPLES 1
 // #define SKIP_TO_GRABBING_SAMPLES_SIDE_DIST 1
 
 // This function is responsible for trying to bring the robot back to base,
@@ -159,7 +159,7 @@ void Strategy::match()
     moveThreeSamples();
 
     std::cout << robot->getCurrentPosition() << std::endl;
-    robot->wait(1000);
+    // robot->wait(1000);
 
     #endif
 
@@ -180,8 +180,8 @@ void Strategy::match()
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
-    targetPosition.x = 1200;
-    targetPosition.y = 800;
+    targetPosition.x = 1300;
+    targetPosition.y = 700;
     positions.push_back(targetPosition);
     targetPosition.x = 950;
     targetPosition.y = 650;
@@ -189,8 +189,8 @@ void Strategy::match()
     targetPosition.x = 450;
     targetPosition.y = 450;
     positions.push_back(targetPosition);
-    targetPosition.x = 360;
-    targetPosition.y = 360;
+    targetPosition.x = 350;
+    targetPosition.y = 350;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
@@ -203,14 +203,8 @@ void Strategy::match()
     (void) robot->waitForTrajectoryFinished();
     robot->updateScore(15);
 
-    // move back and fold
-    // positions.clear();
+    // move back and fold arms
     targetPosition = robot->getCurrentPosition();
-    // positions.push_back(targetPosition);
-    // targetPosition.x -= 100 * std::cos(targetPosition.theta);
-    // targetPosition.y -= 100 * std::sin(targetPosition.theta);
-    // positions.push_back(targetPosition);
-    // traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     traj = computeTrajectoryStraightLine(targetPosition, -150);
     robot->setTrajectoryToFollow(traj);
 
@@ -242,7 +236,7 @@ void Strategy::match()
     positions.push_back(targetPosition);
     targetPosition.x = 975;
     targetPosition.y = 600;
-    targetPosition.theta = -M_PI_2
+    targetPosition.theta = -M_PI_2;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);

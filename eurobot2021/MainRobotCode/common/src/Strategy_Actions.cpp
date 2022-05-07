@@ -334,7 +334,7 @@ void Strategy::handleDigZone()
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
 
     // Test all sites.
-    testExcavationSite();
+    bool is_cross_detected = testExcavationSite() == ExcavationSquareColor::RED;
     // Test the first 3 sites
     for (int i = 1; i < 3; i++)
     {
@@ -359,7 +359,16 @@ void Strategy::handleDigZone()
         traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.3, true);
         robot->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleDigZone failed to complete");
-        testExcavationSite();
+
+        // if cross is already detected, no need to measure
+        if (is_cross_detected) {
+            std::cout << "Site known to be pushed : no measurement required" << std::endl;
+            pushExcavationSite();
+            robot->updateScore(5);
+        } else {
+            
+            is_cross_detected = testExcavationSite() == ExcavationSquareColor::RED;
+        }
     }
 
     // positions of the 4th, 5th, 6th, 7th sites
