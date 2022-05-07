@@ -172,14 +172,15 @@ bool Camera::detectMarkers(
     // Initialize the structure
     common::DetectedMarker marker;
     marker.marker_id = static_cast<common::MarkerId>(detected_marker_ids[marker_idx]);
-    double const marker_length = (marker_idx==42) ? 0.10 : 0.05;
+    double const marker_length = (marker.marker_id==42) ? 0.10 : 0.05;
 
     // Estimate the marker pose
-    cv::Vec3d rvecs, tvecs;
-    cv::aruco::estimatePoseSingleMarkers(marker_corners[marker_idx], marker_length,
+    std::vector<cv::Vec3d> rvecs, tvecs;
+    std::vector<std::vector<cv::Point2f>> corners{marker_corners[marker_idx]};
+    cv::aruco::estimatePoseSingleMarkers(corners, marker_length,
       camera_matrix, distortion_coeffs, rvecs, tvecs);
-    Eigen::Map<Eigen::Vector3d> C_t_CM((double*) tvecs.val);
-    Eigen::Map<Eigen::Vector3d> rvec((double*) rvecs.val);
+    Eigen::Map<Eigen::Vector3d> C_t_CM((double*) tvecs[0].val);
+    Eigen::Map<Eigen::Vector3d> rvec((double*) rvecs[0].val);
     double const angle = rvec.norm();
     Eigen::Vector3d const axis = rvec.normalized();
     Eigen::Matrix3d const R_CM = Eigen::AngleAxisd(angle,axis).toRotationMatrix();
@@ -190,8 +191,8 @@ bool Camera::detectMarkers(
 
     // Get the marker's corner image coordinates
     int constexpr num_corners = 4;
-    std::vector<cv::Point2f> const& corners = marker_corners[marker_idx];
-    if(corners.size() != num_corners)
+    //~ std::vector<cv::Point2f> const& corners = marker_corners[marker_idx];
+    if(corners[0].size() != num_corners)
       throw std::runtime_error("Wrong number of corners!");
 
     // Initialize the Fisher Information Matrix
