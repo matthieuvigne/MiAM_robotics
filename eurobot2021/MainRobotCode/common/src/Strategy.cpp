@@ -127,7 +127,7 @@ void Strategy::match()
     servo->closeTube(2);
     servo->activatePump(true);
     robot->moveRail(0.7);
-    servo->closeValve();
+    servo->openValve();
     robot->wait(0.5);
     servo->moveStatue(statue::TRANSPORT);
     wasMoveSuccessful = robot->waitForTrajectoryFinished();

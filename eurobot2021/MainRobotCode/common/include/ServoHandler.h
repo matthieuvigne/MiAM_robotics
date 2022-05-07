@@ -43,7 +43,8 @@
         {
             FOLD = 0,
             FRONT = 1,
-            SIDE = 2
+            SIDE = 2,
+            VPOSIITON = 3
         };
 
         /// \brief Helper class for controlling the robot servos.

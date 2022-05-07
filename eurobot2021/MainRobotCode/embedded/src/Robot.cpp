@@ -299,7 +299,7 @@ bool Robot::setupBeforeMatchStart()
         {
             initStatueHigh_ = !initStatueHigh_;
             if (initStatueHigh_)
-                moveRail(0.68);
+                moveRail(0.75);
             else
                 moveRail(0.5);
         }

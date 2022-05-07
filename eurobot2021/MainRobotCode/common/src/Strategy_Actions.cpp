@@ -54,6 +54,7 @@ void Strategy::handleStatue()
     traj.clear();
     traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI)));
     robot->setTrajectoryToFollow(traj);
+    robot->moveRail(0.15);
     MOVE_OR_ABORT("handleStatue failed to complete");
 
     targetPosition = robot->getCurrentPosition();
@@ -62,19 +63,15 @@ void Strategy::handleStatue()
     MOVE_OR_ABORT("handleStatue failed to complete");
 
     // Place fake statue
-    robot->moveRail(0.2);
     servo->moveSuction(1, suction::DROP_STATUE);
-    robot->wait(0.5); // wait to avoid dropping too brutally
+    // robot->wait(0.5); // wait to avoid dropping too brutally
     dropElements();
-    robot->wait(0.2);
+    // robot->wait(0.2);
     robot->updateScore(10);
 
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -30.0);
     robot->setTrajectoryToFollow(traj);
-
-    robot->moveRail(0.8);
-    servo->moveSuction(1, suction::HORIZONTAL);
 
     MOVE_OR_ABORT("handleStatue failed to complete");
 
@@ -93,8 +90,12 @@ void Strategy::handleStatue()
     targetPosition.y = 2000 - robotdimensions::CHASSIS_BACK - 5;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 300.0, 0.3, true);
-
     robot->setTrajectoryToFollow(traj);
+
+    // raise back rail and suction
+    robot->moveRail(0.8);
+    servo->moveSuction(1, suction::HORIZONTAL);
+
     MOVE_OR_ABORT("handleStatue failed to complete");
 
     servo->moveStatue(statue::DROP);
@@ -122,7 +123,7 @@ void Strategy::moveSideSample()
     servo->closeTube(0);
     servo->closeTube(2);
     servo->activatePump(true);
-    servo->closeValve();
+    servo->openValve();
     robot->moveRail(0.58);
     robot->wait(1.0);
     robot->moveRail(0.8);
@@ -163,7 +164,7 @@ void Strategy::handleSideTripleSamples()
     // Grab and drop the three samples
     for (int i = 0; i < 3; i++)
     {
-        servo->closeValve();
+        servo->openValve();
         servo->openTube(2);
         servo->closeTube(0);
         servo->closeTube(1);
@@ -235,9 +236,11 @@ void Strategy::moveThreeSamples()
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 60.0);
+    traj = computeTrajectoryStraightLine(targetPosition, 65.0);
     robot->setTrajectoryToFollow(traj);
+    servo->moveClaw(claw::VPOSIITON); // move claws to push center sample a little more
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
+    servo->moveClaw(claw::FOLD);
 
     servo->closeValve();
     for (int i = 0; i < 3; i++)
@@ -246,6 +249,7 @@ void Strategy::moveThreeSamples()
     robot->moveRail(0.0);
     robot->wait(1.0);
 
+    // raise rail and travel
     robot->moveRail(0.75);
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::VERTICAL);
@@ -256,7 +260,7 @@ void Strategy::moveThreeSamples()
     targetPosition.x = 770;
     positions.push_back(targetPosition);
     targetPosition.x = 770;
-    targetPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 105;
+    targetPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 95;
     targetPosition.theta = M_PI_2;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
@@ -268,7 +272,15 @@ void Strategy::moveThreeSamples()
 
     dropElements();
     robot->moveRail(0.35);
-    robot->wait(1.5); // wait a little longer to drop samples correctly
+
+    traj = computeTrajectoryStraightLine(targetPosition, -8.0);
+    robot->setTrajectoryToFollow(traj);
+    MOVE_OR_ABORT("moveThreeSamples failed to complete");
+    traj = computeTrajectoryStraightLine(targetPosition, 8.0);
+    robot->setTrajectoryToFollow(traj);
+    MOVE_OR_ABORT("moveThreeSamples failed to complete");
+
+    robot->wait(0.5); // wait a little longer to drop samples correctly
     robot->updateScore(9);
 
     targetPosition = robot->getCurrentPosition();
