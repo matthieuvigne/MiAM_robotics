@@ -94,6 +94,7 @@ void CameraThread::runThread()
     }
 
     // Update the pose estimate of all the markers
+    // PROBLEM HERE -> stock the measurements per timestamp and erase the oldest timestamps
     Eigen::Affine3d const& TWC = pose_filter_ptr_->getTWC();
     Eigen::Matrix<double,6,6> const cov_TWC = pose_filter_ptr_->getCovTWC();
     for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)

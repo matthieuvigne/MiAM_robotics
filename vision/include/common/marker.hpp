@@ -45,6 +45,7 @@ class Marker;
 typedef std::vector<Marker> MarkerList;
 typedef std::map<MarkerId,Marker> MarkerIdToEstimate;
 typedef std::multimap<MarkerId,Eigen::Affine3d> MarkerIdToPose;
+typedef std::multimap<int64_t,Marker> MarkerEstimates;
 
 class Marker {
 
@@ -77,8 +78,12 @@ class Marker {
     Eigen::Matrix<double,6,6> cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
 
   public:
-    static bool serialize(MarkerIdToEstimate const& markers, std::vector<char>* message);
-    static bool deserialize(std::vector<char> const& message, MarkerIdToEstimate* markers);
+    static bool serialize(MarkerIdToEstimate const& markers, std::vector<char>* message); // -> to remove
+    static bool deserialize(std::vector<char> const& message, MarkerIdToEstimate* markers); // -> to remove
+
+    static bool serialize(MarkerEstimates const& estimates, std::vector<char>* message);
+    static bool deserialize(std::vector<char> const& message, MarkerEstimates* estimates);
+    
     static int constexpr MESSAGE_SIZE_BYTES =  1 * sizeof(MarkerId)     + /*Marker id*/
                                                1 * sizeof(MarkerFamily) + /*Marker family*/
                                                1 * sizeof(int64_t)      + /*timestamp*/
