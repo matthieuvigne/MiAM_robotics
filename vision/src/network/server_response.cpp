@@ -7,8 +7,14 @@ namespace network {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-ServerResponse::ServerResponse(MessageType type, std::shared_ptr<void> params)
-: Message(type, params)
+ServerResponse::ServerResponse()
+: Message(MessageType::UNKNOWN)
+{}
+
+//--------------------------------------------------------------------------------------------------
+
+ServerResponse::ServerResponse(MessageType type)
+: Message(type)
 {}
 
 //--------------------------------------------------------------------------------------------------

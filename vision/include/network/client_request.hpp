@@ -14,8 +14,10 @@ class ClientRequest : public Message {
 
 public:
   POINTER_TYPEDEF(ClientRequest);
-  DISALLOW_EVIL_CONSTRUCTORS(ClientRequest);
-  ClientRequest(MessageType type, std::shared_ptr<void> params = nullptr);
+
+public:
+  ClientRequest();
+  ClientRequest(MessageType type);
   ClientRequest(std::string const& message);
   virtual ~ClientRequest(){}
 

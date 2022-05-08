@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 
+#include <common/common.hpp>
 #include <common/logger.hpp>
 #include <common/time.hpp>
 #include <network/message.hpp>
@@ -12,15 +13,60 @@ namespace network {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-Message::Message(MessageType type, std::shared_ptr<void> params)
+Message::Message(MessageType type)
 : type_         (type),
-  timestamp_ns_ (common::convertToNanoseconds(common::Time::now())),
-  params_       (std::move(params))
+  timestamp_ns_ (common::convertToNanoseconds(common::Time::now()))
+{
+  initializeParams();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Functions
+//--------------------------------------------------------------------------------------------------
+
+std::string print(MessageType type)
+{
+  std::string type_str;
+  switch(type)
+  {
+    case MessageType::INITIALIZATION:
+      type_str = std::string("INITIALIZATION");
+      break;
+    case MessageType::GET_MEASUREMENTS:
+      type_str = std::string("GET_MEASUREMENTS");
+      break;
+    case MessageType::SHUT_DOWN:
+      type_str = std::string("SHUT_DOWN");
+      break;
+    case MessageType::UNKNOWN:
+      type_str = std::string("UNKNOWN");
+      break;
+    default:
+      throw std::runtime_error("Unknown message type");
+  }
+  return type_str;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Message::setType(MessageType type)
+{
+  type_ = type;
+  initializeParams();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Message::initializeParams()
 {
   switch(type_)
   {
     case MessageType::INITIALIZATION:
+      params_.reset(new common::Team);
+      break;
     case MessageType::GET_MEASUREMENTS:
+      params_.reset(new common::MarkerIdToEstimate);
+      break;
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:
       break;
@@ -29,8 +75,6 @@ Message::Message(MessageType type, std::shared_ptr<void> params)
   }
 }
 
-//--------------------------------------------------------------------------------------------------
-// Functions
 //--------------------------------------------------------------------------------------------------
 
 bool Message::serialize(std::string* message_ptr) const
@@ -77,9 +121,10 @@ bool Message::deserialize(std::string const& message)
   std::memcpy(&msg_size_bytes, &message[current_byte], sizeof(uint16_t));
   current_byte += sizeof(uint16_t);
 
-  // Get the type of the message
+  // Get the type of the message and initialize the associated params
   std::memcpy(&type_, &message[current_byte], sizeof(MessageType));
   current_byte += sizeof(MessageType);
+  initializeParams();
 
   // Get the timestamp of the message
   std::memcpy(&timestamp_ns_, &message[current_byte], sizeof(int64_t));

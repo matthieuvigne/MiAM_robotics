@@ -11,8 +11,14 @@ namespace network {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-ClientRequest::ClientRequest(MessageType type, std::shared_ptr<void> params)
-: Message(type, params)
+ClientRequest::ClientRequest()
+: Message(MessageType::UNKNOWN)
+{}
+
+//--------------------------------------------------------------------------------------------------
+
+ClientRequest::ClientRequest(MessageType type)
+: Message(type)
 {}
 
 //--------------------------------------------------------------------------------------------------

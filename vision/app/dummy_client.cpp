@@ -30,11 +30,10 @@ int main(int argc, char* argv[])
       // Send messages to the server
       int request_idx = 0;
       int constexpr max_num_requests = 10;
-      std::shared_ptr<common::MarkerIdToEstimate> markers = nullptr;
+
       while(true)
-      {    
-        // Build and send the request to the server
-        std::string request_str;
+      {
+        // Build the message to send to the server
         network::MessageType message_type;
         if(request_idx>0)
         {
@@ -43,25 +42,36 @@ int main(int argc, char* argv[])
         }
         else
         {
-          message_type = network::MessageType::INITIALIZATION;          
-          std::shared_ptr<common::Team> team_ptr(new common::Team);
-          *team_ptr = common::Team::PURPLE;
-          request_ptr.reset(new network::ClientRequest(message_type, team_ptr));
+          message_type = network::MessageType::INITIALIZATION;
+          request_ptr.reset(new network::ClientRequest(message_type));
+          request_ptr->getParamsAs<common::Team>() = common::Team::PURPLE;
         }
+
+        // Serialize and send the message to the server
+        std::string request_str;
         request_ptr->serialize(&request_str);
         client << request_str;
 
         // Get the response from the server
         std::string response_str;
         client >> response_str;
-        markers.reset(new common::MarkerIdToEstimate);
-        response_ptr.reset(new network::ServerResponse(message_type, markers));
+        response_ptr.reset(new network::ServerResponse(response_str));
         response_ptr->deserialize(response_str);
-        
+        CONSOLE << "Received message type: " << network::print(message_type);
+
+        if(message_type == network::MessageType::GET_MEASUREMENTS)
+        {
+          common::MarkerIdToEstimate const& markers =
+            response_ptr->getParamsAs<common::MarkerIdToEstimate>();
+          CONSOLE << "Received " << markers.size() << " markers";
+        }
+
         // Prepare for next iteration
         request_idx += 1;
         if(request_idx >= max_num_requests) break;
         std::this_thread::sleep_for(std::chrono::duration<double>(1.0));
+        request_ptr = nullptr;
+        response_ptr = nullptr;
       }
       
       // Send the shutdown request to the server

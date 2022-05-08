@@ -50,8 +50,8 @@ void ServerThread::serverThread()
 
         // Deserialize the client's request and respond
         bool shut_down = false;
-        std::shared_ptr<void> response_params_ptr = nullptr;
         ClientRequest const client_request(received_message);
+        response_ptr.reset(new ServerResponse(client_request.getType()));
         switch(client_request.getType())
         {
           case MessageType::INITIALIZATION:
@@ -62,9 +62,8 @@ void ServerThread::serverThread()
           }
           case MessageType::GET_MEASUREMENTS:
           {
-            std::shared_ptr<common::MarkerIdToEstimate> estimates(new common::MarkerIdToEstimate);
-            camera_thread_ptr_->getMarkers(estimates.get());
-            response_params_ptr = std::move(estimates);
+            camera_thread_ptr_->getMarkers(
+              response_ptr->getParamsPtrAs<common::MarkerIdToEstimate>());
             break;
           }
           case MessageType::SHUT_DOWN:
@@ -76,9 +75,8 @@ void ServerThread::serverThread()
           default:
             break;
         }
-        response_ptr.reset(new ServerResponse(client_request.getType(), response_params_ptr));
 
-        // Send the response to the client
+        // Serialize and send the response to the client
         std::string response_str;
         response_ptr->serialize(&response_str);
         client_sock << response_str;

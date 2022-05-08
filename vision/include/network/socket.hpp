@@ -17,7 +17,7 @@ namespace network {
 
 int const MAXHOSTNAME = 200;
 int const MAXCONNECTIONS = 5;
-int const MAXRECV = 1000; // Max message size = 1kB
+int const MAXRECV = 10000; // Max message size = 10kB
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration

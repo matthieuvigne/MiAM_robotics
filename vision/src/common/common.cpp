@@ -47,8 +47,8 @@ Eigen::Quaterniond getqRC(double azimuth_deg, double elevation_deg)
    * 2500 = +90°  (looks right)
    */
   Eigen::Quaterniond qRC;
-  qRC = Eigen::AngleAxisd(azimuth_deg*RAD,   Eigen::Vector3d::UnitX())
-      * Eigen::AngleAxisd(elevation_deg*RAD, Eigen::Vector3d::UnitY());
+  qRC = Eigen::AngleAxisd(-azimuth_deg*RAD,   Eigen::Vector3d::UnitX())
+      * Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitY());
   return qRC;
 }
 
