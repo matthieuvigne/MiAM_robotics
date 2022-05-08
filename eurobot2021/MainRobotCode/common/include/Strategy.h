@@ -9,6 +9,8 @@
     #include "RobotInterface.h"
     #include "ServoHandler.h"
 
+    #include "CameraClient.h"
+
     class Strategy
     {
         public:
@@ -20,6 +22,9 @@
 
             // The actual match code, which runs in its own thread.
             void match();
+
+
+            CameraClient camera_;
 
         private:
             void match_impl(); /// Actual implementation of the match code.
