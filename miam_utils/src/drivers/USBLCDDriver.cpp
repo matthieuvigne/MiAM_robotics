@@ -156,8 +156,10 @@ bool USBLCD::wasButtonPressedSinceLastCall(lcd::button const& button)
     uint8_t mask = 1;
     if (b > 0)
         mask = mask << b;
-    uint8_t state = getButtonState();
-    bool const currentState = getButtonState() & mask;
+    uint8_t state = getButtonStateRaw();
+    if (state == 0xFF)
+        return false;
+    bool const currentState = state & mask;
     bool const wasPressed = currentState & !lastButtonState_[b];
     lastButtonState_[b] = currentState;
     return wasPressed;
@@ -181,8 +183,8 @@ uint8_t USBLCD::getButtonStateRaw()
     }
     message[0] = 0;
 
-    // Read with 10ms timeout - on failure set message to 0xFF.
-    if(read_timeout(port_, message, 1, 10) != 1)
+    // Read with 20ms timeout - on failure set message to 0xFF.
+    if(read_timeout(port_, message, 1, 20) != 1)
         message[0] = 255;
 
     // Check that what we receive is a valid button value, otherwise return 255.
