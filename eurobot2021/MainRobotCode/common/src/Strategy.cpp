@@ -144,7 +144,16 @@ void Strategy::match_impl()
                 stopEverything();
 
             if (!pushSamplesBelowShelter())
+            {
+                // before folding claws try to go back a little in order not to get a sample stuck
+                // between claws
+                // trajectory should be feasible given position
+                targetPosition = robot->getCurrentPosition();
+                traj = computeTrajectoryStraightLine(targetPosition, -150);
+                robot->setTrajectoryToFollow(traj);
+                robot->waitForTrajectoryFinished();
                 stopEverything();
+            }
             
             if (!handleSideTripleSamples())
                 stopEverything();
@@ -235,6 +244,7 @@ void Strategy::match_impl()
         // before folding claws try to go back a little in order not to get a sample stuck
         // between claws
         // trajectory should be feasible given position
+        targetPosition = robot->getCurrentPosition();
         traj = computeTrajectoryStraightLine(targetPosition, -150);
         robot->setTrajectoryToFollow(traj);
         robot->waitForTrajectoryFinished();

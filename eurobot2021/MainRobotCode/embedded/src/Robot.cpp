@@ -267,6 +267,14 @@ bool Robot::setupBeforeMatchStart()
             motorSpeed_[0] = 0;
             motorSpeed_[1] = 0;
             stepperMotors_.setSpeed(motorSpeed_);
+            usleep(300000);
+            motorSpeed_[0] = -150;
+            motorSpeed_[1] = -150;
+            stepperMotors_.setSpeed(motorSpeed_);
+            usleep(300000);
+            motorSpeed_[0] = 0;
+            motorSpeed_[1] = 0;
+            stepperMotors_.setSpeed(motorSpeed_);
         }
     }
     else if (startupStatus_ == startupstatus::WAITING_FOR_CABLE)

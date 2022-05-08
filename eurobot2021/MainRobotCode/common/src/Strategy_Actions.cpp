@@ -133,7 +133,7 @@ bool Strategy::handleStatue()
     targetPosition.y += 80;
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_WIDTH + 100;
-    targetPosition.y += 800;
+    targetPosition.y += 600;
     positions.push_back(targetPosition);
     targetPosition.y = 2000 - robotdimensions::CHASSIS_BACK - 5;
     positions.push_back(targetPosition);
@@ -354,7 +354,7 @@ bool Strategy::moveThreeSamples()
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 65.0);
     robot->setTrajectoryToFollow(traj);
-    servo->moveClaw(claw::VPOSIITON); // move claws to push center sample a little more
+    servo->moveClaw(claw::VPOSITION); // move claws to push center sample a little more
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
     servo->moveClaw(claw::FOLD);
 
@@ -417,6 +417,7 @@ bool Strategy::moveThreeSamples()
 
 bool Strategy::moveThreeSamplesBackup()
 {
+    std::cout << ">>> performing moveThreeSamplesBackup" << std::endl;
     if (is_move_three_samples_finished) 
     {
         return(true);
@@ -424,21 +425,45 @@ bool Strategy::moveThreeSamplesBackup()
 
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
+
+    // are we at the left of the samples ?
+    bool to_the_left_of_the_samples = targetPosition.x < 800;
+
     positions.push_back(targetPosition);
     targetPosition.y = 1325;
     positions.push_back(targetPosition);
-    targetPosition.x = 650;
-    positions.push_back(targetPosition);
-    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
+    // targetPosition.x = 625;
+    // positions.push_back(targetPosition);
+
+    if (to_the_left_of_the_samples)
+    {
+        targetPosition.x = 625;
+        targetPosition.y = 1320;
+        positions.push_back(targetPosition);
+        targetPosition.x = 650;
+        targetPosition.y = 1325;
+        positions.push_back(targetPosition);
+    } else 
+    {
+        targetPosition.x = 1175;
+        targetPosition.y = 1320;
+        positions.push_back(targetPosition);
+        targetPosition.x = 1150;
+        targetPosition.y = 1325;
+        positions.push_back(targetPosition);
+    }
+
+    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.2);
     robot->setTrajectoryToFollow(traj);
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::HORIZONTAL);
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
+
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 65.0);
     robot->setTrajectoryToFollow(traj);
-    servo->moveClaw(claw::VPOSIITON); // move claws to push center sample a little more
+    servo->moveClaw(claw::VPOSITION); // move claws to push center sample a little more
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
     servo->moveClaw(claw::FOLD);
 
@@ -452,21 +477,34 @@ bool Strategy::moveThreeSamplesBackup()
     // raise rail and travel
     robot->moveRail(0.40);
 
-    targetPosition = robot->getCurrentPosition();
-    traj.clear();
-    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI)));
-    robot->setTrajectoryToFollow(traj);
-    MOVE_OR_ABORT("handleStatueBackup failed to complete");
+    if (to_the_left_of_the_samples) 
+    {
+        targetPosition = robot->getCurrentPosition();
+        traj.clear();
+        traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI)));
+        robot->setTrajectoryToFollow(traj);
+        MOVE_OR_ABORT("handleStatueBackup failed to complete");
+    }
 
     servo->activatePump(false);
     servo->openValve();
     for (int i = 0; i < 3; i++)
         servo->openTube(i);
 
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 250.0);
-    robot->setTrajectoryToFollow(traj);
-    MOVE_OR_ABORT("handleStatueBackup failed to complete");
+    if (to_the_left_of_the_samples)
+    {
+        targetPosition = robot->getCurrentPosition();
+        traj = computeTrajectoryStraightLine(targetPosition, 250.0);
+        robot->setTrajectoryToFollow(traj);
+        MOVE_OR_ABORT("handleStatueBackup failed to complete");
+    } else 
+    {
+        targetPosition = robot->getCurrentPosition();
+        traj = computeTrajectoryStraightLine(targetPosition, 300.0);
+        robot->setTrajectoryToFollow(traj);
+        MOVE_OR_ABORT("handleStatueBackup failed to complete");
+    }
+
 
     // 1 pt for each sample added in the zone
     robot->updateScore(3);
@@ -743,11 +781,11 @@ bool Strategy::pushSamplesBelowShelter()
 
     positions.clear();
     positions.push_back(targetPosition);
-    targetPosition.x = 1300;
+    targetPosition.x = 1400;
     targetPosition.y = 700;
     positions.push_back(targetPosition);
     targetPosition.x = 950;
-    targetPosition.y = 650;
+    targetPosition.y = 700;
     positions.push_back(targetPosition);
     targetPosition.x = 450;
     targetPosition.y = 450;
@@ -764,11 +802,64 @@ bool Strategy::pushSamplesBelowShelter()
     robot->wait(0.5);
     servo->moveClaw(claw::SIDE);
     (void) robot->waitForTrajectoryFinished();
-    robot->updateScore(15);
+
+    // go back a little
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, -150);
+    robot->setTrajectoryToFollow(traj);
+    robot->waitForTrajectoryFinished();
+
+    // place claws and push all the way
+    servo->moveClaw(claw::PUSH_SAMPLE_SHELTER);
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, 190);
+    robot->setTrajectoryToFollow(traj);
+    robot->waitForTrajectoryFinished();
+
+    // // go back a little
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, -50);
+    // robot->setTrajectoryToFollow(traj);
+    // robot->waitForTrajectoryFinished();
+
+    // // turn
+    // targetPosition = robot->getCurrentPosition();
+    // traj.clear();
+    // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI * 25.0 / 180.0)));
+    // robot->setTrajectoryToFollow(traj);
+    // robot->waitForTrajectoryFinished();
+
+    // // push
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, 50);
+    // robot->setTrajectoryToFollow(traj);
+    // robot->waitForTrajectoryFinished();
+
+    // // go back a little
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, -50);
+    // robot->setTrajectoryToFollow(traj);
+    // robot->waitForTrajectoryFinished();
+
+    // // turn
+    // targetPosition = robot->getCurrentPosition();
+    // traj.clear();
+    // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI * 50.0 / 180.0)));
+    // robot->setTrajectoryToFollow(traj);
+    // robot->waitForTrajectoryFinished();
+
+    // // push
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, 50);
+    // robot->setTrajectoryToFollow(traj);
+    // robot->waitForTrajectoryFinished();
+
+
+    robot->updateScore(2*5);
 
     // move back and fold arms
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -150);
+    traj = computeTrajectoryStraightLine(targetPosition, -180);
     robot->setTrajectoryToFollow(traj);
 
     (void) robot->waitForTrajectoryFinished(); 
