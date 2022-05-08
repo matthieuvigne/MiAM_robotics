@@ -80,7 +80,7 @@ bool ViewerRobot::followTrajectory(miam::trajectory::Trajectory *traj)
     return true;
 }
 
-bool ViewerRobot::setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories, bool const&)
+bool ViewerRobot::setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories)
 {
     trajectoryFollowingStatus_ = true;
     for(std::shared_ptr<miam::trajectory::Trajectory> t: trajectories)

@@ -133,7 +133,7 @@ bool Strategy::handleStatue()
     targetPosition.y += 80;
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_WIDTH + 100;
-    targetPosition.y += 500;
+    targetPosition.y += 800;
     positions.push_back(targetPosition);
     targetPosition.y = 2000 - robotdimensions::CHASSIS_BACK - 5;
     positions.push_back(targetPosition);
@@ -187,6 +187,8 @@ bool Strategy::moveSideSample()
     robot->setTrajectoryToFollow(traj);
     robot->wait(1.0);
     servo->moveStatue(statue::FOLD);
+    // if suction not in the right place, do
+    servo->moveSuction(1, suction::HORIZONTAL);
     MOVE_OR_ABORT("moveSideSample failed to complete");
 
     servo->closeTube(0);
@@ -235,6 +237,8 @@ bool Strategy::handleSideTripleSamples()
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
     robot->moveRail(0.25);
+    servo->moveSuction(0, suction::FOLD);
+    servo->moveSuction(2, suction::FOLD);
     servo->moveSuction(1, suction::LOWER_SAMPLE);
     MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
 
@@ -257,9 +261,18 @@ bool Strategy::handleSideTripleSamples()
         robot->wait(0.5);
         robot->moveRail(0.6);
         targetPosition = robot->getCurrentPosition();
-        traj = computeTrajectoryStraightLine(targetPosition, -45);
-        robot->setTrajectoryToFollow(traj);
-        MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+        if (i == 2)
+        {
+            // last sample go back a little more to avoid hitting dist
+            traj = computeTrajectoryStraightLine(targetPosition, -65);
+            robot->setTrajectoryToFollow(traj);
+            MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+        } else 
+        {
+            traj = computeTrajectoryStraightLine(targetPosition, -45);
+            robot->setTrajectoryToFollow(traj);
+            MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+        }
 
         // rotate -80 degres and move forward 70mm
         targetPosition = robot->getCurrentPosition();
@@ -274,10 +287,28 @@ bool Strategy::handleSideTripleSamples()
         robot->wait(0.3);
         servo->moveSuction(1, suction::LOWER_SAMPLE);
 
-        // inverse movement
-        targetPosition = robot->getCurrentPosition();
-        robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
-        MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+        // go a little further if last movement
+        if (i == 2) {
+            targetPosition = robot->getCurrentPosition();
+            robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
+            MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+            targetPosition = robot->getCurrentPosition();
+            traj.clear();
+            traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI * 80.0 / 180.0)));
+            robot->setTrajectoryToFollow(traj);
+            MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+            targetPosition = robot->getCurrentPosition();
+            robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -250));
+            MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+
+        } else {
+            // inverse movement
+            targetPosition = robot->getCurrentPosition();
+            robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
+            MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
+        }
 
         // targetPosition = robot->getCurrentPosition();
         // positions.clear();
@@ -382,6 +413,73 @@ bool Strategy::moveThreeSamples()
     is_move_three_samples_finished = true;
     return(true);
 }
+
+
+bool Strategy::moveThreeSamplesBackup()
+{
+    if (is_move_three_samples_finished) 
+    {
+        return(true);
+    }
+
+    std::vector<RobotPosition> positions;
+    RobotPosition targetPosition = robot->getCurrentPosition();
+    positions.push_back(targetPosition);
+    targetPosition.y = 1325;
+    positions.push_back(targetPosition);
+    targetPosition.x = 650;
+    positions.push_back(targetPosition);
+    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
+    robot->setTrajectoryToFollow(traj);
+    for (int i = 0; i < 3; i++)
+        servo->moveSuction(i, suction::HORIZONTAL);
+    MOVE_OR_ABORT("moveThreeSamples failed to complete");
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, 65.0);
+    robot->setTrajectoryToFollow(traj);
+    servo->moveClaw(claw::VPOSIITON); // move claws to push center sample a little more
+    MOVE_OR_ABORT("moveThreeSamples failed to complete");
+    servo->moveClaw(claw::FOLD);
+
+    servo->closeValve();
+    for (int i = 0; i < 3; i++)
+        servo->openTube(i);
+    servo->activatePump(true);
+    robot->moveRail(0.0);
+    robot->wait(1.0);
+
+    // raise rail and travel
+    robot->moveRail(0.40);
+
+    targetPosition = robot->getCurrentPosition();
+    traj.clear();
+    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI)));
+    robot->setTrajectoryToFollow(traj);
+    MOVE_OR_ABORT("handleStatueBackup failed to complete");
+
+    servo->activatePump(false);
+    servo->openValve();
+    for (int i = 0; i < 3; i++)
+        servo->openTube(i);
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, 250.0);
+    robot->setTrajectoryToFollow(traj);
+    MOVE_OR_ABORT("handleStatueBackup failed to complete");
+
+    // 1 pt for each sample added in the zone
+    robot->updateScore(3);
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, -100.0);
+    robot->setTrajectoryToFollow(traj);
+    MOVE_OR_ABORT("handleStatueBackup failed to complete");    
+
+    is_move_three_samples_finished = true;
+    return(true);
+}
+
 
 bool Strategy::handleDigZone()
 {

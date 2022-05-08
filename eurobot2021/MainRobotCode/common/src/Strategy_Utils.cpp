@@ -74,19 +74,19 @@ void Strategy::stopEverything()
     // release magnet and suction
     servo->activateMagnet(false);
     servo->activatePump(false);
-    servo->moveSuction(0, suction::VERTICAL);
-    servo->moveSuction(1, suction::VERTICAL);
-    servo->moveSuction(2, suction::VERTICAL);
+    // servo->moveSuction(0, suction::VERTICAL);
+    // servo->moveSuction(1, suction::VERTICAL);
+    // servo->moveSuction(2, suction::VERTICAL);
     servo->openValve() ;
     servo->openTube(0);
     servo->openTube(1);
     servo->openTube(2);
 
-    // raise rail and fold suction
-    robot->moveRail(0.7);
-    servo->moveSuction(0, suction::FOLD);
-    servo->moveSuction(1, suction::FOLD);
-    servo->moveSuction(2, suction::FOLD);
+    // // raise rail and fold suction
+    // robot->moveRail(0.7);
+    // servo->moveSuction(0, suction::FOLD);
+    // servo->moveSuction(1, suction::FOLD);
+    // servo->moveSuction(2, suction::FOLD);
 
     // fold arms
     servo->moveStatue(statue::FOLD);

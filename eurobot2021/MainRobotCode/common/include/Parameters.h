@@ -29,6 +29,15 @@
             double const CHASSIS_BACK = 121.0;
             double const CHASSIS_WIDTH = 150.0;
             double const SUCTION_CENTER = 180.0;
+
+
+            // Potentiometer
+            const int MIAM_POTENTIOMETER_RANGE = 290;
+            const int MIAM_RAIL_TOLERANCE = 10;
+
+            const int MIAM_RAIL_SERVO_ZERO_VELOCITY = 1450;
+            const int MIAM_RAIL_SERVO_MAX_UP_VELOCITY = 2000;
+            const int MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY = 1000;
         }
 
 

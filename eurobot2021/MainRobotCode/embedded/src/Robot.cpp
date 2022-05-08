@@ -15,21 +15,13 @@ const int START_SWITCH = 21;
 const int RAIL_SWITCH = 13;
 const int RIGHT_RANGE_ACTIVATE = 4;
 
-// Potentiometer
-const int MIAM_POTENTIOMETER_RANGE = 290;
-const int MIAM_RAIL_TOLERANCE = 10;
-
-const int MIAM_RAIL_SERVO_ZERO_VELOCITY = 1450;
-const int MIAM_RAIL_SERVO_MAX_UP_VELOCITY = 2000;
-const int MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY = 1000;
-
 
 Robot::Robot(bool const& testMode, bool const& disableLidar):
     RobotInterface(),
     servos_(&maestro_),
     lidar_(-M_PI_4),
     ignoreDetection_(false),
-    avoidanceTimeout_(1000),
+    avoidanceTimeout_(600),
     testMode_(testMode),
     disableLidar_(disableLidar),
     score_(0),
@@ -469,7 +461,7 @@ void Robot::lowLevelLoop()
 void Robot::moveRail(double const& position)
 {
     // Compute target potentiometer value.
-    int targetValue = railHigh_ + MIAM_POTENTIOMETER_RANGE * (position - 1);
+    int targetValue = railHigh_ + robotdimensions::MIAM_POTENTIOMETER_RANGE * (position - 1);
 
     // Compute error
     int error = uCListener_getData().potentiometerPosition - targetValue;
@@ -479,10 +471,10 @@ void Robot::moveRail(double const& position)
         int targetVelocity = -PIDRail_.computeValue(error, 0.020);
         targetVelocity = std::max(
             std::min(
-                MIAM_RAIL_SERVO_ZERO_VELOCITY + targetVelocity,
-                MIAM_RAIL_SERVO_MAX_UP_VELOCITY
+                robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY + targetVelocity,
+                robotdimensions::MIAM_RAIL_SERVO_MAX_UP_VELOCITY
                 ),
-            MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
+            robotdimensions::MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
         );
         // Send target to servo
         servos_.moveRail(targetVelocity);
@@ -491,18 +483,18 @@ void Robot::moveRail(double const& position)
         error = uCListener_getData().potentiometerPosition - targetValue;
         nIter++;
     }
-    servos_.moveRail(MIAM_RAIL_SERVO_ZERO_VELOCITY);
+    servos_.moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
 
 }
 
 void Robot::calibrateRail()
 {
-    servos_.moveRail(MIAM_RAIL_SERVO_ZERO_VELOCITY - 250);
+    servos_.moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY - 250);
     while (RPi_readGPIO(RAIL_SWITCH) == 1)
     {
         usleep(20000);
     }
-    servos_.moveRail(MIAM_RAIL_SERVO_ZERO_VELOCITY);
+    servos_.moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
     railHigh_ = uCListener_getData().potentiometerPosition;
 }
 

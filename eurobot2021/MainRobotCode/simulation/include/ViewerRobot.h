@@ -56,7 +56,7 @@
 
             /// \brief Mock trajectory following.
             /// \details Returns true on succes, false if obstacle was encounterd.
-            bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories, bool const&) override;
+            bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories) override;
 
             /// \brief Mock trajectory following.
             /// \details Returns true on succes, false if obstacle was encounterd.

@@ -33,17 +33,18 @@
             bool moveSideSample();
             bool is_move_side_sample_finished;
 
-            bool handleSideTripleSamples();
-            bool is_handle_side_triple_samples_finished;
-        
             bool moveThreeSamples();
+            bool moveThreeSamplesBackup();
             bool is_move_three_samples_finished;
+
+            bool pushSamplesBelowShelter();
+            bool is_push_samples_below_shelter_finished;
 
             bool handleDigZone();
             bool is_handle_dig_zone_finished;
 
-            bool pushSamplesBelowShelter();
-            bool is_push_samples_below_shelter_finished;
+            bool handleSideTripleSamples();
+            bool is_handle_side_triple_samples_finished;
 
             bool goBackToDigSite();
 

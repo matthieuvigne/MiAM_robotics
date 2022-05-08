@@ -41,6 +41,15 @@ bool Strategy::goBackToDigSite()
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
+    servo->openValve() ;
+    servo->openTube(0);
+    servo->openTube(1);
+    servo->openTube(2);
+
+    servo->moveArm(true, arm::FOLD);
+    servo->moveFinger(true, finger::FOLD);
+    servo->moveArm(false, arm::FOLD);
+    servo->moveFinger(false, finger::FOLD);
 
     return robot->waitForTrajectoryFinished();
 }
@@ -48,6 +57,13 @@ bool Strategy::goBackToDigSite()
 
 Strategy::Strategy()
 {
+    is_handle_statue_finished = false;
+    is_move_side_sample_finished = false;
+    is_handle_side_triple_samples_finished = false;
+    is_move_three_samples_finished = false;
+    is_handle_dig_zone_finished = false;
+    is_push_samples_below_shelter_finished = false;
+
 }
 
 void Strategy::setup(RobotInterface *robot, ServoHandler *servo)
@@ -103,27 +119,39 @@ void Strategy::match_impl()
     // Go get the statue
     //**********************************************************
     if (!handleStatue())
+    {
+        // Strategy fallback: alt 2
+
         stopEverything();
 
-    // if failing to get the statue, the most probable reason should be sth
-    // prevents us from getting to the vitrine
-    // adverse robot should be near vitrine/side dist/presentoir
-    // -> try go do dig sites
+        // if failing to get the statue, the most probable reason should be sth
+        // prevents us from getting to the vitrine
+        // adverse robot should be near vitrine/side dist/presentoir
+        // -> try go do dig sites
 
-    targetPosition = robot->getCurrentPosition();
-    if (targetPosition.y > 1100)
-    {
-        // try not to knock samples off starting zone
-        endPosition = targetPosition;
-        endPosition.x = 1000;
-        endPosition.y -= 200;
-        traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
-        robot->setTrajectoryToFollow(traj);
-        robot->waitForTrajectoryFinished();
+        targetPosition = robot->getCurrentPosition();
+        if (targetPosition.y > 1100)
+        {
+            // try not to knock samples off starting zone
+            endPosition = targetPosition;
+            endPosition.x = 500;
+            endPosition.y -= 200;
+            traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
+            robot->setTrajectoryToFollow(traj);
+            robot->waitForTrajectoryFinished();
 
-        if (!handleDigZone())
-            stopEverything();
+            if (!handleDigZone())
+                stopEverything();
+
+            if (!pushSamplesBelowShelter())
+                stopEverything();
+            
+            if (!handleSideTripleSamples())
+                stopEverything();
+        }
     }
+
+    
 
 
     //**********************************************************
@@ -149,7 +177,39 @@ void Strategy::match_impl()
     // Grab the three samples on the ground, and drop them
     //**********************************************************
     if (!moveThreeSamples())
+    {
+        // Strategy fallback: alt 1
+
         stopEverything();
+
+        // go dig zone
+        if (!handleDigZone())
+        {
+            // if failing dig zone, assume adverse robot
+            // in the area and fallback to the side dist
+            stopEverything();
+
+            // go back not to knock samples
+            targetPosition = robot->getCurrentPosition();
+            RobotPosition endPosition = targetPosition;
+            endPosition.x = 600;
+            endPosition.y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -10;
+            traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
+
+            if (!handleSideTripleSamples())
+                stopEverything();
+
+            // then go back around 1100, 500 to get a better angle
+            targetPosition = robot->getCurrentPosition();
+            endPosition = targetPosition;
+            endPosition.x = 450;
+            endPosition.y = 1100;
+            traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);   
+            robot->setTrajectoryToFollow(traj);
+            robot->waitForTrajectoryFinished();
+        }
+
+    }
 
     std::cout << robot->getCurrentPosition() << std::endl;
     // robot->wait(1000);
@@ -199,9 +259,22 @@ void Strategy::match_impl()
     if (!handleSideTripleSamples())
         stopEverything();
 
+
+    //**********************************************************
+    // Strategy fallback: attempt moveThreeSamples if not done
+    //**********************************************************
+
+    if (!handleDigZone())
+        stopEverything();
+    if (!moveThreeSamplesBackup())
+        stopEverything();
+
+
     //**********************************************************
     // Rotate to come back to the campment
     //**********************************************************
+
+    servo->activatePump(false);
     MATCH_COMPLETED = goBackToDigSite();
     if (MATCH_COMPLETED)
     {
@@ -228,12 +301,14 @@ void Strategy::match()
     auto stratPtr = stratMain.native_handle();
     stratMain.detach();
 
-    double const FALLBACK_TIME = 3.0;
+    double const FALLBACK_TIME = 95.0;
     robot->wait(FALLBACK_TIME);
     if (!MATCH_COMPLETED)
-    {
         pthread_cancel(stratPtr);
-        usleep(50000);
+    usleep(50000);
+    servo->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
+    if (!MATCH_COMPLETED)
+    {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
 
         if (goBackToDigSite())
