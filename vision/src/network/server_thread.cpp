@@ -62,8 +62,7 @@ void ServerThread::serverThread()
           }
           case MessageType::GET_MEASUREMENTS:
           {
-            camera_thread_ptr_->getMarkers(
-              response_ptr->getParamsPtrAs<common::MarkerIdToEstimate>());
+            camera_thread_ptr_->getMarkers(response_ptr->getParamsPtrAs<common::MarkerEstimates>());
             break;
           }
           case MessageType::SHUT_DOWN:

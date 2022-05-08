@@ -45,7 +45,7 @@ class Marker;
 typedef std::vector<Marker> MarkerList;
 typedef std::map<MarkerId,Marker> MarkerIdToEstimate;
 typedef std::multimap<MarkerId,Eigen::Affine3d> MarkerIdToPose;
-typedef std::multimap<int64_t,Marker> MarkerEstimates;
+typedef std::multimap<int64_t,Marker,std::less<int64_t>> MarkerEstimates;
 
 class Marker {
 
@@ -59,6 +59,9 @@ class Marker {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   public:
+    inline int64_t getTimestampNanoseconds() const { return timestamp_ns; };
+    inline double getTimestampSeconds() const;
+  
     bool serialize(
       std::vector<char>::iterator it_begin,
       std::vector<char>::iterator it_end) const;
@@ -78,18 +81,25 @@ class Marker {
     Eigen::Matrix<double,6,6> cov_T_WM = Eigen::Matrix<double,6,6>::Identity();
 
   public:
-    static bool serialize(MarkerIdToEstimate const& markers, std::vector<char>* message); // -> to remove
-    static bool deserialize(std::vector<char> const& message, MarkerIdToEstimate* markers); // -> to remove
-
     static bool serialize(MarkerEstimates const& estimates, std::vector<char>* message);
-    static bool deserialize(std::vector<char> const& message, MarkerEstimates* estimates);
-    
+    static bool deserialize(std::vector<char> const& message, MarkerEstimates* estimates);    
     static int constexpr MESSAGE_SIZE_BYTES =  1 * sizeof(MarkerId)     + /*Marker id*/
                                                1 * sizeof(MarkerFamily) + /*Marker family*/
                                                1 * sizeof(int64_t)      + /*timestamp*/
                                                7 * sizeof(double);        /*Pose*/
 
 }; // class Marker
+
+//--------------------------------------------------------------------------------------------------
+// Inline functions
+//--------------------------------------------------------------------------------------------------
+
+double Marker::getTimestampSeconds() const
+{
+  int64_t const seconds = timestamp_ns % static_cast<int64_t>(1e9);
+  int64_t const nanoseconds = timestamp_ns - seconds;
+  return static_cast<double>(seconds) + static_cast<double>(nanoseconds)/1e9; 
+}
 
 //--------------------------------------------------------------------------------------------------
 

@@ -94,15 +94,15 @@ void CameraThread::runThread()
     }
 
     // Update the pose estimate of all the markers
-    // PROBLEM HERE -> stock the measurements per timestamp and erase the oldest timestamps
+    eraseOldMarkerEstimates();
     Eigen::Affine3d const& TWC = pose_filter_ptr_->getTWC();
     Eigen::Matrix<double,6,6> const cov_TWC = pose_filter_ptr_->getCovTWC();
     for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)
     {
       common::DetectedMarker const& detected_marker = *it;
-      common::Marker marker_estimate(TWC, cov_TWC, detected_marker);
+      common::Marker marker(TWC, cov_TWC, detected_marker);
       std::lock_guard<std::mutex> const lock(mutex_);
-      marker_id_to_estimate_[marker_estimate.id] = marker_estimate;
+      marker_estimates_.insert(std::make_pair(marker.timestamp_ns, marker));
     }
   }
 }
@@ -163,12 +163,28 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
 
 //--------------------------------------------------------------------------------------------------
 
-void CameraThread::getMarkers(common::MarkerIdToEstimate* estimates_ptr) const
+void CameraThread::eraseOldMarkerEstimates()
 {
-  common::MarkerIdToEstimate& estimates = *estimates_ptr;
+  // Get the current timestamp
+  int64_t constexpr max_duration_ns = 1e9;
+  int64_t const timestamp_now_ns = common::convertToNanoseconds(common::Time::now());
+  int64_t const timestamp_old_ns = timestamp_now_ns - max_duration_ns;
+
+  // Erase the old markers
+  std::lock_guard<std::mutex> lock(mutex_);
+  common::MarkerEstimates::iterator it_begin = marker_estimates_.begin();
+  common::MarkerEstimates::iterator it_end = marker_estimates_.upper_bound(timestamp_old_ns);
+  marker_estimates_.erase(it_begin, it_end);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void CameraThread::getMarkers(common::MarkerEstimates* estimates_ptr) const
+{
+  common::MarkerEstimates& estimates = *estimates_ptr;
   estimates.clear();
   std::lock_guard<std::mutex> lock(mutex_);
-  estimates.insert(marker_id_to_estimate_.cbegin(), marker_id_to_estimate_.cend());
+  estimates.insert(marker_estimates_.cbegin(), marker_estimates_.cend());
 }
 
 //--------------------------------------------------------------------------------------------------

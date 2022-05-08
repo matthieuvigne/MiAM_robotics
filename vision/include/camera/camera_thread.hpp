@@ -31,7 +31,7 @@ public:
 public:
 
   inline void join();
-  void getMarkers(common::MarkerIdToEstimate* estimates) const;
+  void getMarkers(common::MarkerEstimates* estimates) const;
   void setTeam(common::Team team) const;
 
 private:
@@ -39,6 +39,7 @@ private:
   void runThread();
   void rotateCameraToAnglePosition(double angle_deg);
   void incrementCameraAngle(double& camera_angle, double delta_angle);
+  void eraseOldMarkerEstimates();
 
 private:
 
@@ -55,7 +56,7 @@ private:
   mutable std::mutex mutex_;
   mutable std::condition_variable condition_;
   mutable common::Team team_ = common::Team::UNKNOWN;
-  common::MarkerIdToEstimate marker_id_to_estimate_;
+  common::MarkerEstimates marker_estimates_;
   std::unique_ptr<std::thread> thread_ptr_;
 
 }; // class CameraThread

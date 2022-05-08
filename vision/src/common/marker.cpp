@@ -158,54 +158,6 @@ bool Marker::deserialize(
 
 //--------------------------------------------------------------------------------------------------
 
-bool Marker::serialize(MarkerIdToEstimate const& markers, std::vector<char>* serialized_markers_ptr)
-{
-  // Initialize the buffer for serialized markers
-  CHECK_NOTNULL(serialized_markers_ptr);
-  std::vector<char>& serialized_markers = *serialized_markers_ptr;
-  size_t num_markers = markers.size();
-  serialized_markers.resize(num_markers * Marker::MESSAGE_SIZE_BYTES);
-  
-  // Fill the buffer for serialized markers
-  std::vector<char>::iterator byte_it = serialized_markers.begin();
-  for(MarkerIdToEstimate::value_type const& pair : markers)
-  {
-    Marker const& marker = pair.second;
-    std::vector<char>::iterator next_it = std::next(byte_it, Marker::MESSAGE_SIZE_BYTES);
-    marker.serialize(byte_it, next_it);
-    byte_it += Marker::MESSAGE_SIZE_BYTES;
-  }
-  return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-bool Marker::deserialize(std::vector<char> const& message, MarkerIdToEstimate* markers_ptr)
-{
-  // Check the deserialization target
-  CHECK_NOTNULL(markers_ptr);
-  MarkerIdToEstimate& markers = *markers_ptr;
-
-  // Get the number of markers to deserialize
-  size_t const message_size = message.size();
-  CHECK(message_size % Marker::MESSAGE_SIZE_BYTES == 0);
-  size_t num_markers = message_size / Marker::MESSAGE_SIZE_BYTES;
-  
-  // Deserialize the markers
-  std::vector<char>::const_iterator byte_it = message.cbegin();
-  for(size_t marker_idx=0u; marker_idx<num_markers; ++marker_idx)
-  {
-    Marker marker;
-    std::vector<char>::const_iterator next_it = std::next(byte_it,Marker::MESSAGE_SIZE_BYTES);
-    marker.deserialize(byte_it, next_it);
-    markers[marker.id] = marker;
-    byte_it = next_it;
-  }
-  return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-
 bool Marker::serialize(MarkerEstimates const& estimates, std::vector<char>* message_ptr)
 {
   // Initialize the buffer for serialized markers

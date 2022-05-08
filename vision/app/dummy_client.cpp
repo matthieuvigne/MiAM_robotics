@@ -61,8 +61,8 @@ int main(int argc, char* argv[])
 
         if(message_type == network::MessageType::GET_MEASUREMENTS)
         {
-          common::MarkerIdToEstimate const& markers =
-            response_ptr->getParamsAs<common::MarkerIdToEstimate>();
+          common::MarkerEstimates const& markers =
+            response_ptr->getParamsAs<common::MarkerEstimates>();
           CONSOLE << "Received " << markers.size() << " markers";
         }
 
