@@ -52,13 +52,9 @@ void CameraThread::runThread()
     if(pose_filter_ptr_ == nullptr)
     {
       std::unique_lock<std::mutex> locker(mutex_);
-      condition_.wait(locker, [&](){ return (team_ptr_!=nullptr); });
-      if(team_ptr_)
-      {
-        common::Team team = *std::move(team_ptr_);
-        CameraPoseFilter::Params filter_params = CameraPoseFilter::Params::getDefaultParams(team);
-        pose_filter_ptr_.reset(new CameraPoseFilter(filter_params));
-      }
+      condition_.wait(locker, [&](){ return (team_ != common::Team::UNKNOWN); });
+      CameraPoseFilter::Params filter_params = CameraPoseFilter::Params::getDefaultParams(team_);
+      pose_filter_ptr_.reset(new CameraPoseFilter(filter_params));
       locker.unlock();
     }
     CHECK_NOTNULL(pose_filter_ptr_);
@@ -179,7 +175,7 @@ void CameraThread::getMarkers(common::MarkerIdToEstimate* estimates_ptr) const
 void CameraThread::setTeam(common::Team team) const
 {
   mutex_.lock();
-  team_ptr_.reset(new common::Team(team));
+  team_ = team;
   mutex_.unlock();
   condition_.notify_one();
 }

@@ -54,7 +54,7 @@ private:
   // Thread
   mutable std::mutex mutex_;
   mutable std::condition_variable condition_;
-  mutable std::unique_ptr<common::Team> team_ptr_ = nullptr;
+  mutable common::Team team_ = common::Team::UNKNOWN;
   common::MarkerIdToEstimate marker_id_to_estimate_;
   std::unique_ptr<std::thread> thread_ptr_;
 
