@@ -42,7 +42,6 @@ bool Strategy::goBackToDigSite()
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
 
-
     return robot->waitForTrajectoryFinished();
 }
 
@@ -106,6 +105,27 @@ void Strategy::match_impl()
     if (!handleStatue())
         stopEverything();
 
+    // if failing to get the statue, the most probable reason should be sth
+    // prevents us from getting to the vitrine
+    // adverse robot should be near vitrine/side dist/presentoir
+    // -> try go do dig sites
+
+    targetPosition = robot->getCurrentPosition();
+    if (targetPosition.y > 1100)
+    {
+        // try not to knock samples off starting zone
+        endPosition = targetPosition;
+        endPosition.x = 1000;
+        endPosition.y -= 200;
+        traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
+        robot->setTrajectoryToFollow(traj);
+        robot->waitForTrajectoryFinished();
+
+        if (!handleDigZone())
+            stopEverything();
+    }
+
+
     //**********************************************************
     // Go to the side distributor
     //**********************************************************
@@ -150,8 +170,16 @@ void Strategy::match_impl()
     //**********************************************************
     // Push the samples on the field
     //**********************************************************
-    if (!pushSamplesBelowShelter())
+    if (!pushSamplesBelowShelter()) 
+    {
+        // before folding claws try to go back a little in order not to get a sample stuck
+        // between claws
+        // trajectory should be feasible given position
+        traj = computeTrajectoryStraightLine(targetPosition, -150);
+        robot->setTrajectoryToFollow(traj);
+        robot->waitForTrajectoryFinished();
         stopEverything();
+    }
 
     //**********************************************************
     // Flip the dig zone

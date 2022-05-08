@@ -20,6 +20,11 @@ using miam::RobotPosition;
 // Abort as soon as one action fails.
 bool Strategy::handleStatue()
 {
+    if (is_handle_statue_finished) 
+    {
+        return(true);
+    }
+
     std::vector<RobotPosition> positions;
 
     RobotPosition targetPosition = robot->getCurrentPosition();
@@ -160,11 +165,17 @@ bool Strategy::handleStatue()
     servo->moveStatue(statue::TRANSPORT);
     robot->updateScore(20);
 
+    is_handle_statue_finished = true;
     return(true);
 }
 
 bool Strategy::moveSideSample()
 {
+    if (is_move_side_sample_finished) 
+    {
+        return(true);
+    }
+
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -201,11 +212,17 @@ bool Strategy::moveSideSample()
     servo->openValve();
     robot->moveRail(0.3);
 
+    is_move_side_sample_finished = true;
     return(true);
 }
 
 bool Strategy::handleSideTripleSamples()
 {
+    if (is_handle_side_triple_samples_finished) 
+    {
+        return(true);
+    }
+
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -279,11 +296,17 @@ bool Strategy::handleSideTripleSamples()
         // MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
     }
 
+    is_handle_side_triple_samples_finished = true;
     return(true);
 }
 
 bool Strategy::moveThreeSamples()
 {
+    if (is_move_three_samples_finished) 
+    {
+        return(true);
+    }
+
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -356,11 +379,17 @@ bool Strategy::moveThreeSamples()
     robot->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
+    is_move_three_samples_finished = true;
     return(true);
 }
 
 bool Strategy::handleDigZone()
 {
+    if (is_handle_dig_zone_finished) 
+    {
+        return(true);
+    }
+
     const int spacing_between_sites = 185;
     const int site_y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -10;
     const int first_site_x = 730 - 15;
@@ -600,11 +629,17 @@ bool Strategy::handleDigZone()
     }
     robot->updateScore(5);
 
+    is_handle_dig_zone_finished = true;
     return(true);
 }
 
 bool Strategy::pushSamplesBelowShelter() 
-{
+{    
+    if (is_push_samples_below_shelter_finished) 
+    {
+        return(true);
+    }
+
     RobotPosition targetPosition = robot->getCurrentPosition();
     std::vector<RobotPosition> positions;
 
@@ -642,5 +677,6 @@ bool Strategy::pushSamplesBelowShelter()
 
     servo->moveClaw(claw::FOLD);
 
+    is_push_samples_below_shelter_finished = true;
     return(true);
 }

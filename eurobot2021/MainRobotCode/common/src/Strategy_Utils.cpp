@@ -71,6 +71,7 @@ ExcavationSquareColor Strategy::testExcavationSite()
 
 void Strategy::stopEverything()
 {
+    // release magnet and suction
     servo->activateMagnet(false);
     servo->activatePump(false);
     servo->moveSuction(0, suction::VERTICAL);
@@ -80,13 +81,18 @@ void Strategy::stopEverything()
     servo->openTube(0);
     servo->openTube(1);
     servo->openTube(2);
+
+    // raise rail and fold suction
     robot->moveRail(0.7);
     servo->moveSuction(0, suction::FOLD);
     servo->moveSuction(1, suction::FOLD);
     servo->moveSuction(2, suction::FOLD);
+
+    // fold arms
     servo->moveStatue(statue::FOLD);
     servo->moveArm(true, arm::FOLD);
     servo->moveFinger(true, finger::FOLD);
     servo->moveArm(false, arm::FOLD);
     servo->moveFinger(false, finger::FOLD);
+    servo->moveClaw(claw::FOLD);
 }
