@@ -22,6 +22,7 @@
             void match();
 
         private:
+            void match_impl(); /// Actual implementation of the match code.
             RobotInterface *robot;
             ServoHandler *servo;
 
@@ -32,6 +33,8 @@
             bool moveThreeSamples();
             bool handleDigZone();
             bool pushSamplesBelowShelter();
+
+            bool goBackToDigSite();
 
             // Utility functions
             void pushExcavationSite();

@@ -25,7 +25,7 @@ bool MATCH_COMPLETED = false;
 
 
 
-bool goBackToDigSite(RobotInterface *robot)
+bool Strategy::goBackToDigSite()
 {
     RobotPosition targetPosition;
     std::vector<RobotPosition> positions;
@@ -40,37 +40,10 @@ bool goBackToDigSite(RobotInterface *robot)
     targetPosition.y = 620;
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
-    robot->setTrajectoryToFollow(traj, true);
+    robot->setTrajectoryToFollow(traj);
 
-    // // Compute falback trajectory.
-    // RobotPosition currentPosition = robot->getCurrentPosition();
-    // RobotPosition targetPosition;
-    // targetPosition.x = 950;
-    // targetPosition.y = 600;
-    // TrajectoryVector traj = computeTrajectoryStraightLineToPoint(currentPosition, targetPosition);
-    // robot->setTrajectoryToFollow(traj, true);
-    // if (robot->waitForTrajectoryFinished())
-    // {
-    //     robot->updateScore(20);
-    // }
 
     return robot->waitForTrajectoryFinished();
-}
-
-
-void matchEndBackToBase(RobotInterface *robot)
-{
-    double const FALLBACK_TIME = 95.0;
-    robot->wait(FALLBACK_TIME);
-    if (!MATCH_COMPLETED)
-    {
-        std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
-        MATCH_COMPLETED = true;
-        if (goBackToDigSite(robot))
-        {
-            robot->updateScore(20);
-        }
-    }
 }
 
 
@@ -107,14 +80,8 @@ void Strategy::setup(RobotInterface *robot, ServoHandler *servo)
     }
 }
 
-void Strategy::match()
+void Strategy::match_impl()
 {
-    std::cout << "Strategy thread started." << std::endl;
-
-    // Update config.
-    setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
-                                                    robotdimensions::maxWheelAccelerationTrajectory,
-                                                    robotdimensions::wheelSpacing);
 
     // Create required variables.
     RobotPosition targetPosition;
@@ -122,6 +89,7 @@ void Strategy::match()
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
     robot->updateScore(2);
+
 
 #ifndef SKIP_TO_GRABBING_SAMPLES
 
@@ -131,12 +99,6 @@ void Strategy::match()
     targetPosition.theta = 0;
     robot->resetPosition(targetPosition, true, true, true);
     robot->wait(0.05);
-
-    // Start fallback thread
-#ifndef SIMULATION
-    std::thread fallbackThread = std::thread(&matchEndBackToBase, robot);
-    fallbackThread.detach();
-#endif
 
     //**********************************************************
     // Go get the statue
@@ -212,12 +174,45 @@ void Strategy::match()
     //**********************************************************
     // Rotate to come back to the campment
     //**********************************************************
-    MATCH_COMPLETED = goBackToDigSite(robot);
+    MATCH_COMPLETED = goBackToDigSite();
     if (MATCH_COMPLETED)
     {
         robot->updateScore(20);
     }
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
+}
+
+void Strategy::match()
+{
+
+    std::cout << "Strategy thread started." << std::endl;
+
+    // Update config.
+    setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
+                                                    robotdimensions::maxWheelAccelerationTrajectory,
+                                                    robotdimensions::wheelSpacing);
+
+#ifdef SIMULATION
+        match_impl();
+#else
+    std::thread stratMain(&Strategy::match_impl, this);
+    auto stratPtr = stratMain.native_handle();
+    stratMain.detach();
+
+    double const FALLBACK_TIME = 3.0;
+    robot->wait(FALLBACK_TIME);
+    if (!MATCH_COMPLETED)
+    {
+        pthread_cancel(stratPtr);
+        usleep(50000);
+        std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
+
+        if (goBackToDigSite())
+            robot->updateScore(20);
+
+        servo->activatePump(false);
+    }
+#endif
 }
 

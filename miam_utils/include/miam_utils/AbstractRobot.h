@@ -49,9 +49,7 @@
             ///          and returns immediately: use waitForTrajectoryFinish
             ///
             /// \param[in] trajectories Vector of trajectory to follow.
-            /// \param[in] matchEndLock If set, this trajectory cannot be overwritten.
-            virtual bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories,
-                                               bool const& matchEndLock = false);
+            virtual bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories);
 
             /// \brief Wait for the current trajectory following to be finished.
             /// \return true if trajectory following was successful, false otherwise.
