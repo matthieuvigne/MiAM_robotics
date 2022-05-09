@@ -39,13 +39,13 @@ public:
   inline double getCameraRotationProcessNoise(){ return camera_sigma_w_; };
   inline double getMarkerRotationMeasurementNoise(){ return marker_sigma_w_; }
   inline double getMarkerPositionMeasurementNoise(){ return marker_sigma_t_; }
-  inline common::MarkerIdToPose const& getTrueMarkerPoses(){ return markers_; }
+  //~ inline common::MarkerIdToPose const& getTrueMarkerPoses(){ return markers_; }
   double getCameraRotationTime(double angle_rad);
 
   // Simulation of the test bench
   void rotateCamera(double dtheta_rad);
   void rotateCameraToAnglePosition(double angle_rad); 
-  void detectMarkers(common::DetectedMarkerList* detected_markers, Mode mode = Mode::NOISY);
+  void detectMarkers(common::MarkerList* detected_markers, Mode mode = Mode::NOISY);
 
 public:
 
@@ -64,7 +64,7 @@ private:
   double camera_angular_speed_ = 10*RAD;
 
   // Robots and samples true poses
-  common::MarkerIdToPose markers_;
+  //~ common::MarkerIdToPose markers_;
 
   // Process noise and measurement noise parameters
   double camera_sigma_w_;

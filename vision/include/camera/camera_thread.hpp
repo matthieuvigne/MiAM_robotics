@@ -10,6 +10,7 @@
 
 #include <common/common.hpp>
 #include <common/macros.hpp>
+#include <common/marker_store.hpp>
 #include <camera/camera.hpp>
 #include <camera/camera_pose_filter.hpp>
 
@@ -56,7 +57,7 @@ private:
   mutable std::mutex mutex_;
   mutable std::condition_variable condition_;
   mutable common::Team team_ = common::Team::UNKNOWN;
-  common::MarkerEstimates marker_estimates_;
+  common::MarkerStore::UniquePtr markers_;
   std::unique_ptr<std::thread> thread_ptr_;
 
 }; // class CameraThread

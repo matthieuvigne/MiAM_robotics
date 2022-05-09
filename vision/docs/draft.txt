@@ -1,0 +1,41 @@
+Classer les marqueurs par azimuth d'observation.
+Calculer le champ de vue azimuthal de chaque image ?
+Formuler un critère qui porte uniquement sur les coordonnées 2D -> géométrie perspective.
+
+Matrice de caméra K=TIF
+Coordonnées pixelliques des quatre coins de l'image: IpC1, IpC2, IpC3, IpC4
+Coordonnées rétroprojetées sur le plan focal: 
+
+Subdiviser l'image courante en deux panneaux:
+- un panneau de recouvrement avec l'image précédente -> mise à jour des mesures précédentes
+- un panneau des observations nouvelles -> nouvelles mesures
+
+L'angle d'élévation est supposé connu, de même que les angles d'azimuth courant et précédent
+-> calculer la pose précédente de la caméra
+-> calculer les coordonnées des coins de l'image dans l'image suivante
+-> on connait la pose relative entre les deux images, donc on peut calculer les points homologues
+  d'une image à l'autre. A chaque marqueur correspond un azimuth qu'il s'agit de calculer. Ca
+  reste 2D puisque c'est directement à partir des coordonnées pixelliques des ses coins. Si on a
+  les quatre coins, on en déduit la coordonnée du centre, et on garde en particulier sa composante
+  selon l'axe x.
+  (x,y)=(fx*X/Z+cx, fy*Y/Z+cy)
+  On prend le plan focal Z=1, donc on retrouve le rayon d'observation à partir de la matrice K:
+  x = fx*X/Z+cx <=> X/Z = (x-cx)/fx
+  y = fy*Y/Z+cy <=> Y/Z = (y-cy)/fy
+  Sur le plan focal, on obtient la droite de coordonnées homogènes (X/Z,Y/Z,1)=(X,Y,Z)
+  La position n'importe pas, il s'agit seulement de comparer les directions les unes par rapport
+  aux autres. On peut alors remplacer toutes les mesures multiples dont l'azimuth est inférieur
+  à l'azimuth courant.
+  
+=> Conclusion: classer les mesures des marqueurs multiples par azimuth dans le repère de référence
+et, à chaque nouvelle mesure, effacer toutes les mesures de marqueur qui rentrent dans le cadre le
+le champ azimuthal de la nouvelle image.
+
+Attention, l'ensemble des directions visualisables ne définit pas un rectangle, mais un trapèze.
+Pour chaque mesure, il faudra donc définir l'azimuth et l'élévation dans le repère de référence.
+Faire un objet spécifique pour stocker ces mesures. Utiliser plusieurs conteneurs.
+- un liste de marqueurs avec un ID interne, avec la donnée de leur azimuth et de leur élévation.
+- une map azimuth -> ID
+- une map élévation -> ID
+Cette architecture permet d'être bidirectionnel. Coder cet objet en template ?
+MarkerStore ?
