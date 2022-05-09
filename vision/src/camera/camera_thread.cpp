@@ -71,7 +71,7 @@ void CameraThread::runThread()
     pose_filter_ptr_->predict(dtheta_deg);
 
     // Take a picture and detect all the markers
-    common::DetectedMarkerList detected_markers;
+    common::MarkerList detected_markers;
     #if USE_TEST_BENCH
     TEST_BENCH_PTR->detectMarkers(&detected_markers);
     #else
@@ -81,28 +81,29 @@ void CameraThread::runThread()
     #endif
 
     // Check if the central marker is detected => if so: update the filter
-    common::DetectedMarkerList::const_iterator it = detected_markers.cbegin();
-    for(it; it != detected_markers.cend(); ++it)
+    common::MarkerList::iterator it = detected_markers.begin();
+    for(it; it != detected_markers.end(); ++it)
     {
-      if(it->marker_id == 42)
+      if(it->getId() == 42)
       {
         // Covariances have already been converted from radians to degrees
-        Eigen::Affine3d const T_CM = it->T_CM;
-        Eigen::Matrix<double,6,6> const cov_TCM = it->cov_T_CM;
-        pose_filter_ptr_->update(T_CM, cov_TCM);
+        Eigen::Affine3d const* TCM = it->getTCM();
+        Eigen::Matrix<double,6,6> const* cov_TCM = it->getCovTCM();
+        pose_filter_ptr_->update(*TCM, *cov_TCM);
       }
     }
 
     // Update the pose estimate of all the markers
-    eraseOldMarkerEstimates();
+    // [TODO] Replace with a function
+    //~ eraseOldMarkerEstimates();
     Eigen::Affine3d const& TWC = pose_filter_ptr_->getTWC();
     Eigen::Matrix<double,6,6> const cov_TWC = pose_filter_ptr_->getCovTWC();
-    for(it = detected_markers.cbegin(); it != detected_markers.cend(); ++it)
+    for(it = detected_markers.begin(); it != detected_markers.end(); ++it)
     {
-      common::DetectedMarker const& detected_marker = *it;
-      common::Marker marker(TWC, cov_TWC, detected_marker);
+      common::Marker& detected_marker = *it;
+      detected_marker.estimateFromCameraPose(TWC, cov_TWC);
       std::lock_guard<std::mutex> const lock(mutex_);
-      marker_estimates_.insert(std::make_pair(marker.timestamp_ns, marker));
+      //~ marker_estimates_.insert(std::make_pair(marker.timestamp_ns, marker));
     }
   }
 }
@@ -165,26 +166,26 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
 
 void CameraThread::eraseOldMarkerEstimates()
 {
-  // Get the current timestamp
-  int64_t constexpr max_duration_ns = 1e9;
-  int64_t const timestamp_now_ns = common::convertToNanoseconds(common::Time::now());
-  int64_t const timestamp_old_ns = timestamp_now_ns - max_duration_ns;
+  //~ // Get the current timestamp
+  //~ int64_t constexpr max_duration_ns = 1e9;
+  //~ int64_t const timestamp_now_ns = common::convertToNanoseconds(common::Time::now());
+  //~ int64_t const timestamp_old_ns = timestamp_now_ns - max_duration_ns;
 
-  // Erase the old markers
-  std::lock_guard<std::mutex> lock(mutex_);
-  common::MarkerEstimates::iterator it_begin = marker_estimates_.begin();
-  common::MarkerEstimates::iterator it_end = marker_estimates_.upper_bound(timestamp_old_ns);
-  marker_estimates_.erase(it_begin, it_end);
+  //~ // Erase the old markers
+  //~ std::lock_guard<std::mutex> lock(mutex_);
+  //~ common::MarkerEstimates::iterator it_begin = marker_estimates_.begin();
+  //~ common::MarkerEstimates::iterator it_end = marker_estimates_.upper_bound(timestamp_old_ns);
+  //~ marker_estimates_.erase(it_begin, it_end);
 }
 
 //--------------------------------------------------------------------------------------------------
 
 void CameraThread::getMarkers(common::MarkerEstimates* estimates_ptr) const
 {
-  common::MarkerEstimates& estimates = *estimates_ptr;
-  estimates.clear();
-  std::lock_guard<std::mutex> lock(mutex_);
-  estimates.insert(marker_estimates_.cbegin(), marker_estimates_.cend());
+  //~ common::MarkerEstimates& estimates = *estimates_ptr;
+  //~ estimates.clear();
+  //~ std::lock_guard<std::mutex> lock(mutex_);
+  //~ estimates.insert(marker_estimates_.cbegin(), marker_estimates_.cend());
 }
 
 //--------------------------------------------------------------------------------------------------

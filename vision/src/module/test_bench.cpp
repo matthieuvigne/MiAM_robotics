@@ -59,12 +59,12 @@ TestBench::TestBench(Options const& options)
     TRC_ = common::PoseGaussianSampler::sample(TRC_, options.TRC_sigma_w, options.TRC_sigma_t);
 
   // Initialize the central marker
-  common::MarkerId const central_marker_id =
-    common::Marker::sampleMarkerId(common::MarkerFamily::CENTRAL_MARKER);
+  common::Marker::Id const central_marker_id =
+    common::Marker::sampleMarkerId(common::Marker::Family::CENTRAL_MARKER);
   Eigen::Affine3d TWM = options.TWM;
   if(options.mode == Mode::NOISY)
     TWM = common::PoseGaussianSampler::sample(TWM, options.TWM_sigma_w, options.TWM_sigma_t);
-  markers_.emplace(central_marker_id, TWM);
+  //~ markers_.emplace(central_marker_id, TWM);
 
   // Sample the other sample markers
   common::PoseUniformSampler const marker_sampler(
@@ -73,10 +73,10 @@ TestBench::TestBench(Options const& options)
   int constexpr num_samples = 10;
   for(int sample_idx=0; sample_idx<num_samples; sample_idx++)
   {
-    common::MarkerId const marker_id =
-      common::Marker::sampleMarkerId(common::MarkerFamily::ROCK_SAMPLE);
+    common::Marker::Id const marker_id =
+      common::Marker::sampleMarkerId(common::Marker::Family::ROCK_SAMPLE);
     Eigen::Affine3d const TWS = marker_sampler.sample();
-    markers_.emplace(marker_id, TWS);
+    //~ markers_.emplace(marker_id, TWS);
   }
   
   // Set the process and measurement noise parameters
@@ -110,41 +110,45 @@ void TestBench::rotateCameraToAnglePosition(double angle_rad)
 
 //--------------------------------------------------------------------------------------------------
 
-void TestBench::detectMarkers(common::DetectedMarkerList* detected_markers_ptr, Mode mode)
+void TestBench::detectMarkers(common::MarkerList* detected_markers_ptr, Mode mode)
 {
   // Get the reference to the detected markers
   CHECK(is_initialized_);
   CHECK_NOTNULL(detected_markers_ptr);
-  common::DetectedMarkerList& detected_markers = *detected_markers_ptr;
+  common::MarkerList& detected_markers = *detected_markers_ptr;
   detected_markers.clear();
 
   // For each marker, check whether it is visible and get its estimate
-  for(common::MarkerIdToPose::value_type const& pair : markers_)
-  {
-    // Check if the marker is visible
-    // [TODO]
+  int64_t const timestamp_ns = common::convertToNanoseconds(common::Time::now());
+  //~ for(common::MarkerIdToPose::value_type const& pair : markers_)
+  //~ {
+    //~ // Check if the marker is visible
+    //~ // [TODO]
 
-    // Simulate the observation of the marker
-    common::DetectedMarker marker;
-    marker.marker_id = pair.first;
-    Eigen::Affine3d const& TWM = pair.second;
-    Eigen::Affine3d const TCM = TWC_.inverse() * TWM;
-    switch(mode)
-    {
-      case Mode::PERFECT:
-        marker.T_CM = TCM;
-        break;
-      case Mode::NOISY:
-        marker.T_CM = common::PoseGaussianSampler::sample(TCM, marker_sigma_w_, marker_sigma_t_);
-        break;
-      default:
-        throw std::runtime_error("Unknown measurement mode");
-    }
-    marker.cov_T_CM.setIdentity();
-    marker.cov_T_CM.block<3,3>(0,0) *= std::pow(marker_sigma_w_,2.0);
-    marker.cov_T_CM.block<3,3>(3,3) *= std::pow(marker_sigma_t_,2.0);
-    detected_markers.push_back(marker);
-  }
+    //~ // Simulate the observation of the marker
+    //~ common::MarkerId const marker_id = pair.first;
+    //~ common::Marker marker(marker_id);
+    //~ Eigen::Affine3d const& TWM = pair.second;
+    //~ Eigen::Affine3d TCM = TWC_.inverse() * TWM;
+    //~ switch(mode)
+    //~ {
+      //~ case Mode::PERFECT:
+        //~ break;
+      //~ case Mode::NOISY:
+        //~ TCM = common::PoseGaussianSampler::sample(TCM, marker_sigma_w_, marker_sigma_t_);
+        //~ break;
+      //~ default:
+        //~ throw std::runtime_error("Unknown measurement mode");
+    //~ }
+    //~ Eigen::Matrix<double,6,6> cov_TCM = Eigen::Matrix<double,6,6>::Identity();
+    //~ cov_TCM.block<3,3>(0,0) *= std::pow(marker_sigma_w_,2.0);
+    //~ cov_TCM.block<3,3>(3,3) *= std::pow(marker_sigma_t_,2.0);
+
+    //~ // Add the measurement to the marker
+    //~ std::vector<cv::Point2f> corners(4);
+    //~ marker.addMeasurement(timestamp_ns, corners, TCM, cov_TCM);
+    //~ detected_markers.push_back(marker);
+  //~ }
 }
 
 //--------------------------------------------------------------------------------------------------

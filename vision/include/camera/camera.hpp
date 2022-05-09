@@ -86,9 +86,14 @@ public:
     Eigen::Vector2d* point_2d,
     Eigen::Matrix<double,2,3>* out_jacobian) const;
 
+  // Compute angles
+  void computeAzimuthAndElevation(
+    Eigen::Vector2d const& point,
+    double* azimuth, double* elevation) const;
+
   // Take picture and detect markers on it
   bool takePicture(cv::Mat & image, double const& timeout = 1.0);
-  bool detectMarkers(cv::Mat const& image, common::DetectedMarkerList* detected_markers) const;
+  bool detectMarkers(cv::Mat const& image, common::MarkerList* detected_markers) const;
 
 private:
   void configureCamera();
