@@ -76,7 +76,7 @@ public:
   // Getters
   inline uint32_t getImageWidth() const;
   inline uint32_t getImageHeight() const;
-  inline DistortionModel const& getDistortionModel() const;
+  inline DistortionModel::Type getDistortionModel() const;
   void getCameraMatrix(Eigen::Matrix3d* matrix) const;
   void getCameraMatrix(cv::Mat* matrix) const;
 
@@ -93,16 +93,20 @@ public:
 
   // Take picture and detect markers on it
   bool takePicture(cv::Mat & image, double const& timeout = 1.0);
-  bool detectMarkers(cv::Mat const& image, common::MarkerList* detected_markers) const;
+  bool detectMarkers(cv::Mat const& image,
+    double camera_azimuth_deg, double camera_elevation_deg,
+    common::MarkerPtrList* detected_markers_ptr) const;
 
 private:
   void configureCamera();
 
 private:
+
   // Camera name
   std::string const name_;
 
   // Camera properties
+  std::mutex mutex_;
   uint32_t image_width_;
   uint32_t image_height_;
   Intrinsics intrinsics_;
@@ -140,9 +144,9 @@ uint32_t Camera::getImageHeight() const
 
 //--------------------------------------------------------------------------------------------------
 
-DistortionModel const& Camera::getDistortionModel() const
+DistortionModel::Type Camera::getDistortionModel() const
 {
-  return *distortion_;
+  return distortion_->getType();
 }
 
 //--------------------------------------------------------------------------------------------------

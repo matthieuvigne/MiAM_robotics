@@ -1,3 +1,4 @@
+#include <common/common.hpp>
 #include <common/maths.hpp>
 #include <camera/camera.hpp>
 #include <camera/distortion_fisheye.hpp>
@@ -91,8 +92,8 @@ ProjectionResult Camera::project(
   Eigen::Matrix<double,2,3>* out_jacobian) const
 {
   // Project the point onto the focal image plane
-  assert(point_2d_ptr != NULL);
-  assert(point_3d.z() != 0.);
+  CHECK_NOTNULL(point_2d_ptr);
+  CHECK(point_3d.z() != 0.);
   Eigen::Vector2d& point_2d = *point_2d_ptr;
   point_2d(0) = point_3d.x() / point_3d.z();
   point_2d(1) = point_3d.y() / point_3d.z();
@@ -145,7 +146,9 @@ ProjectionResult Camera::project(
 
 bool Camera::detectMarkers(
   cv::Mat const& image,
-  common::MarkerList* detected_markers_ptr
+  double camera_azimuth_deg,
+  double camera_elevation_deg,
+  common::MarkerPtrList* detected_markers_ptr
 ) const
 {
   // Get all the markers on the image
@@ -168,18 +171,30 @@ bool Camera::detectMarkers(
   // Compute the covariance matrix for all detected markers
   typedef Eigen::Matrix<double,6,6,Eigen::RowMajor> Matrix6d;
   int const num_markers = detected_marker_ids.size();
+  Eigen::Quaterniond const qRC = common::getqRC(camera_azimuth_deg, camera_elevation_deg);
   for(int marker_idx=0; marker_idx<num_markers; ++marker_idx)
   {
     // Initialize the detected marker
-    common::MarkerId const marker_id = static_cast<common::MarkerId>(detected_marker_ids[marker_idx]);
-    common::Marker marker(marker_id);
+    common::MarkerId const marker_id =
+      static_cast<common::MarkerId>(detected_marker_ids[marker_idx]);
+    common::Marker::UniquePtr marker_ptr(new common::Marker(marker_id));
+
+    // Compute the direction of the beam
+    int constexpr num_corners = 4;
+    std::vector<cv::Point2f> const& corners = marker_corners[marker_idx];
+    CHECK(corners.size() == num_corners);
+    Eigen::Vector2d center2d = Eigen::Vector2d::Zero();
+    for(cv::Point2f const& corner : corners) center2d += Eigen::Vector2d{corner.x,corner.y} / 4.;
+    Eigen::Vector3d center3d;
+    backProject(center2d, &center3d);
+    Eigen::Quaterniond qRM = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), center3d);
 
     // Estimate the marker pose
     std::vector<cv::Vec3d> rvecs, tvecs;
-    double const marker_length = marker.getSizeLength();
-    std::vector<std::vector<cv::Point2f>> corners{marker_corners[marker_idx]};
-    cv::aruco::estimatePoseSingleMarkers(corners, marker_length, camera_matrix, distortion_coeffs,
-      rvecs, tvecs);
+    double const marker_length = marker_ptr->getSizeLength();
+    std::vector<std::vector<cv::Point2f>> markers_corners{marker_corners[marker_idx]};
+    cv::aruco::estimatePoseSingleMarkers(markers_corners, marker_length, camera_matrix,
+      distortion_coeffs, rvecs, tvecs);
     Eigen::Map<Eigen::Vector3d> const CtCM((double*) tvecs[0].val);
     Eigen::Map<Eigen::Vector3d> const rvec((double*) rvecs[0].val);
     double const angle = rvec.norm();
@@ -187,8 +202,6 @@ bool Camera::detectMarkers(
     Eigen::Affine3d const TCM = Eigen::Translation3d(CtCM) * Eigen::AngleAxisd(angle,axis);
 
     // Compute the measurement covariance matrix
-    int constexpr num_corners = 4;
-    CHECK(corners[marker_idx].size() == num_corners);
     Eigen::Matrix<double,6,6> information_matrix = Eigen::Matrix<double,6,6>::Zero();
     for(int corner_idx=0; corner_idx<num_corners; ++corner_idx)
     {
@@ -232,7 +245,7 @@ bool Camera::detectMarkers(
     cov_TCM.block<3,3>(0,0) *= std::pow(DEG,2);
 
     // Add the measurement
-    marker.addMeasurement(timestamp_ns, corners[marker_idx], TCM, cov_TCM); 
+    marker_ptr->addMeasurement(timestamp_ns, qRM, corners, TCM, cov_TCM); 
   }
 
   return true;
@@ -242,6 +255,7 @@ bool Camera::detectMarkers(
 
 bool Camera::takePicture(cv::Mat & image, double const& timeout)
 {
+  std::lock_guard<std::mutex> lock(mutex_);
   if (!isRunningOnRPi_)
   {
     // Dummy image.
@@ -299,6 +313,7 @@ Camera::Params Camera::Params::getDefaultParams()
 
 void Camera::configureCamera()
 {
+  std::lock_guard<std::mutex> lock(mutex_);
   #ifdef RPI4
   isRunningOnRPi_ = !camera_.initCamera(image_width_, image_height_, formats::RGB888, 4, 0);
   if(isRunningOnRPi_)
