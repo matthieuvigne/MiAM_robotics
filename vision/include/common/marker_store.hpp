@@ -16,12 +16,19 @@ public:
   virtual ~MarkerStore() = default;
 
 public:
+
+  // Add markers
   void addMarker(Marker::UniquePtr marker);
+  void addMarker(double azimuth_deg, double elevation_deg, Marker::UniquePtr marker);
+
+  // Getters
+  bool getUniqueMarker(MarkerId marker_id, Marker const** marker_ptr) const;
+  void forEachMarker(std::function<void(Marker const&)>& action) const;
 
 private:
 
   // Unique marker
-  std::vector<Marker::UniquePtr> unique_markers_;
+  std::map<MarkerId,Marker::UniquePtr> unique_markers_;
 
   // Multiple markers
   std::map<int,Marker::UniquePtr> multiple_markers_;

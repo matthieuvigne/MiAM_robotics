@@ -334,8 +334,15 @@ Marker::Id Marker::sampleMarkerId(Family marker_family)
 
 bool Marker::isUnique() const
 {
+  return isUnique(family_);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+bool Marker::isUnique(Family const family)
+{
   bool is_unique = true;
-  switch(family_)
+  switch(family)
   {
     case Family::ROCK_SAMPLE:
     case Family::TREASURE_RED_SAMPLE:
@@ -348,6 +355,25 @@ bool Marker::isUnique() const
       break;
   }
   return is_unique;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+bool Marker::isUnique(MarkerId const marker_id)
+{
+  Family const marker_family = getMarkerFamily(marker_id);
+  return isUnique(marker_family);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+cv::Point2f Marker::getMarkerCenter() const
+{
+  CHECK(corners_.size() == 4u);
+  cv::Point2f center{0.0f, 0.0f};
+  for(cv::Point2f const& point : corners_)
+    center = center + point;
+  return center/4;
 }
 
 //--------------------------------------------------------------------------------------------------
