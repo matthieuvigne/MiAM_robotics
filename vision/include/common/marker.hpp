@@ -59,6 +59,9 @@ class Marker {
     inline Eigen::Matrix<double,6,6> const* getCovTWM() const;
     inline double getSizeLength() const;
     bool isUnique() const;
+    static bool isUnique(Id const marker_id);
+    static bool isUnique(Family const family);
+    cv::Point2f getMarkerCenter() const;
   
     // Measurement and estimates
     void addMeasurement(

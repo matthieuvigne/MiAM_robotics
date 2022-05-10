@@ -324,21 +324,17 @@ void Camera::configureCamera()
 
 //--------------------------------------------------------------------------------------------------
 
-void Camera::computeAzimuthAndElevation(
-  Eigen::Vector2d const& point_uv,
-  double* azimuth_deg, double* elevation_deg) const
+void Camera::backProject(
+  Eigen::Vector2d const& point2d,
+  Eigen::Vector3d* point3d) const
 {
-  // Retroproject the points on the focal plane
-  double const xd = (point_uv(0) - intrinsics_.cx) / intrinsics_.fx;
-  double const yd = (point_uv(1) - intrinsics_.cy) / intrinsics_.fy;
+  CHECK_NOTNULL(point3d);
+  double const xd = (point2d(0) - intrinsics_.cx) / intrinsics_.fx;
+  double const yd = (point2d(1) - intrinsics_.cy) / intrinsics_.fy;
   Eigen::Vector2d point{xd, yd};
   distortion_->undistort(&point);
-  
-  // Get the results
-  CHECK_NOTNULL(azimuth_deg);
-  CHECK_NOTNULL(elevation_deg);
-  *azimuth_deg = std::atan2(point(0),1.0)*DEG;
-  *elevation_deg = std::atan2(point(1),1.0)*DEG;
+  *point3d = Eigen::Vector3d{xd, yd, 1.0};
+  point3d->normalize();
 }
 
 //--------------------------------------------------------------------------------------------------

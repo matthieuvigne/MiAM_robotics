@@ -87,9 +87,9 @@ public:
     Eigen::Matrix<double,2,3>* out_jacobian) const;
 
   // Compute angles
-  void computeAzimuthAndElevation(
-    Eigen::Vector2d const& point,
-    double* azimuth, double* elevation) const;
+  void backProject(
+    Eigen::Vector2d const& point2d,
+    Eigen::Vector3d* point3d) const;
 
   // Take picture and detect markers on it
   bool takePicture(cv::Mat & image, double const& timeout = 1.0);
