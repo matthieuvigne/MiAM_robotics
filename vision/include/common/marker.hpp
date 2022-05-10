@@ -41,6 +41,7 @@ class Marker {
   public:
     Marker();
     Marker(Id id);
+    Marker(Marker const& marker) = default;
 
   virtual ~Marker() = default;
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -49,23 +50,29 @@ class Marker {
 
     // Getters
     inline Id getId() const;
+    bool isUnique() const;
+    static bool isUnique(Id const marker_id);
+    static bool isUnique(Family const family);
     inline Status getStatus() const;
     inline Family getMarkerFamily() const;
+    inline double getSizeLength() const;
+    cv::Point2f getMarkerCenter() const;
+    inline Eigen::Quaterniond getReferenceOrientation() const;
+
+    // Timestamp
     inline int64_t getTimestampNanoseconds() const;
     inline double getTimestampSeconds() const;
+
+    // Poses
     inline Eigen::Affine3d const* getTCM() const;
     inline Eigen::Matrix<double,6,6> const* getCovTCM() const;
     inline Eigen::Affine3d const* getTWM() const;
     inline Eigen::Matrix<double,6,6> const* getCovTWM() const;
-    inline double getSizeLength() const;
-    bool isUnique() const;
-    static bool isUnique(Id const marker_id);
-    static bool isUnique(Family const family);
-    cv::Point2f getMarkerCenter() const;
   
     // Measurement and estimates
     void addMeasurement(
       int64_t timestamp_ns,
+      Eigen::Quaterniond const& qRM,
       std::vector<cv::Point2f> const& corners,
       Eigen::Affine3d const& TCM,
       Eigen::Matrix<double,6,6> const& cov_TCM);
@@ -108,6 +115,7 @@ class Marker {
     std::vector<cv::Point2f> corners_;
     std::shared_ptr<Eigen::Affine3d> TCM_;
     std::shared_ptr<Eigen::Matrix<double,6,6>> cov_TCM_;
+    Eigen::Quaterniond qRM_;
 
     // Estimate
     std::shared_ptr<Eigen::Affine3d> TWM_;
@@ -123,6 +131,7 @@ typedef Marker::Id MarkerId;
 typedef Marker::MarkerList MarkerList;
 typedef Marker::MarkerIdToEstimate MarkerIdToEstimate;
 typedef Marker::MarkerEstimates MarkerEstimates;
+typedef std::vector<Marker::UniquePtr> MarkerPtrList;
 
 //--------------------------------------------------------------------------------------------------
 // Inline functions
@@ -200,6 +209,13 @@ Eigen::Matrix<double,6,6> const* Marker::getCovTWM() const
 double Marker::getSizeLength() const
 {
   return (id_==42) ? 0.10 : 0.05;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Quaterniond Marker::getReferenceOrientation() const
+{
+  return qRM_;
 }
 
 //--------------------------------------------------------------------------------------------------

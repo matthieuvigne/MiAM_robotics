@@ -39,3 +39,10 @@ Faire un objet spécifique pour stocker ces mesures. Utiliser plusieurs conteneu
 - une map élévation -> ID
 Cette architecture permet d'être bidirectionnel. Coder cet objet en template ?
 MarkerStore ?
+
+Une possibilité : utiliser l'objet caméra, et vérifier que le centre du marqueur soit observable
+par la caméra dans sa pose actuelle, pour la direction dans le repère de référence. Pour chaque
+pose de caméra, calculer l'azimuth et l'élévation des quatres coins de l'image. Puis supprimer tous
+les marqueurs, tout en vérifiant qu'ils se projettent en effet dans l'image. Pour calculer
+l'azimuth et l'élévation du marqueur, on a besoin de la caméra, de sa pose par rapport au repère
+de référence et du marqueur. On le calcule directement au moment de détecter les marqueurs.

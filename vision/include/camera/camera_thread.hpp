@@ -49,7 +49,8 @@ private:
   CameraPoseFilter::UniquePtr pose_filter_ptr_;
 
   // Camera rotation
-  double camera_angle_deg_ = 0.0;
+  double camera_azimuth_deg_ = 0.0;
+  double const camera_elevation_deg_ = 45.0;
   double const max_angle_deg_ = 30.0;
   double const increment_angle_deg_ = 5.0;
 

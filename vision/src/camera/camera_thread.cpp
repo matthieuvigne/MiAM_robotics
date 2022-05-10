@@ -22,6 +22,7 @@ CameraThread::CameraThread()
   camera_ptr_.reset(new camera::Camera(camera_params));
   pose_filter_ptr_ = nullptr;
   thread_ptr_.reset(new std::thread([=](){runThread();}));
+  markers_.reset(new common::MarkerStore);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -38,14 +39,13 @@ CameraThread::~CameraThread()
 void CameraThread::runThread()
 {
   // Rotate camera to the zero position
-  camera_angle_deg_ = 0.0;
+  camera_azimuth_deg_ = 0.0;
   #if USE_TEST_BENCH
-  TEST_BENCH_PTR->rotateCameraToAnglePosition(camera_angle_deg_*RAD);
+  TEST_BENCH_PTR->rotateCameraToAnglePosition(camera_azimuth_deg_*RAD);
   #else
-  rotateCameraToAnglePosition(camera_angle_deg_);
+  rotateCameraToAnglePosition(camera_azimuth_deg_);
   #endif
 
-  // Initialize the camera pose filter and get the measurements
   while(true)
   {
     // Check if the client has sent an initialization message
@@ -66,42 +66,42 @@ void CameraThread::runThread()
     double const cam_rotation_time_sec = TEST_BENCH_PTR->getCameraRotationTime(dtheta_deg*RAD);
     std::this_thread::sleep_for(std::chrono::duration<double>(cam_rotation_time_sec));
     #else
-    incrementCameraAngle(camera_angle_deg_, dtheta_deg);
+    incrementCameraAngle(camera_azimuth_deg_, dtheta_deg);
     #endif
     pose_filter_ptr_->predict(dtheta_deg);
 
     // Take a picture and detect all the markers
-    common::MarkerList detected_markers;
+    common::MarkerPtrList detected_markers;
     #if USE_TEST_BENCH
-    TEST_BENCH_PTR->detectMarkers(&detected_markers);
+    //~ TEST_BENCH_PTR->detectMarkers(&detected_markers);
     #else
     cv::Mat image;
     camera_ptr_->takePicture(image);
-    camera_ptr_->detectMarkers(image, &detected_markers);
+    camera_ptr_->detectMarkers(image, camera_azimuth_deg_, camera_elevation_deg_, &detected_markers);
     #endif
 
     // Check if the central marker is detected => if so: update the filter
-    common::MarkerList::iterator it = detected_markers.begin();
+    common::MarkerPtrList::iterator it = detected_markers.begin();
     for(it; it != detected_markers.end(); ++it)
     {
-      if(it->getId() == 42)
+      common::Marker::UniquePtr& marker_ptr = *it;
+      if(marker_ptr->getId() == 42)
       {
         // Covariances have already been converted from radians to degrees
-        Eigen::Affine3d const* TCM = it->getTCM();
-        Eigen::Matrix<double,6,6> const* cov_TCM = it->getCovTCM();
+        Eigen::Affine3d const* TCM = marker_ptr->getTCM();
+        Eigen::Matrix<double,6,6> const* cov_TCM = marker_ptr->getCovTCM();
         pose_filter_ptr_->update(*TCM, *cov_TCM);
       }
     }
 
-    // Update the pose estimate of all the markers
     // [TODO] Replace with a function
     //~ eraseOldMarkerEstimates();
     Eigen::Affine3d const& TWC = pose_filter_ptr_->getTWC();
     Eigen::Matrix<double,6,6> const cov_TWC = pose_filter_ptr_->getCovTWC();
     for(it = detected_markers.begin(); it != detected_markers.end(); ++it)
     {
-      common::Marker& detected_marker = *it;
-      detected_marker.estimateFromCameraPose(TWC, cov_TWC);
+      common::Marker::UniquePtr& detected_marker = *it;
+      detected_marker->estimateFromCameraPose(TWC, cov_TWC);
       std::lock_guard<std::mutex> const lock(mutex_);
       //~ marker_estimates_.insert(std::make_pair(marker.timestamp_ns, marker));
     }

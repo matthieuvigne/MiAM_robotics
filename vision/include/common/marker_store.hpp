@@ -6,6 +6,10 @@
 
 namespace common {
 
+//--------------------------------------------------------------------------------------------------
+// Class declaration
+//--------------------------------------------------------------------------------------------------
+
 class MarkerStore {
 
 public:
@@ -17,25 +21,44 @@ public:
 
 public:
 
-  // Add markers
   void addMarker(Marker::UniquePtr marker);
-  void addMarker(double azimuth_deg, double elevation_deg, Marker::UniquePtr marker);
-
-  // Getters
-  bool getUniqueMarker(MarkerId marker_id, Marker const** marker_ptr) const;
+  Marker const* getUniqueMarker(MarkerId marker_id) const;
   void forEachMarker(std::function<void(Marker const&)>& action) const;
+  size_t forEachMultipleMarkerRemoveIf(std::function<bool(Marker const&)>& condition);
+  inline size_t getNumMarkers() const;
+  inline size_t getNumUniqueMarkers() const;
+  inline size_t getNumMultipleMarkers() const;
 
 private:
-
-  // Unique marker
   std::map<MarkerId,Marker::UniquePtr> unique_markers_;
-
-  // Multiple markers
-  std::map<int,Marker::UniquePtr> multiple_markers_;
-  std::map<double,int> azimuth_to_markers_;
-  std::map<double,int> elevation_to_markers_;
+  std::multimap<MarkerId,Marker::UniquePtr> multiple_markers_;
 
 }; // class MarkerStore
+
+//--------------------------------------------------------------------------------------------------
+// Inline functions
+//--------------------------------------------------------------------------------------------------
+
+size_t MarkerStore::getNumMarkers() const
+{
+  return unique_markers_.size() + multiple_markers_.size();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+size_t MarkerStore::getNumUniqueMarkers() const
+{
+  return unique_markers_.size();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+size_t MarkerStore::getNumMultipleMarkers() const
+{
+  return multiple_markers_.size();
+}
+
+//--------------------------------------------------------------------------------------------------
 
 } // namespace common
 
