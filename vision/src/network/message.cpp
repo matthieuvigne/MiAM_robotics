@@ -65,7 +65,7 @@ void Message::initializeParams()
       params_.reset(new common::Team);
       break;
     case MessageType::GET_MEASUREMENTS:
-      params_.reset(new common::MarkerIdToEstimate);
+      params_.reset(new common::MarkerList);
       break;
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:

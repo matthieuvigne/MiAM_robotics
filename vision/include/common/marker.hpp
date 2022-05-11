@@ -41,7 +41,7 @@ class Marker {
   public:
     Marker();
     Marker(Id id);
-    Marker(Marker const& marker) = default;
+    Marker(Marker const& marker);
 
   virtual ~Marker() = default;
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -98,8 +98,8 @@ class Marker {
     // Static functions
     static Family getMarkerFamily(Id id);
     static Id sampleMarkerId(Family marker_family);
-    static bool serialize(MarkerEstimates const& estimates, std::vector<char>* message);
-    static bool deserialize(std::vector<char> const& message, MarkerEstimates* estimates);    
+    static bool serialize(MarkerList const& markers, std::vector<char>* message);
+    static bool deserialize(std::vector<char> const& message, MarkerList* markers);    
     static int constexpr MESSAGE_SIZE_BYTES =  1 * sizeof(Id)       + /*Marker id*/
                                                1 * sizeof(Family)   + /*Marker family*/
                                                1 * sizeof(int64_t)  + /*timestamp*/
