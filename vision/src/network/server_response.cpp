@@ -36,7 +36,7 @@ bool ServerResponse::serializeParams(std::vector<char>* serialized_params) const
     case MessageType::GET_MEASUREMENTS:
     {
       CHECK_NOTNULL(serialized_params);
-      common::MarkerEstimates const& markers = getParamsAs<common::MarkerEstimates>();
+      common::MarkerList const& markers = getParamsAs<common::MarkerList>();
       common::Marker::serialize(markers, serialized_params);
     }
     case MessageType::INITIALIZATION:
@@ -56,8 +56,8 @@ bool ServerResponse::deserializeParams(std::vector<char> const& serialized_param
   {
     case MessageType::GET_MEASUREMENTS:
     {
-      params_.reset(new common::MarkerEstimates);
-      common::MarkerEstimates& markers = getParamsAs<common::MarkerEstimates>();
+      params_.reset(new common::MarkerList);
+      common::MarkerList& markers = getParamsAs<common::MarkerList>();
       common::Marker::deserialize(serialized_params, &markers);
     }
     case MessageType::SHUT_DOWN:

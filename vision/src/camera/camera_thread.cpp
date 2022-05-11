@@ -22,6 +22,7 @@ CameraThread::CameraThread()
   camera_ptr_.reset(new camera::Camera(camera_params));
   pose_filter_ptr_ = nullptr;
   thread_ptr_.reset(new std::thread([=](){runThread();}));
+  std::lock_guard<std::mutex> lock(mutex_);
   markers_.reset(new common::MarkerStore);
 }
 
@@ -69,7 +70,8 @@ void CameraThread::runThread()
       }
     }
 
-    // Remove multiple markers which are visible from the camera
+    // Remove multiple markers which are visible from the camera and add the new markers
+    std::lock_guard<std::mutex> const lock(mutex_);
     Eigen::Quaterniond const qRC = common::getqRC(camera_azimuth_deg_, camera_elevation_deg_);
     Eigen::Quaterniond const qCR = qRC.inverse();
     size_t const num_removed_markers = markers_->forEachMultipleMarkerRemoveIf(
@@ -83,15 +85,12 @@ void CameraThread::runThread()
         return remove;
       }
     );
-    
-    // Add the new observed markers to the marker store
     Eigen::Affine3d const& TWC = pose_filter_ptr_->getTWC();
     Eigen::Matrix<double,6,6> const cov_TWC = pose_filter_ptr_->getCovTWC();
     for(it = detected_markers.begin(); it != detected_markers.end(); ++it)
     {
       common::Marker::UniquePtr& detected_marker_ptr = *it;
       detected_marker_ptr->estimateFromCameraPose(TWC, cov_TWC);
-      std::lock_guard<std::mutex> const lock(mutex_);
       markers_->addMarker(std::move(detected_marker_ptr));
     }
   }
@@ -153,12 +152,12 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
 
 //--------------------------------------------------------------------------------------------------
 
-void CameraThread::getMarkers(common::MarkerEstimates* estimates_ptr) const
+void CameraThread::getMarkers(common::MarkerList* markers_ptr) const
 {
-  //~ common::MarkerEstimates& estimates = *estimates_ptr;
-  //~ estimates.clear();
-  //~ std::lock_guard<std::mutex> lock(mutex_);
-  //~ estimates.insert(marker_estimates_.cbegin(), marker_estimates_.cend());
+  markers_ptr->clear();
+  common::MarkerList& markers = *markers_ptr;
+  std::lock_guard<std::mutex> lock(mutex_);
+  markers_->forEachMarker([&](common::Marker const& marker){ markers.emplace_back(marker);});
 }
 
 //--------------------------------------------------------------------------------------------------

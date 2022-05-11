@@ -32,7 +32,7 @@ public:
 public:
 
   inline void join();
-  void getMarkers(common::MarkerEstimates* estimates) const;
+  void getMarkers(common::MarkerList* markers) const;
   void setTeam(common::Team team) const;
 
 private:
@@ -54,7 +54,7 @@ private:
   double const max_angle_deg_ = 30.0;
   double const increment_angle_deg_ = 5.0;
 
-  // Thread
+  // Thread and shared variables
   mutable std::mutex mutex_;
   mutable std::condition_variable condition_;
   mutable common::Team team_ = common::Team::UNKNOWN;

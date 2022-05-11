@@ -34,6 +34,22 @@ Marker::Marker(Id id)
 }
 
 //--------------------------------------------------------------------------------------------------
+
+Marker::Marker(Marker const& marker)
+: status_         (marker.status_),
+  id_             (marker.id_),
+  family_         (marker.family_),
+  timestamp_ns_   (marker.timestamp_ns_),
+  corners_        (marker.corners_),
+  RuM_            (marker.RuM_)
+{
+  if(marker.TCM_) TCM_ = std::make_shared<Eigen::Affine3d>(*marker.TCM_);
+  if(marker.cov_TCM_) cov_TCM_ = std::make_shared<Eigen::Matrix<double,6,6>>(*marker.cov_TCM_);
+  if(marker.TWM_) TWM_ = std::make_shared<Eigen::Affine3d>(*marker.TWM_);
+  if(marker.cov_TWM_) cov_TWM_ = std::make_shared<Eigen::Matrix<double,6,6>>(*marker.cov_TWM_);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Methods
 //--------------------------------------------------------------------------------------------------
 
@@ -189,19 +205,18 @@ bool Marker::deserialize(
 
 //--------------------------------------------------------------------------------------------------
 
-bool Marker::serialize(MarkerEstimates const& estimates, std::vector<char>* message_ptr)
+bool Marker::serialize(MarkerList const& markers, std::vector<char>* message_ptr)
 {
   // Initialize the buffer for serialized markers
   CHECK_NOTNULL(message_ptr);
   std::vector<char>& message = *message_ptr;
-  size_t num_markers = estimates.size();
+  size_t num_markers = markers.size();
   message.resize(num_markers * Marker::MESSAGE_SIZE_BYTES);
   
   // Fill the buffer for serialized markers
   std::vector<char>::iterator byte_it = message.begin();
-  for(MarkerEstimates::value_type const& pair : estimates)
+  for(Marker const& marker : markers)
   {
-    Marker const& marker = pair.second;
     std::vector<char>::iterator next_it = std::next(byte_it, Marker::MESSAGE_SIZE_BYTES);
     marker.serialize(byte_it, next_it);
     byte_it += Marker::MESSAGE_SIZE_BYTES;
@@ -211,25 +226,25 @@ bool Marker::serialize(MarkerEstimates const& estimates, std::vector<char>* mess
 
 //--------------------------------------------------------------------------------------------------
 
-bool Marker::deserialize(std::vector<char> const& message, MarkerEstimates* estimates_ptr)
+bool Marker::deserialize(std::vector<char> const& message, MarkerList* markers_ptr)
 {
   // Check the deserialization target
-  CHECK_NOTNULL(estimates_ptr);
-  MarkerEstimates& estimates = *estimates_ptr;
+  CHECK_NOTNULL(markers_ptr);
+  MarkerList& markers = *markers_ptr;
 
   // Get the number of markers to deserialize
   size_t const message_size = message.size();
   CHECK(message_size % Marker::MESSAGE_SIZE_BYTES == 0);
   size_t num_markers = message_size / Marker::MESSAGE_SIZE_BYTES;
+  markers.resize(num_markers);
   
   // Deserialize the markers
   std::vector<char>::const_iterator byte_it = message.cbegin();
   for(size_t marker_idx=0u; marker_idx<num_markers; ++marker_idx)
   {
-    Marker marker;
+    Marker& marker = markers[marker_idx];
     std::vector<char>::const_iterator next_it = std::next(byte_it,Marker::MESSAGE_SIZE_BYTES);
     marker.deserialize(byte_it, next_it);
-    estimates.insert(std::make_pair(marker.timestamp_ns_, marker));
     byte_it = next_it;
   }
   return true;
