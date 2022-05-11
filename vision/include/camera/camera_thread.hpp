@@ -40,6 +40,7 @@ private:
   void runThread();
   void rotateCameraToAnglePosition(double angle_deg);
   void incrementCameraAngle(double& camera_angle, double delta_angle);
+  void initializeFilterIfRequired();
 
 private:
 
