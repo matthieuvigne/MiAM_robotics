@@ -53,11 +53,12 @@ class Marker {
     bool isUnique() const;
     static bool isUnique(Id const marker_id);
     static bool isUnique(Family const family);
+    inline bool isCentralMarker() const;
     inline Status getStatus() const;
     inline Family getMarkerFamily() const;
     inline double getSizeLength() const;
     cv::Point2f getMarkerCenter() const;
-    inline Eigen::Quaterniond getReferenceOrientation() const;
+    inline Eigen::Vector3d const& getRuM() const;
 
     // Timestamp
     inline int64_t getTimestampNanoseconds() const;
@@ -72,7 +73,7 @@ class Marker {
     // Measurement and estimates
     void addMeasurement(
       int64_t timestamp_ns,
-      Eigen::Quaterniond const& qRM,
+      Eigen::Vector3d const& RuM,
       std::vector<cv::Point2f> const& corners,
       Eigen::Affine3d const& TCM,
       Eigen::Matrix<double,6,6> const& cov_TCM);
@@ -115,7 +116,7 @@ class Marker {
     std::vector<cv::Point2f> corners_;
     std::shared_ptr<Eigen::Affine3d> TCM_;
     std::shared_ptr<Eigen::Matrix<double,6,6>> cov_TCM_;
-    Eigen::Quaterniond qRM_;
+    Eigen::Vector3d RuM_;
 
     // Estimate
     std::shared_ptr<Eigen::Affine3d> TWM_;
@@ -213,9 +214,16 @@ double Marker::getSizeLength() const
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Quaterniond Marker::getReferenceOrientation() const
+Eigen::Vector3d const& Marker::getRuM() const
 {
-  return qRM_;
+  return RuM_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+bool Marker::isCentralMarker() const
+{
+  return (static_cast<int>(id_) == 42);
 }
 
 //--------------------------------------------------------------------------------------------------

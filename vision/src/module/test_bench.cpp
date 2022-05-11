@@ -87,18 +87,18 @@ TestBench::TestBench(Options const& options)
 
 //--------------------------------------------------------------------------------------------------
 
-void TestBench::rotateCamera(double dtheta_rad)
+void TestBench::rotateCamera(double dtheta_deg)
 {
   CHECK(is_initialized_);
   Eigen::Matrix<double,6,1> tau;
-  tau << 0.0, dtheta_rad, 0.0, 0.0, 0.0, 0.0;
+  tau << 0.0, dtheta_deg*RAD, 0.0, 0.0, 0.0, 0.0;
   Eigen::Affine3d const TRkRkp1 = common::so3r3::expMap(tau);
   TWC_ = TWC_ * TRC_.inverse() * TRkRkp1 * TRC_;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void TestBench::rotateCameraToAnglePosition(double angle_rad)
+void TestBench::rotateCameraToAnglePosition(double angle_deg)
 {
   CHECK(is_initialized_);
   Eigen::Affine3d TWR = TWC_ * TRC_.inverse();
