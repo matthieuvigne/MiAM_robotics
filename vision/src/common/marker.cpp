@@ -17,7 +17,7 @@ Marker::Marker()
   family_         (Family::UNKNOWN),
   timestamp_ns_   (0),
   corners_        (),
-  qRM_            (),
+  RuM_            (),
   TCM_            (nullptr),
   cov_TCM_        (nullptr),
   TWM_            (nullptr),
@@ -39,13 +39,13 @@ Marker::Marker(Id id)
 
 void Marker::addMeasurement(
   int64_t timestamp_ns,
-  Eigen::Quaterniond const& qRM,
+  Eigen::Vector3d const& RuM,
   std::vector<cv::Point2f> const& corners,
   Eigen::Affine3d const& TCM,
   Eigen::Matrix<double,6,6> const& cov_TCM)
 {
   timestamp_ns_ = timestamp_ns;
-  qRM_ = qRM;
+  RuM_ = RuM;
   corners_ = corners;
   TCM_.reset(new Eigen::Affine3d(TCM));
   cov_TCM_.reset(new Eigen::Matrix<double,6,6>(cov_TCM));

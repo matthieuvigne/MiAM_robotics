@@ -23,8 +23,8 @@ public:
 
   void addMarker(Marker::UniquePtr marker);
   Marker const* getUniqueMarker(MarkerId marker_id) const;
-  void forEachMarker(std::function<void(Marker const&)>& action) const;
-  size_t forEachMultipleMarkerRemoveIf(std::function<bool(Marker const&)>& condition);
+  void forEachMarker(std::function<void(Marker const&)> const& action) const;
+  size_t forEachMultipleMarkerRemoveIf(std::function<bool(Marker const&)> const& condition);
   inline size_t getNumMarkers() const;
   inline size_t getNumUniqueMarkers() const;
   inline size_t getNumMultipleMarkers() const;

@@ -62,8 +62,8 @@ void CameraThread::runThread()
     // Rotate the camera and propagate the pose camera filter
     double const dtheta_deg = (pose_filter_ptr_->isInitialized()) ? increment_angle_deg_ : 0.0;
     #if USE_TEST_BENCH
-    TEST_BENCH_PTR->rotateCamera(dtheta_deg*RAD);
-    double const cam_rotation_time_sec = TEST_BENCH_PTR->getCameraRotationTime(dtheta_deg*RAD);
+    TEST_BENCH_PTR->rotateCamera(dtheta_deg);
+    double const cam_rotation_time_sec = TEST_BENCH_PTR->getCameraRotationTime(dtheta_deg);
     std::this_thread::sleep_for(std::chrono::duration<double>(cam_rotation_time_sec));
     #else
     incrementCameraAngle(camera_azimuth_deg_, dtheta_deg);
@@ -85,7 +85,7 @@ void CameraThread::runThread()
     for(it; it != detected_markers.end(); ++it)
     {
       common::Marker::UniquePtr& marker_ptr = *it;
-      if(marker_ptr->getId() == 42)
+      if(marker_ptr->isCentralMarker())
       {
         // Covariances have already been converted from radians to degrees
         Eigen::Affine3d const* TCM = marker_ptr->getTCM();
@@ -94,16 +94,30 @@ void CameraThread::runThread()
       }
     }
 
-    // [TODO] Replace with a function
-    //~ eraseOldMarkerEstimates();
+    // Remove multiple markers which are visible from the camera
+    Eigen::Quaterniond const qRC = common::getqRC(camera_azimuth_deg_, camera_elevation_deg_);
+    Eigen::Quaterniond const qCR = qRC.inverse();
+    size_t const num_removed_markers = markers_->forEachMultipleMarkerRemoveIf(
+      [&](common::Marker const& marker)
+      {
+        Eigen::Vector3d const& RuM = marker.getRuM();
+        Eigen::Vector3d const CuM = qCR * RuM;
+        Eigen::Vector2d IpM;
+        camera::ProjectionResult const result = camera_ptr_->project(CuM, &IpM, 0);
+        bool const remove = (result == camera::ProjectionResult::KEYPOINT_VISIBLE);
+        return remove;
+      }
+    );
+    
+    // Add the new observed markers to the marker store
     Eigen::Affine3d const& TWC = pose_filter_ptr_->getTWC();
     Eigen::Matrix<double,6,6> const cov_TWC = pose_filter_ptr_->getCovTWC();
     for(it = detected_markers.begin(); it != detected_markers.end(); ++it)
     {
-      common::Marker::UniquePtr& detected_marker = *it;
-      detected_marker->estimateFromCameraPose(TWC, cov_TWC);
+      common::Marker::UniquePtr& detected_marker_ptr = *it;
+      detected_marker_ptr->estimateFromCameraPose(TWC, cov_TWC);
       std::lock_guard<std::mutex> const lock(mutex_);
-      //~ marker_estimates_.insert(std::make_pair(marker.timestamp_ns, marker));
+      markers_->addMarker(std::move(detected_marker_ptr));
     }
   }
 }
@@ -160,22 +174,6 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
 
   // Set the new camera angle
   camera_angle = new_angle;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void CameraThread::eraseOldMarkerEstimates()
-{
-  //~ // Get the current timestamp
-  //~ int64_t constexpr max_duration_ns = 1e9;
-  //~ int64_t const timestamp_now_ns = common::convertToNanoseconds(common::Time::now());
-  //~ int64_t const timestamp_old_ns = timestamp_now_ns - max_duration_ns;
-
-  //~ // Erase the old markers
-  //~ std::lock_guard<std::mutex> lock(mutex_);
-  //~ common::MarkerEstimates::iterator it_begin = marker_estimates_.begin();
-  //~ common::MarkerEstimates::iterator it_end = marker_estimates_.upper_bound(timestamp_old_ns);
-  //~ marker_estimates_.erase(it_begin, it_end);
 }
 
 //--------------------------------------------------------------------------------------------------

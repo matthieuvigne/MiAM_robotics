@@ -18,7 +18,7 @@ void MarkerStore::addMarker(Marker::UniquePtr marker_ptr)
 
 //--------------------------------------------------------------------------------------------------
 
-void MarkerStore::forEachMarker(std::function<void(Marker const&)>& action) const
+void MarkerStore::forEachMarker(std::function<void(Marker const&)> const& action) const
 {
   // Iterate over the unique markers
   for(std::map<MarkerId,Marker::UniquePtr>::value_type const& pair : unique_markers_)
@@ -31,7 +31,7 @@ void MarkerStore::forEachMarker(std::function<void(Marker const&)>& action) cons
 //--------------------------------------------------------------------------------------------------
 
 size_t MarkerStore::forEachMultipleMarkerRemoveIf(
-  std::function<bool(Marker const&)>& condition)
+  std::function<bool(Marker const&)> const& condition)
 {
   size_t num_removed_markers = 0u;
   std::multimap<MarkerId,Marker::UniquePtr>::iterator it = multiple_markers_.begin();

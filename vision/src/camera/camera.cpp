@@ -183,11 +183,11 @@ bool Camera::detectMarkers(
     int constexpr num_corners = 4;
     std::vector<cv::Point2f> const& corners = marker_corners[marker_idx];
     CHECK(corners.size() == num_corners);
-    Eigen::Vector2d center2d = Eigen::Vector2d::Zero();
-    for(cv::Point2f const& corner : corners) center2d += Eigen::Vector2d{corner.x,corner.y} / 4.;
-    Eigen::Vector3d center3d;
-    backProject(center2d, &center3d);
-    Eigen::Quaterniond qRM = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), center3d);
+    Eigen::Vector2d IpM = Eigen::Vector2d::Zero();
+    for(cv::Point2f const& corner : corners) IpM += Eigen::Vector2d{corner.x,corner.y} / 4.;
+    Eigen::Vector3d CuM;
+    backProject(IpM, &CuM);
+    Eigen::Vector3d const RuM = qRC*CuM;
 
     // Estimate the marker pose
     std::vector<cv::Vec3d> rvecs, tvecs;
@@ -245,7 +245,7 @@ bool Camera::detectMarkers(
     cov_TCM.block<3,3>(0,0) *= std::pow(DEG,2);
 
     // Add the measurement
-    marker_ptr->addMeasurement(timestamp_ns, qRM, corners, TCM, cov_TCM); 
+    marker_ptr->addMeasurement(timestamp_ns, RuM, corners, TCM, cov_TCM); 
   }
 
   return true;
