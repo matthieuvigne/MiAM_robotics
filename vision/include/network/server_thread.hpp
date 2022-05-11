@@ -53,16 +53,15 @@ public:
 
 void ServerThread::join()
 {
-  this->thread_ptr_->join();
+  thread_ptr_->join();
 }
 
 //--------------------------------------------------------------------------------------------------
 
 bool ServerThread::setCameraThread(camera::CameraThread const* camera_thread_ptr)
 {
-  if(camera_thread_ptr == nullptr)
-    return false;
-  this->camera_thread_ptr_ = camera_thread_ptr;
+  if(camera_thread_ptr == nullptr) return false;
+  camera_thread_ptr_ = camera_thread_ptr;
   return true;
 }
 

@@ -45,6 +45,7 @@ public:
   inline Eigen::Vector3d getWpC() const { return WpC_; }
   inline double getAzimuthDeg() const { return azimuth_deg_; }
   inline bool isInitialized() const { return is_initialized_; }
+  inline common::Team getTeam() const;
 
 private:
 
@@ -53,7 +54,7 @@ private:
 private:
 
   // Team
-  common::Team team_;
+  common::Team const team_;
 
   // Filter state and covariance
   Eigen::Vector3d WpC_;
@@ -69,6 +70,13 @@ private:
   int num_updates_;
 
 }; // class CameraPoseFilter
+
+//--------------------------------------------------------------------------------------------------
+
+common::Team CameraPoseFilter::getTeam() const
+{
+  return team_;
+}
 
 //--------------------------------------------------------------------------------------------------
 

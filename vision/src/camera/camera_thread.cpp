@@ -38,47 +38,22 @@ CameraThread::~CameraThread()
 
 void CameraThread::runThread()
 {
-  // Rotate camera to the zero position
-  camera_azimuth_deg_ = 0.0;
-  #if USE_TEST_BENCH
-  TEST_BENCH_PTR->rotateCameraToAnglePosition(camera_azimuth_deg_*RAD);
-  #else
-  rotateCameraToAnglePosition(camera_azimuth_deg_);
-  #endif
-
   while(true)
   {
-    // Check if the client has sent an initialization message
-    if(pose_filter_ptr_ == nullptr)
-    {
-      std::unique_lock<std::mutex> locker(mutex_);
-      condition_.wait(locker, [&](){ return (team_ != common::Team::UNKNOWN); });
-      CameraPoseFilter::Params filter_params = CameraPoseFilter::Params::getDefaultParams(team_);
-      pose_filter_ptr_.reset(new CameraPoseFilter(filter_params));
-      locker.unlock();
-    }
+    // Initiliaze the filter if needed
+    initializeFilterIfRequired();
     CHECK_NOTNULL(pose_filter_ptr_);
 
     // Rotate the camera and propagate the pose camera filter
     double const dtheta_deg = (pose_filter_ptr_->isInitialized()) ? increment_angle_deg_ : 0.0;
-    #if USE_TEST_BENCH
-    TEST_BENCH_PTR->rotateCamera(dtheta_deg);
-    double const cam_rotation_time_sec = TEST_BENCH_PTR->getCameraRotationTime(dtheta_deg);
-    std::this_thread::sleep_for(std::chrono::duration<double>(cam_rotation_time_sec));
-    #else
     incrementCameraAngle(camera_azimuth_deg_, dtheta_deg);
-    #endif
     pose_filter_ptr_->predict(dtheta_deg);
 
     // Take a picture and detect all the markers
-    common::MarkerPtrList detected_markers;
-    #if USE_TEST_BENCH
-    //~ TEST_BENCH_PTR->detectMarkers(&detected_markers);
-    #else
     cv::Mat image;
+    common::MarkerPtrList detected_markers;
     camera_ptr_->takePicture(image);
     camera_ptr_->detectMarkers(image, camera_azimuth_deg_, camera_elevation_deg_, &detected_markers);
-    #endif
 
     // Check if the central marker is detected => if so: update the filter
     common::MarkerPtrList::iterator it = detected_markers.begin();
@@ -194,6 +169,38 @@ void CameraThread::setTeam(common::Team team) const
   team_ = team;
   mutex_.unlock();
   condition_.notify_one();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void CameraThread::initializeFilterIfRequired()
+{
+  bool initialize_filter = false;
+  common::Team team = common::Team::UNKNOWN;
+
+  // Wait for the first initialization of the filter
+  std::unique_lock<std::mutex> locker(mutex_);
+  if(pose_filter_ptr_ == nullptr)
+  {
+    condition_.wait(locker, [&](){ return (team_ != common::Team::UNKNOWN); });
+    initialize_filter = true;
+    team = team_;
+  }
+  else if(pose_filter_ptr_->getTeam() != team_)
+  {
+    initialize_filter = true;
+    team = team_;
+  }
+  locker.unlock();
+
+  // Initialize the filter if required
+  if(initialize_filter)
+  {
+    camera_azimuth_deg_ = 0.;
+    CameraPoseFilter::Params filter_params = CameraPoseFilter::Params::getDefaultParams(team_);
+    pose_filter_ptr_.reset(new CameraPoseFilter(filter_params));
+    rotateCameraToAnglePosition(camera_azimuth_deg_);
+  }
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -46,3 +46,8 @@ pose de caméra, calculer l'azimuth et l'élévation des quatres coins de l'imag
 les marqueurs, tout en vérifiant qu'ils se projettent en effet dans l'image. Pour calculer
 l'azimuth et l'élévation du marqueur, on a besoin de la caméra, de sa pose par rapport au repère
 de référence et du marqueur. On le calcule directement au moment de détecter les marqueurs.
+
+Coder un CameraThreadHandler qui ne donne accès qu'à setTeam, auquel on donnera les droits sur le
+cameraThread, et qu'on donnera ensuite au serveur thread. Récupérer un handler créé par l'objet
+caméra. Cet handler a un pointeur vers le thread, et qui met à disposition une fonction setTeam
+à disposition, et qui reset the pointeur du filtre.
