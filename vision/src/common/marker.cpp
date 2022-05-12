@@ -43,10 +43,10 @@ Marker::Marker(Marker const& marker)
   corners_        (marker.corners_),
   RuM_            (marker.RuM_)
 {
-  if(marker.TCM_) TCM_ = std::make_shared<Eigen::Affine3d>(*marker.TCM_);
-  if(marker.cov_TCM_) cov_TCM_ = std::make_shared<Eigen::Matrix<double,6,6>>(*marker.cov_TCM_);
-  if(marker.TWM_) TWM_ = std::make_shared<Eigen::Affine3d>(*marker.TWM_);
-  if(marker.cov_TWM_) cov_TWM_ = std::make_shared<Eigen::Matrix<double,6,6>>(*marker.cov_TWM_);
+  if(marker.TCM_) TCM_.reset(new Eigen::Affine3d(*marker.TCM_));
+  if(marker.cov_TCM_) cov_TCM_.reset(new Eigen::Matrix<double,6,6>(*marker.cov_TCM_));
+  if(marker.TWM_) TWM_.reset(new Eigen::Affine3d(*marker.TWM_));
+  if(marker.cov_TWM_) cov_TWM_.reset(new Eigen::Matrix<double,6,6>(*marker.cov_TWM_));
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -46,6 +46,7 @@ void CameraThread::runThread()
     CHECK_NOTNULL(pose_filter_ptr_);
 
     // Rotate the camera and propagate the pose camera filter
+    // rotateCameraToAngle
     double const dtheta_deg = (pose_filter_ptr_->isInitialized()) ? increment_angle_deg_ : 0.0;
     incrementCameraAngle(camera_azimuth_deg_, dtheta_deg);
     pose_filter_ptr_->predict(dtheta_deg);
@@ -137,16 +138,7 @@ void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle
   }
 
   // Move the camera to this new angle
-  #if USE_TEST_BENCH
-  double true_delta_angle = new_angle - camera_angle;
-  TEST_BENCH_PTR->rotateCamera(true_delta_angle*RAD);
-  double const rot_time_sec = TEST_BENCH_PTR->getCameraRotationTime(true_delta_angle*RAD);
-  std::this_thread::sleep_for(std::chrono::duration<double>(rot_time_sec));
-  #else
   rotateCameraToAnglePosition(new_angle);
-  #endif
-
-  // Set the new camera angle
   camera_angle = new_angle;
 }
 

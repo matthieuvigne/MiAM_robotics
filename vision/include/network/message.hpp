@@ -96,7 +96,7 @@ T* Message::getParamsPtrAs()
       is_consistent = std::is_same<T,common::Team>::value;
       break;
     case MessageType::GET_MEASUREMENTS:
-      is_consistent = std::is_same<T,common::MarkerEstimates>::value;
+      is_consistent = std::is_same<T,common::MarkerList>::value;
       break;
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:
@@ -121,7 +121,7 @@ T const* Message::getParamsPtrAs() const
       is_consistent = std::is_same<T,common::Team>::value;
       break;
     case MessageType::GET_MEASUREMENTS:
-      is_consistent = std::is_same<T,common::MarkerEstimates>::value;
+      is_consistent = std::is_same<T,common::MarkerList>::value;
       break;
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:
