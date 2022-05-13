@@ -1,9 +1,9 @@
-#ifndef COMMON_POSE_UNIFORM_SAMPLER_HPP
-#define COMMON_POSE_UNIFORM_SAMPLER_HPP
+#ifndef TESTING_POSE_UNIFORM_SAMPLER_HPP
+#define TESTING_POSE_UNIFORM_SAMPLER_HPP
 
-#include <common/pose_sampler_base.hpp>
+#include <testing/pose_sampler_base.hpp>
 
-namespace common {
+namespace testing {
 
 class PoseUniformSampler : public PoseSamplerBase {
 
@@ -31,6 +31,6 @@ private:
 
 }; // class PoseUniformSampler
 
-} // namespace common
+} // namespace testing
 
-#endif // COMMON_POSE_UNIFORM_SAMPLER_HPP
+#endif // TESTTING_POSE_UNIFORM_SAMPLER_HPP

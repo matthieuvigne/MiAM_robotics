@@ -1,9 +1,9 @@
-#ifndef COMMON_POSE_GAUSSIAN_SAMPLER_HPP
-#define COMMON_POSE_GAUSSIAN_SAMPLER_HPP
+#ifndef TESTING_POSE_GAUSSIAN_SAMPLER_HPP
+#define TESTING_POSE_GAUSSIAN_SAMPLER_HPP
 
-#include <common/pose_sampler_base.hpp>
+#include <testing/pose_sampler_base.hpp>
 
-namespace common {
+namespace testing {
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration
@@ -63,6 +63,6 @@ private:
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace common
+} // namespace testing
 
-#endif // COMMON_POSE_GAUSSIAN_SAMPLER_HPP
+#endif // TESTING_POSE_GAUSSIAN_SAMPLER_HPP

@@ -1,7 +1,7 @@
 #include <common/maths.hpp>
-#include <common/pose_gaussian_sampler.hpp>
+#include <testing/pose_gaussian_sampler.hpp>
 
-namespace common {
+namespace testing {
 
 //--------------------------------------------------------------------------------------------------
 // Constructor and destructor
@@ -151,4 +151,4 @@ Eigen::Affine3d PoseGaussianSampler::sample(
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace common
+} // namespace testing

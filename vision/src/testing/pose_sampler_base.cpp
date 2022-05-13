@@ -1,6 +1,6 @@
-#include <common/pose_sampler_base.hpp>
+#include <testing/pose_sampler_base.hpp>
 
-namespace common {
+namespace testing {
 
 //--------------------------------------------------------------------------------------------------
 // Constructor and destructor
@@ -13,4 +13,4 @@ PoseSamplerBase::PoseSamplerBase(Type type)
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace common
+} // namespace testing

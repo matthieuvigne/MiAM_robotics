@@ -1,12 +1,12 @@
-#ifndef COMMON_GAUSSIAN_SAMPLER_HPP
-#define COMMON_GAUSSIAN_SAMPLER_HPP
+#ifndef TESTING_GAUSSIAN_SAMPLER_HPP
+#define TESTING_GAUSSIAN_SAMPLER_HPP
 
 #include <limits>
 #include <random>
 
 #include <common/macros.hpp>
 
-namespace common {
+namespace testing {
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration
@@ -60,6 +60,6 @@ void GaussianSampler::setMaxDeviation(double max_deviation)
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace common
+} // namespace testing
 
-#endif // COMMON_GAUSSIAN_SAMPLER_HPP
+#endif // TESTING_GAUSSIAN_SAMPLER_HPP

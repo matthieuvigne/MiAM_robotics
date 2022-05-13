@@ -12,13 +12,20 @@ add_compile_options(-std=c++17)
 option(RPI4 "Target is raspberry pi 4" OFF)
 option(USE_TEST_BENCH "Set true to simulate the vision module in a test bench" ON)
 option(BUILD_TESTS "Set ON to build the tests" OFF)
+option(BUILD_CAMERA_CALIBRATION "Set ON to build the camera calibration script" OFF)
 
 # Recursively include all the source files
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp")
+if(NOT USE_TEST_BENCH)
+  list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES "src/testing/*.cpp")
+endif()
 set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX)
 
 # Recursively include all the header files
 file(GLOB_RECURSE ${PROJECT_NAME}_HEADERS "include/*.hpp")
+if(NOT USE_TEST_BENCH)
+  list(REMOVE_ITEM ${PROJECT_NAME}_HEADERS "include/testing/*.hpp")
+endif()
 include_directories("include")
 
 # Setup the static library
@@ -63,8 +70,10 @@ endif()
 add_executable(dummy_client app/dummy_client.cpp)
 target_link_libraries(dummy_client ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
-add_executable(calibrate_camera app/calibrate_camera.cpp)
-target_link_libraries(calibrate_camera ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+if(BUILD_CAMERA_CALIBRATION)
+  add_executable(calibrate_camera app/calibrate_camera.cpp)
+  target_link_libraries(calibrate_camera ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+endif()
 
 # Tests
 

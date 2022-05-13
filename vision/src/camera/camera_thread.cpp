@@ -7,7 +7,7 @@
 #include <camera/camera_thread.hpp>
 
 #ifdef USE_TEST_BENCH
-#include <module/test_bench.hpp>
+#include <testing/test_bench.hpp>
 #endif
 
 namespace camera {

@@ -1,15 +1,12 @@
-#ifndef MODULE_TEST_BENCH_HPP
-#define MODULE_TEST_BENCH_HPP
+#ifndef TESTING_TEST_BENCH_HPP
+#define TESTING_TEST_BENCH_HPP
 
 #include <common/common.hpp>
 #include <common/macros.hpp>
 #include <common/marker.hpp>
 #include <common/maths.hpp>
 
-/* Make the testBench a singleton class, with an extern global variable.
- */
-
-namespace module {
+namespace testing {
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration
@@ -110,7 +107,7 @@ extern TestBench::UniquePtr test_bench_ptr;
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace module
+} // namespace testing
 
 //--------------------------------------------------------------------------------------------------
 // Global variable declaration
@@ -120,4 +117,4 @@ extern TestBench::UniquePtr test_bench_ptr;
 
 //--------------------------------------------------------------------------------------------------
 
-#endif // MODULE_TEST_BENCH
+#endif // TESTING_TEST_BENCH_HPP

@@ -1,7 +1,7 @@
 #include <common/maths.hpp>
-#include <common/pose_uniform_sampler.hpp>
+#include <testing/pose_uniform_sampler.hpp>
 
-namespace common {
+namespace testing {
 
 //--------------------------------------------------------------------------------------------------
 // Constructor and destructor
@@ -58,4 +58,4 @@ Eigen::Affine3d PoseUniformSampler::sample() const
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace common
+} // namespace testing

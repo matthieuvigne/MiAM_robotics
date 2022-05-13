@@ -1,10 +1,10 @@
 #include <common/common.hpp>
 #include <common/logger.hpp>
-#include <common/pose_gaussian_sampler.hpp>
-#include <common/pose_uniform_sampler.hpp>
-#include <module/test_bench.hpp>
+#include <testing/pose_gaussian_sampler.hpp>
+#include <testing/pose_uniform_sampler.hpp>
+#include <testing/test_bench.hpp>
 
-namespace module {
+namespace testing {
 
 //--------------------------------------------------------------------------------------------------
 // Static and global variable definition
@@ -51,23 +51,23 @@ TestBench::TestBench(Options const& options)
   // Initialize the transformation from the world frame to the camera frame
   TWC_ = options.TWC;
   if(options.mode == Mode::NOISY)
-    TWC_ = common::PoseGaussianSampler::sample(TWC_, options.TWCi_sigma_w, options.TWCi_sigma_t);
+    TWC_ = testing::PoseGaussianSampler::sample(TWC_, options.TWCi_sigma_w, options.TWCi_sigma_t);
 
   // Initialize the transformation from the reference frame to the camera frame
   TRC_ = options.TRC;
   if(options.mode == Mode::NOISY)
-    TRC_ = common::PoseGaussianSampler::sample(TRC_, options.TRC_sigma_w, options.TRC_sigma_t);
+    TRC_ = testing::PoseGaussianSampler::sample(TRC_, options.TRC_sigma_w, options.TRC_sigma_t);
 
   // Initialize the central marker
   common::Marker::Id const central_marker_id =
     common::Marker::sampleMarkerId(common::Marker::Family::CENTRAL_MARKER);
   Eigen::Affine3d TWM = options.TWM;
   if(options.mode == Mode::NOISY)
-    TWM = common::PoseGaussianSampler::sample(TWM, options.TWM_sigma_w, options.TWM_sigma_t);
+    TWM = testing::PoseGaussianSampler::sample(TWM, options.TWM_sigma_w, options.TWM_sigma_t);
   //~ markers_.emplace(central_marker_id, TWM);
 
   // Sample the other sample markers
-  common::PoseUniformSampler const marker_sampler(
+  testing::PoseUniformSampler const marker_sampler(
     Eigen::Vector3d{-1.0*RAD,-1.0*RAD,-M_PI}, Eigen::Vector3d{1.0*RAD,1.0*RAD,M_PI},
     Eigen::Vector3d{0.,0.,0.}, Eigen::Vector3d{board_width_,board_height_,0.});
   int constexpr num_samples = 10;
@@ -184,4 +184,4 @@ double TestBench::getCameraRotationTime(double angle_rad)
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace module
+} // namespace testing

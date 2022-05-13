@@ -3,7 +3,7 @@
 #include <common/logger.hpp>
 #include <module/module.hpp>
 #ifdef USE_TEST_BENCH
-#include <module/test_bench.hpp>
+#include <testing/test_bench.hpp>
 #endif
 
 // Main routine
@@ -17,9 +17,9 @@ int main(int argc, char* argv[])
   // Initialize the test bench if required
   #ifdef USE_TEST_BENCH
   common::Team team = common::Team::PURPLE;
-  module::TestBench::Options options = module::TestBench::Options::getDefaultOptions(team);
-  options.mode = module::TestBench::Mode::PERFECT;
-  module::TestBench::init(options);
+  testing::TestBench::Options options = testing::TestBench::Options::getDefaultOptions(team);
+  options.mode = testing::TestBench::Mode::PERFECT;
+  testing::TestBench::init(options);
   #endif
 
   // Initialize the vision module (launches the internal camera and server threads)

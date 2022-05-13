@@ -1,5 +1,5 @@
-#ifndef COMMON_POSE_SAMPLER_BASE_HPP
-#define COMMON_POSE_SAMPLER_BASE_HPP
+#ifndef TESTING_POSE_SAMPLER_BASE_HPP
+#define TESTING_POSE_SAMPLER_BASE_HPP
 
 #include <random>
 
@@ -7,7 +7,7 @@
 
 #include <common/macros.hpp>
 
-namespace common {
+namespace testing {
 
 //--------------------------------------------------------------------------------------------------
 // Class declaration
@@ -38,6 +38,6 @@ protected:
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace common
+} // namespace testing
 
-#endif // COMMON_POSE_SAMPLER_BASE_HPP
+#endif // TESTING_POSE_SAMPLER_BASE_HPP

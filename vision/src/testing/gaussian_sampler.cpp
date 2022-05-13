@@ -1,6 +1,6 @@
-#include <common/gaussian_sampler.hpp>
+#include <testing/gaussian_sampler.hpp>
 
-namespace common {
+namespace testing {
 
 //--------------------------------------------------------------------------------------------------
 // Constructor and destructors
@@ -34,4 +34,4 @@ double GaussianSampler::sample(double mean, double stddev, double maxdev)
 
 //--------------------------------------------------------------------------------------------------
 
-} // namespace common
+} // namespace testing
