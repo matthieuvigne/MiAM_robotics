@@ -7,7 +7,6 @@
 #include <camera/distortion_radtan.hpp>
 #include <common/logger.hpp>
 #include <common/maths.hpp>
-#include <common/yaml_serialization.hpp>
 #include <module/module.hpp>
 #include <network/socket_exception.hpp>
 
