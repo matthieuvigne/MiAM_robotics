@@ -88,13 +88,6 @@ if(BUILD_TESTS)
   endforeach()
 endif()
 
-#~ add_executable(test_serialization scripts/test_serialization.cpp)
-#~ target_link_libraries(test_serialization ${LIBRARY_NAME} ${Eigen_LIBRARIES})
-#~ message("Current source directory: ${CMAKE_CURRENT_SOURCE_DIR}")
-
-# Create package config file from template.
-#~ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/miam_utilsTemplate.pc" "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}.pc")
-
 # Set install rules: copy library and headers.
 #~ install(TARGETS ${LIBRARY_NAME} DESTINATION "lib")
 #~ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION "include")

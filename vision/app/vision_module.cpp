@@ -10,15 +10,12 @@
 int main(int argc, char* argv[])
 {
   // Initialize the logger
-  //~ std::string const filename = "vision_module_logs.txt";
-  //~ INIT_LOGGERS(filename);
   common::ConsoleLogger::init();
 
   // Initialize the test bench if required
   #ifdef USE_TEST_BENCH
   common::Team team = common::Team::PURPLE;
   testing::TestBench::Options options = testing::TestBench::Options::getDefaultOptions(team);
-  options.mode = testing::TestBench::Mode::PERFECT;
   testing::TestBench::init(options);
   #endif
 
