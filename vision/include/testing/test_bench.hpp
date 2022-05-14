@@ -23,7 +23,7 @@ public:
 
 public:
   static void init(Options const& options);
-  bool takePicture(double camera_azimuth_deg, cv::Mat* image);
+  bool takePicture(int camera_azimuth_deg, cv::Mat* image);
 
 private:
   static bool is_initialized_;
@@ -58,7 +58,7 @@ extern TestBench::UniquePtr test_bench_ptr;
 // Global variable declaration
 //--------------------------------------------------------------------------------------------------
 
-#define TEST_BENCH_PTR module::test_bench_ptr
+#define TEST_BENCH_PTR testing::test_bench_ptr
 
 //--------------------------------------------------------------------------------------------------
 

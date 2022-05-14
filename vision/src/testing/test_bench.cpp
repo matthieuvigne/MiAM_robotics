@@ -44,20 +44,27 @@ TestBench::TestBench(Options const& options)
 
 //--------------------------------------------------------------------------------------------------
 
-bool TestBench::takePicture(double camera_azimuth_deg, cv::Mat* image_ptr)
+bool TestBench::takePicture(int camera_azimuth_deg, cv::Mat* image_ptr)
 {
-  // Static variable counters
-  static int test_img_idx = 0;
-  static int azimuth_deg = int(camera_azimuth_deg);
-
-  // Find the right image
-  // TODO
-
-  // Get the associated image
-  CHECK_NOTNULL(image_ptr);
-  cv::Mat& image = *image_ptr;
-  //~ std::string const image_filename = image_folder_ + "/test" + test_img_idx_" + std::tostring("");
-  //~ image = cv::imread(image_filename, cv::IMREAD_COLOR);
+  try
+  {
+    // Get the reference to the image
+    CHECK_NOTNULL(image_ptr);
+    cv::Mat& image = *image_ptr;
+    
+    // Get the string for the azimuth angle
+    std::vector<char> azimuth_char(4);
+    std::snprintf(azimuth_char.data(), 4, "%+03d", camera_azimuth_deg);
+    std::string const azimuth_str(azimuth_char.data(), 3); // ignore termination character
+    
+    // Get the name of the image
+    std::string filename = image_folder_ + "/azimuth_" + azimuth_str + ".jpg";
+    image = cv::imread(filename, cv::IMREAD_COLOR);
+  }
+  catch(std::exception const&)
+  {
+    return false;
+  }
   return true;
 }
 
