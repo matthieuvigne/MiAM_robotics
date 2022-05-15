@@ -1,6 +1,8 @@
 #include <iostream>
+#include <thread>
 #include <vector>
 
+#include <common/logger.hpp>
 #include <testing/test_bench.hpp>
 
 int sign(int a)
@@ -13,6 +15,7 @@ int sign(int a)
 int main(int argc, char* argv[])
 {
   // Initialize the test bench
+  common::ConsoleLogger::init();
   common::Team const team = common::Team::PURPLE;
   testing::TestBench::Options options = testing::TestBench::Options::getDefaultOptions(team);
   testing::TestBench::init(options);
@@ -31,6 +34,13 @@ int main(int argc, char* argv[])
       angle_step = -sign(camera_azimuth_deg)*5;
     camera_azimuth_deg += angle_step;
   }
+
+  //~ // Test the waiting function
+  //~ while(true)
+  //~ {
+    //~ CONSOLE << "OK";
+    //~ std::this_thread::sleep_for(std::chrono::duration<double>(1.0));
+  //~ }
 
   return EXIT_SUCCESS;
 }

@@ -20,11 +20,13 @@ Module::Module()
 {
   // Setup RPi GPIO for servo control.
   #ifdef RPI4
-    system("echo 0 > /sys/class/pwm/pwmchip0/export");
-    usleep(50000);
-    system("echo 0 > /sys/class/pwm/pwmchip0/pwm0/enable");
-    system("echo 20000000 > /sys/class/pwm/pwmchip0/pwm0/period");
-    system("echo 1 > /sys/class/pwm/pwmchip0/pwm0/enable");
+    #if !USE_TEST_BENCH
+      system("echo 0 > /sys/class/pwm/pwmchip0/export");
+      usleep(50000);
+      system("echo 0 > /sys/class/pwm/pwmchip0/pwm0/enable");
+      system("echo 20000000 > /sys/class/pwm/pwmchip0/pwm0/period");
+      system("echo 1 > /sys/class/pwm/pwmchip0/pwm0/enable");
+    #endif
   #endif
 
   // Build the camera and launch its thread

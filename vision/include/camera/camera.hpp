@@ -92,7 +92,7 @@ public:
     Eigen::Vector3d* point3d) const;
 
   // Take picture and detect markers on it
-  bool takePicture(cv::Mat & image, double const& timeout = 1.0);
+  bool takePicture(cv::Mat* image, double timeout = 1.0);
   bool detectMarkers(cv::Mat const& image,
     double camera_azimuth_deg, double camera_elevation_deg,
     common::MarkerPtrList* detected_markers_ptr) const;

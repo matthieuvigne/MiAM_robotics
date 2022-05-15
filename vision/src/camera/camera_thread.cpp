@@ -53,7 +53,14 @@ void CameraThread::runThread()
     // Take a picture and detect all the markers
     cv::Mat image;
     common::MarkerPtrList detected_markers;
-    camera_ptr_->takePicture(image);
+    #if USE_TEST_BENCH
+      CONSOLE << "Camera azimuth deg: " << camera_azimuth_deg_;
+      TEST_BENCH_PTR->takePicture(camera_azimuth_deg_, &image);
+      cv::imshow("Image", image);
+      cv::waitKey(1000);
+    #else
+      camera_ptr_->takePicture(&image);
+    #endif
     camera_ptr_->detectMarkers(image, camera_azimuth_deg_, camera_elevation_deg_, &detected_markers);
 
     // Check if the central marker is detected => if so: update the filter
@@ -93,6 +100,10 @@ void CameraThread::runThread()
       detected_marker_ptr->estimateFromCameraPose(TWC, cov_TWC);
       markers_->addMarker(std::move(detected_marker_ptr));
     }
+    
+    // Wait before the next iteration
+    double wait_sec = (pose_filter_ptr_->isInitialized()) ? 1.0 : 0.0;
+    std::this_thread::sleep_for(std::chrono::duration<double>(wait_sec));
   }
 }
 
@@ -139,7 +150,9 @@ double CameraThread::rotateCamera(double delta_azimuth_deg)
   }
 
   // Move the camera to this new azimuth angle
-  rotateCameraToAnglePosition(new_azimuth_deg);
+  #if !USE_TEST_BENCH
+    rotateCameraToAnglePosition(new_azimuth_deg);
+  #endif
   delta_azimuth_deg = new_azimuth_deg - camera_azimuth_deg_;
   camera_azimuth_deg_ = new_azimuth_deg;
   return delta_azimuth_deg;

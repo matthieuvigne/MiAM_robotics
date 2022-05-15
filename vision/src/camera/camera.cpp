@@ -161,6 +161,14 @@ bool Camera::detectMarkers(
     detector_params_, rejected_candidates);
   int64_t const timestamp_ns = common::convertToNanoseconds(common::Time::now());
 
+  // If testing, show all the detected markers
+  #if USE_TEST_BENCH
+    cv::Mat image_with_markers = image.clone();
+    cv::aruco::drawDetectedMarkers(image_with_markers, marker_corners, detected_marker_ids);
+    cv::imshow("Image", image_with_markers);
+    cv::waitKey(1000);
+  #endif
+
   // Estimate the relative pose of the markers w.r.t. the camera
   // Marker corners are returned with the top-left corner first
   // Beware: the central marker has different dimensions than the regular markers
@@ -254,8 +262,11 @@ bool Camera::detectMarkers(
 
 //--------------------------------------------------------------------------------------------------
 
-bool Camera::takePicture(cv::Mat & image, double const& timeout)
+bool Camera::takePicture(cv::Mat* image_ptr, double timeout)
 {
+  CHECK_NOTNULL(image_ptr);
+  cv::Mat& image = *image_ptr;
+  
   std::lock_guard<std::mutex> lock(mutex_);
   if (!isRunningOnRPi_)
   {
