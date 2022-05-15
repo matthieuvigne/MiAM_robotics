@@ -38,8 +38,8 @@ public:
 private:
 
   void runThread();
+  double rotateCamera(double delta_angle_deg);
   void rotateCameraToAnglePosition(double angle_deg);
-  void incrementCameraAngle(double& camera_angle, double delta_angle);
   void initializeFilterIfRequired();
 
 private:
@@ -51,8 +51,8 @@ private:
   // Camera rotation
   double camera_azimuth_deg_ = 0.0;
   double const camera_elevation_deg_ = 45.0;
-  double const max_angle_deg_ = 30.0;
-  double const increment_angle_deg_ = 5.0;
+  double const max_azimuth_deg_ = 30.0;
+  double const azimuth_step_deg_ = 5.0;
 
   // Thread and shared variables
   mutable std::mutex mutex_;

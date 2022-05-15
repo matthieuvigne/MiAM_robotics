@@ -46,10 +46,9 @@ void CameraThread::runThread()
     CHECK_NOTNULL(pose_filter_ptr_);
 
     // Rotate the camera and propagate the pose camera filter
-    // rotateCameraToAngle
-    double const dtheta_deg = (pose_filter_ptr_->isInitialized()) ? increment_angle_deg_ : 0.0;
-    incrementCameraAngle(camera_azimuth_deg_, dtheta_deg);
-    pose_filter_ptr_->predict(dtheta_deg);
+    double delta_azimuth_deg = (pose_filter_ptr_->isInitialized()) ? azimuth_step_deg_ : 0.0;
+    delta_azimuth_deg = rotateCamera(delta_azimuth_deg);
+    pose_filter_ptr_->predict(delta_azimuth_deg);
 
     // Take a picture and detect all the markers
     cv::Mat image;
@@ -99,47 +98,51 @@ void CameraThread::runThread()
 
 //--------------------------------------------------------------------------------------------------
 
-void CameraThread::rotateCameraToAnglePosition(double angle_deg)
+void CameraThread::rotateCameraToAnglePosition(double new_azimuth_deg)
 {
   // Angle must be provided in degrees
   // Get the corresponding signal value
   // Angle -90°: camera at position 500
   // Angle   0°: camera at position 1500
   // Angle +90°: camera at position 2500
-  double coeff = angle_deg / max_angle_deg_;
+  CHECK(std::fabs(new_azimuth_deg) <= max_azimuth_deg_);
+  double coeff = new_azimuth_deg / max_azimuth_deg_;
   coeff = std::max(-1.0,std::min(coeff,1.0));
   int const signal = 1500 + 1000*coeff;
 
   // Send the new position order to the servo
-  std::string const command = "echo " + std::to_string(1000 * signal) + " > /sys/class/pwm/pwmchip0/pwm0/duty_cycle";
+  std::string const command = "echo " + std::to_string(1000 * signal)
+    + " > /sys/class/pwm/pwmchip0/pwm0/duty_cycle";
   system(command.c_str());
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void CameraThread::incrementCameraAngle(double& camera_angle, double delta_angle)
+double CameraThread::rotateCamera(double delta_azimuth_deg)
 {
-  // Get the new angle
+  // Get the new azimuth angle in degrees
   static bool increasing_angle = true;
-  double const min_angle = -this->max_angle_deg_;
-  double const max_angle =  this->max_angle_deg_;
-  double new_angle = increasing_angle
-    ? camera_angle + delta_angle
-    : camera_angle - delta_angle;
-  if(new_angle >= max_angle)
+  double const min_azimuth_deg = -max_azimuth_deg_;
+  double const max_azimuth_deg =  max_azimuth_deg_;
+  double new_azimuth_deg = increasing_angle
+    ? camera_azimuth_deg_ + delta_azimuth_deg
+    : camera_azimuth_deg_ - delta_azimuth_deg;
+  if(new_azimuth_deg >= max_azimuth_deg)
   {
     increasing_angle = false;
-    new_angle = max_angle;
+    new_azimuth_deg = max_azimuth_deg;
   }
-  else if(new_angle <= min_angle)
+  else if(new_azimuth_deg <= min_azimuth_deg)
   {
     increasing_angle = true;
-    new_angle = min_angle;
+    new_azimuth_deg = min_azimuth_deg;
   }
 
-  // Move the camera to this new angle
-  rotateCameraToAnglePosition(new_angle);
-  camera_angle = new_angle;
+  // Move the camera to this new azimuth angle
+  rotateCameraToAnglePosition(new_azimuth_deg);
+  delta_azimuth_deg = new_azimuth_deg - camera_azimuth_deg_;
+  camera_azimuth_deg_ = new_azimuth_deg;
+  return delta_azimuth_deg;
 }
 
 //--------------------------------------------------------------------------------------------------

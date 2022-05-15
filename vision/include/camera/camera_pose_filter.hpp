@@ -36,7 +36,7 @@ public:
 public:
 
   // Estimation
-  void predict(double azimuth_deg);
+  void predict(double delta_azimuth_deg);
   void update(Eigen::Affine3d const& TCM, Eigen::Matrix<double,6,6> const& covTCM);
 
   // Getters

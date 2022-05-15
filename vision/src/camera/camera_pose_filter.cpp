@@ -49,15 +49,11 @@ Eigen::Affine3d CameraPoseFilter::getTWC() const
 
 //--------------------------------------------------------------------------------------------------
 
-void CameraPoseFilter::predict(double azimuth_deg)
+void CameraPoseFilter::predict(double delta_azimuth_deg)
 {
-  // Propagate the covariance
-  double const delta_azimuth_deg = azimuth_deg - azimuth_deg_;
+  azimuth_deg_ += delta_azimuth_deg;
   double constexpr sigma_azimuth_deg = 1.0;
   cov_(0,0) += std::pow(sigma_azimuth_deg, 2.0);
-
-  // Update the pose
-  azimuth_deg_ = azimuth_deg;
 }
 
 //--------------------------------------------------------------------------------------------------
