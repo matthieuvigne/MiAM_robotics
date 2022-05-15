@@ -13,9 +13,6 @@
 int main(int argc, char* argv[])
 {
   // Initialize the logger
-  //~ std::string const filename = "dummy_client_logs.txt";
-  //~ common::FileLogger::init(filename);
-  //~ LOGFILE << "Initialized the logger";
   common::ConsoleLogger::init();
 
   while(true)
@@ -29,7 +26,7 @@ int main(int argc, char* argv[])
       
       // Send messages to the server
       int request_idx = 0;
-      int constexpr max_num_requests = 10;
+      int constexpr max_num_requests = 50;
 
       while(true)
       {
@@ -61,8 +58,8 @@ int main(int argc, char* argv[])
 
         if(message_type == network::MessageType::GET_MEASUREMENTS)
         {
-          common::MarkerEstimates const& markers =
-            response_ptr->getParamsAs<common::MarkerEstimates>();
+          common::MarkerList const& markers =
+            response_ptr->getParamsAs<common::MarkerList>();
           CONSOLE << "Received " << markers.size() << " markers";
         }
 

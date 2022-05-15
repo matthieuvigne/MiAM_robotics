@@ -102,8 +102,8 @@ void CameraThread::runThread()
     }
     
     // Wait before the next iteration
-    double wait_sec = (pose_filter_ptr_->isInitialized()) ? 1.0 : 0.0;
-    std::this_thread::sleep_for(std::chrono::duration<double>(wait_sec));
+    if(pose_filter_ptr_->isInitialized())
+      std::this_thread::sleep_for(std::chrono::duration<double>(1.0));
   }
 }
 
