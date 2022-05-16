@@ -74,6 +74,7 @@ void CameraThread::runThread()
         Eigen::Affine3d const* TCM = marker_ptr->getTCM();
         Eigen::Matrix<double,6,6> const* cov_TCM = marker_ptr->getCovTCM();
         pose_filter_ptr_->update(*TCM, *cov_TCM);
+        CONSOLE << "Central marker:\n" << TCM->matrix();
       }
     }
 
@@ -89,9 +90,11 @@ void CameraThread::runThread()
         Eigen::Vector2d IpM;
         camera::ProjectionResult const result = camera_ptr_->project(CuM, &IpM, 0);
         bool const remove = (result == camera::ProjectionResult::KEYPOINT_VISIBLE);
+        //~ if(remove) CONSOLE << "-> remove marker with id " << static_cast<int>(marker.getId());
         return remove;
       }
     );
+    //~ CONSOLE << "Removed " << num_removed_markers << " markers.";
     Eigen::Affine3d const& TWC = pose_filter_ptr_->getTWC();
     Eigen::Matrix<double,6,6> const cov_TWC = pose_filter_ptr_->getCovTWC();
     for(it = detected_markers.begin(); it != detected_markers.end(); ++it)

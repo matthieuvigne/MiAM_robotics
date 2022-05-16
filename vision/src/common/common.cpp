@@ -9,7 +9,7 @@ Eigen::Affine3d getTWM()
 {
   double half_marker_length = 0.10/2.0;
   Eigen::Affine3d TWM = 
-      Eigen::Translation3d(1.5-half_marker_length,1.0+half_marker_length,0.0)
+      Eigen::Translation3d(1.5 - half_marker_length, 1.0 + half_marker_length, 0.0)
     * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX());
   return TWM;
 }
@@ -18,18 +18,24 @@ Eigen::Affine3d getTWM()
 
 Eigen::Vector3d getWpCi(Team team)
 {
+  // Parameters
+  double const board_width = 3.0;
+  double const board_height = 2.0;
+  double const pole_height = 1.0;
+  double const platform_width = 0.20;
+
   // Initialize the position
   Eigen::Vector3d WpC;
   switch(team)
   {
     case common::Team::UNKNOWN:
-      WpC = Eigen::Vector3d{1.50,2.00,1.00};
+      WpC = Eigen::Vector3d{board_width/2., board_height, pole_height};
       break;
     case common::Team::PURPLE:
-      WpC = Eigen::Vector3d{1.60,2.00,1.00};
+      WpC = Eigen::Vector3d{board_width/2. + platform_width, board_height, pole_height};
       break;
     case common::Team::YELLOW:
-      WpC = Eigen::Vector3d{1.40,2.00,1.00};
+      WpC = Eigen::Vector3d{board_width/2. - platform_width, board_height, pole_height};
       break;
     default:
       throw std::runtime_error("Unknown team");

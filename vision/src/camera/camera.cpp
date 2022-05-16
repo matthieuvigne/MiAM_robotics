@@ -209,6 +209,12 @@ bool Camera::detectMarkers(
     Eigen::Vector3d const axis = rvec.normalized();
     Eigen::Affine3d const TCM = Eigen::Translation3d(CtCM) * Eigen::AngleAxisd(angle,axis);
 
+    // Update the image
+    #if USE_TEST_BENCH
+      cv::drawFrameAxes(image_with_markers, camera_matrix, distortion_coeffs,
+        rvecs[0], tvecs[0], 0.1);
+    #endif
+
     // Compute the measurement covariance matrix
     Eigen::Matrix<double,6,6> information_matrix = Eigen::Matrix<double,6,6>::Zero();
     for(int corner_idx=0; corner_idx<num_corners; ++corner_idx)
@@ -256,6 +262,11 @@ bool Camera::detectMarkers(
     marker_ptr->addMeasurement(timestamp_ns, RuM, corners, TCM, cov_TCM);
     detected_markers_ptr->push_back(std::move(marker_ptr));
   }
+
+  #if USE_TEST_BENCH
+    cv::imshow("Image", image_with_markers);
+    cv::waitKey(1000);
+  #endif
 
   return true;
 }

@@ -2,7 +2,7 @@
 #include <common/logger.hpp>
 #include <camera/camera_pose_filter.hpp>
 
-#define NUM_REQUIRED_UPDATES 10
+#define NUM_REQUIRED_UPDATES 5
 
 namespace camera {
 

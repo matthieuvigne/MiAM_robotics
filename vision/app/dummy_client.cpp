@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
         {
           common::MarkerList const& markers =
             response_ptr->getParamsAs<common::MarkerList>();
-          CONSOLE << "Received " << markers.size() << " markers";
+          CONSOLE << "Received " <<  markers.size() << " markers";
         }
 
         // Prepare for next iteration
@@ -88,6 +88,7 @@ int main(int argc, char* argv[])
     {
       CONSOLE << "Client lost the connection with the server";
       CONSOLE << e.description();
+      std::this_thread::sleep_for(std::chrono::duration<double>(1.0));
     }
   }
 }
