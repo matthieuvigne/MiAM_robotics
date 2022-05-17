@@ -62,7 +62,7 @@ Camera::Camera(Camera::Params const& params)
 
 void Camera::getCameraMatrix(Eigen::Matrix3d* matrix_ptr) const
 {
-  assert(matrix_ptr != NULL);
+  CHECK_NOTNULL(matrix_ptr);
   Eigen::Matrix3d& matrix = (*matrix_ptr);
   matrix.setIdentity();
   matrix(0,0) = intrinsics_.fx;
@@ -75,7 +75,7 @@ void Camera::getCameraMatrix(Eigen::Matrix3d* matrix_ptr) const
 
 void Camera::getCameraMatrix(cv::Mat* matrix_ptr) const
 {
-  assert(matrix_ptr != NULL);
+  CHECK_NOTNULL(matrix_ptr);
   cv::Mat& matrix = (*matrix_ptr);
   matrix = cv::Mat::eye(3, 3, CV_64FC1);
   matrix.at<double>(0,0) = intrinsics_.fx;
