@@ -45,8 +45,6 @@ Eigen::Vector3d getWpCi(Team team)
 
 //--------------------------------------------------------------------------------------------------
 
-// Change reference frame -> conventions for azimuth in camera & filter
-
 Eigen::Quaterniond getqRC(double azimuth_deg, double elevation_deg)
 {
   /* Sign conventions:
@@ -55,7 +53,7 @@ Eigen::Quaterniond getqRC(double azimuth_deg, double elevation_deg)
    * 2500 = +90°  (looks right)
    */
   Eigen::Quaterniond qRC;
-  qRC = Eigen::AngleAxisd(-azimuth_deg*RAD, Eigen::Vector3d::UnitY())
+  qRC = Eigen::AngleAxisd( azimuth_deg*RAD, Eigen::Vector3d::UnitY())
       * Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitX())
       * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ());
   return qRC;

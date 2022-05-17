@@ -1,6 +1,8 @@
 #ifndef TESTING_TEST_BENCH_HPP
 #define TESTING_TEST_BENCH_HPP
 
+#include <opencv2/opencv.hpp>
+
 #include <common/common.hpp>
 #include <common/macros.hpp>
 #include <common/marker.hpp>

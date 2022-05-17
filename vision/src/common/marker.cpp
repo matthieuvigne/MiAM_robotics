@@ -16,7 +16,6 @@ Marker::Marker()
   id_             (0),
   family_         (Family::UNKNOWN),
   timestamp_ns_   (0),
-  corners_        (),
   RuM_            (),
   TCM_            (nullptr),
   cov_TCM_        (nullptr),
@@ -40,7 +39,6 @@ Marker::Marker(Marker const& marker)
   id_             (marker.id_),
   family_         (marker.family_),
   timestamp_ns_   (marker.timestamp_ns_),
-  corners_        (marker.corners_),
   RuM_            (marker.RuM_)
 {
   if(marker.TCM_) TCM_.reset(new Eigen::Affine3d(*marker.TCM_));
@@ -56,13 +54,11 @@ Marker::Marker(Marker const& marker)
 void Marker::addMeasurement(
   int64_t timestamp_ns,
   Eigen::Vector3d const& RuM,
-  std::vector<cv::Point2f> const& corners,
   Eigen::Affine3d const& TCM,
   Eigen::Matrix<double,6,6> const& cov_TCM)
 {
   timestamp_ns_ = timestamp_ns;
   RuM_ = RuM;
-  corners_ = corners;
   TCM_.reset(new Eigen::Affine3d(TCM));
   cov_TCM_.reset(new Eigen::Matrix<double,6,6>(cov_TCM));
   status_ = Status::MEASURED;
@@ -381,17 +377,6 @@ bool Marker::isUnique(MarkerId const marker_id)
 {
   Family const marker_family = getMarkerFamily(marker_id);
   return isUnique(marker_family);
-}
-
-//--------------------------------------------------------------------------------------------------
-
-cv::Point2f Marker::getMarkerCenter() const
-{
-  CHECK(corners_.size() == 4u);
-  cv::Point2f center{0.0f, 0.0f};
-  for(cv::Point2f const& point : corners_)
-    center = center + point;
-  return center/4;
 }
 
 //--------------------------------------------------------------------------------------------------

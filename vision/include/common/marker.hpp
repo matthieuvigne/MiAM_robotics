@@ -5,7 +5,6 @@
 #include <vector>
 
 #include <eigen3/Eigen/Dense>
-#include <opencv2/opencv.hpp>
 
 #include <common/time.hpp>
 
@@ -57,7 +56,6 @@ class Marker {
     inline Status getStatus() const;
     inline Family getMarkerFamily() const;
     inline double getSizeLength() const;
-    cv::Point2f getMarkerCenter() const;
     inline Eigen::Vector3d const& getRuM() const;
 
     // Timestamp
@@ -74,7 +72,6 @@ class Marker {
     void addMeasurement(
       int64_t timestamp_ns,
       Eigen::Vector3d const& RuM,
-      std::vector<cv::Point2f> const& corners,
       Eigen::Affine3d const& TCM,
       Eigen::Matrix<double,6,6> const& cov_TCM);
     void addEstimate(
@@ -113,7 +110,6 @@ class Marker {
 
     // Measurements
     int64_t timestamp_ns_;
-    std::vector<cv::Point2f> corners_;
     std::shared_ptr<Eigen::Affine3d> TCM_;
     std::shared_ptr<Eigen::Matrix<double,6,6>> cov_TCM_;
     Eigen::Vector3d RuM_;

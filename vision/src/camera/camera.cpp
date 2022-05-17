@@ -259,7 +259,7 @@ bool Camera::detectMarkers(
     cov_TCM.block<3,3>(0,0) *= std::pow(DEG,2);
 
     // Add the measurement
-    marker_ptr->addMeasurement(timestamp_ns, RuM, corners, TCM, cov_TCM);
+    marker_ptr->addMeasurement(timestamp_ns, RuM, TCM, cov_TCM);
     detected_markers_ptr->push_back(std::move(marker_ptr));
   }
 
