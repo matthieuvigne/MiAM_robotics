@@ -277,7 +277,7 @@ bool Camera::takePicture(cv::Mat* image_ptr, double timeout)
 {
   CHECK_NOTNULL(image_ptr);
   cv::Mat& image = *image_ptr;
-  
+
   std::lock_guard<std::mutex> lock(mutex_);
   if (!isRunningOnRPi_)
   {
@@ -300,7 +300,7 @@ bool Camera::takePicture(cv::Mat* image_ptr, double timeout)
 
     if (success)
     {
-      image = cv::Mat(image_height_, image_width_, CV_8UC3, frameData.imageData);
+      image = cv::Mat(image_height_, image_width_, CV_8UC3, frameData.imageData).clone();
       camera_.returnFrameBuffer(frameData);
     }
   #else
@@ -338,7 +338,7 @@ void Camera::configureCamera()
 {
   std::lock_guard<std::mutex> lock(mutex_);
   #ifdef RPI4
-  isRunningOnRPi_ = !camera_.initCamera(image_width_, image_height_, formats::RGB888, 4, 0);
+  isRunningOnRPi_ = !camera_.initCamera(image_width_, image_height_, formats::RGB888, 1, 0);
   if(isRunningOnRPi_)
   {
     ControlList controls_;

@@ -24,7 +24,11 @@ Module::Module()
       system("echo 0 > /sys/class/pwm/pwmchip0/export");
       usleep(50000);
       system("echo 0 > /sys/class/pwm/pwmchip0/pwm0/enable");
+      usleep(50000);
       system("echo 20000000 > /sys/class/pwm/pwmchip0/pwm0/period");
+      usleep(50000);
+      system("echo 1500000 > /sys/class/pwm/pwmchip0/pwm0/period");
+      usleep(50000);
       system("echo 1 > /sys/class/pwm/pwmchip0/pwm0/enable");
     #endif
   #endif

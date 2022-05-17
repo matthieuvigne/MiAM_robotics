@@ -103,7 +103,7 @@ void CameraThread::runThread()
       detected_marker_ptr->estimateFromCameraPose(TWC, cov_TWC);
       markers_->addMarker(std::move(detected_marker_ptr));
     }
-    
+
     // Wait before the next iteration
     if(pose_filter_ptr_->isInitialized())
       std::this_thread::sleep_for(std::chrono::duration<double>(1.0));
@@ -128,6 +128,7 @@ void CameraThread::rotateCameraToAnglePosition(double new_azimuth_deg)
   std::string const command = "echo " + std::to_string(1000 * signal)
     + " > /sys/class/pwm/pwmchip0/pwm0/duty_cycle";
   system(command.c_str());
+  std::this_thread::sleep_for(std::chrono::duration<double>(0.5));
 }
 
 //--------------------------------------------------------------------------------------------------

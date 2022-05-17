@@ -2,6 +2,7 @@
 #define COMMON_TAGS_HPP
 
 #include <map>
+#include <memory>
 #include <vector>
 
 #include <eigen3/Eigen/Dense>
@@ -35,7 +36,9 @@ class Marker {
     typedef std::vector<Marker> MarkerList;
     typedef std::map<Id,Marker> MarkerIdToEstimate;
     typedef std::multimap<int64_t,Marker,std::less<int64_t>> MarkerEstimates;
-    POINTER_TYPEDEF(Marker);
+    typedef std::shared_ptr<Marker> Ptr;
+    typedef std::shared_ptr<Marker const> ConstPtr;
+    typedef std::unique_ptr<Marker> UniquePtr;
 
   public:
     Marker();
@@ -67,7 +70,7 @@ class Marker {
     inline Eigen::Matrix<double,6,6> const* getCovTCM() const;
     inline Eigen::Affine3d const* getTWM() const;
     inline Eigen::Matrix<double,6,6> const* getCovTWM() const;
-  
+
     // Measurement and estimates
     void addMeasurement(
       int64_t timestamp_ns,
@@ -80,7 +83,7 @@ class Marker {
     void estimateFromCameraPose(
       Eigen::Affine3d const& TWC,
       Eigen::Matrix<double,6,6> const& cov_TWC);
-  
+
     // Serialization
     bool serialize(
       std::vector<char>::iterator it_begin,
@@ -96,7 +99,7 @@ class Marker {
     static Family getMarkerFamily(Id id);
     static Id sampleMarkerId(Family marker_family);
     static bool serialize(MarkerList const& markers, std::vector<char>* message);
-    static bool deserialize(std::vector<char> const& message, MarkerList* markers);    
+    static bool deserialize(std::vector<char> const& message, MarkerList* markers);
     static int constexpr MESSAGE_SIZE_BYTES =  1 * sizeof(Id)       + /*Marker id*/
                                                1 * sizeof(Family)   + /*Marker family*/
                                                1 * sizeof(int64_t)  + /*timestamp*/
@@ -155,7 +158,7 @@ Marker::Family Marker::getMarkerFamily() const
 
 //--------------------------------------------------------------------------------------------------
 
-int64_t Marker::getTimestampNanoseconds() const 
+int64_t Marker::getTimestampNanoseconds() const
 {
   return timestamp_ns_;
 };
@@ -166,7 +169,7 @@ double Marker::getTimestampSeconds() const
 {
   int64_t const seconds = timestamp_ns_ % static_cast<int64_t>(1e9);
   int64_t const nanoseconds = timestamp_ns_ - seconds;
-  return static_cast<double>(seconds) + static_cast<double>(nanoseconds)/1e9; 
+  return static_cast<double>(seconds) + static_cast<double>(nanoseconds)/1e9;
 }
 
 //--------------------------------------------------------------------------------------------------

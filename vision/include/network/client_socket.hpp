@@ -12,7 +12,9 @@ namespace network {
 class ClientSocket : private Socket
 {
   public:
-    ClientSocket(std::string host, int port);
+    ClientSocket();
+
+    void connect(std::string host, int port);
     virtual ~ClientSocket(){};
 
     ClientSocket const& operator << (std::string const&) const;
