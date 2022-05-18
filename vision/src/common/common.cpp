@@ -22,7 +22,7 @@ Eigen::Vector3d getWpCi(Team team)
   double const board_width = 3.0;
   double const board_height = 2.0;
   double const pole_height = 1.0;
-  double const platform_width = 0.20;
+  double const platform_width = 0.065;
   //module_width = 65mm
   //camera 50mm below platform
   //camera = 10mm right from center, 26.4mm
@@ -60,6 +60,19 @@ Eigen::Quaterniond getqRC(double azimuth_deg, double elevation_deg)
       * Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitX())
       * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ());
   return qRC;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg)
+{
+  Eigen::Affine3d TRC;
+  TRC = Eigen::AngleAxisd(azimuth_deg*RAD, Eigen::Vector3d::UnitY())
+      * Eigen::Translation3d(Eigen::Vector3d{0.000,0.000,0.007})
+      * Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitX())
+      * Eigen::Translation3d(Eigen::Vector3d{0.010,0.004,0.000})
+      * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ());
+  return TRC;
 }
 
 //--------------------------------------------------------------------------------------------------

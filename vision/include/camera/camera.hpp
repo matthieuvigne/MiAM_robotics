@@ -85,6 +85,7 @@ public:
     Eigen::Vector3d const& point_3d,
     Eigen::Vector2d* point_2d,
     Eigen::Matrix<double,2,3>* out_jacobian) const;
+  void normalize(Eigen::Vector2d* point_2d) const;
 
   // Compute angles
   void backProject(

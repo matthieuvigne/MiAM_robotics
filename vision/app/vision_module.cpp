@@ -11,6 +11,7 @@ int main(int argc, char* argv[])
 {
   // Initialize the logger
   common::ConsoleLogger::init();
+  common::FileLogger::init("vision_module.txt");
 
   // Initialize the test bench if required
   #ifdef USE_TEST_BENCH

@@ -54,7 +54,6 @@ void CameraThread::runThread()
     cv::Mat image;
     common::MarkerPtrList detected_markers;
     #if USE_TEST_BENCH
-      CONSOLE << "Camera azimuth deg: " << camera_azimuth_deg_;
       TEST_BENCH_PTR->takePicture(camera_azimuth_deg_, &image);
       cv::imshow("Image", image);
       cv::waitKey(1000);
@@ -74,7 +73,6 @@ void CameraThread::runThread()
         Eigen::Affine3d const* TCM = marker_ptr->getTCM();
         Eigen::Matrix<double,6,6> const* cov_TCM = marker_ptr->getCovTCM();
         pose_filter_ptr_->update(*TCM, *cov_TCM);
-        CONSOLE << "Central marker:\n" << TCM->matrix();
       }
     }
 
@@ -89,9 +87,10 @@ void CameraThread::runThread()
         Eigen::Vector3d const CuM = qCR * RuM;
         Eigen::Vector2d IpM;
         camera::ProjectionResult const result = camera_ptr_->project(CuM, &IpM, 0);
-        bool const remove = (result == camera::ProjectionResult::KEYPOINT_VISIBLE);
-        //~ if(remove) CONSOLE << "-> remove marker with id " << static_cast<int>(marker.getId());
-        return remove;
+        if(result == camera::ProjectionResult::KEYPOINT_VISIBLE) return true;
+        camera_ptr_->normalize(&IpM);
+        CHECK(IpM.maxCoeff() >= 1.0);
+        return (IpM.minCoeff() > 1.2);
       }
     );
     //~ CONSOLE << "Removed " << num_removed_markers << " markers.";

@@ -362,6 +362,17 @@ void Camera::configureCamera()
 
 //--------------------------------------------------------------------------------------------------
 
+void Camera::normalize(Eigen::Vector2d* point_2d) const
+{
+  CHECK_NOTNULL(point_2d);
+  Eigen::Vector3d point_3d;
+  backProject(*point_2d, &point_3d);
+  point_2d->x() = point_3d.x()/image_width_;
+  point_2d->y() = point_3d.y()/image_height_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void Camera::backProject(
   Eigen::Vector2d const& point2d,
   Eigen::Vector3d* point3d) const

@@ -56,20 +56,17 @@ void ServerThread::serverThread()
         {
           case MessageType::INITIALIZATION:
           {
-            CONSOLE << "Received INITIALIZATION request";
             common::Team const& team = client_request.getParamsAs<common::Team>();
             camera_thread_ptr_->setTeam(team);
             break;
           }
           case MessageType::GET_MEASUREMENTS:
           {
-            CONSOLE << "Received GET_MEASUREMENTS request";
             camera_thread_ptr_->getMarkers(response_ptr->getParamsPtrAs<common::MarkerList>());
             break;
           }
           case MessageType::SHUT_DOWN:
           {
-            CONSOLE << "Received SHUTSOWN request";
             shut_down = true;
             break;
           }
@@ -82,7 +79,6 @@ void ServerThread::serverThread()
         std::string response_str;
         response_ptr->serialize(&response_str);
         client_sock << response_str;
-        CONSOLE << "Sent response to the client";
 
         // Shut down if request
         if(shut_down) break;

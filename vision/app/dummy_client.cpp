@@ -15,6 +15,7 @@ int main(int argc, char* argv[])
 {
   // Initialize the logger
   common::ConsoleLogger::init();
+  common::FileLogger::init("client_logger.txt");
 
   while(true)
   {
@@ -56,13 +57,11 @@ int main(int argc, char* argv[])
         client >> response_str;
         response_ptr.reset(new network::ServerResponse(response_str));
         response_ptr->deserialize(response_str);
-        CONSOLE << "Received message type: " << network::print(message_type);
 
         if(message_type == network::MessageType::GET_MEASUREMENTS)
         {
           common::MarkerList const& markers =
             response_ptr->getParamsAs<common::MarkerList>();
-          CONSOLE << "Received " <<  markers.size() << " markers";
         }
 
         // Prepare for next iteration
