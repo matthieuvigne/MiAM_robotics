@@ -23,6 +23,9 @@ Eigen::Vector3d getWpCi(Team team)
   double const board_height = 2.0;
   double const pole_height = 1.0;
   double const platform_width = 0.20;
+  //module_width = 65mm
+  //camera 50mm below platform
+  //camera = 10mm right from center, 26.4mm
 
   // Initialize the position
   Eigen::Vector3d WpC;

@@ -10,8 +10,12 @@ namespace network {
 //--------------------------------------------------------------------------------------------------
 
 ClientSocket::ClientSocket()
-{
-}
+: Socket()
+{}
+
+//--------------------------------------------------------------------------------------------------
+// Methods
+//--------------------------------------------------------------------------------------------------
 
 void ClientSocket::connect(std::string host, int port)
 {
@@ -21,8 +25,6 @@ void ClientSocket::connect(std::string host, int port)
   if(!Socket::connect(host, port))
     throw SocketException("Could not bind to port.");
 }
-//--------------------------------------------------------------------------------------------------
-// Methods
 //--------------------------------------------------------------------------------------------------
 
 ClientSocket const& ClientSocket::operator << (std::string const& s) const

@@ -1,11 +1,12 @@
 #include <iostream>
 #include <stdlib.h>
+#include <thread>
 
 #include <common/common.hpp>
 #include <common/logger.hpp>
 #include <common/marker.hpp>
-#include <network/client.hpp>
 #include <network/client_request.hpp>
+#include <network/client_socket.hpp>
 #include <network/server_response.hpp>
 #include <network/socket_exception.hpp>
 
@@ -20,7 +21,8 @@ int main(int argc, char* argv[])
     try
     {
       // Initialize the client
-      network::Client client("localhost", 30000);
+      network::ClientSocket client;
+      client.connect("localhost", 30000);
       network::ClientRequest::UniquePtr request_ptr = nullptr;
       network::ServerResponse::UniquePtr response_ptr = nullptr;
       
