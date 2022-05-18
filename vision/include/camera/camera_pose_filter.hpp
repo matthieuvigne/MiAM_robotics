@@ -42,7 +42,7 @@ public:
   // Getters
   Eigen::Affine3d getTWC() const;
   Eigen::Matrix<double,6,6> getCovTWC() const;
-  inline Eigen::Vector3d getWpC() const { return WpC_; }
+  inline Eigen::Vector3d getWpC() const { return WpR_; }
   inline double getAzimuthDeg() const { return azimuth_deg_; }
   inline bool isInitialized() const { return is_initialized_; }
   inline common::Team getTeam() const;
@@ -57,7 +57,7 @@ private:
   common::Team const team_;
 
   // Filter state and covariance
-  Eigen::Vector3d WpC_;
+  Eigen::Vector3d WpR_;
   double azimuth_deg_;
   Eigen::Matrix4d cov_; ///< [elevation (deg), position (m)]
   

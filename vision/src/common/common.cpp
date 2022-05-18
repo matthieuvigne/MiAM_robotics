@@ -16,7 +16,7 @@ Eigen::Affine3d getTWM()
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Vector3d getWpCi(Team team)
+Eigen::Vector3d getWpRi(Team team)
 {
   // Parameters
   double const board_width = 3.0;
@@ -28,44 +28,49 @@ Eigen::Vector3d getWpCi(Team team)
   //camera = 10mm right from center, 26.4mm
 
   // Initialize the position
-  Eigen::Vector3d WpC;
+  Eigen::Vector3d WpR;
   switch(team)
   {
     case common::Team::UNKNOWN:
-      WpC = Eigen::Vector3d{board_width/2., board_height, pole_height};
+      WpR = Eigen::Vector3d{board_width/2., board_height, pole_height};
       break;
     case common::Team::PURPLE:
-      WpC = Eigen::Vector3d{board_width/2. + platform_width, board_height, pole_height};
+      WpR = Eigen::Vector3d{board_width/2. + platform_width, board_height, pole_height};
       break;
     case common::Team::YELLOW:
-      WpC = Eigen::Vector3d{board_width/2. - platform_width, board_height, pole_height};
+      WpR = Eigen::Vector3d{board_width/2. - platform_width, board_height, pole_height};
       break;
     default:
       throw std::runtime_error("Unknown team");
   }
-  return WpC;
+  return WpR;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Quaterniond getqRC(double azimuth_deg, double elevation_deg)
+//~ Eigen::Quaterniond getqRC(double azimuth_deg, double elevation_deg)
+//~ {
+  //~ /* Sign conventions:
+   //~ * 500  = -90°  (looks left)
+   //~ * 1500 =   0°  (looks front)
+   //~ * 2500 = +90°  (looks right)
+   //~ */
+  //~ Eigen::Quaterniond qRC;
+  //~ qRC = Eigen::AngleAxisd( azimuth_deg*RAD, Eigen::Vector3d::UnitY())
+      //~ * Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitX())
+      //~ * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ());
+  //~ return qRC;
+//~ }
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg)
 {
   /* Sign conventions:
    * 500  = -90°  (looks left)
    * 1500 =   0°  (looks front)
    * 2500 = +90°  (looks right)
    */
-  Eigen::Quaterniond qRC;
-  qRC = Eigen::AngleAxisd( azimuth_deg*RAD, Eigen::Vector3d::UnitY())
-      * Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitX())
-      * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ());
-  return qRC;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg)
-{
   Eigen::Affine3d TRC;
   TRC = Eigen::AngleAxisd(azimuth_deg*RAD, Eigen::Vector3d::UnitY())
       * Eigen::Translation3d(Eigen::Vector3d{0.000,0.000,0.007})

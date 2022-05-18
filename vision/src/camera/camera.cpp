@@ -179,7 +179,7 @@ bool Camera::detectMarkers(
   // Compute the covariance matrix for all detected markers
   typedef Eigen::Matrix<double,6,6,Eigen::RowMajor> Matrix6d;
   int const num_markers = detected_marker_ids.size();
-  Eigen::Quaterniond const qRC = common::getqRC(camera_azimuth_deg, camera_elevation_deg);
+  Eigen::Affine3d const TRC = common::getTRC(camera_azimuth_deg, camera_elevation_deg);
   for(int marker_idx=0; marker_idx<num_markers; ++marker_idx)
   {
     // Initialize the detected marker
@@ -195,7 +195,7 @@ bool Camera::detectMarkers(
     for(cv::Point2f const& corner : corners) IpM += Eigen::Vector2d{corner.x,corner.y} / 4.;
     Eigen::Vector3d CuM;
     backProject(IpM, &CuM);
-    Eigen::Vector3d const RuM = qRC*CuM;
+    Eigen::Vector3d const RuM = TRC * CuM;
 
     // Estimate the marker pose
     std::vector<cv::Vec3d> rvecs, tvecs;

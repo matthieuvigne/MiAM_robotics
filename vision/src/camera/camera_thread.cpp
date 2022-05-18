@@ -78,13 +78,13 @@ void CameraThread::runThread()
 
     // Remove multiple markers which are visible from the camera and add the new markers
     std::lock_guard<std::mutex> const lock(mutex_);
-    Eigen::Quaterniond const qRC = common::getqRC(camera_azimuth_deg_, camera_elevation_deg_);
-    Eigen::Quaterniond const qCR = qRC.inverse();
+    Eigen::Affine3d const TRC = common::getTRC(camera_azimuth_deg_, camera_elevation_deg_);
+    Eigen::Affine3d const TCR = TRC.inverse();
     size_t const num_removed_markers = markers_->forEachMultipleMarkerRemoveIf(
       [&](common::Marker const& marker)
       {
         Eigen::Vector3d const& RuM = marker.getRuM();
-        Eigen::Vector3d const CuM = qCR * RuM;
+        Eigen::Vector3d const CuM = TCR * RuM;
         Eigen::Vector2d IpM;
         camera::ProjectionResult const result = camera_ptr_->project(CuM, &IpM, 0);
         if(result == camera::ProjectionResult::KEYPOINT_VISIBLE) return true;
