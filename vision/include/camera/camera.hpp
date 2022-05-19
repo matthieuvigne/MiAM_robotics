@@ -115,6 +115,7 @@ private:
   Eigen::Affine3d pose_;
   #ifdef RPI4
     LibCamera camera_;
+    LibcameraOutData frameData_;
   #else
     raspicam::RaspiCam_Cv camera_handler_;
   #endif

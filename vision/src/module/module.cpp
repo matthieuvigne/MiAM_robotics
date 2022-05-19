@@ -27,7 +27,7 @@ Module::Module()
       usleep(50000);
       system("echo 20000000 > /sys/class/pwm/pwmchip0/pwm0/period");
       usleep(50000);
-      system("echo 1500000 > /sys/class/pwm/pwmchip0/pwm0/period");
+      system("echo 1500000 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle");
       usleep(50000);
       system("echo 1 > /sys/class/pwm/pwmchip0/pwm0/enable");
     #endif

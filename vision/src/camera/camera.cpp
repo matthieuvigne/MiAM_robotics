@@ -286,23 +286,36 @@ bool Camera::takePicture(cv::Mat* image_ptr, double timeout)
     return true;
   }
   #ifdef RPI4
-    LibcameraOutData frameData;
     bool success = false;
-    struct timespec st, ct;
-    clock_gettime(CLOCK_MONOTONIC, &st);
-    ct = st;
-
-    while (!success && (ct.tv_sec - st.tv_sec + (ct.tv_nsec - st.tv_nsec) / 1e9) < timeout)
+    // For undetermined reason, the image must be asked for more than once...
+    for (int i = 0; i < 5; i++)
     {
-      success = camera_.readFrame(&frameData);
-      clock_gettime(CLOCK_MONOTONIC, &ct);
+      success = false;
+      if (frameData_.size > 0)
+        camera_.returnFrameBuffer(frameData_);
+      struct timespec st, ct;
+      clock_gettime(CLOCK_MONOTONIC, &st);
+      ct = st;
+
+      while (!success && (ct.tv_sec - st.tv_sec + (ct.tv_nsec - st.tv_nsec) / 1e9) < timeout)
+      {
+        success = camera_.readFrame(&frameData_);
+        clock_gettime(CLOCK_MONOTONIC, &ct);
+      }
+
+      if (!success)
+        frameData_.size = 0;
     }
 
     if (success)
     {
-      image = cv::Mat(image_height_, image_width_, CV_8UC3, frameData.imageData).clone();
-      camera_.returnFrameBuffer(frameData);
+      image = cv::Mat(image_height_, image_width_, CV_8UC3, frameData_.imageData).clone();
     }
+    else
+    {
+      frameData_.size = 0;
+    }
+
   #else
     bool success = camera_handler_.open();
     success &= camera_handler_.grab(),
@@ -348,14 +361,16 @@ void Camera::configureCamera()
     controls_.set(controls::Contrast, 1.0);
     camera_.set(controls_);
     camera_.startCamera();
+    frameData_.size = 0;
+
   }
   #else
   camera_handler_ = raspicam::RaspiCam_Cv();
   camera_handler_.set(cv::CAP_PROP_FRAME_WIDTH, image_width_);
   camera_handler_.set(cv::CAP_PROP_FRAME_HEIGHT, image_height_);
-  camera_handler_.set(cv::CAP_PROP_FORMAT, CV_8UC1);
-  camera_handler_.set(cv::CAP_PROP_BRIGHTNESS, 75);
-  camera_handler_.set(cv::CAP_PROP_CONTRAST, 75);
+  camera_handler_.set(cv::CAP_PROP_FORMAT, CV_8UC3);
+  camera_handler_.set(cv::CAP_PROP_BRIGHTNESS, 50);
+  camera_handler_.set(cv::CAP_PROP_CONTRAST, 0);
   isRunningOnRPi_ = camera_handler_.getId().length() > 0;
   #endif
 }

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 #include <stdlib.h>
 #include <thread>
 
@@ -26,7 +27,7 @@ int main(int argc, char* argv[])
       client.connect("localhost", 30000);
       network::ClientRequest::UniquePtr request_ptr = nullptr;
       network::ServerResponse::UniquePtr response_ptr = nullptr;
-      
+
       // Send messages to the server
       int request_idx = 0;
       int constexpr max_num_requests = 50;
@@ -71,14 +72,14 @@ int main(int argc, char* argv[])
         request_ptr = nullptr;
         response_ptr = nullptr;
       }
-      
+
       // Send the shutdown request to the server
       std::string request_str;
       network::MessageType const message_type = network::MessageType::SHUT_DOWN;
       request_ptr.reset(new network::ClientRequest(message_type));
       request_ptr->serialize(&request_str);
       client << request_str;
-      
+
       // Get the response from the server
       std::string response_str;
       client >> response_str;
