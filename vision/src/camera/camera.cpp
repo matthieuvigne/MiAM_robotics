@@ -86,7 +86,7 @@ void Camera::getCameraMatrix(cv::Mat* matrix_ptr) const
 
 //--------------------------------------------------------------------------------------------------
 
-ProjectionResult Camera::project(
+double Camera::project(
   Eigen::Vector3d const& point_3d,
   Eigen::Vector2d* point_2d_ptr,
   Eigen::Matrix<double,2,3>* out_jacobian) const
@@ -116,12 +116,9 @@ ProjectionResult Camera::project(
   point_2d(1) = fy*yd + cy;
 
   // Check wheter the point is visible on the image or not
-  bool is_visible = true;
-  is_visible &= (point_2d(0) >= 0. && point_2d(0) <= image_width_);
-  is_visible &= (point_2d(1) >= 0. && point_2d(1) <= image_height_);
-  ProjectionResult result = is_visible
-    ? ProjectionResult::KEYPOINT_VISIBLE
-    : ProjectionResult::KEYPOINT_OUTSIDE_IMAGE;
+  double result_x = (point_2d(0) - 0.5*image_width_)/(0.5*image_width_);
+  double result_y = (point_2d(1) - 0.5*image_height_)/(0.5*image_height_);
+  double result = std::max(std::fabs(result_x), std::fabs(result_y));
 
   // Return the projection Jacobian matrix if required
   if(out_jacobian)
@@ -373,17 +370,6 @@ void Camera::configureCamera()
   camera_handler_.set(cv::CAP_PROP_CONTRAST, 0);
   isRunningOnRPi_ = camera_handler_.getId().length() > 0;
   #endif
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Camera::normalize(Eigen::Vector2d* point_2d) const
-{
-  CHECK_NOTNULL(point_2d);
-  Eigen::Vector3d point_3d;
-  backProject(*point_2d, &point_3d);
-  point_2d->x() = point_3d.x()/image_width_;
-  point_2d->y() = point_3d.y()/image_height_;
 }
 
 //--------------------------------------------------------------------------------------------------

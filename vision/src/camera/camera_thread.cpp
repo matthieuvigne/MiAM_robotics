@@ -86,11 +86,8 @@ void CameraThread::runThread()
         Eigen::Vector3d const& RuM = marker.getRuM();
         Eigen::Vector3d const CuM = TCR * RuM;
         Eigen::Vector2d IpM;
-        camera::ProjectionResult const result = camera_ptr_->project(CuM, &IpM, 0);
-        if(result == camera::ProjectionResult::KEYPOINT_VISIBLE) return true;
-        camera_ptr_->normalize(&IpM);
-        CHECK(IpM.maxCoeff() >= 1.0);
-        return (IpM.minCoeff() > 1.2);
+        double result = camera_ptr_->project(CuM, &IpM, 0);
+        return (result > 1.2);
       }
     );
     //~ CONSOLE << "Removed " << num_removed_markers << " markers.";

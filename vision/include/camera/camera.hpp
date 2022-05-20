@@ -25,18 +25,6 @@
 namespace camera {
 
 //--------------------------------------------------------------------------------------------------
-// Associated structures
-//--------------------------------------------------------------------------------------------------
-
-enum class ProjectionResult {
-  KEYPOINT_VISIBLE,
-  KEYPOINT_OUTSIDE_IMAGE,
-  POINT_BEHIND_CAMERA,
-  PROJECTION_INVALID,
-  UNINITIALIZED
-}; // ProjectionResult
-
-//--------------------------------------------------------------------------------------------------
 // Class definition
 //--------------------------------------------------------------------------------------------------
 
@@ -81,11 +69,10 @@ public:
   void getCameraMatrix(cv::Mat* matrix) const;
 
   // Camera projection
-  ProjectionResult project(
+  double project(
     Eigen::Vector3d const& point_3d,
     Eigen::Vector2d* point_2d,
     Eigen::Matrix<double,2,3>* out_jacobian) const;
-  void normalize(Eigen::Vector2d* point_2d) const;
 
   // Compute angles
   void backProject(
