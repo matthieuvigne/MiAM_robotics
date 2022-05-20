@@ -1,4 +1,7 @@
 #include <common/marker_store.hpp>
+#include <common/logger.hpp>
+
+double const MARKER_MIN_DISTANCE = 0.010;
 
 namespace common {
 
@@ -11,9 +14,26 @@ void MarkerStore::addMarker(Marker::UniquePtr marker_ptr)
   CHECK(marker_ptr);
   MarkerId const marker_id = marker_ptr->getId();
   if(marker_ptr->isUnique())
-    unique_markers_.insert(std::make_pair(marker_id, std::move(marker_ptr)));
+    unique_markers_[marker_id] = std::move(marker_ptr);
   else
+  {
+    std::multimap<MarkerId,Marker::UniquePtr>::iterator it = multiple_markers_.lower_bound(marker_id);
+    while(it != multiple_markers_.upper_bound(marker_id))
+    {
+      if ((it->second->getTWM()->translation() - marker_ptr->getTWM()->translation()).norm() < MARKER_MIN_DISTANCE)
+      {
+        it = multiple_markers_.erase(it);
+
+        LOGFILE << "Removing marker too close to new marker:" << static_cast<int>(it->second->getId());
+        LOGFILE << "    TWM" << it->second->getTWM()->translation().transpose();
+      }
+      else
+      {
+        it ++;
+      }
+    }
     multiple_markers_.insert(std::make_pair(marker_id, std::move(marker_ptr)));
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -22,7 +42,7 @@ void MarkerStore::forEachMarker(std::function<void(Marker const&)> const& action
 {
   // Iterate over the unique markers
   for(std::map<MarkerId,Marker::UniquePtr>::value_type const& pair : unique_markers_)
-    action(*pair.second);  
+    action(*pair.second);
   // Iterate over the multiple markers
   for(std::map<MarkerId,Marker::UniquePtr>::value_type const& pair : multiple_markers_)
     action(*pair.second);

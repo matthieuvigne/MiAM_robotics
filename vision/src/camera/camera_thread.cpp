@@ -39,6 +39,11 @@ CameraThread::~CameraThread()
 
 void CameraThread::runThread()
 {
+
+  struct timespec st, ct;
+  clock_gettime(CLOCK_MONOTONIC, &st);
+  ct = st;
+  int image_id = 0;
   while(true)
   {
     // Initiliaze the filter if needed
@@ -48,6 +53,7 @@ void CameraThread::runThread()
     // Rotate the camera and propagate the pose camera filter
     double delta_azimuth_deg = (pose_filter_ptr_->isInitialized()) ? azimuth_step_deg_ : 0.0;
     delta_azimuth_deg = rotateCamera(delta_azimuth_deg);
+    std::this_thread::sleep_for(std::chrono::duration<double>(0.3));
     pose_filter_ptr_->predict(delta_azimuth_deg);
 
     // Take a picture and detect all the markers
@@ -60,7 +66,20 @@ void CameraThread::runThread()
     #else
       camera_ptr_->takePicture(&image);
     #endif
-    camera_ptr_->detectMarkers(image, camera_azimuth_deg_, camera_elevation_deg_, &detected_markers);
+    camera_ptr_->detectMarkers(image, camera_azimuth_deg_, camera_elevation_deg_, &detected_markers, logDirectory_ + "/" + std::to_string(image_id));
+
+    LOGFILE << "####################################################";
+    clock_gettime(CLOCK_MONOTONIC, &ct);
+    double elapsedTime = (ct.tv_sec - st.tv_sec + (ct.tv_nsec - st.tv_nsec) / 1e9);
+    LOGFILE << "Time:" << elapsedTime << " Image Id: " << image_id;
+    LOGFILE << "   Azimuth" << camera_azimuth_deg_ << " estimated azimuth: " << pose_filter_ptr_->getAzimuthDeg();
+    image_id += 1;
+
+    LOGFILE << "Detected markers: " << detected_markers.size();
+    for (auto const& m : detected_markers)
+    {
+      LOGFILE << "Marker" << static_cast<int>(m->getId()) << "    TCM" << m->getTCM()->translation().transpose();
+    }
 
     // Check if the central marker is detected => if so: update the filter
     common::MarkerPtrList::iterator it = detected_markers.begin();
@@ -72,10 +91,12 @@ void CameraThread::runThread()
         // Covariances have already been converted from radians to degrees
         Eigen::Affine3d const* TCM = marker_ptr->getTCM();
         Eigen::Matrix<double,6,6> const* cov_TCM = marker_ptr->getCovTCM();
-        pose_filter_ptr_->update(*TCM, *cov_TCM);
+          pose_filter_ptr_->update(*TCM, *cov_TCM);
+        LOGFILE << "Camera pose updated";
+        LOGFILE << "   Estimated position" << pose_filter_ptr_->getTWC().translation().transpose();
+        LOGFILE << "   Filter innovation" << pose_filter_ptr_->getLastInnovation().transpose();
       }
     }
-
     // Remove multiple markers which are visible from the camera and add the new markers
     std::lock_guard<std::mutex> const lock(mutex_);
     Eigen::Affine3d const TRC = common::getTRC(camera_azimuth_deg_, camera_elevation_deg_);
@@ -87,22 +108,32 @@ void CameraThread::runThread()
         Eigen::Vector3d const CuM = TCR * RuM;
         Eigen::Vector2d IpM;
         double result = camera_ptr_->project(CuM, &IpM, 0);
-        return (result > 1.2);
+        bool remove = result < 0.9;
+        if (remove)
+        {
+            LOGFILE << "Removing marker in field of view:" << static_cast<int>(marker.getId()) << "    TWM" << marker.getTWM()->translation().transpose();
+        }
+        return remove;
       }
     );
-    //~ CONSOLE << "Removed " << num_removed_markers << " markers.";
     Eigen::Affine3d const& TWC = pose_filter_ptr_->getTWC();
     Eigen::Matrix<double,6,6> const cov_TWC = pose_filter_ptr_->getCovTWC();
     for(it = detected_markers.begin(); it != detected_markers.end(); ++it)
     {
       common::Marker::UniquePtr& detected_marker_ptr = *it;
       detected_marker_ptr->estimateFromCameraPose(TWC, cov_TWC);
+
+      LOGFILE << "Adding marker:" << static_cast<int>(detected_marker_ptr->getId()) << "    TWM" << detected_marker_ptr->getTWM()->translation().transpose();
       markers_->addMarker(std::move(detected_marker_ptr));
     }
 
-    // Wait before the next iteration
-    if(pose_filter_ptr_->isInitialized())
-      std::this_thread::sleep_for(std::chrono::duration<double>(1.0));
+    LOGFILE << "Current markers in store:";
+    markers_->forEachMarker([&](common::Marker const& marker)
+    {
+      LOGFILE << "Marker" << static_cast<int>(marker.getId());
+      LOGFILE << "    TCM" << marker.getTCM()->translation().transpose();
+      LOGFILE << "    TWM" << marker.getTWM()->translation().transpose();
+    });
   }
 }
 

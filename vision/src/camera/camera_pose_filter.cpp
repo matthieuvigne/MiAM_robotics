@@ -80,12 +80,11 @@ void CameraPoseFilter::update(
   Eigen::Affine3d const TRC = common::getTRC(azimuth_deg_, elevation_deg_);
   Eigen::Affine3d const TWR = Eigen::Translation3d(WpR_) * qWR_;
   Eigen::Affine3d const predicted_TCM = TRC.inverse() * TWR.inverse() * TWM_;
-  
+
   // Compute innovation within the Lie algebra
-  // T_CM_mes = exp(tau)*T_CM_pred => tau = log(T_CM_mes*T_CM_pred^-1)
   Eigen::Affine3d const error_TCM = measured_TCM * predicted_TCM.inverse();
-  Eigen::Matrix<double,6,1> innov = common::so3r3::logMap(error_TCM);
-  innov.head<3>() *= DEG;
+  innov_ = common::so3r3::logMap(error_TCM);
+  innov_.head<3>() *= DEG;
 
   // Compute the measure-state cross covariance matrices
   // Recall: the covariance is of the form [orientation (deg), position (m)]
@@ -95,11 +94,6 @@ void CameraPoseFilter::update(
   Eigen::Matrix<double,6,6> J_TWC_wrt_TWR = common::so3r3::leftSe3ProductJacobian(TWR, TRC);
   Eigen::Matrix<double,6,3> J_TWR_wrt_WpR = Eigen::Matrix<double,6,6>::Identity().block<6,3>(0,3);
   Eigen::Matrix<double,6,3> J_TCM_wrt_WpR = J_TCM_wrt_TCW * J_TCW_wrt_TWC * J_TWC_wrt_TWR * J_TWR_wrt_WpR;
-
-  //~ Eigen::Matrix<double,6,6> J_TCM_wrt_TCW = common::so3r3::leftSe3ProductJacobian(TWC.inverse(), TWM_);
-  //~ Eigen::Matrix<double,6,6> J_TCW_wrt_TWC = common::so3r3::se3InverseJacobian(TWC);
-  //~ Eigen::Matrix<double,6,3> J_TWC_wrt_WpC = Eigen::Matrix<double,6,6>::Identity().block<6,3>(0,3);
-  //~ Eigen::Matrix<double,6,3> J_TCM_wrt_WpC = J_TCM_wrt_TCW * J_TCW_wrt_TWC * J_TWC_wrt_WpC;
 
   Eigen::Affine3d const TRM = TWR.inverse() * TWM_;
   Eigen::Matrix<double,6,6> J_TCM_wrt_TCR = common::so3r3::leftSe3ProductJacobian(TRC.inverse(), TRM);
@@ -115,11 +109,10 @@ void CameraPoseFilter::update(
   // Recall: the measurement covariance should be of the form [orientation (deg), position (m)]
   Eigen::Matrix<double,6,6> S = J_TCM_wrt_state * cov_ * J_TCM_wrt_state.transpose() + cov_TCM;
   Eigen::Matrix<double,4,6> K = cov_ * J_TCM_wrt_state.transpose() * S.inverse();
-  azimuth_deg_ += K.row(0) * innov;
-  WpR_ += K.bottomRows(3) * innov;
+  azimuth_deg_ += K.row(0) * innov_;
+  WpR_ += K.bottomRows(3) * innov_;
   Eigen::Matrix4d I4 = Eigen::Matrix4d::Identity();
-  cov_ = (I4 - K*J_TCM_wrt_state)*cov_;
-  
+
   // Decide whether the filter is initialized
   if(!is_initialized_ && (++num_updates_==NUM_REQUIRED_UPDATES))
   {
@@ -134,17 +127,17 @@ Eigen::Matrix<double,6,6> CameraPoseFilter::getCovTWC() const
   // Reference and camera poses
   Eigen::Affine3d TWR = Eigen::Translation3d(WpR_) * qWR_;
   Eigen::Affine3d TRC = common::getTRC(azimuth_deg_, elevation_deg_);
-  
+
   // Jacobian matrix wrt reference position
   Eigen::Matrix<double,6,6> J_TWC_wrt_TWR = common::so3r3::leftSe3ProductJacobian(TWR, TRC);
   Eigen::Matrix<double,6,3> J_TWR_wrt_WpR = Eigen::Matrix<double,6,6>::Identity().block<6,3>(0,3);
   Eigen::Matrix<double,6,3> J_TWC_wrt_WpR = J_TWC_wrt_TWR * J_TWR_wrt_WpR;
-  
+
   // Jacobian matrix wrt azimuth angle
   Eigen::Matrix<double,6,6> J_TWC_wrt_TRC = common::so3r3::rightSe3ProductJacobian(TWR, TRC);
   Eigen::Matrix<double,6,1> J_TRC_wrt_azimuth = Eigen::Matrix<double,6,1>::Unit(0)/DEG;
   Eigen::Matrix<double,6,1> J_TWC_wrt_azimuth = J_TWC_wrt_TRC * J_TRC_wrt_azimuth;
-  
+
   // Complete Jacobian matrix
   Eigen::Matrix<double,6,4> J_TWC_wrt_state;
   J_TWC_wrt_state << J_TWC_wrt_azimuth, J_TWC_wrt_WpR;

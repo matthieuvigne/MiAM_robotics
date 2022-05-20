@@ -34,7 +34,7 @@ public:
   inline void join();
   void getMarkers(common::MarkerList* markers) const;
   void setTeam(common::Team team) const;
-
+  void setLogDirectory(std::string const& logDirectory) {logDirectory_ = logDirectory;}
 private:
 
   void runThread();
@@ -64,6 +64,8 @@ private:
   mutable common::Team team_ = common::Team::UNKNOWN;
   common::MarkerStore::UniquePtr markers_;
   std::unique_ptr<std::thread> thread_ptr_;
+
+  std::string logDirectory_ = "/tmp/";
 
 }; // class CameraThread
 

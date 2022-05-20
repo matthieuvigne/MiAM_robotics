@@ -145,7 +145,8 @@ bool Camera::detectMarkers(
   cv::Mat const& image,
   double camera_azimuth_deg,
   double camera_elevation_deg,
-  common::MarkerPtrList* detected_markers_ptr
+  common::MarkerPtrList* detected_markers_ptr,
+  std::string const& imageLogPath
 ) const
 {
   // Get all the markers on the image
@@ -156,6 +157,7 @@ bool Camera::detectMarkers(
   cv::Ptr<cv::aruco::DetectorParameters> parameters = cv::aruco::DetectorParameters::create();
   cv::aruco::detectMarkers(image, dictionary_, marker_corners, detected_marker_ids,
     detector_params_, rejected_candidates);
+
   int64_t const timestamp_ns = common::convertToNanoseconds(common::Time::now());
 
   // If testing, show all the detected markers
@@ -165,6 +167,7 @@ bool Camera::detectMarkers(
     cv::imshow("Image", image_with_markers);
     cv::waitKey(1000);
   #endif
+
 
   // Estimate the relative pose of the markers w.r.t. the camera
   // Marker corners are returned with the top-left corner first
@@ -177,6 +180,11 @@ bool Camera::detectMarkers(
   typedef Eigen::Matrix<double,6,6,Eigen::RowMajor> Matrix6d;
   int const num_markers = detected_marker_ids.size();
   Eigen::Affine3d const TRC = common::getTRC(camera_azimuth_deg, camera_elevation_deg);
+
+  cv::Mat image_with_markers = image.clone();
+  cv::imwrite(imageLogPath + "_raw.jpg", image_with_markers);
+  cv::aruco::drawDetectedMarkers(image_with_markers, marker_corners, detected_marker_ids);
+
   for(int marker_idx=0; marker_idx<num_markers; ++marker_idx)
   {
     // Initialize the detected marker
@@ -204,13 +212,32 @@ bool Camera::detectMarkers(
     Eigen::Map<Eigen::Vector3d> const rvec((double*) rvecs[0].val);
     double const angle = rvec.norm();
     Eigen::Vector3d const axis = rvec.normalized();
-    Eigen::Affine3d const TCM = Eigen::Translation3d(CtCM) * Eigen::AngleAxisd(angle,axis);
+    Eigen::Affine3d TCM = Eigen::Translation3d(CtCM) * Eigen::AngleAxisd(angle,axis);
+
+    // Flip the marker pose if needed
+    Eigen::Vector3d const CpMz = TCM.rotation().col(2);
+    if (CpMz.dot(Eigen::Vector3d::UnitZ()) < 0.)
+      TCM.linear() = TCM.rotation() * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX());
+
+    Eigen::AngleAxisd const aa = Eigen::AngleAxisd(TCM.rotation());
+    rvecs[0][0] = (aa.angle() * aa.axis()).x();
+    rvecs[0][1] = (aa.angle() * aa.axis()).y();
+    rvecs[0][2] = (aa.angle() * aa.axis()).z();
 
     // Update the image
     #if USE_TEST_BENCH
       cv::drawFrameAxes(image_with_markers, camera_matrix, distortion_coeffs,
         rvecs[0], tvecs[0], 0.1);
     #endif
+
+
+    for (int i = 0; i < rvecs.size(); ++i)
+    {
+      cv::Vec3d rvec = rvecs[i];
+      cv::Vec3d tvec = tvecs[i];
+      cv::drawFrameAxes(image_with_markers, camera_matrix, distortion_coeffs, rvec, tvec, 0.1);
+    }
+
 
     // Compute the measurement covariance matrix
     Eigen::Matrix<double,6,6> information_matrix = Eigen::Matrix<double,6,6>::Zero();
@@ -250,6 +277,7 @@ bool Camera::detectMarkers(
       double constexpr sigma_px = 1.0;
       information_matrix += (1./std::pow(sigma_px,2)) * J_IpCi_TCM.transpose() * J_IpCi_TCM;
     }
+    cv::imwrite(imageLogPath + "_markers.jpg", image_with_markers);
 
     // Get the covariance matrix
     Eigen::Matrix<double,6,6> cov_TCM = information_matrix.inverse();

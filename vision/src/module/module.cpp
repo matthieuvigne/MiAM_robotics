@@ -16,7 +16,7 @@ namespace module {
 // Constructor and destructor
 //--------------------------------------------------------------------------------------------------
 
-Module::Module()
+Module::Module(std::string const& logDirectory)
 {
   // Setup RPi GPIO for servo control.
   #ifdef RPI4
@@ -35,6 +35,7 @@ Module::Module()
 
   // Build the camera and launch its thread
   camera_thread_ptr_.reset(new camera::CameraThread);
+  camera_thread_ptr_->setLogDirectory(logDirectory);
 
   // Launch the server's thread
   int const port = 30000;

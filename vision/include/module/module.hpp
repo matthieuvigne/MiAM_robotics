@@ -17,9 +17,9 @@ class Module {
 public:
 
   POINTER_TYPEDEF(Module);
-  Module();
+  Module(std::string const& logDirectory);
   virtual ~Module();
-  
+
 public:
 
   void join();
