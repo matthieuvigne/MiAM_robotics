@@ -47,18 +47,20 @@ void CameraThread::runThread()
   while(true)
   {
     // Initiliaze the filter if needed
+
     initializeFilterIfRequired();
     CHECK_NOTNULL(pose_filter_ptr_);
 
     // Rotate the camera and propagate the pose camera filter
     double delta_azimuth_deg = (pose_filter_ptr_->isInitialized()) ? azimuth_step_deg_ : 0.0;
     delta_azimuth_deg = rotateCamera(delta_azimuth_deg);
-    std::this_thread::sleep_for(std::chrono::duration<double>(0.3));
+    std::this_thread::sleep_for(std::chrono::duration<double>(0.5));
     pose_filter_ptr_->predict(delta_azimuth_deg);
 
     // Take a picture and detect all the markers
     cv::Mat image;
     common::MarkerPtrList detected_markers;
+
     #if USE_TEST_BENCH
       TEST_BENCH_PTR->takePicture(camera_azimuth_deg_, &image);
       cv::imshow("Image", image);
@@ -68,6 +70,7 @@ void CameraThread::runThread()
     #endif
     camera_ptr_->detectMarkers(image, camera_azimuth_deg_, camera_elevation_deg_,
       &detected_markers, logDirectory_ + "/" + std::to_string(image_id));
+
 
     LOGFILE << "####################################################";
     clock_gettime(CLOCK_MONOTONIC, &ct);
@@ -113,7 +116,7 @@ void CameraThread::runThread()
         Eigen::Vector3d const CuM = TCR * RuM;
         Eigen::Vector2d IpM;
         double result = camera_ptr_->project(CuM, &IpM, 0);
-        bool remove = result < 0.9;
+        bool remove = result < 0.7;
         if (remove)
         {
             LOGFILE << "Removing marker in field of view:" << static_cast<int>(marker.getId()) << "    TWM" << marker.getTWM()->translation().transpose();
@@ -160,7 +163,6 @@ void CameraThread::rotateCameraToAnglePosition(double new_azimuth_deg)
   std::string const command = "echo " + std::to_string(1000 * signal)
     + " > /sys/class/pwm/pwmchip0/pwm0/duty_cycle";
   system(command.c_str());
-  std::this_thread::sleep_for(std::chrono::duration<double>(0.5));
 }
 
 //--------------------------------------------------------------------------------------------------

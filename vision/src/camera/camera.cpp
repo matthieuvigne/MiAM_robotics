@@ -141,13 +141,17 @@ double Camera::project(
 
 //--------------------------------------------------------------------------------------------------
 
+void dumpImages(std::string const& imageLogPath, cv::Mat const image, cv::Mat const imageWithMarkers)
+{
+  cv::imwrite(imageLogPath + "_raw.jpg", image);
+  cv::imwrite(imageLogPath + "_markers.jpg", imageWithMarkers);
+}
 bool Camera::detectMarkers(
   cv::Mat const& image,
   double camera_azimuth_deg,
   double camera_elevation_deg,
   common::MarkerPtrList* detected_markers_ptr,
-  std::string const& imageLogPath
-) const
+  std::string const& imageLogPath) const
 {
   // Get all the markers on the image
   CHECK_NOTNULL(detected_markers_ptr);
@@ -180,8 +184,9 @@ bool Camera::detectMarkers(
   int const num_markers = detected_marker_ids.size();
   Eigen::Affine3d const TRC = common::getTRC(camera_azimuth_deg, camera_elevation_deg);
 
+  cv::Mat imageToSave = image.clone();
   cv::Mat image_with_markers = image.clone();
-  cv::imwrite(imageLogPath + "_raw.jpg", image_with_markers);
+
   cv::aruco::drawDetectedMarkers(image_with_markers, marker_corners, detected_marker_ids);
 
   for(int marker_idx=0; marker_idx<num_markers; ++marker_idx)
@@ -276,7 +281,6 @@ bool Camera::detectMarkers(
       double constexpr sigma_px = 1.0;
       information_matrix += (1./std::pow(sigma_px,2)) * J_IpCi_TCM.transpose() * J_IpCi_TCM;
     }
-    cv::imwrite(imageLogPath + "_markers.jpg", image_with_markers);
 
     // Get the covariance matrix
     Eigen::Matrix<double,6,6> cov_TCM = information_matrix.inverse();
@@ -286,6 +290,9 @@ bool Camera::detectMarkers(
     marker_ptr->addMeasurement(timestamp_ns, RuM, TCM, cov_TCM);
     detected_markers_ptr->push_back(std::move(marker_ptr));
   }
+
+  std::thread saveThread(&dumpImages, imageLogPath, imageToSave, image_with_markers);
+  saveThread.detach();
 
   #if USE_TEST_BENCH
     cv::imshow("Image", image_with_markers);

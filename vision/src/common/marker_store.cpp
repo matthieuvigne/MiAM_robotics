@@ -1,7 +1,7 @@
 #include <common/marker_store.hpp>
 #include <common/logger.hpp>
 
-double const MARKER_MIN_DISTANCE = 0.010;
+double const MARKER_MIN_DISTANCE = 0.100;
 
 namespace common {
 
@@ -22,10 +22,9 @@ void MarkerStore::addMarker(Marker::UniquePtr marker_ptr)
     {
       if ((it->second->getTWM()->translation() - marker_ptr->getTWM()->translation()).norm() < MARKER_MIN_DISTANCE)
       {
-        it = multiple_markers_.erase(it);
-
         LOGFILE << "Removing marker too close to new marker:" << static_cast<int>(it->second->getId());
         LOGFILE << "    TWM" << it->second->getTWM()->translation().transpose();
+        it = multiple_markers_.erase(it);
       }
       else
       {

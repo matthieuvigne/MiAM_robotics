@@ -5,12 +5,12 @@ int main(int argc, char* argv[])
 {
   // Initialize the console logger
   common::ConsoleLogger::init();
-  
+
   // Load the test image
   if(argc!=2) throw std::invalid_argument("There should be exactly one argument.");
   std::string const& image_path = argv[1];
   cv::Mat const image = cv::imread(image_path,cv::IMREAD_COLOR);
-  
+
   // Show the image
   cv::imshow("Fenêtre",image);
   cv::waitKey(0);
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
   // Estimate the relative pose of the markers w.r.t. the camera frame
   // The frame attached to the marker is built such as the 3D coordinates of the ordered
   // provided corners are (-markerLength/2, markerLength/2, 0), (markerLength/2, markerLength/2, 0),
-  // (markerLength/2, -markerLength/2, 0), (-markerLength/2, -markerLength/2, 0) 
+  // (markerLength/2, -markerLength/2, 0), (-markerLength/2, -markerLength/2, 0)
   std::cout << "Estimate the relative pose of the markers w.r.t. the camera frame..."<< std::flush;
   cv::Size const image_size = image.size();
   cv::Mat camera_matrix = cv::Mat::eye(3,3,CV_64FC1);
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
   camera_matrix.at<double>(1,1) = 650.;
   camera_matrix.at<double>(0,2) = image_size.width/2.;
   camera_matrix.at<double>(1,2) = image_size.height/2.;
-  cv::Mat const distortion_coeffs = cv::Mat(5,1,CV_64FC1, cv::Scalar::all(0)); 
+  cv::Mat const distortion_coeffs = cv::Mat(5,1,CV_64FC1, cv::Scalar::all(0));
   std::vector<cv::Vec3d> rvecs, tvecs;
   double constexpr marker_length = 0.05;
   cv::aruco::estimatePoseSingleMarkers(marker_corners, marker_length, camera_matrix, distortion_coeffs, rvecs, tvecs);
