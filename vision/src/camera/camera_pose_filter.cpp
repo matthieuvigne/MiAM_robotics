@@ -16,8 +16,8 @@ CameraPoseFilter::CameraPoseFilter(Params const& params)
 : team_                 (params.team),
   WpR_                  (common::getWpRi(params.team)),
   azimuth_deg_          (0.00),
-  cov_                  (initializeCovariance(params.sigma_position, params.sigma_azimuth_deg,
-                          params.sigma_elevation_deg)),
+  cov_                  (initializeCovariance(params.sigma_position, 
+                          params.sigma_azimuth_deg, params.sigma_elevation_deg)),
   elevation_deg_        (45.0),
   qWR_                  (common::getqWR()),
   TWM_                  (common::getTWM()),
@@ -113,8 +113,7 @@ void CameraPoseFilter::update(
   azimuth_deg_ += K.row(0) * innov_;
   elevation_deg_ += K.row(1) * innov_;
   WpR_ += K.bottomRows(3) * innov_;
-  Eigen::Matrix<double,5,5> I5 = Eigen::Matrix<double,5,5>::Identity();
-  cov_ = (I5 - K*J_TCM_wrt_state)*cov_;
+  cov_ -= K*J_TCM_wrt_state*cov_;
 
   // Decide whether the filter is initialized
   if(!is_initialized_ && (++num_updates_==NUM_REQUIRED_UPDATES))

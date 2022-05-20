@@ -66,7 +66,8 @@ void CameraThread::runThread()
     #else
       camera_ptr_->takePicture(&image);
     #endif
-    camera_ptr_->detectMarkers(image, camera_azimuth_deg_, camera_elevation_deg_, &detected_markers, logDirectory_ + "/" + std::to_string(image_id));
+    camera_ptr_->detectMarkers(image, camera_azimuth_deg_, camera_elevation_deg_,
+      &detected_markers, logDirectory_ + "/" + std::to_string(image_id));
 
     LOGFILE << "####################################################";
     clock_gettime(CLOCK_MONOTONIC, &ct);
@@ -95,6 +96,10 @@ void CameraThread::runThread()
         LOGFILE << "Camera pose updated";
         LOGFILE << "   Estimated position" << pose_filter_ptr_->getTWC().translation().transpose();
         LOGFILE << "   Filter innovation" << pose_filter_ptr_->getLastInnovation().transpose();
+        
+        // Update the camera azimuth and elevation estimates
+        camera_azimuth_deg_ = pose_filter_ptr_->getAzimuthDeg();
+        camera_elevation_deg_ = pose_filter_ptr_->getElevationDeg();
       }
     }
     // Remove multiple markers which are visible from the camera and add the new markers
