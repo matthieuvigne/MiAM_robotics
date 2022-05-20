@@ -50,7 +50,10 @@ public:
 
 private:
 
-  static Eigen::Matrix4d initializeCovariance(double sigma_pos, double sigma_azimuth_deg);
+  static Eigen::Matrix<double,5,5> initializeCovariance(
+    double sigma_pos, 
+    double sigma_azimuth_deg,
+    double sigma_elevation_deg);
 
 private:
 
@@ -60,12 +63,11 @@ private:
   // Filter state and covariance
   Eigen::Vector3d WpR_;
   double azimuth_deg_;
-  Eigen::Matrix4d cov_; ///< [elevation (deg), position (m)]
-
+  double elevation_deg_;
+  Eigen::Matrix<double,5,5> cov_; ///< [azimuth (deg), elevation (deg), position (m)]
   Eigen::Matrix<double,6,1> innov_;
 
   // Parameters
-  double const elevation_deg_;
   double const sigma_elevation_deg_;
   Eigen::Quaterniond const qWR_;
   Eigen::Affine3d const TWM_;

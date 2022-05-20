@@ -162,12 +162,11 @@ bool Camera::detectMarkers(
 
   // If testing, show all the detected markers
   #if USE_TEST_BENCH
-    cv::Mat image_with_markers = image.clone();
-    cv::aruco::drawDetectedMarkers(image_with_markers, marker_corners, detected_marker_ids);
-    cv::imshow("Image", image_with_markers);
+    cv::Mat image_markers = image.clone();
+    cv::aruco::drawDetectedMarkers(image_markers, marker_corners, detected_marker_ids);
+    cv::imshow("Image", image_markers);
     cv::waitKey(1000);
   #endif
-
 
   // Estimate the relative pose of the markers w.r.t. the camera
   // Marker corners are returned with the top-left corner first

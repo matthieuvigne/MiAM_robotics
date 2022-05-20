@@ -15,8 +15,9 @@ enum class Team {
 Eigen::Affine3d getTWM();
 Eigen::Vector3d getWpRi(Team team);
 Eigen::Quaterniond getqWR();
-//~ Eigen::Quaterniond getqRC(double azimuth_deg, double elevation_deg);
-Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg);
+Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg,
+  Eigen::Matrix<double,6,1>* J_TRC_wrt_azimuth = 0,
+  Eigen::Matrix<double,6,1>* J_TRC_wrt_elevation = 0);
   
 } // namespace common
 

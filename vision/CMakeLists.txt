@@ -62,7 +62,7 @@ endif()
 # Application
 
 add_executable(vision_module app/vision_module.cpp)
-target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES} lstdc++fs lc++fs)
 if(USE_TEST_BENCH)
   target_compile_definitions(vision_module PRIVATE USE_TEST_BENCH=1)
 endif()
