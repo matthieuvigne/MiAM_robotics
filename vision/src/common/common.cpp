@@ -69,7 +69,9 @@ Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg,
   if(J_TRC_wrt_azimuth_ptr)
   {
     Eigen::Matrix<double,6,1>& J_TRC_wrt_azimuth = *J_TRC_wrt_azimuth_ptr;
-    J_TRC_wrt_azimuth = Eigen::Matrix<double,6,1>::Unit(1)/DEG;
+    Eigen::Matrix<double,6,6> J_TRC_wrt_T1 = common::so3r3::leftSe3ProductJacobian(T1, T2);
+    Eigen::Matrix<double,6,1> J_T1_wrt_azimuth = Eigen::Matrix<double,6,1>::Unit(1)/DEG;
+    J_TRC_wrt_azimuth = J_TRC_wrt_T1 * J_T1_wrt_azimuth;
   }
   if(J_TRC_wrt_elevation_ptr)
   {

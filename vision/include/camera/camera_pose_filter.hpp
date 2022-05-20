@@ -42,8 +42,9 @@ public:
   // Getters
   Eigen::Affine3d getTWC() const;
   Eigen::Matrix<double,6,6> getCovTWC() const;
-  inline Eigen::Vector3d getWpC() const { return WpR_; }
+  inline Eigen::Vector3d getWpR() const { return WpR_; }
   inline double getAzimuthDeg() const { return azimuth_deg_; }
+  inline double getElevationDeg() const { return elevation_deg_; }
   inline Eigen::Matrix<double,6,1> getLastInnovation() const { return innov_; }
   inline bool isInitialized() const { return is_initialized_; }
   inline common::Team getTeam() const;
@@ -68,7 +69,6 @@ private:
   Eigen::Matrix<double,6,1> innov_;
 
   // Parameters
-  double const sigma_elevation_deg_;
   Eigen::Quaterniond const qWR_;
   Eigen::Affine3d const TWM_;
   bool is_initialized_;

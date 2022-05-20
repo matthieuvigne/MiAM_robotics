@@ -19,7 +19,6 @@ CameraPoseFilter::CameraPoseFilter(Params const& params)
   cov_                  (initializeCovariance(params.sigma_position, params.sigma_azimuth_deg,
                           params.sigma_elevation_deg)),
   elevation_deg_        (45.0),
-  sigma_elevation_deg_  (params.sigma_elevation_deg),
   qWR_                  (common::getqWR()),
   TWM_                  (common::getTWM()),
   is_initialized_       (false),
@@ -44,7 +43,6 @@ Eigen::Matrix<double,5,5> CameraPoseFilter::initializeCovariance(
 
 Eigen::Affine3d CameraPoseFilter::getTWC() const
 {
-  //~ Eigen::Quaterniond const qRC = common::getqRC(azimuth_deg_, elevation_deg_);
   Eigen::Affine3d const TRC = common::getTRC(azimuth_deg_, elevation_deg_);
   Eigen::Affine3d const TWR = Eigen::Translation3d(WpR_) * qWR_;
   return Eigen::Affine3d(TWR*TRC);
@@ -132,8 +130,8 @@ Eigen::Matrix<double,6,6> CameraPoseFilter::getCovTWC() const
   // Reference and camera poses
   Eigen::Affine3d TWR = Eigen::Translation3d(WpR_) * qWR_;
   Eigen::Matrix<double,6,1> J_TRC_wrt_azimuth, J_TRC_wrt_elevation;
-  Eigen::Affine3d TRC = common::getTRC(azimuth_deg_, elevation_deg_, &J_TRC_wrt_azimuth, 
-    &J_TRC_wrt_elevation);
+  Eigen::Affine3d TRC = common::getTRC(azimuth_deg_, elevation_deg_,
+    &J_TRC_wrt_azimuth, &J_TRC_wrt_elevation);
 
   // Jacobian matrix wrt reference position
   Eigen::Matrix<double,6,6> J_TWC_wrt_TWR = common::so3r3::leftSe3ProductJacobian(TWR, TRC);
