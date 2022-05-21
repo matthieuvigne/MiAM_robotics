@@ -61,7 +61,7 @@ Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg,
   Eigen::Vector3d t2{0.010,0.020,0.004};
   Eigen::AngleAxisd aa3{-M_PI_2, Eigen::Vector3d::UnitZ()};
 
-  Eigen::Affine3d T1 = aa1* Eigen::Translation3d(t1);
+  Eigen::Affine3d T1 = aa1 * Eigen::Translation3d(t1);
   Eigen::Affine3d T2 = aa2 * Eigen::Translation3d(t2);
   Eigen::Affine3d T3 = Eigen::Translation3d(Eigen::Vector3d::Zero()) * aa3;
   Eigen::Affine3d TRC = T1 * T2 * T3;
@@ -74,7 +74,8 @@ Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg,
     Eigen::Matrix<double,6,1> J_T1_wrt_azimuth = Eigen::Matrix<double,6,1>::Zero();
     Eigen::Vector3d const theta = (azimuth_deg*RAD)*Eigen::Vector3d::UnitY();
     J_T1_wrt_azimuth.head<3>() = common::leftJacobianSO3(theta).col(1) / DEG;
-    J_T1_wrt_azimuth.tail<3>() = (- aa1.toRotationMatrix() * common::skew(t1)).col(1);
+    Eigen::Matrix3d const R1 = aa1.toRotationMatrix();
+    J_T1_wrt_azimuth.tail<3>() = - (common::skew(R1*t1)*common::leftJacobianSO3(theta)).col(1);
     J_TRC_wrt_azimuth = J_TRC_wrt_T1 * J_T1_wrt_azimuth;
   }
   if(J_TRC_wrt_elevation_ptr)
@@ -85,7 +86,8 @@ Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg,
     Eigen::Matrix<double,6,1> J_T2_wrt_elevation = Eigen::Matrix<double,6,1>::Zero();
     Eigen::Vector3d const theta = (-elevation_deg*RAD) * Eigen::Vector3d::UnitX();
     J_T2_wrt_elevation.head<3>() = common::leftJacobianSO3(theta).col(0) / DEG;
-    J_T2_wrt_elevation.tail<3>() = (- aa2.toRotationMatrix() * common::skew(t2)).col(0);
+    Eigen::Matrix3d const R2 = aa2.toRotationMatrix();
+    J_T2_wrt_elevation.tail<3>() = - (common::skew(R2*t2)*common::leftJacobianSO3(theta)).col(0);
     J_TRC_wrt_elevation = J_TRC_wrt_T23 * J_T23_wrt_T2 * J_T2_wrt_elevation;
   }
 
