@@ -174,5 +174,16 @@ Eigen::Matrix<double,6,1> boxminus(Eigen::Affine3d const& T2, Eigen::Affine3d co
 
 //--------------------------------------------------------------------------------------------------
 
+Eigen::Matrix<double,3,6> poseJacobian(Eigen::Affine3d const& T, Eigen::Vector3d const& p)
+{
+  Eigen::Matrix<double,3,6> J_Tp_T;
+  Eigen::Matrix3d const& R = T.rotation();
+  J_Tp_T.block<3,3>(0,0) = - common::skew(R*p);
+  J_Tp_T.block<3,3>(0,3).setIdentity();
+  return J_Tp_T;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 } // namespace so3r3
 } // namespace common

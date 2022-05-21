@@ -146,6 +146,9 @@ void dumpImages(std::string const& imageLogPath, cv::Mat const image, cv::Mat co
   cv::imwrite(imageLogPath + "_raw.jpg", image);
   cv::imwrite(imageLogPath + "_markers.jpg", imageWithMarkers);
 }
+
+//--------------------------------------------------------------------------------------------------
+
 bool Camera::detectMarkers(
   cv::Mat const& image,
   double camera_azimuth_deg,
@@ -186,7 +189,6 @@ bool Camera::detectMarkers(
 
   cv::Mat imageToSave = image.clone();
   cv::Mat image_with_markers = image.clone();
-
   cv::aruco::drawDetectedMarkers(image_with_markers, marker_corners, detected_marker_ids);
 
   for(int marker_idx=0; marker_idx<num_markers; ++marker_idx)
@@ -252,24 +254,22 @@ bool Camera::detectMarkers(
       switch(corner_idx)
       {
         case 0: // top-left corner
-          MpCi = Eigen::Vector3d(0,0,0);
+          MpCi = Eigen::Vector3d(-marker_length,-marker_length,0)/2.;
           break;
         case 1: // top-right corner
-          MpCi = Eigen::Vector3d(marker_length,0,0);
+          MpCi = Eigen::Vector3d(marker_length,-marker_length,0)/2.;
           break;
         case 2: // bottom-right corner
-          MpCi = Eigen::Vector3d(marker_length,marker_length,0);
+          MpCi = Eigen::Vector3d(marker_length,marker_length,0)/2.;
           break;
         case 3: // bottom-left corner
-          MpCi = Eigen::Vector3d(0,marker_length,0);
+          MpCi = Eigen::Vector3d(-marker_length,marker_length,0)/2.;
           break;
       }
 
       // Project the 3d corner into the camera's frame
       Eigen::Vector3d const CpCi = TCM * MpCi;
-      Eigen::Matrix<double,3,6> J_CpCi_TCM;
-      J_CpCi_TCM.block<3,3>(0,0) = - common::skew(TCM.rotation()*MpCi);
-      J_CpCi_TCM.block<3,3>(0,3).setIdentity();
+      Eigen::Matrix<double,3,6> J_CpCi_TCM = common::so3r3::poseJacobian(TCM, MpCi);
 
       // Project the point onto the image plane
       Eigen::Vector2d IpCi;
@@ -278,7 +278,7 @@ bool Camera::detectMarkers(
 
       // Update the information matrix
       Eigen::Matrix<double,2,6> const J_IpCi_TCM = J_IpCi_CpCi * J_CpCi_TCM;
-      double constexpr sigma_px = 1.0;
+      double constexpr sigma_px = 2.0;
       information_matrix += (1./std::pow(sigma_px,2)) * J_IpCi_TCM.transpose() * J_IpCi_TCM;
     }
 

@@ -39,6 +39,7 @@ Eigen::Matrix<double,6,1> boxminus(Eigen::Affine3d const& T2, Eigen::Affine3d co
 Eigen::Matrix<double,6,6> leftSe3ProductJacobian(Eigen::Affine3d const& T1, Eigen::Affine3d const& T2);
 Eigen::Matrix<double,6,6> rightSe3ProductJacobian(Eigen::Affine3d const& T1, Eigen::Affine3d const& T2);
 Eigen::Matrix<double,6,6> se3InverseJacobian(Eigen::Affine3d const& T);
+Eigen::Matrix<double,3,6> poseJacobian(Eigen::Affine3d const& T, Eigen::Vector3d const& p);
 
 } // namespace so3r3
 
