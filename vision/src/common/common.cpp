@@ -56,12 +56,12 @@ Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg,
 
   // Build the poses
   Eigen::Affine3d T1 =
-        Eigen::Translation3d(Eigen::Vector3d{0.000,0.000,0.007})
-      * Eigen::AngleAxisd(azimuth_deg*RAD, Eigen::Vector3d::UnitY());
+        Eigen::AngleAxisd(azimuth_deg*RAD, Eigen::Vector3d::UnitY())
+      * Eigen::Translation3d(Eigen::Vector3d{0.000,0.000,0.007});
   Eigen::Affine3d T2 =
-        Eigen::Translation3d(Eigen::Vector3d{0.010,0.020,0.004})
-      * Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitX());
-  Eigen::Affine3d T3 =
+        Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitX());
+        Eigen::Translation3d(Eigen::Vector3d{0.010,0.020,0.004});
+  Eigen::Affine3d T3 = 
         Eigen::Translation3d(Eigen::Vector3d::Zero())
       * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ());
   Eigen::Affine3d TRC = T1 * T2 * T3;
