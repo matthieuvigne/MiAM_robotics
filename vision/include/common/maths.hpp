@@ -25,7 +25,6 @@ Eigen::Affine3d expMap(Eigen::Matrix<double,6,1> const& tau);
 Eigen::Affine3d expMap(Eigen::Vector3d const& rotation, Eigen::Vector3d const& translation);
 Eigen::Matrix<double,6,1> logMap(Eigen::Affine3d const& T);
 
-
 // SO3*R3 product
 Eigen::Affine3d product(Eigen::Affine3d const& T1, Eigen::Affine3d const& T2);
 Eigen::Affine3d product(Eigen::Matrix<double,6,1> const& tau, Eigen::Affine3d const& T);

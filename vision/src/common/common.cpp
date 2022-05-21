@@ -20,21 +20,21 @@ Eigen::Vector3d getWpRi(Team team)
   // Parameters
   double const board_width = 3.0;
   double const board_height = 2.0;
-  double const pole_height = 1.0;
-  double const platform_width = 0.065;
-
+  double const camera_height = 0.977;
+  double const platform_offset = 0.13;
+  
   // Initialize the position
   Eigen::Vector3d WpR;
   switch(team)
   {
     case common::Team::UNKNOWN:
-      WpR = Eigen::Vector3d{board_width/2., board_height, pole_height};
+      WpR = Eigen::Vector3d{board_width/2., board_height, camera_height};
       break;
     case common::Team::PURPLE:
-      WpR = Eigen::Vector3d{board_width/2. + platform_width, board_height, pole_height};
+      WpR = Eigen::Vector3d{board_width/2. + platform_offset, board_height, camera_height};
       break;
     case common::Team::YELLOW:
-      WpR = Eigen::Vector3d{board_width/2. - platform_width, board_height, pole_height};
+      WpR = Eigen::Vector3d{board_width/2. - platform_offset, board_height, camera_height};
       break;
     default:
       throw std::runtime_error("Unknown team");
