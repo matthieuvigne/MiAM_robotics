@@ -56,28 +56,35 @@ Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg,
 
   // Build the poses
   Eigen::Affine3d T1 =
-        Eigen::AngleAxisd(azimuth_deg*RAD, Eigen::Vector3d::UnitY())
-      * Eigen::Translation3d(Eigen::Vector3d{0.000,0.000,0.007});
+        Eigen::Translation3d(Eigen::Vector3d{0.000,0.000,0.007})
+      * Eigen::AngleAxisd(azimuth_deg*RAD, Eigen::Vector3d::UnitY());
   Eigen::Affine3d T2 =
-        Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitX())
-      * Eigen::Translation3d(Eigen::Vector3d{0.010,0.004,0.000})
+        Eigen::Translation3d(Eigen::Vector3d{0.010,0.020,0.004})
+      * Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitX());
+  Eigen::Affine3d T3 = 
+        Eigen::Translation3d(Eigen::Vector3d::Zero())
       * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ());
-  Eigen::Affine3d TRC = T1 * T2;
+  Eigen::Affine3d TRC = T1 * T2 * T3;
 
   // Compute the Jacobians
   if(J_TRC_wrt_azimuth_ptr)
   {
     Eigen::Matrix<double,6,1>& J_TRC_wrt_azimuth = *J_TRC_wrt_azimuth_ptr;
-    Eigen::Matrix<double,6,6> J_TRC_wrt_T1 = common::so3r3::leftSe3ProductJacobian(T1, T2);
-    Eigen::Matrix<double,6,1> J_T1_wrt_azimuth = Eigen::Matrix<double,6,1>::Unit(1)/DEG;
+    Eigen::Matrix<double,6,6> J_TRC_wrt_T1 = common::so3r3::leftSe3ProductJacobian(T1, T2*T3);
+    Eigen::Matrix<double,6,1> J_T1_wrt_azimuth = Eigen::Matrix<double,6,1>::Zero();
+    Eigen::Vector3d const theta = (azimuth_deg*RAD)*Eigen::Vector3d::UnitY();
+    J_T1_wrt_azimuth.head<3>() = common::leftJacobianSO3(theta).col(1) / DEG;
     J_TRC_wrt_azimuth = J_TRC_wrt_T1 * J_T1_wrt_azimuth;
   }
   if(J_TRC_wrt_elevation_ptr)
   {
     Eigen::Matrix<double,6,1>& J_TRC_wrt_elevation = *J_TRC_wrt_elevation_ptr;
-    Eigen::Matrix<double,6,6> J_TRC_wrt_T2 = common::so3r3::rightSe3ProductJacobian(T1, T2);
-    Eigen::Matrix<double,6,1> J_T2_wrt_elevation = -Eigen::Matrix<double,6,1>::Unit(0)/DEG;
-    J_TRC_wrt_elevation = J_TRC_wrt_T2 * J_T2_wrt_elevation;
+    Eigen::Matrix<double,6,6> J_TRC_wrt_T23 = common::so3r3::rightSe3ProductJacobian(T1, T2*T3);
+    Eigen::Matrix<double,6,6> J_T23_wrt_T2 = common::so3r3::leftSe3ProductJacobian(T2, T3);
+    Eigen::Matrix<double,6,1> J_T2_wrt_elevation = Eigen::Matrix<double,6,1>::Zero();
+    Eigen::Vector3d const theta = (-elevation_deg*RAD) * Eigen::Vector3d::UnitX();
+    J_T2_wrt_elevation.head<3>() = common::leftJacobianSO3(theta).col(0) / DEG;
+    J_TRC_wrt_elevation = J_TRC_wrt_T23 * J_T23_wrt_T2 * J_T2_wrt_elevation;
   }
 
   return TRC;

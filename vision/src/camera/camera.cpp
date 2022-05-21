@@ -365,11 +365,11 @@ Camera::Params Camera::Params::getDefaultParams()
   camera::Camera::Params params;
   params.name = "camera";
   params.resolution[camera::Camera::Params::WIDTH]  = 1280;
-  params.resolution[camera::Camera::Params::HEIGHT] =  960;
+  params.resolution[camera::Camera::Params::HEIGHT] = 960;
   params.intrinsics[camera::Camera::Params::FX]     = 1368.818;
   params.intrinsics[camera::Camera::Params::FY]     = 1358.929;
-  params.intrinsics[camera::Camera::Params::CX]     =  542.308;
-  params.intrinsics[camera::Camera::Params::CY]     =  476.351;
+  params.intrinsics[camera::Camera::Params::CX]     = 542.308;
+  params.intrinsics[camera::Camera::Params::CY]     = 476.351;
   params.distortion_model = camera::DistortionModel::Type::NoDistortion;
   params.distortion_coeffs = {0., 0., 0., 0., 0.};
   params.pose = Eigen::Affine3d::Identity();
