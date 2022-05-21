@@ -22,7 +22,7 @@ Eigen::Vector3d getWpRi(Team team)
   double const board_height = 2.0;
   double const camera_height = 0.977;
   double const platform_offset = 0.13;
-  
+
   // Initialize the position
   Eigen::Vector3d WpR;
   switch(team)
@@ -61,7 +61,7 @@ Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg,
   Eigen::Affine3d T2 =
         Eigen::Translation3d(Eigen::Vector3d{0.010,0.020,0.004})
       * Eigen::AngleAxisd(-elevation_deg*RAD, Eigen::Vector3d::UnitX());
-  Eigen::Affine3d T3 = 
+  Eigen::Affine3d T3 =
         Eigen::Translation3d(Eigen::Vector3d::Zero())
       * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ());
   Eigen::Affine3d TRC = T1 * T2 * T3;

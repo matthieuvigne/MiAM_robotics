@@ -206,7 +206,7 @@ bool Camera::detectMarkers(
     for(cv::Point2f const& corner : corners) IpM += Eigen::Vector2d{corner.x,corner.y} / 4.;
     Eigen::Vector3d CuM;
     backProject(IpM, &CuM);
-    Eigen::Vector3d const RuM = TRC * CuM;
+    Eigen::Vector3d const RuM = TRC.rotation() * CuM;
 
     // Estimate the marker pose
     std::vector<cv::Vec3d> rvecs, tvecs;

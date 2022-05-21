@@ -105,8 +105,8 @@ void CameraThread::runThread()
         LOGFILE << "   Filter innovation" << pose_filter_ptr_->getLastInnovation().transpose();
 
         // Update the camera azimuth and elevation estimates
-        camera_azimuth_deg_ = pose_filter_ptr_->getAzimuthDeg();
-        camera_elevation_deg_ = pose_filter_ptr_->getElevationDeg();
+        // camera_azimuth_deg_ = pose_filter_ptr_->getAzimuthDeg();
+        // camera_elevation_deg_ = pose_filter_ptr_->getElevationDeg();
       }
     }
     // Remove multiple markers which are visible from the camera and add the new markers
@@ -129,6 +129,8 @@ void CameraThread::runThread()
       }
     );
     Eigen::Affine3d const& TWC = pose_filter_ptr_->getTWC();
+    LOGFILE << "   TWC" <<  TWC.matrix();
+    LOGFILE << "   TRC" <<  TRC.matrix();
     Eigen::Matrix<double,6,6> const cov_TWC = pose_filter_ptr_->getCovTWC();
     for(it = detected_markers.begin(); it != detected_markers.end(); ++it)
     {
@@ -164,10 +166,9 @@ void CameraThread::rotateCameraToAnglePosition(double new_azimuth_deg)
   // Angle -90°: camera at position 500
   // Angle   0°: camera at position 1500
   // Angle +90°: camera at position 2500
-  CHECK(std::fabs(new_azimuth_deg) <= max_azimuth_deg_);
-  double coeff = new_azimuth_deg / max_azimuth_deg_;
+  double coeff = new_azimuth_deg / 90.0;
   coeff = std::max(-1.0,std::min(coeff,1.0));
-  int const signal = 1500 + 1000*coeff;
+  int const signal = 1400 + 1000 * coeff; // 1400: offset to have the camera straight
 
   // Send the new position order to the servo
   std::string const command = "echo " + std::to_string(1000 * signal)
