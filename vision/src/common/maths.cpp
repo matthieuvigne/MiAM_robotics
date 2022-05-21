@@ -37,7 +37,8 @@ Eigen::Matrix3d leftJacobianSO3(Eigen::Vector3d const& theta)
   Eigen::Matrix3d J = Eigen::Matrix3d::Identity();
   if (angle==0) return J;
   Eigen::Matrix3d const S = skew(theta);
-  J += ((1-std::cos(angle))/angle)*S + ((angle-std::sin(angle))/std::pow(angle,3))*S*S;
+  J += ((1-std::cos(angle))/std::pow(angle,2))*S;
+  J += ((angle-std::sin(angle))/std::pow(angle,3))*S*S;
   return J;
 }
 
