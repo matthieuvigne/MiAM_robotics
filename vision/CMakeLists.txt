@@ -61,14 +61,14 @@ endif()
 
 # Application
 
-add_executable(vision_module app/vision_module.cpp)
-target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES})
-if(USE_TEST_BENCH)
-  target_compile_definitions(vision_module PRIVATE USE_TEST_BENCH=1)
-endif()
+#~ add_executable(vision_module app/vision_module.cpp)
+#~ target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+#~ if(USE_TEST_BENCH)
+  #~ target_compile_definitions(vision_module PRIVATE USE_TEST_BENCH=1)
+#~ endif()
 
-add_executable(dummy_client app/dummy_client.cpp)
-target_link_libraries(dummy_client ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+#~ add_executable(dummy_client app/dummy_client.cpp)
+#~ target_link_libraries(dummy_client ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 
 # add_executable(testapp app/test.cpp)
 # target_link_libraries(testapp ${LIBRARY_NAME})
