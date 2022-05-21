@@ -6,8 +6,16 @@ set(PROJECT_DESCRIPTION "Code for the vision module")
 # Building options
 # Mode: Debug or RelWithDebInfo
 set(CMAKE_CXX_COMPILER "g++")
-set(CMAKE_BUILD_TYPE Debug)
 add_compile_options(-std=c++17)
+
+# Set build-type specific flags
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("Build mode: debug.")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb -DDEBUG")
+else (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("Build mode: release build - optimization enabled.")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 option(RPI4 "Target is raspberry pi 4" OFF)
 option(USE_TEST_BENCH "Set true to simulate the vision module in a test bench" ON)

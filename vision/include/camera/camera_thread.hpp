@@ -51,7 +51,7 @@ private:
   // Camera rotation
   double camera_azimuth_deg_ = 0.0;
   double camera_elevation_deg_ = 45.0;
-  double const max_azimuth_deg_ = 40.0;
+  double const max_azimuth_deg_ = 60.0;
   #if USE_TEST_BENCH
     double const azimuth_step_deg_ = 5.0;
   #else

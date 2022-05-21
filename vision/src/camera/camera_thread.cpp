@@ -153,7 +153,7 @@ void CameraThread::runThread()
     // Now we sleep the remaining loop time.
     clock_gettime(CLOCK_MONOTONIC, &currentTime);
     double const dt = (currentTime.tv_sec - loopStart.tv_sec + (currentTime.tv_nsec - loopStart.tv_nsec) / 1e9);
-    std::this_thread::sleep_for(std::chrono::duration<double>(std::max(0.2, 0.5 - dt)));
+    std::this_thread::sleep_for(std::chrono::duration<double>(std::max(0.01, 0.25 - dt)));
   }
 }
 

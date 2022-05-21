@@ -1,7 +1,7 @@
 #include <common/marker_store.hpp>
 #include <common/logger.hpp>
 
-double const MARKER_MIN_DISTANCE = 0.100;
+double const MARKER_MIN_DISTANCE = 0.150;
 
 namespace common {
 
