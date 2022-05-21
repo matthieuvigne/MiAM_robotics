@@ -1,7 +1,0 @@
-/home/toye/dev/src/MiAM_robotics/CMakeFiles/install/strip.dir
-/home/toye/dev/src/MiAM_robotics/CMakeFiles/install/local.dir
-/home/toye/dev/src/MiAM_robotics/CMakeFiles/edit_cache.dir
-/home/toye/dev/src/MiAM_robotics/CMakeFiles/install.dir
-/home/toye/dev/src/MiAM_robotics/CMakeFiles/list_install_components.dir
-/home/toye/dev/src/MiAM_robotics/CMakeFiles/rebuild_cache.dir
-/home/toye/dev/src/MiAM_robotics/CMakeFiles/mainRobotCode.dir
