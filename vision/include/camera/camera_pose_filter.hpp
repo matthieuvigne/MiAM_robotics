@@ -52,7 +52,7 @@ public:
 private:
 
   static Eigen::Matrix<double,5,5> initializeCovariance(
-    double sigma_pos, 
+    double sigma_pos,
     double sigma_azimuth_deg,
     double sigma_elevation_deg);
 

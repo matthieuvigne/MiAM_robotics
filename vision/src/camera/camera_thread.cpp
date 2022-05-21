@@ -46,16 +46,14 @@ void CameraThread::runThread()
   int image_id = 0;
   while(true)
   {
-    // Initiliaze the filter if needed
 
+    struct timespec loopStart, currentTime;
+    clock_gettime(CLOCK_MONOTONIC, &loopStart);
+
+    // Initiliaze the filter if needed
     initializeFilterIfRequired();
     CHECK_NOTNULL(pose_filter_ptr_);
 
-    // Rotate the camera and propagate the pose camera filter
-    double delta_azimuth_deg = (pose_filter_ptr_->isInitialized()) ? azimuth_step_deg_ : 0.0;
-    delta_azimuth_deg = rotateCamera(delta_azimuth_deg);
-    std::this_thread::sleep_for(std::chrono::duration<double>(0.5));
-    pose_filter_ptr_->predict(delta_azimuth_deg);
 
     // Take a picture and detect all the markers
     cv::Mat image;
@@ -68,7 +66,13 @@ void CameraThread::runThread()
     #else
       camera_ptr_->takePicture(&image);
     #endif
-    camera_ptr_->detectMarkers(image, camera_azimuth_deg_, camera_elevation_deg_,
+
+    // Rotate the camera - do it now so the servo moves while we are analyzing the previous image.
+    double const img_azimuth = camera_azimuth_deg_;
+    double delta_azimuth_deg = (pose_filter_ptr_->isInitialized()) ? azimuth_step_deg_ : 0.0;
+    delta_azimuth_deg = rotateCamera(delta_azimuth_deg);
+
+    camera_ptr_->detectMarkers(image, img_azimuth, camera_elevation_deg_,
       &detected_markers, logDirectory_ + "/" + std::to_string(image_id));
 
 
@@ -76,7 +80,7 @@ void CameraThread::runThread()
     clock_gettime(CLOCK_MONOTONIC, &ct);
     double elapsedTime = (ct.tv_sec - st.tv_sec + (ct.tv_nsec - st.tv_nsec) / 1e9);
     LOGFILE << "Time:" << elapsedTime << " Image Id: " << image_id;
-    LOGFILE << "   Azimuth" << camera_azimuth_deg_ << " estimated azimuth: " << pose_filter_ptr_->getAzimuthDeg();
+    LOGFILE << "   Azimuth " << img_azimuth << " estimated azimuth: " << pose_filter_ptr_->getAzimuthDeg() << " estimated elevation: " << pose_filter_ptr_->getElevationDeg();
     image_id += 1;
 
     LOGFILE << "Detected markers: " << detected_markers.size();
@@ -99,7 +103,7 @@ void CameraThread::runThread()
         LOGFILE << "Camera pose updated";
         LOGFILE << "   Estimated position" << pose_filter_ptr_->getTWC().translation().transpose();
         LOGFILE << "   Filter innovation" << pose_filter_ptr_->getLastInnovation().transpose();
-        
+
         // Update the camera azimuth and elevation estimates
         camera_azimuth_deg_ = pose_filter_ptr_->getAzimuthDeg();
         camera_elevation_deg_ = pose_filter_ptr_->getElevationDeg();
@@ -107,7 +111,7 @@ void CameraThread::runThread()
     }
     // Remove multiple markers which are visible from the camera and add the new markers
     std::lock_guard<std::mutex> const lock(mutex_);
-    Eigen::Affine3d const TRC = common::getTRC(camera_azimuth_deg_, camera_elevation_deg_);
+    Eigen::Affine3d const TRC = common::getTRC(img_azimuth, camera_elevation_deg_);
     Eigen::Affine3d const TCR = TRC.inverse();
     size_t const num_removed_markers = markers_->forEachMultipleMarkerRemoveIf(
       [&](common::Marker const& marker)
@@ -142,6 +146,12 @@ void CameraThread::runThread()
       LOGFILE << "    TCM" << marker.getTCM()->translation().transpose();
       LOGFILE << "    TWM" << marker.getTWM()->translation().transpose();
     });
+
+    pose_filter_ptr_->predict(delta_azimuth_deg);
+    // Now we sleep the remaining loop time.
+    clock_gettime(CLOCK_MONOTONIC, &currentTime);
+    double const dt = (currentTime.tv_sec - loopStart.tv_sec + (currentTime.tv_nsec - loopStart.tv_nsec) / 1e9);
+    std::this_thread::sleep_for(std::chrono::duration<double>(std::max(0.2, 0.5 - dt)));
   }
 }
 

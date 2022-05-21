@@ -16,7 +16,7 @@ CameraPoseFilter::CameraPoseFilter(Params const& params)
 : team_                 (params.team),
   WpR_                  (common::getWpRi(params.team)),
   azimuth_deg_          (0.00),
-  cov_                  (initializeCovariance(params.sigma_position, 
+  cov_                  (initializeCovariance(params.sigma_position,
                           params.sigma_azimuth_deg, params.sigma_elevation_deg)),
   elevation_deg_        (45.0),
   qWR_                  (common::getqWR()),
@@ -108,7 +108,8 @@ void CameraPoseFilter::update(
 
   // Update the state estimates
   // Recall: the measurement covariance should be of the form [orientation (deg), position (m)]
-  Eigen::Matrix<double,6,6> S = J_TCM_wrt_state * cov_ * J_TCM_wrt_state.transpose() + cov_TCM;
+  // TODO: find right parameters for the covariance...
+  Eigen::Matrix<double,6,6> S = J_TCM_wrt_state * cov_ * J_TCM_wrt_state.transpose() + 100 * cov_TCM;
   Eigen::Matrix<double,5,6> K = cov_ * J_TCM_wrt_state.transpose() * S.inverse();
   azimuth_deg_ += K.row(0) * innov_;
   elevation_deg_ += K.row(1) * innov_;
