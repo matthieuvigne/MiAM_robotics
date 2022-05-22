@@ -85,9 +85,9 @@ Eigen::Affine3d getTRC(double azimuth_deg, double elevation_deg,
     Eigen::Matrix<double,6,6> J_T23_wrt_T2 = common::so3r3::leftSe3ProductJacobian(T2, T3);
     Eigen::Matrix<double,6,1> J_T2_wrt_elevation = Eigen::Matrix<double,6,1>::Zero();
     Eigen::Vector3d const theta = (-elevation_deg*RAD) * Eigen::Vector3d::UnitX();
-    J_T2_wrt_elevation.head<3>() = common::leftJacobianSO3(theta).col(0) / DEG;
+    J_T2_wrt_elevation.head<3>() = - common::leftJacobianSO3(theta).col(0) / DEG;
     Eigen::Matrix3d const R2 = aa2.toRotationMatrix();
-    J_T2_wrt_elevation.tail<3>() = - (common::skew(R2*t2)*common::leftJacobianSO3(theta)).col(0);
+    J_T2_wrt_elevation.tail<3>() = (common::skew(R2*t2)*common::leftJacobianSO3(theta)).col(0);
     J_TRC_wrt_elevation = J_TRC_wrt_T23 * J_T23_wrt_T2 * J_T2_wrt_elevation;
   }
 
