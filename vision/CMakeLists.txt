@@ -5,7 +5,8 @@ set(PROJECT_DESCRIPTION "Code for the vision module")
 
 # Building options
 # Mode: Debug or RelWithDebInfo
-set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_CXX_COMPILER "g++-10")
+message("G++ compiler version: " ${CMAKE_CXX_COMPILER_VERSION})
 add_compile_options(-std=c++17)
 
 # Set build-type specific flags
@@ -70,7 +71,7 @@ endif()
 # Application
 
 add_executable(vision_module app/vision_module.cpp)
-target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES})
+target_link_libraries(vision_module ${LIBRARY_NAME} ${Eigen_LIBRARIES} stdc++fs)
 if(USE_TEST_BENCH)
   target_compile_definitions(vision_module PRIVATE USE_TEST_BENCH=1)
 endif()
