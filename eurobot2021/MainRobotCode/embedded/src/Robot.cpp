@@ -241,6 +241,8 @@ bool Robot::setupBeforeMatchStart()
             calibrateRail();
 
             strategy_.setup(this, &this->servos_);
+            std::thread camThread(&CameraClient::run, &(strategy_.camera_));
+            camThread.detach();
 
             // Set status.
             stepperMotors_.getError();
@@ -292,7 +294,9 @@ bool Robot::setupBeforeMatchStart()
     {
         // Switch side based on button press.
         if (screen_.wasButtonPressedSinceLastCall(lcd::button::LEFT))
+        {
             isPlayingRightSide_ = !isPlayingRightSide_;
+        }
         if (screen_.wasButtonPressedSinceLastCall(lcd::button::MIDDLE))
             initMotorBlocked_ = !initMotorBlocked_;
         if (screen_.wasButtonPressedSinceLastCall(lcd::button::RIGHT))
@@ -542,6 +546,8 @@ void Robot::updateLog()
     logger_.setData(LOGGER_LIDAR_N_POINTS, nLidarPoints_);
     logger_.setData(LOGGER_RANGE_RIGHT, rangeMeasurements_[RIGHT]);
     logger_.setData(LOGGER_RANGE_LEFT, rangeMeasurements_[LEFT]);
+    logger_.setData(LOGGER_CAMERA_EXCAVATION_COUNT, strategy_.camera_.getNumberOfMarkersInExcavationSite());
+
     logger_.writeLine();
 }
 

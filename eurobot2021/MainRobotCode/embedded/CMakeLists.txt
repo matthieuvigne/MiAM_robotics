@@ -27,14 +27,26 @@ pkg_search_module(MIAMLIB REQUIRED miam_utils_arm>=2.5.2)
 message(STATUS "Found MiAMEurobot v." ${MIAMLIB_VERSION})
 pkg_search_module(RPLIDAR REQUIRED rplidar_arm)
 
-include_directories(${MIAMLIB_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS})
+# Eigen - for camera
+find_package(Eigen3 REQUIRED)
+
+include_directories(${MIAMLIB_INCLUDE_DIRS} ${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS})
 link_directories(${MIAMLIB_LIBRARY_DIRS} ${RPLIDAR_LIBRARY_DIRS})
 
 # Include source files from src directory.
-file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "../common/src/*.cpp" "src/*.cpp")
+file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "../common/src/*.cpp"
+                                          "src/*.cpp"
+                                          "../../../vision/src/network/client*.cpp"
+                                          "../../../vision/src/network/socket.cpp"
+                                          "../../../vision/src/common/maths.cpp"
+                                          "../../../vision/src/common/logger.cpp"
+                                          "../../../vision/src/common/marker.cpp"
+                                          "../../../vision/src/network/server_response.cpp"
+                                          "../../../vision/src/network/message.cpp")
 # Add directory containing the headers.
 include_directories(../common/include)
 include_directories(include)
+include_directories(../../../vision/include)
 
 # Set executable target and link libraries.
 add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
