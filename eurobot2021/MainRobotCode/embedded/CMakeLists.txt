@@ -45,7 +45,7 @@ file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "../common/src/*.cpp"
                                           "../../../vision/src/network/message.cpp")
 # Add directory containing the headers.
 include_directories(../common/include)
-include_directories(include)
+include_directories(./include)
 include_directories(../../../vision/include)
 
 # Set executable target and link libraries.

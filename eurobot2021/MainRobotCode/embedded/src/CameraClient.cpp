@@ -50,8 +50,9 @@ void CameraClient::updateRobotSide(bool const& isPlayingRightSide)
 
 void CameraClient::run()
 {
-    network::ClientSocket client("192.168.6.20", 30000);
-        usleep(50000);
+    network::ClientSocket client;
+    client.connect("192.168.6.20", 30000);
+    usleep(50000);
     std::cout << "created client" << std::endl;
 
     // bool lastSide = !(*isPlayingRightSide);
