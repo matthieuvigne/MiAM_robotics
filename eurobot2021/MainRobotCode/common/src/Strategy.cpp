@@ -24,7 +24,6 @@ using miam::RobotPosition;
 bool MATCH_COMPLETED = false;
 
 
-
 bool Strategy::goBackToDigSite()
 {
     RobotPosition targetPosition;

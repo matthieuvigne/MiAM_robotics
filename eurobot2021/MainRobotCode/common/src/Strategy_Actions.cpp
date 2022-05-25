@@ -16,6 +16,8 @@ using miam::RobotPosition;
 
 #define MOVE_OR_ABORT(a) if (!robot->waitForTrajectoryFinished()) { std::cout << a << std::endl; return(false);}
 
+bool samples_are_knocked_out[] = {false, false, false, false, false, false, false, false};
+
 // Handle the statue: grab it, swap, and drop the real statue.
 // Abort as soon as one action fails.
 bool Strategy::handleStatue()
@@ -144,12 +146,14 @@ bool Strategy::handleStatue()
     // drop samples when y > 1200
     while (!robot->isTrajectoryFinished()) {
         targetPosition = robot->getCurrentPosition();
-        if (targetPosition.y > 970) {
+        if (targetPosition.y > 1000) {
             servo->activatePump(false);
             servo->openValve() ;
             servo->openTube(0);
             servo->openTube(1);
             servo->openTube(2);
+            // add 2 points
+            robot->updateScore(2);
             break;
         }
     }
@@ -635,20 +639,33 @@ bool Strategy::handleDigZone()
         robot->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleDigZone failed to complete");
 
+
+
         // if cross is already detected, no need to measure
         if (is_cross_detected | (i == 1))
         {
             std::cout << "Site known to be pushed : no measurement required" << std::endl;
-            pushExcavationSite();
-            number_of_sites_pushed++;
             
-        } else 
+            // if sample is already pushed, do not push or count score
+            if (samples_are_knocked_out[i]) 
+            {
+                std::cout << "Site is known to be already pushed" << std::endl;
+                pushExcavationSite();
+                robot->updateScore(5);
+                samples_are_knocked_out[i] = true;
+            }
+
+            number_of_sites_pushed++;
+
+        } 
+        else 
         {
             color_detected = testExcavationSite();
             is_cross_detected = color_detected == ExcavationSquareColor::RED;
             if (shouldPushExcavationSite(color_detected)) 
             {
                 number_of_sites_pushed++;
+                samples_are_knocked_out[i] = true;
             }
         }
     }
@@ -694,8 +711,11 @@ bool Strategy::handleDigZone()
         {
             std::cout << "Site known to be pushed : no measurement required" << std::endl;
             // bascule
-            pushExcavationSite();
-            
+            if (samples_are_knocked_out[targeted_site + 3]) {
+                std::cout << "Site is known to be already pushed" << std::endl;
+                pushExcavationSite();
+                samples_are_knocked_out[targeted_site + 3] = true;
+            }
 
             // our sites are 0 and 3 (normally this condition is useless)
             if (targeted_site == 0)
@@ -723,6 +743,10 @@ bool Strategy::handleDigZone()
             if (color != ExcavationSquareColor::NONE) {
                 // if we found our site
                 if (shouldPushExcavationSite(color)) {
+                    
+                    // remember we pushed the sample
+                    samples_are_knocked_out[targeted_site + 3] = true; 
+
                     // our sites are 0 and 3
                     if (targeted_site == 0)
                     {
