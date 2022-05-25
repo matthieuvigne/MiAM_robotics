@@ -39,9 +39,12 @@ bool Strategy::shouldPushExcavationSite(ExcavationSquareColor color)
 
 void Strategy::pushExcavationSite()
 {
+    servo->moveArm(robot->isPlayingRightSide(), arm::MEASURE);
+    servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
+    robot->wait(0.2);
     servo->moveFinger(robot->isPlayingRightSide(), finger::PUSH);
     servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
-    robot->wait(0.4);
+    robot->wait(0.2);
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
 }
 
@@ -51,7 +54,7 @@ ExcavationSquareColor Strategy::testExcavationSite()
     // Take measurement
     servo->moveArm(robot->isPlayingRightSide(), arm::MEASURE);
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
-    robot->wait(0.8);
+    robot->wait(0.4);
     ExcavationSquareColor const color = robot->getExcavationReadings(robot->isPlayingRightSide());
 
     std::cout << "Mesured: " << static_cast<int>(color) << std::endl;
