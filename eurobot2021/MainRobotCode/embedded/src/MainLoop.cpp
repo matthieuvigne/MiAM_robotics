@@ -53,11 +53,6 @@ int main(int argc, char **argv)
     Robot robot(testMode, noLidar);
     robotPtr = &robot;
 
-    // CameraClient client;
-    // while(!client.init("192.168.6.42", 30000))
-    //     usleep(500000);
-    // client.run();
-
     // Wire signals.
     signal(SIGINT, killCode);
     signal(SIGTERM, killCode);
