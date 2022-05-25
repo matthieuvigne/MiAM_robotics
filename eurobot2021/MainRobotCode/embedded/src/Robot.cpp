@@ -8,7 +8,7 @@
 
 #include "Robot.h"
 
-#define USE_CAMERA 0
+#define USE_CAMERA 1
 
 // Update loop frequency
 const double LOOP_PERIOD = 0.005;
@@ -244,7 +244,7 @@ bool Robot::setupBeforeMatchStart()
 
             strategy_.setup(this, &this->servos_);
             #if USE_CAMERA
-            std::thread camThread(&CameraClient::run, &(strategy_.camera_));
+            std::thread camThread(&network::CameraClient::run, &(strategy_.camera_));
             camThread.detach();
             #endif
 
