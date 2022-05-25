@@ -47,6 +47,7 @@
 
             bool handleDigZone();
             bool is_handle_dig_zone_finished;
+            bool is_bonus_already_counted;
 
             bool handleSideTripleSamples();
             bool is_handle_side_triple_samples_finished;

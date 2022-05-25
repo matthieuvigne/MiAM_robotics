@@ -62,6 +62,7 @@ Strategy::Strategy()
     is_handle_side_triple_samples_finished = false;
     is_move_three_samples_finished = false;
     is_handle_dig_zone_finished = false;
+    is_bonus_already_counted = false;
     is_push_samples_below_shelter_finished = false;
 
 }
@@ -103,7 +104,8 @@ void Strategy::match_impl()
     TrajectoryVector traj;
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
-    robot->updateScore(2);
+    robot->updateScore(2);  //depose statuette
+    robot->updateScore(2);  //depose vitrine
 
 
 #ifndef SKIP_TO_GRABBING_SAMPLES
@@ -288,7 +290,7 @@ void Strategy::match_impl()
     MATCH_COMPLETED = goBackToDigSite();
     if (MATCH_COMPLETED)
     {
-        robot->updateScore(20);
+        robot->updateScore(20); // match completed
     }
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
@@ -322,7 +324,7 @@ void Strategy::match()
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
 
         if (goBackToDigSite())
-            robot->updateScore(20);
+            robot->updateScore(20); //match completed
 
         servo->activatePump(false);
     }

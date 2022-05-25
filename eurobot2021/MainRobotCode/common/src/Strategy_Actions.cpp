@@ -66,7 +66,7 @@ bool Strategy::handleStatue()
     robot->wait(0.6);
     std::cout << robot->getCurrentPosition() << std::endl;
     servo->moveStatue(statue::TRANSPORT);
-    robot->updateScore(5);
+    robot->updateScore(5); // statue not on the piedestral
 
     //**********************************************************
     // Drop the fake statue
@@ -116,6 +116,7 @@ bool Strategy::handleStatue()
     robot->moveRail(0.58);
     robot->wait(1.0);
     robot->moveRail(0.9);
+    robot->updateScore(2); //2 samples moved from the shelter
 
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -50.0);
@@ -152,6 +153,7 @@ bool Strategy::handleStatue()
             break;
         }
     }
+    robot->updateScore(2); //2 samples dropped
 
     // raise back rail and suction
     robot->moveRail(0.8);
@@ -163,7 +165,8 @@ bool Strategy::handleStatue()
     robot->wait(0.1);
     servo->activateMagnet(false);
     servo->moveStatue(statue::TRANSPORT);
-    robot->updateScore(20);
+    robot->updateScore(15);  //the statue is in the display
+    robot->updateScore(5);  //the display is activated
 
     is_handle_statue_finished = true;
     return(true);
@@ -198,6 +201,8 @@ bool Strategy::moveSideSample()
     robot->moveRail(0.58);
     robot->wait(1.0);
     robot->moveRail(0.8);
+    
+    robot->updateScore(1);  //sample is moved from the distributor
 
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -150.0);
@@ -215,6 +220,7 @@ bool Strategy::moveSideSample()
     robot->moveRail(0.3);
 
     is_move_side_sample_finished = true;
+    robot->updateScore(1);  //sample is droped in the campment
     return(true);
 }
 
@@ -260,6 +266,7 @@ bool Strategy::handleSideTripleSamples()
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         robot->wait(0.5);
         robot->moveRail(0.6);
+        robot->updateScore(1);  //sample is removed from distributor
         targetPosition = robot->getCurrentPosition();
         if (i == 2)
         {
@@ -284,6 +291,7 @@ bool Strategy::handleSideTripleSamples()
         robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, 70));
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         dropElements();
+        robot->updateScore(1);  //sample is droped in the campment
         robot->wait(0.3);
         servo->moveSuction(1, suction::LOWER_SAMPLE);
 
@@ -403,7 +411,7 @@ bool Strategy::moveThreeSamples()
     // MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
     robot->wait(0.5); // wait a little longer to drop samples correctly
-    robot->updateScore(9);
+    robot->updateScore(9); // samples in the gallery
 
     targetPosition = robot->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -90);
@@ -633,7 +641,7 @@ bool Strategy::handleDigZone()
             std::cout << "Site known to be pushed : no measurement required" << std::endl;
             pushExcavationSite();
             number_of_sites_pushed++;
-            robot->updateScore(5);
+            
         } else 
         {
             color_detected = testExcavationSite();
@@ -687,7 +695,7 @@ bool Strategy::handleDigZone()
             std::cout << "Site known to be pushed : no measurement required" << std::endl;
             // bascule
             pushExcavationSite();
-            robot->updateScore(5);
+            
 
             // our sites are 0 and 3 (normally this condition is useless)
             if (targeted_site == 0)
@@ -768,7 +776,7 @@ bool Strategy::handleDigZone()
 
         targeted_site++;
     }
-    robot->updateScore(5);
+    
 
     is_handle_dig_zone_finished = true;
     return(true);
@@ -860,7 +868,7 @@ bool Strategy::pushSamplesBelowShelter()
     // robot->waitForTrajectoryFinished();
 
 
-    robot->updateScore(2*5);
+    robot->updateScore(3*5); // push samples below shelter
 
     // move back and fold arms
     targetPosition = robot->getCurrentPosition();

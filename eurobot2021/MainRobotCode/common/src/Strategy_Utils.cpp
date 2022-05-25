@@ -46,6 +46,14 @@ void Strategy::pushExcavationSite()
     servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
     robot->wait(0.2);
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
+    robot->updateScore(5);
+    
+    if (!is_bonus_already_counted)
+    {
+    	is_bonus_already_counted = true;
+    	robot->updateScore(5);
+    }
+    	
 }
 
 // Test an excavation site, pushing it if necessary.
@@ -63,7 +71,7 @@ ExcavationSquareColor Strategy::testExcavationSite()
     {
         std::cout << "Detected right color : push!" << std::endl;
         pushExcavationSite();
-        robot->updateScore(5);
+        
     } else {
         std::cout << "Wrong color" << std::endl;
     }
