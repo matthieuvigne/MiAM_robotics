@@ -544,6 +544,11 @@ bool Strategy::handleDigZone()
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
     robot->setTrajectoryToFollow(traj);
+
+    // ensure suctions are folded to reduce deloyed perimeter
+    for (int i = 0; i < 3; i++)
+        servo->moveSuction(i, suction::FOLD);
+
     MOVE_OR_ABORT("handleDigZone failed to complete");
 
     std::cout << "First correction" << std::endl;

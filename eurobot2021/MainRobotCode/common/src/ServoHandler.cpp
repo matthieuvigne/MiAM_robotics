@@ -77,7 +77,7 @@ void ServoHandler::moveFinger(bool const& rightArm, finger const& pose)
     {
         switch (pose)
         {
-            case finger::PUSH: maestro_->setPosition(RIGHT_FINGER, 510); break;
+            case finger::PUSH: maestro_->setPosition(RIGHT_FINGER, 1000); break;
             case finger::MEASURE: maestro_->setPosition(RIGHT_FINGER, 1900); break;
             case finger::FOLD: maestro_->setPosition(RIGHT_FINGER, 2490); break;
             default: break;
@@ -87,7 +87,7 @@ void ServoHandler::moveFinger(bool const& rightArm, finger const& pose)
     {
         switch (pose)
         {
-            case finger::PUSH: maestro_->setPosition(LEFT_FINGER, 2490); break;
+            case finger::PUSH: maestro_->setPosition(LEFT_FINGER, 2000); break;
             case finger::MEASURE: maestro_->setPosition(LEFT_FINGER, 1100); break;
             case finger::FOLD: maestro_->setPosition(LEFT_FINGER, 510); break;
             default: break;
