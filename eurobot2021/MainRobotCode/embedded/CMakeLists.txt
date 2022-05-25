@@ -36,13 +36,16 @@ link_directories(${MIAMLIB_LIBRARY_DIRS} ${RPLIDAR_LIBRARY_DIRS})
 # Include source files from src directory.
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "../common/src/*.cpp"
                                           "src/*.cpp"
-                                          "../../../vision/src/network/client*.cpp"
+                                          "../../../vision/src/network/camera_client.cpp"
+                                          "../../../vision/src/network/client_request.cpp"
+                                          "../../../vision/src/network/client_socket.cpp"
                                           "../../../vision/src/network/socket.cpp"
                                           "../../../vision/src/common/maths.cpp"
                                           "../../../vision/src/common/logger.cpp"
                                           "../../../vision/src/common/marker.cpp"
                                           "../../../vision/src/network/server_response.cpp"
                                           "../../../vision/src/network/message.cpp")
+                                          
 # Add directory containing the headers.
 include_directories(../common/include)
 include_directories(./include)

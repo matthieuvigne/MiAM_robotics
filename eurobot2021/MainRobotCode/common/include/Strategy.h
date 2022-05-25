@@ -9,7 +9,8 @@
     #include "RobotInterface.h"
     #include "ServoHandler.h"
 
-    #include "CameraClient.h"
+    //~ #include "CameraClient.h"
+    #include <network/camera_client.hpp>
 
     class Strategy
     {
@@ -24,7 +25,7 @@
             void match();
 
 
-            CameraClient camera_;
+            network::CameraClient camera_;
 
         private:
             void match_impl(); /// Actual implementation of the match code.
