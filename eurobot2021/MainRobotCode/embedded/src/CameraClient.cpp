@@ -51,8 +51,20 @@ void CameraClient::updateRobotSide(bool const& isPlayingRightSide)
 void CameraClient::run()
 {
     network::ClientSocket client;
-    client.connect("192.168.6.20", 30000);
-    usleep(50000);
+    while(true)
+    {
+      try
+      {
+        client.connect("192.168.6.20", 30000);
+        usleep(50000);
+        break;
+      }
+      catch(network::SocketException const&)
+      {
+        usleep(1e6);
+        CONSOLE << "Failed to connect, retyring...";
+      }
+    }
     std::cout << "created client" << std::endl;
 
     // bool lastSide = !(*isPlayingRightSide);
