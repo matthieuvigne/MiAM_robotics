@@ -5,10 +5,18 @@ project(StrategyViewer)
 #g++ color output
 SET(CMAKE_COLOR_MAKEFILE ON)
 #Header directory
-include_directories(../common/include include)
+include_directories(../common/include include ../embedded/include ../../../vision/include)
 
 # Add all source files.
-file(GLOB SOURCES  ../common/src/*.cpp src/*.cpp)
+file(GLOB SOURCES  ../common/src/*.cpp src/*.cpp ../embedded/src/CameraClient.cpp ../../../vision/src/network/client*.cpp
+                                          ../../../vision/src/network/socket.cpp
+                                          ../../../vision/src/common/maths.cpp
+                                          ../../../vision/src/common/logger.cpp
+                                          ../../../vision/src/common/marker.cpp
+                                          ../../../vision/src/network/server_response.cpp
+                                          ../../../vision/src/network/message.cpp)
+
+
 
 #compile flag
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -fdiagnostics-color -DSIMULATION -pthread")
