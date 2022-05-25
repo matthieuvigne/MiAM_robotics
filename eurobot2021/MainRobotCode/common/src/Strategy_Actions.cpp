@@ -528,7 +528,7 @@ bool Strategy::handleDigZone()
 
     const int spacing_between_sites = 185;
     const int site_y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -10;
-    const int first_site_x = 730 - 15;
+    const int first_site_x = 730 - 15 + 10;
 
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
