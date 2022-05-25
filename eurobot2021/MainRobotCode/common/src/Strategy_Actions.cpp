@@ -377,11 +377,13 @@ bool Strategy::moveThreeSamples()
     robot->moveRail(0.0);
     robot->wait(1.0);
 
-    // raise rail and travel
-    robot->moveRail(0.75);
-    for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::VERTICAL);
+    // the samples are not there anymore
+    is_move_three_samples_finished = true;
 
+    // raise the rail a little before beginning to move
+    robot->moveRail(0.25);
+
+    // move and simultaneously raise rail and set suction vertical
     positions.clear();
     targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
@@ -393,36 +395,34 @@ bool Strategy::moveThreeSamples()
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
-    robot->wait(1.0);
+
+    // raise rail and travel
+    robot->moveRail(0.75);
     for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::LOWER_SAMPLE);
+        servo->moveSuction(i, suction::VERTICAL);
+
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
+    // drop the samples
+    for (int i = 0; i < 3; i++)
+        servo->moveSuction(i, suction::LOWER_SAMPLE);
     dropElements();
+    
+    robot->wait(1.0);
     robot->moveRail(0.35);
-
-    robot->wait(0.5);
-
-    // traj = computeTrajectoryStraightLine(targetPosition, -10.0);
-    // robot->setTrajectoryToFollow(traj);
-    // MOVE_OR_ABORT("moveThreeSamples failed to complete");
+    robot->wait(1.0);
 
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::DROP_SAMPLE);
 
-    // traj = computeTrajectoryStraightLine(targetPosition, 10.0);
-    // robot->setTrajectoryToFollow(traj);
-    // MOVE_OR_ABORT("moveThreeSamples failed to complete");
-
-    robot->wait(0.5); // wait a little longer to drop samples correctly
+    robot->wait(1.0); // wait a little longer to drop samples correctly
     robot->updateScore(9); // samples in the gallery
 
     targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -90);
+    traj = computeTrajectoryStraightLine(targetPosition, -140);
     robot->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
-    is_move_three_samples_finished = true;
     return(true);
 }
 
