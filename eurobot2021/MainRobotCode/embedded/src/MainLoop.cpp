@@ -5,7 +5,8 @@
 /// \copyright GNU GPLv3
 
 #include "Robot.h"
-#include "CameraClient.h"
+//~ #include "CameraClient.h"
+#include "network/camera_client.hpp"
 
 #include <iostream>
 #include <thread>
