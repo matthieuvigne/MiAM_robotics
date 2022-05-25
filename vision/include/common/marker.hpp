@@ -34,8 +34,6 @@ class Marker {
     }; // enum class Family
 
     typedef std::vector<Marker> MarkerList;
-    typedef std::map<Id,Marker> MarkerIdToEstimate;
-    typedef std::multimap<int64_t,Marker,std::less<int64_t>> MarkerEstimates;
     typedef std::shared_ptr<Marker> Ptr;
     typedef std::shared_ptr<Marker const> ConstPtr;
     typedef std::unique_ptr<Marker> UniquePtr;
@@ -129,8 +127,6 @@ class Marker {
 
 typedef Marker::Id MarkerId;
 typedef Marker::MarkerList MarkerList;
-typedef Marker::MarkerIdToEstimate MarkerIdToEstimate;
-typedef Marker::MarkerEstimates MarkerEstimates;
 typedef std::vector<Marker::UniquePtr> MarkerPtrList;
 
 //--------------------------------------------------------------------------------------------------
