@@ -65,8 +65,11 @@ void CameraClient::run()
   {
     try
     {
+      CONSOLE << "Trying to connect";
       //~ sock_.connect("192.168.6.20", 30000);
-      sock_.connect("192.168.7.2", 30000);
+      sock_.connect("192.168.6.42", 30000);
+      //~ sock_.connect("192.168.7.2", 30000);
+      CONSOLE << "Connected!";
       usleep(50000);
       break;
     }
@@ -80,7 +83,6 @@ void CameraClient::run()
   CONSOLE << "OK";
   // bool lastSide = !(*isPlayingRightSide);
 
-  // client = sock_;
   network::ClientRequest::UniquePtr request_ptr = nullptr;
   network::ServerResponse::UniquePtr response_ptr = nullptr;
 
@@ -103,7 +105,6 @@ void CameraClient::run()
             request_ptr->getParamsAs<common::Team>() = common::Team::YELLOW;
         std::cout << "Reset side" << isPlayingRightSide_ << std::endl;
         needColorUpdate_ = false;
-        CONSOLE << "OK";
       }
       else
       {
@@ -113,13 +114,9 @@ void CameraClient::run()
       mutex_.unlock();
 
       // Serialize and send the message to the server
-      CONSOLE << "OK";
       std::string request_str;
-      CONSOLE << "OK";
       request_ptr->serialize(&request_str);
-      CONSOLE << "OK";
       sock_ << request_str;
-      CONSOLE << "OK";
 
       // Get the response from the server
       try
@@ -130,23 +127,19 @@ void CameraClient::run()
         response_ptr->deserialize(response_str);
         if(message_type == network::MessageType::GET_MEASUREMENTS)
         {
-          CONSOLE << "OK";
           common::MarkerList const& markers =
               response_ptr->getParamsAs<common::MarkerList>();
           markers_.clear();
-          CONSOLE << "OK";
           for (auto const& m : markers)
           {
             markers_.push_back(m);
           }
-          CONSOLE << "OK";
           std::cout << "current marker" << markers_.size() << std::endl;
           for (auto const& m : markers_)
           {
             std::cout << " Id " << std::to_string(m.getId()) << " pos "
               << m.getTWM()->translation().transpose() << std::endl;
           }
-          CONSOLE << "OK";
           processMarkers();
         }
       }
