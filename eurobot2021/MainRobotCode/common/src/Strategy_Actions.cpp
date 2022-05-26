@@ -235,14 +235,21 @@ bool Strategy::handleSideTripleSamples()
         return(true);
     }
 
+    int target_y_position = 750;
+    // If playing left side (yellow): add offset to side dist
+    if (!robot->isPlayingRightSide())
+    {
+        target_y_position += 20;
+    }
+
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_BACK + 270;
-    targetPosition.y = 750 + 5;
+    targetPosition.y = target_y_position;
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_FRONT + 190;
-    targetPosition.y = 750 + 5;
+    targetPosition.y = target_y_position;
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
