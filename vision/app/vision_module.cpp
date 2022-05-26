@@ -25,6 +25,9 @@
 // Main routine
 int main(int argc, char* argv[])
 {
+  // Initialize the console logger
+  common::ConsoleLogger::init();
+  
   // Create new directory for this run
   std::string const rootDir = "/home/pi/vision_module_log";
   fs::space_info tmp = fs::space(rootDir);
@@ -44,8 +47,8 @@ int main(int argc, char* argv[])
   fs::create_directory(dirPath);
 
   // Initialize the logger
-  common::ConsoleLogger::init();
   common::FileLogger::init(dirPath + "/vision_module.txt");
+  LOGFILE << "Initialized the logger to " << dirPath << "/vision_module.txt";
 
   // Initialize the test bench if required
   #ifdef USE_TEST_BENCH

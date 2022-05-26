@@ -67,8 +67,8 @@ void CameraClient::run()
     {
       CONSOLE << "Trying to connect";
       //~ sock_.connect("192.168.6.20", 30000);
-      sock_.connect("192.168.6.42", 30000);
-      //~ sock_.connect("192.168.7.2", 30000);
+      //~ sock_.connect("192.168.6.42", 30000);
+      sock_.connect("192.168.7.2", 30000);
       CONSOLE << "Connected!";
       usleep(50000);
       break;

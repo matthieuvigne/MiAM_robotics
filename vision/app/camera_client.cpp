@@ -7,5 +7,7 @@ int main(int argc, char* argv[])
   network::CameraClient client;
   CONSOLE << "Initializing the camera client...";
   client.run();
+  bool isPlayingRightSide = false;
+  client.updateRobotSide(isPlayingRightSide);
   return EXIT_SUCCESS;
 }
