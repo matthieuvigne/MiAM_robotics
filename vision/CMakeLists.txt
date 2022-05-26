@@ -18,8 +18,8 @@ else (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 
-option(RPI4 "Target is raspberry pi 4" OFF)
-option(USE_TEST_BENCH "Set true to simulate the vision module in a test bench" ON)
+option(RPI4 "Target is raspberry pi 4" ON)
+option(USE_TEST_BENCH "Set true to simulate the vision module in a test bench" OFF)
 option(BUILD_TESTS "Set ON to build the tests" OFF)
 option(BUILD_CAMERA_CALIBRATION "Set ON to build the camera calibration script" OFF)
 

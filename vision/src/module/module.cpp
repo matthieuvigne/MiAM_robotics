@@ -34,14 +34,18 @@ Module::Module(std::string const& logDirectory)
   #endif
 
   // Build the camera and launch its thread
+  LOGFILE << "Launches the camera thread";
   camera_thread_ptr_.reset(new camera::CameraThread);
   camera_thread_ptr_->setLogDirectory(logDirectory);
+  LOGFILE << "Launched the camera thread";
 
   // Launch the server's thread
   int const port = 30000;
   try {
+    LOGFILE << "Launching the server's thread";
     server_thread_ptr_.reset(new network::ServerThread(port));
     server_thread_ptr_->setCameraThread(camera_thread_ptr_.get());
+    LOGFILE << "Launched the server's thread";
   } catch(network::SocketException const& e) {
     CONSOLE << e.description();
   }

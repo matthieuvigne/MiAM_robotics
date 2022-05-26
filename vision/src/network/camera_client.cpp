@@ -106,6 +106,11 @@ void CameraClient::run()
         std::cout << "Reset side" << isPlayingRightSide_ << std::endl;
         needColorUpdate_ = false;
       }
+      else if(shut_down_)
+      {
+        message_type = network::MessageType::SHUT_DOWN;
+        request_ptr.reset(new network::ClientRequest(message_type));
+      }
       else
       {
         message_type = network::MessageType::GET_MEASUREMENTS;
@@ -141,6 +146,11 @@ void CameraClient::run()
               << m.getTWM()->translation().transpose() << std::endl;
           }
           processMarkers();
+        }
+        else if(message_type == network::MessageType::SHUT_DOWN)
+        {
+          std::cout << "Shutting down the thread";
+          return;
         }
       }
       catch (std::runtime_error const& err)
@@ -186,6 +196,15 @@ int CameraClient::getNumberOfMarkersInExcavationSite()
   int res = nMarkersInExcavationSite_;
   mutex_.unlock();
   return res;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void CameraClient::shutDown()
+{
+  mutex_.lock();
+  shut_down_ = true;
+  mutex_.unlock();
 }
 
 //--------------------------------------------------------------------------------------------------

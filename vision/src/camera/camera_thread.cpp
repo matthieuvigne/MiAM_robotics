@@ -50,10 +50,11 @@ void CameraThread::runThread()
     struct timespec loopStart, currentTime;
     clock_gettime(CLOCK_MONOTONIC, &loopStart);
 
-    // Initiliaze the filter if needed
+    // Initialize the filter if needed
+    LOGFILE << "Initializing the filter";
     initializeFilterIfRequired();
     CHECK_NOTNULL(pose_filter_ptr_);
-
+    LOGFILE << "Filter initializzed";
 
     // Take a picture and detect all the markers
     cv::Mat image;
@@ -72,8 +73,10 @@ void CameraThread::runThread()
     double delta_azimuth_deg = (pose_filter_ptr_->isInitialized()) ? azimuth_step_deg_ : 0.0;
     delta_azimuth_deg = rotateCamera(delta_azimuth_deg);
 
+    LOGFILE << "Detecting the markers";
     camera_ptr_->detectMarkers(image, img_azimuth, camera_elevation_deg_,
       &detected_markers, logDirectory_ + "/" + std::to_string(image_id));
+    LOGFILE << "Deteceted the markers";
 
 
     LOGFILE << "####################################################";
@@ -106,8 +109,8 @@ void CameraThread::runThread()
         LOGFILE << "   Filter innovation" << pose_filter_ptr_->getLastInnovation().transpose();
 
         // Update the camera azimuth and elevation estimates
-        camera_azimuth_deg_ = pose_filter_ptr_->getAzimuthDeg();
-        camera_elevation_deg_ = pose_filter_ptr_->getElevationDeg();
+        //~ camera_azimuth_deg_ = pose_filter_ptr_->getAzimuthDeg();
+        //~ camera_elevation_deg_ = pose_filter_ptr_->getElevationDeg();
       }
     }
     // Remove multiple markers which are visible from the camera and add the new markers
