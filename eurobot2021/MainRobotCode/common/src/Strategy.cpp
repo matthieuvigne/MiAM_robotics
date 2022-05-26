@@ -15,6 +15,8 @@ using namespace miam::trajectory;
 using miam::RobotPosition;
 
 
+#define USE_CAMERA 1
+
 // #define SKIP_TO_GRABBING_SAMPLES 1
 // #define SKIP_TO_PUSHING_SAMPLES 1
 // #define SKIP_TO_GRABBING_SAMPLES_SIDE_DIST 1
@@ -115,6 +117,12 @@ void Strategy::match_impl()
     targetPosition.theta = 0;
     robot->resetPosition(targetPosition, true, true, true);
     robot->wait(0.05);
+
+    // start camera
+    #if USE_CAMERA
+    std::thread camThread(&network::CameraClient::run, &(camera_));
+    camThread.detach();
+    #endif
 
     //**********************************************************
     // Go get the statue
@@ -290,7 +298,9 @@ void Strategy::match_impl()
     if (MATCH_COMPLETED)
     {
         robot->updateScore(20); // match completed
+        camera_.shutDown();
     }
+
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }
@@ -322,9 +332,11 @@ void Strategy::match()
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
 
-        if (goBackToDigSite())
+        if (goBackToDigSite()) 
+        {
             robot->updateScore(20); //match completed
-
+            camera_.shutDown();
+        }
         servo->activatePump(false);
     }
 #endif
