@@ -239,10 +239,10 @@ bool Strategy::handleSideTripleSamples()
     RobotPosition targetPosition = robot->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_BACK + 270;
-    targetPosition.y = 750;
+    targetPosition.y = 750 + 5;
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_FRONT + 190;
-    targetPosition.y = 750;
+    targetPosition.y = 750 + 5;
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     robot->setTrajectoryToFollow(traj);
@@ -390,7 +390,7 @@ bool Strategy::moveThreeSamples()
     targetPosition.x = 770;
     positions.push_back(targetPosition);
     targetPosition.x = 770;
-    targetPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 95;
+    targetPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 95 - 3;
     targetPosition.theta = M_PI_2;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
@@ -540,7 +540,8 @@ bool Strategy::handleDigZone()
 
     const int spacing_between_sites = 185;
     const int site_y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -10;
-    const int first_site_x = 730 - 15 + 10;
+    const int initial_first_x = 730 - 15 + 10;
+    int first_site_x = initial_first_x;
 
     std::vector<RobotPosition> positions;
     RobotPosition targetPosition = robot->getCurrentPosition();
@@ -603,11 +604,69 @@ bool Strategy::handleDigZone()
     ExcavationSquareColor color_detected = testExcavationSite();
     bool is_cross_detected = color_detected == ExcavationSquareColor::RED;
     int number_of_sites_pushed = 0;
+
+    int number_of_tries = 1;
+
+    while ((number_of_tries < 5) && color_detected == ExcavationSquareColor::NONE)
+    {
+        // go back 10 mm
+        first_site_x = initial_first_x + number_of_tries * 10;
+        
+        // std::cout << "Retring x = " << static_cast<string>(first_site_x) << std::endl;
+
+        traj = computeTrajectoryStraightLine(targetPosition, - 10);
+        robot->setTrajectoryToFollow(traj);
+        robot->waitForTrajectoryFinished();
+
+        // test again
+        color_detected = testExcavationSite();
+
+        number_of_tries++;
+    }
+
+    if (color_detected == ExcavationSquareColor::NONE)
+    {
+        std::cout << "Still did not measure, resetting position" << std::endl;
+        positions.clear();
+        targetPosition = robot->getCurrentPosition();
+        positions.push_back(targetPosition);
+        targetPosition.x = initial_first_x;
+        positions.push_back(targetPosition);
+        robot->setTrajectoryToFollow(traj);
+        robot->waitForTrajectoryFinished();
+    }
+
+    number_of_tries = 1;
+
+    while ((number_of_tries < 5) && color_detected == ExcavationSquareColor::NONE)
+    {
+        // go back 10 mm
+        first_site_x = initial_first_x - number_of_tries * 10;
+
+        // std::cout << "Retring x = " << static_cast<string>(first_site_x) << std::endl;
+        
+        traj = computeTrajectoryStraightLine(targetPosition, 10);
+        robot->setTrajectoryToFollow(traj);
+        robot->waitForTrajectoryFinished();
+
+        // test again
+        color_detected = testExcavationSite();
+
+        number_of_tries++;
+    }
+
+    if (color_detected == ExcavationSquareColor::NONE)
+    {
+        std::cout << "Still nothing, resetting position" << std::endl;
+        first_site_x = initial_first_x;
+    }
+
     if (shouldPushExcavationSite(color_detected))
     {
         number_of_sites_pushed++;
     }
     
+    // test the 2 others
     for (int i = 1; i < 3; i++)
     {
 
@@ -650,8 +709,10 @@ bool Strategy::handleDigZone()
             if (samples_are_knocked_out[i]) 
             {
                 std::cout << "Site is known to be already pushed" << std::endl;
+            }
+            else
+            {
                 pushExcavationSite();
-                robot->updateScore(5);
                 samples_are_knocked_out[i] = true;
             }
 
@@ -713,6 +774,9 @@ bool Strategy::handleDigZone()
             // bascule
             if (samples_are_knocked_out[targeted_site + 3]) {
                 std::cout << "Site is known to be already pushed" << std::endl;
+            }
+            else
+            {
                 pushExcavationSite();
                 samples_are_knocked_out[targeted_site + 3] = true;
             }
@@ -892,7 +956,7 @@ bool Strategy::pushSamplesBelowShelter()
     // robot->waitForTrajectoryFinished();
 
 
-    robot->updateScore(3*5); // push samples below shelter
+    robot->updateScore(1*5); // push samples below shelter
 
     // move back and fold arms
     targetPosition = robot->getCurrentPosition();

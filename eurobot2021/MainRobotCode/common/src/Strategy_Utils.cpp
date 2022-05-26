@@ -39,17 +39,20 @@ bool Strategy::shouldPushExcavationSite(ExcavationSquareColor color)
 
 void Strategy::pushExcavationSite()
 {
+    std::cout << "Pushing sample" << std::endl;
+
     servo->moveArm(robot->isPlayingRightSide(), arm::MEASURE);
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
-    robot->wait(0.2);
+    robot->wait(0.5);
     servo->moveFinger(robot->isPlayingRightSide(), finger::PUSH);
     servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
-    robot->wait(0.2);
+    robot->wait(0.5);
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
     robot->updateScore(5);
     
     if (!is_bonus_already_counted)
     {
+        std::cout << "Counting first bonus" << std::endl;
     	is_bonus_already_counted = true;
     	robot->updateScore(5);
     }
