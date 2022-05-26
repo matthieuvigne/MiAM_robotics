@@ -80,7 +80,8 @@ void CameraThread::runThread()
     clock_gettime(CLOCK_MONOTONIC, &ct);
     double elapsedTime = (ct.tv_sec - st.tv_sec + (ct.tv_nsec - st.tv_nsec) / 1e9);
     LOGFILE << "Time:" << elapsedTime << " Image Id: " << image_id;
-    LOGFILE << "   Azimuth " << img_azimuth << " estimated azimuth: " << pose_filter_ptr_->getAzimuthDeg() << " estimated elevation: " << pose_filter_ptr_->getElevationDeg();
+    LOGFILE << "   Azimuth " << img_azimuth << " estimated azimuth: " 
+      << pose_filter_ptr_->getAzimuthDeg() << " estimated elevation: " << pose_filter_ptr_->getElevationDeg();
     image_id += 1;
 
     LOGFILE << "Detected markers: " << detected_markers.size();
@@ -105,8 +106,8 @@ void CameraThread::runThread()
         LOGFILE << "   Filter innovation" << pose_filter_ptr_->getLastInnovation().transpose();
 
         // Update the camera azimuth and elevation estimates
-        // camera_azimuth_deg_ = pose_filter_ptr_->getAzimuthDeg();
-        // camera_elevation_deg_ = pose_filter_ptr_->getElevationDeg();
+        camera_azimuth_deg_ = pose_filter_ptr_->getAzimuthDeg();
+        camera_elevation_deg_ = pose_filter_ptr_->getElevationDeg();
       }
     }
     // Remove multiple markers which are visible from the camera and add the new markers
@@ -123,7 +124,8 @@ void CameraThread::runThread()
         bool remove = result < 0.7;
         if (remove)
         {
-            LOGFILE << "Removing marker in field of view:" << static_cast<int>(marker.getId()) << "    TWM" << marker.getTWM()->translation().transpose();
+            LOGFILE << "Removing marker in field of view:" << static_cast<int>(marker.getId())
+              << "    TWM" << marker.getTWM()->translation().transpose();
         }
         return remove;
       }
