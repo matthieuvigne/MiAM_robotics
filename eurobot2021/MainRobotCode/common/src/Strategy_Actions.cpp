@@ -68,7 +68,7 @@ bool Strategy::handleStatue()
     robot->wait(0.6);
     std::cout << robot->getCurrentPosition() << std::endl;
     servo->moveStatue(statue::TRANSPORT);
-    robot->updateScore(5); // statue not on the piedestral
+    robot->updateScore(3); // statue not on the piedestral 5 = 2 + 3
 
     //**********************************************************
     // Drop the fake statue
@@ -95,7 +95,7 @@ bool Strategy::handleStatue()
     robot->wait(0.5); // wait to avoid dropping too brutally
     dropElements();
     robot->wait(0.2);
-    robot->updateScore(10);
+    robot->updateScore(5); // dropped fake statue 10 = 5 + 5
 
     // get the 2 samples on the side of the statue
     robot->moveRail(0.8);
@@ -169,7 +169,7 @@ bool Strategy::handleStatue()
     robot->wait(0.1);
     servo->activateMagnet(false);
     servo->moveStatue(statue::TRANSPORT);
-    robot->updateScore(15);  //the statue is in the display
+    robot->updateScore(5);  //the statue is in the display 15 = 10 + 5
     robot->updateScore(5);  //the display is activated
 
     is_handle_statue_finished = true;
