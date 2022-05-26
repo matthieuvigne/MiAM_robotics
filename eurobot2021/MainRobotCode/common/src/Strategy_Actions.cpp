@@ -566,11 +566,13 @@ bool Strategy::handleDigZone()
 
     std::cout << "First correction" << std::endl;
     // Check with range sensor: are we at the right place ?
-    double const MAXIMUM_RANGE_CORRECTION = 100;
+    double const MAXIMUM_RANGE_CORRECTION = 50;
 
     robot->wait(0.05);
     double measured_y = robot->getRangeSensorMeasurement(robot->isPlayingRightSide());
     targetPosition = robot->getCurrentPosition();
+    // tamper with correction to correct half of the error
+    measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
     double sumOfAllCorrections = 0;
     if (std::abs(sumOfAllCorrections + measured_y - targetPosition.y) < MAXIMUM_RANGE_CORRECTION)
     {
@@ -679,6 +681,8 @@ bool Strategy::handleDigZone()
         // Check range
         measured_y = robot->getRangeSensorMeasurement(robot->isPlayingRightSide());
         targetPosition = robot->getCurrentPosition();
+        // tamper with correction to correct half of the error
+        measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
         if (std::abs(sumOfAllCorrections + measured_y - targetPosition.y) < MAXIMUM_RANGE_CORRECTION)
         {
             std::cout << "Resetting position thanks to range sensor. Error:" << targetPosition.y - measured_y << std::endl;
@@ -749,6 +753,8 @@ bool Strategy::handleDigZone()
         // Check range
         measured_y = robot->getRangeSensorMeasurement(robot->isPlayingRightSide());
         targetPosition = robot->getCurrentPosition();
+        // tamper with correction to correct half of the error
+        measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
         if (std::abs(sumOfAllCorrections + measured_y - targetPosition.y) < MAXIMUM_RANGE_CORRECTION)
         {
             std::cout << "Resetting position thanks to range sensor. Error:" << targetPosition.y - measured_y << std::endl;
