@@ -29,6 +29,7 @@ class CameraClient {
     void run();
     /// Set the robot playing side.
     void updateRobotSide(bool const& isPlayingRightSide);
+    void shutDown();
     int getNumberOfMarkersInExcavationSite();
     /// Access to the list of markers seen by the camera.
     std::vector<common::Marker> markers_;
@@ -43,6 +44,7 @@ class CameraClient {
     network::ClientSocket sock_;
     bool needColorUpdate_ = true;
     bool isPlayingRightSide_ = false;
+    bool shut_down_ = false;
     std::mutex mutex_;
 };
 
