@@ -397,7 +397,7 @@ bool Strategy::moveThreeSamples()
     targetPosition.x = 770;
     positions.push_back(targetPosition);
     targetPosition.x = 770;
-    targetPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 95 - 3;
+    targetPosition.y = 2000 - robotdimensions::SUCTION_CENTER - 95 - 5;
     targetPosition.theta = M_PI_2;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
@@ -417,12 +417,12 @@ bool Strategy::moveThreeSamples()
     
     robot->wait(1.0);
     robot->moveRail(0.35);
-    robot->wait(1.0);
+    robot->wait(2.0);
 
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::DROP_SAMPLE);
 
-    robot->wait(1.0); // wait a little longer to drop samples correctly
+    robot->wait(0.5); // wait a little longer to drop samples correctly
     robot->updateScore(9); // samples in the gallery
 
     targetPosition = robot->getCurrentPosition();
