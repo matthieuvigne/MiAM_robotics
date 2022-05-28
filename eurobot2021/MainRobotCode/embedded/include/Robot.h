@@ -257,6 +257,8 @@
             void updateRangeMeasurement(); // Range measurement thread
 
             Strategy strategy_;
+
+            double timeSinceLastCheckOnRailHeightDuringInit_;
     };
 
     extern Robot robot;    ///< The robot instance, representing the current robot.

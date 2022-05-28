@@ -65,7 +65,7 @@ bool Strategy::handleStatue()
 
     servo->moveStatue(statue::CATCH);
     servo->activateMagnet(true);
-    robot->wait(0.6);
+    robot->wait(1.0);
     std::cout << robot->getCurrentPosition() << std::endl;
     servo->moveStatue(statue::TRANSPORT);
     robot->updateScore(5); // statue not on the piedestral 
@@ -616,7 +616,7 @@ bool Strategy::handleDigZone()
 
     int number_of_tries = 1;
 
-    while ((number_of_tries < 5) && color_detected == ExcavationSquareColor::NONE)
+    while ((number_of_tries < 4) && color_detected == ExcavationSquareColor::NONE)
     {
         // go back 10 mm
         first_site_x = initial_first_x + number_of_tries * 10;
@@ -647,7 +647,7 @@ bool Strategy::handleDigZone()
 
     number_of_tries = 1;
 
-    while ((number_of_tries < 5) && color_detected == ExcavationSquareColor::NONE)
+    while ((number_of_tries < 4) && color_detected == ExcavationSquareColor::NONE)
     {
         // go back 10 mm
         first_site_x = initial_first_x - number_of_tries * 10;
@@ -678,6 +678,12 @@ bool Strategy::handleDigZone()
     // test the 2 others
     for (int i = 1; i < 3; i++)
     {
+        
+        // if site already knocked out, continue
+        if (samples_are_knocked_out[i])
+        {
+            continue;
+        }
 
         // if already pushed 2 sites, skip
         if (number_of_sites_pushed >= 2) 
@@ -779,10 +785,28 @@ bool Strategy::handleDigZone()
         positions.push_back(targetPosition);
         traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
         robot->setTrajectoryToFollow(traj);
-        MOVE_OR_ABORT("handleDigZone failed to complete");
 
         if (know_targeted_site_is_ours)
         {
+            // if almost at the right position, push anyway
+            if (!robot->waitForTrajectoryFinished()) { 
+                
+                targetPosition = robot->getCurrentPosition();
+
+                if (abs(targetPosition.x - (first_site_x + (targeted_site + 3) * spacing_between_sites)) < 30)
+                {
+                    pushExcavationSite();
+                    samples_are_knocked_out[targeted_site + 3] = true;
+
+                    // if this is the last dig site then complete
+                    if (targeted_site == 3)
+                        return(true);
+                }
+
+                // else action incomplete
+                return(false);
+            }
+            
             std::cout << "Site known to be pushed : no measurement required" << std::endl;
             // bascule
             if (samples_are_knocked_out[targeted_site + 3]) {
@@ -813,6 +837,7 @@ bool Strategy::handleDigZone()
         }
         else
         {
+            MOVE_OR_ABORT("handleDigZone failed to complete");
             // measure and resolve
             ExcavationSquareColor color = testExcavationSite();
 

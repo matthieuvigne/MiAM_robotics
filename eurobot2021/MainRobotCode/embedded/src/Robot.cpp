@@ -28,7 +28,8 @@ Robot::Robot(bool const& testMode, bool const& disableLidar):
     startupStatus_(startupstatus::INIT),
     initMotorBlocked_(false),
     initStatueHigh_(true),
-    curvilinearAbscissa_(0.0)
+    curvilinearAbscissa_(0.0),
+    timeSinceLastCheckOnRailHeightDuringInit_(-1.0)
 {
     kinematics_ = DrivetrainKinematics(robotdimensions::wheelRadius,
                                        robotdimensions::wheelSpacing,
@@ -304,6 +305,19 @@ bool Robot::setupBeforeMatchStart()
                 moveRail(0.75);
             else
                 moveRail(0.5);
+        }
+
+        if (timeSinceLastCheckOnRailHeightDuringInit_ < 0)
+            timeSinceLastCheckOnRailHeightDuringInit_ = currentTime_;
+        if (currentTime_ - timeSinceLastCheckOnRailHeightDuringInit_ > 5.0)
+        {
+            std::cout << "Resetting servo position since last time" << std::endl;
+            if (initStatueHigh_)
+                moveRail(0.75);
+            else
+                moveRail(0.5);
+
+            timeSinceLastCheckOnRailHeightDuringInit_ = currentTime_;
         }
 
         screen_.setText("SIDE  MOT STATUE", 0);

@@ -294,7 +294,14 @@ void Strategy::match_impl()
     //**********************************************************
 
     servo->activatePump(false);
-    MATCH_COMPLETED = goBackToDigSite();
+
+    // try to complete match
+    while (!MATCH_COMPLETED)
+    {
+        MATCH_COMPLETED = goBackToDigSite();
+        robot->wait(0.1);
+    }
+    
     if (MATCH_COMPLETED)
     {
         robot->updateScore(20); // match completed
@@ -331,13 +338,15 @@ void Strategy::match()
     if (!MATCH_COMPLETED)
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
+        
+        servo->activatePump(false);
 
         if (goBackToDigSite()) 
         {
             robot->updateScore(20); //match completed
             camera_.shutDown();
         }
-        servo->activatePump(false);
+        
     }
 #endif
 }
