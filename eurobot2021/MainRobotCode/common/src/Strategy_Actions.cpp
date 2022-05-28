@@ -103,12 +103,11 @@ bool Strategy::handleStatue()
     traj = computeTrajectoryStraightLine(targetPosition, 80.0);
     robot->setTrajectoryToFollow(traj);
 
-
-    MOVE_OR_ABORT("handleStatue failed to complete");
-
     servo->moveSuction(0, suction::HORIZONTAL);
     servo->moveSuction(2, suction::HORIZONTAL);
     servo->moveSuction(1, suction::DROP_STATUE);
+
+    MOVE_OR_ABORT("handleStatue failed to complete");
 
     servo->openTube(0);
     servo->closeTube(1);
@@ -272,8 +271,8 @@ bool Strategy::handleSideTripleSamples()
         RobotPosition endPosition = targetPosition;
         endPosition.x = robotdimensions::SUCTION_CENTER + 80 - 20 * i;
         traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
-        robot->moveRail(0.25);
         robot->setTrajectoryToFollow(traj);
+        robot->moveRail(0.25);
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         robot->wait(0.5);
         robot->moveRail(0.6);
@@ -300,8 +299,8 @@ bool Strategy::handleSideTripleSamples()
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         targetPosition = robot->getCurrentPosition();
         robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, 70));
-        MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         dropElements();
+        MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         robot->updateScore(1);  //sample is droped in the campment
         robot->wait(0.3);
         servo->moveSuction(1, suction::LOWER_SAMPLE);
@@ -417,12 +416,21 @@ bool Strategy::moveThreeSamples()
     
     robot->wait(1.0);
     robot->moveRail(0.35);
-    robot->wait(2.0);
+    robot->wait(1.0);
 
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::DROP_SAMPLE);
 
     robot->wait(0.5); // wait a little longer to drop samples correctly
+
+    for (int i = 0; i < 3; i++)
+        servo->moveSuction(i, suction::HORIZONTAL);
+
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, 5);
+    robot->setTrajectoryToFollow(traj);
+    MOVE_OR_ABORT("moveThreeSamples failed to complete");
+
     robot->updateScore(9); // samples in the gallery
 
     targetPosition = robot->getCurrentPosition();
@@ -604,8 +612,16 @@ bool Strategy::handleDigZone()
     robot->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("handleDigZone failed to complete");
 
+    // reset angle to -pi/2
+    targetPosition = robot->getCurrentPosition();
+    traj.clear();
+    traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, M_PI)));
+    robot->setTrajectoryToFollow(traj);
+
     servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
+
+    robot->waitForTrajectoryFinished();
 
     // Test all sites.
 
@@ -715,6 +731,11 @@ bool Strategy::handleDigZone()
         robot->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleDigZone failed to complete");
 
+        // reset angle to -pi/2
+        targetPosition = robot->getCurrentPosition();
+        traj.clear();
+        traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, M_PI)));
+        robot->setTrajectoryToFollow(traj);
 
 
         // if cross is already detected, no need to measure
@@ -806,7 +827,7 @@ bool Strategy::handleDigZone()
                 // else action incomplete
                 return(false);
             }
-            
+
             std::cout << "Site known to be pushed : no measurement required" << std::endl;
             // bascule
             if (samples_are_knocked_out[targeted_site + 3]) {
@@ -838,6 +859,13 @@ bool Strategy::handleDigZone()
         else
         {
             MOVE_OR_ABORT("handleDigZone failed to complete");
+
+            // reset angle to -pi/2
+            targetPosition = robot->getCurrentPosition();
+            traj.clear();
+            traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, M_PI)));
+            robot->setTrajectoryToFollow(traj);
+
             // measure and resolve
             ExcavationSquareColor color = testExcavationSite();
 
@@ -995,6 +1023,19 @@ bool Strategy::pushSamplesBelowShelter()
 
 
     robot->updateScore(1*5); // push samples below shelter
+
+    // move back and fold arms
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, -180);
+    robot->setTrajectoryToFollow(traj);
+
+    (void) robot->waitForTrajectoryFinished(); 
+
+    servo->moveClaw(claw::PUSH_SAMPLE_SHELTER_WIDER);
+    targetPosition = robot->getCurrentPosition();
+    traj = computeTrajectoryStraightLine(targetPosition, 190);
+    robot->setTrajectoryToFollow(traj);
+    robot->waitForTrajectoryFinished();
 
     // move back and fold arms
     targetPosition = robot->getCurrentPosition();

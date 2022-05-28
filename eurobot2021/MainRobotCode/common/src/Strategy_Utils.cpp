@@ -43,10 +43,10 @@ void Strategy::pushExcavationSite()
 
     servo->moveArm(robot->isPlayingRightSide(), arm::MEASURE);
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
-    robot->wait(0.5);
+    robot->wait(0.2);
     servo->moveFinger(robot->isPlayingRightSide(), finger::PUSH);
     servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
-    robot->wait(0.5);
+    robot->wait(0.2);
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
     robot->updateScore(5);
     

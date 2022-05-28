@@ -45,7 +45,8 @@
             FRONT = 1,
             SIDE = 2,
             VPOSITION = 3,
-            PUSH_SAMPLE_SHELTER = 4
+            PUSH_SAMPLE_SHELTER = 4,
+            PUSH_SAMPLE_SHELTER_WIDER = 5
         };
 
         /// \brief Helper class for controlling the robot servos.
