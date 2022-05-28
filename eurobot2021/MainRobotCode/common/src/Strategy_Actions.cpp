@@ -587,7 +587,7 @@ bool Strategy::handleDigZone()
     double measured_y = robot->getRangeSensorMeasurement(robot->isPlayingRightSide());
     targetPosition = robot->getCurrentPosition();
     // tamper with correction to correct half of the error
-    measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
+    // measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
     double sumOfAllCorrections = 0;
     if (std::abs(sumOfAllCorrections + measured_y - targetPosition.y) < MAXIMUM_RANGE_CORRECTION)
     {
@@ -711,7 +711,7 @@ bool Strategy::handleDigZone()
         measured_y = robot->getRangeSensorMeasurement(robot->isPlayingRightSide());
         targetPosition = robot->getCurrentPosition();
         // tamper with correction to correct half of the error
-        measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
+        // measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
         if (std::abs(sumOfAllCorrections + measured_y - targetPosition.y) < MAXIMUM_RANGE_CORRECTION)
         {
             std::cout << "Resetting position thanks to range sensor. Error:" << targetPosition.y - measured_y << std::endl;
@@ -788,7 +788,7 @@ bool Strategy::handleDigZone()
         measured_y = robot->getRangeSensorMeasurement(robot->isPlayingRightSide());
         targetPosition = robot->getCurrentPosition();
         // tamper with correction to correct half of the error
-        measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
+        // measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
         if (std::abs(sumOfAllCorrections + measured_y - targetPosition.y) < MAXIMUM_RANGE_CORRECTION)
         {
             std::cout << "Resetting position thanks to range sensor. Error:" << targetPosition.y - measured_y << std::endl;
@@ -957,8 +957,8 @@ bool Strategy::pushSamplesBelowShelter()
     targetPosition.x = 450;
     targetPosition.y = 450;
     positions.push_back(targetPosition);
-    targetPosition.x = 350;
-    targetPosition.y = 350;
+    targetPosition.x = 280;
+    targetPosition.y = 280;
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
     robot->setTrajectoryToFollow(traj);
@@ -968,6 +968,8 @@ bool Strategy::pushSamplesBelowShelter()
         servo->moveSuction(i, suction::FOLD);
     robot->wait(0.5);
     servo->moveClaw(claw::SIDE);
+    robot->wait(4.0);
+    servo->moveClaw(claw::SIDE_SHALLOWER);
     (void) robot->waitForTrajectoryFinished();
 
     // go back a little
@@ -1022,20 +1024,20 @@ bool Strategy::pushSamplesBelowShelter()
     // robot->waitForTrajectoryFinished();
 
 
-    robot->updateScore(1*5); // push samples below shelter
+    robot->updateScore(2*5); // push samples below shelter
 
-    // move back and fold arms
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, -180);
-    robot->setTrajectoryToFollow(traj);
+    // // move back and fold arms
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, -180);
+    // robot->setTrajectoryToFollow(traj);
 
-    (void) robot->waitForTrajectoryFinished(); 
+    // (void) robot->waitForTrajectoryFinished(); 
 
-    servo->moveClaw(claw::PUSH_SAMPLE_SHELTER_WIDER);
-    targetPosition = robot->getCurrentPosition();
-    traj = computeTrajectoryStraightLine(targetPosition, 190);
-    robot->setTrajectoryToFollow(traj);
-    robot->waitForTrajectoryFinished();
+    // servo->moveClaw(claw::PUSH_SAMPLE_SHELTER_WIDER);
+    // targetPosition = robot->getCurrentPosition();
+    // traj = computeTrajectoryStraightLine(targetPosition, 190);
+    // robot->setTrajectoryToFollow(traj);
+    // robot->waitForTrajectoryFinished();
 
     // move back and fold arms
     targetPosition = robot->getCurrentPosition();

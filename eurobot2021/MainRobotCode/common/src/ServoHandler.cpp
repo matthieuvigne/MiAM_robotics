@@ -233,6 +233,8 @@ void ServoHandler::moveClaw(claw const& pose)
                          maestro_->setPosition(LEFT_CLAW, FOLD_POS[1] - 450); break; // 1700
         case claw::PUSH_SAMPLE_SHELTER_WIDER: maestro_->setPosition(RIGHT_CLAW, 1400); // 1250
                         maestro_->setPosition(LEFT_CLAW, 1500); break; // 1700
+        case claw::SIDE_SHALLOWER: maestro_->setPosition(RIGHT_CLAW, FOLD_POS[0] + 1100); // 2050
+                         maestro_->setPosition(LEFT_CLAW, FOLD_POS[1] - 1100); break; // 850
         default: break;
     }
 }
