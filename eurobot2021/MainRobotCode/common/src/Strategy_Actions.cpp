@@ -968,8 +968,11 @@ bool Strategy::pushSamplesBelowShelter()
         servo->moveSuction(i, suction::FOLD);
     robot->wait(0.5);
     servo->moveClaw(claw::SIDE);
-    robot->wait(4.0);
-    servo->moveClaw(claw::SIDE_SHALLOWER);
+
+    // // risky move for last matches
+    // robot->wait(4.0);
+    // servo->moveClaw(claw::SIDE_SHALLOWER);
+
     (void) robot->waitForTrajectoryFinished();
 
     // go back a little
@@ -985,59 +988,8 @@ bool Strategy::pushSamplesBelowShelter()
     robot->setTrajectoryToFollow(traj);
     robot->waitForTrajectoryFinished();
 
-    // // go back a little
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, -50);
-    // robot->setTrajectoryToFollow(traj);
-    // robot->waitForTrajectoryFinished();
-
-    // // turn
-    // targetPosition = robot->getCurrentPosition();
-    // traj.clear();
-    // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI * 25.0 / 180.0)));
-    // robot->setTrajectoryToFollow(traj);
-    // robot->waitForTrajectoryFinished();
-
-    // // push
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, 50);
-    // robot->setTrajectoryToFollow(traj);
-    // robot->waitForTrajectoryFinished();
-
-    // // go back a little
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, -50);
-    // robot->setTrajectoryToFollow(traj);
-    // robot->waitForTrajectoryFinished();
-
-    // // turn
-    // targetPosition = robot->getCurrentPosition();
-    // traj.clear();
-    // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI * 50.0 / 180.0)));
-    // robot->setTrajectoryToFollow(traj);
-    // robot->waitForTrajectoryFinished();
-
-    // // push
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, 50);
-    // robot->setTrajectoryToFollow(traj);
-    // robot->waitForTrajectoryFinished();
-
 
     robot->updateScore(2*5); // push samples below shelter
-
-    // // move back and fold arms
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, -180);
-    // robot->setTrajectoryToFollow(traj);
-
-    // (void) robot->waitForTrajectoryFinished(); 
-
-    // servo->moveClaw(claw::PUSH_SAMPLE_SHELTER_WIDER);
-    // targetPosition = robot->getCurrentPosition();
-    // traj = computeTrajectoryStraightLine(targetPosition, 190);
-    // robot->setTrajectoryToFollow(traj);
-    // robot->waitForTrajectoryFinished();
 
     // move back and fold arms
     targetPosition = robot->getCurrentPosition();

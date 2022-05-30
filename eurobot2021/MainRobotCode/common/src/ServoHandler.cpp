@@ -218,7 +218,7 @@ void ServoHandler::moveStatue(statue const& pose)
 
 void ServoHandler::moveClaw(claw const& pose)
 {
-    int const FOLD_POS[2] = {780, 2150};
+    int const FOLD_POS[2] = {780, 2180};
     switch(pose)
     {
         case claw::FOLD: maestro_->setPosition(RIGHT_CLAW, FOLD_POS[0]);
