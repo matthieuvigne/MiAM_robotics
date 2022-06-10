@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# This script is meant to be run inside docker: check that.
+
+# TODO
+
+if ! [ -f /.dockerenv ]; then
+   echo "This script must run inside the docker container"
+   exit -1
+fi
+
+# Create directory structure
+cd /miam_workspace
+
+mkdir -p build/rplidar
+mkdir -p build/eurobot2023/embedded
+mkdir -p build/eurobot2023/simulation
+mkdir install
+
+# Compile and install rplidar
+cd build/rplidar
+
+cmake /miam_workspace/src/MiAM_robotics/rplidar_sdk -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
+make -j4 install
+
+cmake /miam_workspace/src/MiAM_robotics/rplidar_sdk -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
+make -j4 install
+
+# Setup python environment
+cd /miam_workspace/install
+mkdir miam_venv
+python3 -m venv miam_venv
+source /miam_workspace/install/miam_venv/bin/activate
+
+cd /miam_workspace/src/MiAM_robotics/miam_py
+pip install -U pip
+pip install -e .
+
+# Compile robot code
+cd /miam_workspace/build/eurobot2023/embedded
+cmake /miam_workspace/src/MiAM_robotics/eurobot2023/MainRobotCode/embedded/ -DCMAKE_BUILD_TYPE=Release
+make -j4
+
+# Compile simulation code
+cd /miam_workspace/build/eurobot2023/simulation
+cmake /miam_workspace/src/MiAM_robotics/eurobot2023/MainRobotCode/simulation/ -DCMAKE_BUILD_TYPE=Release
+make -j4
+
