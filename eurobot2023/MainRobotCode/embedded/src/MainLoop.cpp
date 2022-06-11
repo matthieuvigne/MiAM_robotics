@@ -20,10 +20,7 @@ Robot *robotPtr;
 // Stop motor before exit.
 void killCode(int x)
 {
-    robotPtr->servos_.shutdownServos();
-    robotPtr->servos_.activatePump(false);
-    robotPtr->stopMotors();
-    robotPtr->lidar_.stop();
+    robotPtr->shutdown();
     exit(0);
 }
 

@@ -14,7 +14,7 @@
 using namespace miam::trajectory;
 using miam::RobotPosition;
 
-#define MOVE_OR_ABORT(a) if (!robot->waitForTrajectoryFinished()) { std::cout << a << std::endl; return(false);}
+#define MOVE_OR_ABORT(a) if (!motionController->waitForTrajectoryFinished()) { std::cout << a << std::endl; return(false);}
 
 bool samples_are_knocked_out[] = {false, false, false, false, false, false, false, false};
 
@@ -22,14 +22,14 @@ bool samples_are_knocked_out[] = {false, false, false, false, false, false, fals
 // Abort as soon as one action fails.
 bool Strategy::handleStatue()
 {
-    if (is_handle_statue_finished) 
+    if (is_handle_statue_finished)
     {
         return(true);
     }
 
     std::vector<RobotPosition> positions;
 
-    RobotPosition targetPosition = robot->getCurrentPosition();
+    RobotPosition targetPosition = motionController->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = 450;
     positions.push_back(targetPosition);
@@ -37,7 +37,7 @@ bool Strategy::handleStatue()
     positions.push_back(targetPosition);
 
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.4);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
 
     servo->closeTube(0);
     servo->closeTube(2);
@@ -49,7 +49,7 @@ bool Strategy::handleStatue()
     MOVE_OR_ABORT("handleStatue failed to complete");
 
     //Go back
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     positions.clear();
     positions.push_back(targetPosition);
     targetPosition.x = 250 + robotdimensions::CHASSIS_BACK;
@@ -60,34 +60,34 @@ bool Strategy::handleStatue()
     positions.push_back(targetPosition);
 
     traj = computeTrajectoryRoundedCorner(positions, 200, 0.3, true);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("handleStatue failed to complete");
 
     servo->moveStatue(statue::CATCH);
     servo->activateMagnet(true);
     robot->wait(1.0);
-    std::cout << robot->getCurrentPosition() << std::endl;
+    std::cout << motionController->getCurrentPosition() << std::endl;
     servo->moveStatue(statue::TRANSPORT);
-    robot->updateScore(5); // statue not on the piedestral 
+    robot->updateScore(5); // statue not on the piedestral
 
     //**********************************************************
     // Drop the fake statue
     //**********************************************************
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 140.0);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("handleStatue failed to complete");
 
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj.clear();
     traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI)));
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     robot->moveRail(0.1);
     MOVE_OR_ABORT("handleStatue failed to complete");
 
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 50.0);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("handleStatue failed to complete");
 
     // Place fake statue
@@ -99,9 +99,9 @@ bool Strategy::handleStatue()
 
     // get the 2 samples on the side of the statue
     robot->moveRail(0.8);
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 80.0);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
 
     servo->moveSuction(0, suction::HORIZONTAL);
     servo->moveSuction(2, suction::HORIZONTAL);
@@ -119,9 +119,9 @@ bool Strategy::handleStatue()
     robot->moveRail(0.9);
     robot->updateScore(2); //2 samples moved from the shelter
 
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -50.0);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
 
     MOVE_OR_ABORT("handleStatue failed to complete");
 
@@ -129,7 +129,7 @@ bool Strategy::handleStatue()
     // Drop the real statue
     //**********************************************************
     positions.clear();
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x += 80;
     targetPosition.y += 80;
@@ -140,11 +140,11 @@ bool Strategy::handleStatue()
     targetPosition.y = 2000 - robotdimensions::CHASSIS_BACK - 5;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 300.0, 0.3, true);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
 
     // drop samples when y > 1200
-    while (!robot->isTrajectoryFinished()) {
-        targetPosition = robot->getCurrentPosition();
+    while (!motionController->isTrajectoryFinished()) {
+        targetPosition = motionController->getCurrentPosition();
         if (targetPosition.y > 1000) {
             servo->activatePump(false);
             servo->openValve() ;
@@ -177,20 +177,20 @@ bool Strategy::handleStatue()
 
 bool Strategy::moveSideSample()
 {
-    if (is_move_side_sample_finished) 
+    if (is_move_side_sample_finished)
     {
         return(true);
     }
 
     std::vector<RobotPosition> positions;
-    RobotPosition targetPosition = robot->getCurrentPosition();
+    RobotPosition targetPosition = motionController->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.y = 1680 ;
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_FRONT + 20;
     positions.push_back(targetPosition);
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(positions, 300.0, 0.5);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     robot->wait(1.0);
     servo->moveStatue(statue::FOLD);
     // if suction not in the right place, do
@@ -204,18 +204,18 @@ bool Strategy::moveSideSample()
     robot->moveRail(0.58);
     robot->wait(1.0);
     robot->moveRail(0.8);
-    
+
     robot->updateScore(1);  //sample is moved from the distributor
 
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -150.0);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("moveSideSample failed to complete");
 
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj.clear();
     traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI_4)));
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("moveSideSample failed to complete");
 
     servo->activatePump(false);
@@ -229,7 +229,7 @@ bool Strategy::moveSideSample()
 
 bool Strategy::handleSideTripleSamples()
 {
-    if (is_handle_side_triple_samples_finished) 
+    if (is_handle_side_triple_samples_finished)
     {
         return(true);
     }
@@ -242,7 +242,7 @@ bool Strategy::handleSideTripleSamples()
     }
 
     std::vector<RobotPosition> positions;
-    RobotPosition targetPosition = robot->getCurrentPosition();
+    RobotPosition targetPosition = motionController->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = robotdimensions::CHASSIS_BACK + 270;
     targetPosition.y = target_y_position;
@@ -251,7 +251,7 @@ bool Strategy::handleSideTripleSamples()
     targetPosition.y = target_y_position;
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     robot->moveRail(0.25);
     servo->moveSuction(0, suction::FOLD);
     servo->moveSuction(2, suction::FOLD);
@@ -267,38 +267,38 @@ bool Strategy::handleSideTripleSamples()
         servo->closeTube(1);
         servo->activatePump(true);
 
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         RobotPosition endPosition = targetPosition;
         endPosition.x = robotdimensions::SUCTION_CENTER + 80 - 20 * i;
         traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
-        robot->setTrajectoryToFollow(traj);
+        motionController->setTrajectoryToFollow(traj);
         robot->moveRail(0.25);
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         robot->wait(0.5);
         robot->moveRail(0.6);
         robot->updateScore(1);  //sample is removed from distributor
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         if (i == 2)
         {
             // last sample go back a little more to avoid hitting dist
             traj = computeTrajectoryStraightLine(targetPosition, -65);
-            robot->setTrajectoryToFollow(traj);
+            motionController->setTrajectoryToFollow(traj);
             MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
-        } else 
+        } else
         {
             traj = computeTrajectoryStraightLine(targetPosition, -45);
-            robot->setTrajectoryToFollow(traj);
+            motionController->setTrajectoryToFollow(traj);
             MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         }
 
         // rotate -80 degres and move forward 70mm
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         traj.clear();
         traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta - M_PI * 80.0 / 180.0)));
-        robot->setTrajectoryToFollow(traj);
+        motionController->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
-        targetPosition = robot->getCurrentPosition();
-        robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, 70));
+        targetPosition = motionController->getCurrentPosition();
+        motionController->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, 70));
         dropElements();
         MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         robot->updateScore(1);  //sample is droped in the campment
@@ -307,41 +307,41 @@ bool Strategy::handleSideTripleSamples()
 
         // go a little further if last movement
         if (i == 2) {
-            targetPosition = robot->getCurrentPosition();
-            robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
+            targetPosition = motionController->getCurrentPosition();
+            motionController->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
             MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
 
-            targetPosition = robot->getCurrentPosition();
+            targetPosition = motionController->getCurrentPosition();
             traj.clear();
             traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI * 80.0 / 180.0)));
-            robot->setTrajectoryToFollow(traj);
+            motionController->setTrajectoryToFollow(traj);
             MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
 
-            targetPosition = robot->getCurrentPosition();
-            robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -250));
+            targetPosition = motionController->getCurrentPosition();
+            motionController->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -250));
             MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
 
         } else {
             // inverse movement
-            targetPosition = robot->getCurrentPosition();
-            robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
+            targetPosition = motionController->getCurrentPosition();
+            motionController->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
             MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
         }
 
-        // targetPosition = robot->getCurrentPosition();
+        // targetPosition = motionController->getCurrentPosition();
         // positions.clear();
         // positions.push_back(targetPosition);
         // targetPosition.y += 70;
         // positions.push_back(targetPosition);
         // traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
-        // robot->setTrajectoryToFollow(traj);
+        // motionController->setTrajectoryToFollow(traj);
         // MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
 
         // dropElements();
         // robot->wait(0.3);
         // servo->moveSuction(1, suction::LOWER_SAMPLE);
-        // targetPosition = robot->getCurrentPosition();
-        // robot->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
+        // targetPosition = motionController->getCurrentPosition();
+        // motionController->setTrajectoryToFollow(computeTrajectoryStraightLine(targetPosition, -70));
         // MOVE_OR_ABORT("handleSideTripleSamples failed to complete");
     }
 
@@ -351,27 +351,27 @@ bool Strategy::handleSideTripleSamples()
 
 bool Strategy::moveThreeSamples()
 {
-    if (is_move_three_samples_finished) 
+    if (is_move_three_samples_finished)
     {
         return(true);
     }
 
     std::vector<RobotPosition> positions;
-    RobotPosition targetPosition = robot->getCurrentPosition();
+    RobotPosition targetPosition = motionController->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.y = 1325;
     positions.push_back(targetPosition);
     targetPosition.x = 650;
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::HORIZONTAL);
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 65.0);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     servo->moveClaw(claw::VPOSITION); // move claws to push center sample a little more
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
     servo->moveClaw(claw::FOLD);
@@ -391,7 +391,7 @@ bool Strategy::moveThreeSamples()
 
     // move and simultaneously raise rail and set suction vertical
     positions.clear();
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = 770;
     positions.push_back(targetPosition);
@@ -400,7 +400,7 @@ bool Strategy::moveThreeSamples()
     targetPosition.theta = M_PI_2;
     positions.push_back(targetPosition);
     traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
 
     // raise rail and travel
     robot->moveRail(0.75);
@@ -413,7 +413,7 @@ bool Strategy::moveThreeSamples()
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::LOWER_SAMPLE);
     dropElements();
-    
+
     robot->wait(1.0);
     robot->moveRail(0.35);
     robot->wait(1.0);
@@ -426,16 +426,16 @@ bool Strategy::moveThreeSamples()
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::HORIZONTAL);
 
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 5);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
     robot->updateScore(9); // samples in the gallery
 
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -140);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
     return(true);
@@ -445,13 +445,13 @@ bool Strategy::moveThreeSamples()
 bool Strategy::moveThreeSamplesBackup()
 {
     std::cout << ">>> performing moveThreeSamplesBackup" << std::endl;
-    if (is_move_three_samples_finished) 
+    if (is_move_three_samples_finished)
     {
         return(true);
     }
 
     std::vector<RobotPosition> positions;
-    RobotPosition targetPosition = robot->getCurrentPosition();
+    RobotPosition targetPosition = motionController->getCurrentPosition();
 
     // are we at the left of the samples ?
     bool to_the_left_of_the_samples = targetPosition.x < 800;
@@ -470,7 +470,7 @@ bool Strategy::moveThreeSamplesBackup()
         targetPosition.x = 650;
         targetPosition.y = 1325;
         positions.push_back(targetPosition);
-    } else 
+    } else
     {
         targetPosition.x = 1175;
         targetPosition.y = 1320;
@@ -481,15 +481,15 @@ bool Strategy::moveThreeSamplesBackup()
     }
 
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.2);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     for (int i = 0; i < 3; i++)
         servo->moveSuction(i, suction::HORIZONTAL);
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
 
 
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 65.0);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     servo->moveClaw(claw::VPOSITION); // move claws to push center sample a little more
     MOVE_OR_ABORT("moveThreeSamples failed to complete");
     servo->moveClaw(claw::FOLD);
@@ -504,12 +504,12 @@ bool Strategy::moveThreeSamplesBackup()
     // raise rail and travel
     robot->moveRail(0.40);
 
-    if (to_the_left_of_the_samples) 
+    if (to_the_left_of_the_samples)
     {
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         traj.clear();
         traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, targetPosition.theta + M_PI)));
-        robot->setTrajectoryToFollow(traj);
+        motionController->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleStatueBackup failed to complete");
     }
 
@@ -520,15 +520,15 @@ bool Strategy::moveThreeSamplesBackup()
 
     if (to_the_left_of_the_samples)
     {
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         traj = computeTrajectoryStraightLine(targetPosition, 250.0);
-        robot->setTrajectoryToFollow(traj);
+        motionController->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleStatueBackup failed to complete");
-    } else 
+    } else
     {
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         traj = computeTrajectoryStraightLine(targetPosition, 300.0);
-        robot->setTrajectoryToFollow(traj);
+        motionController->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleStatueBackup failed to complete");
     }
 
@@ -536,10 +536,10 @@ bool Strategy::moveThreeSamplesBackup()
     // 1 pt for each sample added in the zone
     robot->updateScore(3);
 
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -100.0);
-    robot->setTrajectoryToFollow(traj);
-    MOVE_OR_ABORT("handleStatueBackup failed to complete");    
+    motionController->setTrajectoryToFollow(traj);
+    MOVE_OR_ABORT("handleStatueBackup failed to complete");
 
     is_move_three_samples_finished = true;
     return(true);
@@ -548,7 +548,7 @@ bool Strategy::moveThreeSamplesBackup()
 
 bool Strategy::handleDigZone()
 {
-    if (is_handle_dig_zone_finished) 
+    if (is_handle_dig_zone_finished)
     {
         return(true);
     }
@@ -559,7 +559,7 @@ bool Strategy::handleDigZone()
     int first_site_x = initial_first_x;
 
     std::vector<RobotPosition> positions;
-    RobotPosition targetPosition = robot->getCurrentPosition();
+    RobotPosition targetPosition = motionController->getCurrentPosition();
     positions.push_back(targetPosition);
     // targetPosition.x -= 40 * std::cos(targetPosition.theta);
     // targetPosition.y -= 40 * std::sin(targetPosition.theta);
@@ -571,7 +571,7 @@ bool Strategy::handleDigZone()
     targetPosition.y = site_y;
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
 
     // ensure suctions are folded to reduce deloyed perimeter
     for (int i = 0; i < 3; i++)
@@ -585,7 +585,7 @@ bool Strategy::handleDigZone()
 
     robot->wait(0.05);
     double measured_y = robot->getRangeSensorMeasurement(robot->isPlayingRightSide());
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     // tamper with correction to correct half of the error
     // measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
     double sumOfAllCorrections = 0;
@@ -594,7 +594,7 @@ bool Strategy::handleDigZone()
         std::cout << "Resetting position thanks to range sensor. Error:" << targetPosition.y - measured_y << std::endl;
         sumOfAllCorrections += measured_y - targetPosition.y;
         targetPosition.y = measured_y;
-        robot->resetPosition(targetPosition, false, true, false);
+        motionController->resetPosition(targetPosition, false, true, false);
     }
     std::cout << "After reset position ; error:" << targetPosition.y - measured_y << std::endl;
 
@@ -609,19 +609,19 @@ bool Strategy::handleDigZone()
     positions.push_back(targetPosition);
 
     traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     MOVE_OR_ABORT("handleDigZone failed to complete");
 
     // reset angle to -pi/2
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj.clear();
     traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, M_PI)));
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
 
     servo->moveArm(robot->isPlayingRightSide(), arm::RAISE);
     servo->moveFinger(robot->isPlayingRightSide(), finger::MEASURE);
 
-    robot->waitForTrajectoryFinished();
+    motionController->waitForTrajectoryFinished();
 
     // Test all sites.
 
@@ -636,12 +636,12 @@ bool Strategy::handleDigZone()
     {
         // go back 10 mm
         first_site_x = initial_first_x + number_of_tries * 10;
-        
+
         // std::cout << "Retring x = " << static_cast<string>(first_site_x) << std::endl;
 
         traj = computeTrajectoryStraightLine(targetPosition, - 10);
-        robot->setTrajectoryToFollow(traj);
-        robot->waitForTrajectoryFinished();
+        motionController->setTrajectoryToFollow(traj);
+        motionController->waitForTrajectoryFinished();
 
         // test again
         color_detected = testExcavationSite();
@@ -653,12 +653,12 @@ bool Strategy::handleDigZone()
     {
         std::cout << "Still did not measure, resetting position" << std::endl;
         positions.clear();
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         positions.push_back(targetPosition);
         targetPosition.x = initial_first_x;
         positions.push_back(targetPosition);
-        robot->setTrajectoryToFollow(traj);
-        robot->waitForTrajectoryFinished();
+        motionController->setTrajectoryToFollow(traj);
+        motionController->waitForTrajectoryFinished();
     }
 
     number_of_tries = 1;
@@ -669,10 +669,10 @@ bool Strategy::handleDigZone()
         first_site_x = initial_first_x - number_of_tries * 10;
 
         // std::cout << "Retring x = " << static_cast<string>(first_site_x) << std::endl;
-        
+
         traj = computeTrajectoryStraightLine(targetPosition, 10);
-        robot->setTrajectoryToFollow(traj);
-        robot->waitForTrajectoryFinished();
+        motionController->setTrajectoryToFollow(traj);
+        motionController->waitForTrajectoryFinished();
 
         // test again
         color_detected = testExcavationSite();
@@ -690,11 +690,11 @@ bool Strategy::handleDigZone()
     {
         number_of_sites_pushed++;
     }
-    
+
     // test the 2 others
     for (int i = 1; i < 3; i++)
     {
-        
+
         // if site already knocked out, continue
         if (samples_are_knocked_out[i])
         {
@@ -702,14 +702,14 @@ bool Strategy::handleDigZone()
         }
 
         // if already pushed 2 sites, skip
-        if (number_of_sites_pushed >= 2) 
+        if (number_of_sites_pushed >= 2)
         {
             break;
         }
 
         // Check range
         measured_y = robot->getRangeSensorMeasurement(robot->isPlayingRightSide());
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         // tamper with correction to correct half of the error
         // measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
         if (std::abs(sumOfAllCorrections + measured_y - targetPosition.y) < MAXIMUM_RANGE_CORRECTION)
@@ -717,7 +717,7 @@ bool Strategy::handleDigZone()
             std::cout << "Resetting position thanks to range sensor. Error:" << targetPosition.y - measured_y << std::endl;
             sumOfAllCorrections += measured_y - targetPosition.y;
             targetPosition.y = measured_y;
-            robot->resetPosition(targetPosition, false, true, false);
+            motionController->resetPosition(targetPosition, false, true, false);
         }
         positions.clear();
         positions.push_back(targetPosition);
@@ -728,23 +728,23 @@ bool Strategy::handleDigZone()
         targetPosition.y = site_y;
         positions.push_back(targetPosition);
         traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
-        robot->setTrajectoryToFollow(traj);
+        motionController->setTrajectoryToFollow(traj);
         MOVE_OR_ABORT("handleDigZone failed to complete");
 
         // reset angle to -pi/2
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         traj.clear();
         traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, M_PI)));
-        robot->setTrajectoryToFollow(traj);
+        motionController->setTrajectoryToFollow(traj);
 
 
         // if cross is already detected, no need to measure
         if (is_cross_detected | (i == 1))
         {
             std::cout << "Site known to be pushed : no measurement required" << std::endl;
-            
+
             // if sample is already pushed, do not push or count score
-            if (samples_are_knocked_out[i]) 
+            if (samples_are_knocked_out[i])
             {
                 std::cout << "Site is known to be already pushed" << std::endl;
             }
@@ -756,12 +756,12 @@ bool Strategy::handleDigZone()
 
             number_of_sites_pushed++;
 
-        } 
-        else 
+        }
+        else
         {
             color_detected = testExcavationSite();
             is_cross_detected = color_detected == ExcavationSquareColor::RED;
-            if (shouldPushExcavationSite(color_detected)) 
+            if (shouldPushExcavationSite(color_detected))
             {
                 number_of_sites_pushed++;
                 samples_are_knocked_out[i] = true;
@@ -786,7 +786,7 @@ bool Strategy::handleDigZone()
 
         // Check range
         measured_y = robot->getRangeSensorMeasurement(robot->isPlayingRightSide());
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         // tamper with correction to correct half of the error
         // measured_y = measured_y + (targetPosition.y - measured_y) / 2.0;
         if (std::abs(sumOfAllCorrections + measured_y - targetPosition.y) < MAXIMUM_RANGE_CORRECTION)
@@ -794,7 +794,7 @@ bool Strategy::handleDigZone()
             std::cout << "Resetting position thanks to range sensor. Error:" << targetPosition.y - measured_y << std::endl;
             sumOfAllCorrections += measured_y - targetPosition.y;
             targetPosition.y = measured_y;
-            robot->resetPosition(targetPosition, false, true, false);
+            motionController->resetPosition(targetPosition, false, true, false);
         }
         positions.clear();
         positions.push_back(targetPosition);
@@ -805,14 +805,14 @@ bool Strategy::handleDigZone()
         targetPosition.y = site_y;
         positions.push_back(targetPosition);
         traj = computeTrajectoryRoundedCorner(positions, 100.0, 0.1, true);
-        robot->setTrajectoryToFollow(traj);
+        motionController->setTrajectoryToFollow(traj);
 
         if (know_targeted_site_is_ours)
         {
             // if almost at the right position, push anyway
-            if (!robot->waitForTrajectoryFinished()) { 
-                
-                targetPosition = robot->getCurrentPosition();
+            if (!motionController->waitForTrajectoryFinished()) {
+
+                targetPosition = motionController->getCurrentPosition();
 
                 if (abs(targetPosition.x - (first_site_x + (targeted_site + 3) * spacing_between_sites)) < 30)
                 {
@@ -861,10 +861,10 @@ bool Strategy::handleDigZone()
             MOVE_OR_ABORT("handleDigZone failed to complete");
 
             // reset angle to -pi/2
-            targetPosition = robot->getCurrentPosition();
+            targetPosition = motionController->getCurrentPosition();
             traj.clear();
             traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(targetPosition, M_PI)));
-            robot->setTrajectoryToFollow(traj);
+            motionController->setTrajectoryToFollow(traj);
 
             // measure and resolve
             ExcavationSquareColor color = testExcavationSite();
@@ -873,9 +873,9 @@ bool Strategy::handleDigZone()
             if (color != ExcavationSquareColor::NONE) {
                 // if we found our site
                 if (shouldPushExcavationSite(color)) {
-                    
+
                     // remember we pushed the sample
-                    samples_are_knocked_out[targeted_site + 3] = true; 
+                    samples_are_knocked_out[targeted_site + 3] = true;
 
                     // our sites are 0 and 3
                     if (targeted_site == 0)
@@ -930,20 +930,20 @@ bool Strategy::handleDigZone()
 
         targeted_site++;
     }
-    
+
 
     is_handle_dig_zone_finished = true;
     return(true);
 }
 
-bool Strategy::pushSamplesBelowShelter() 
-{    
-    if (is_push_samples_below_shelter_finished) 
+bool Strategy::pushSamplesBelowShelter()
+{
+    if (is_push_samples_below_shelter_finished)
     {
         return(true);
     }
 
-    RobotPosition targetPosition = robot->getCurrentPosition();
+    RobotPosition targetPosition = motionController->getCurrentPosition();
     std::vector<RobotPosition> positions;
 
     positions.clear();
@@ -961,7 +961,7 @@ bool Strategy::pushSamplesBelowShelter()
     targetPosition.y = 280;
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     // Move the rail so it doesn't hit the fake statue
     robot->moveRail(0.9);
     for (int i = 0; i < 3; i++)
@@ -973,30 +973,30 @@ bool Strategy::pushSamplesBelowShelter()
     // robot->wait(4.0);
     // servo->moveClaw(claw::SIDE_SHALLOWER);
 
-    (void) robot->waitForTrajectoryFinished();
+    (void) motionController->waitForTrajectoryFinished();
 
     // go back a little
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -150);
-    robot->setTrajectoryToFollow(traj);
-    robot->waitForTrajectoryFinished();
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
 
     // place claws and push all the way
     servo->moveClaw(claw::PUSH_SAMPLE_SHELTER);
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, 190);
-    robot->setTrajectoryToFollow(traj);
-    robot->waitForTrajectoryFinished();
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
 
 
     robot->updateScore(2*5); // push samples below shelter
 
     // move back and fold arms
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     traj = computeTrajectoryStraightLine(targetPosition, -180);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
 
-    (void) robot->waitForTrajectoryFinished(); 
+    (void) motionController->waitForTrajectoryFinished();
 
     servo->moveClaw(claw::FOLD);
 

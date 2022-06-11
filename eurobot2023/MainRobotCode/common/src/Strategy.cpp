@@ -32,7 +32,7 @@ bool Strategy::goBackToDigSite()
     std::vector<RobotPosition> positions;
 
     positions.clear();
-    targetPosition = robot->getCurrentPosition();
+    targetPosition = motionController->getCurrentPosition();
     positions.push_back(targetPosition);
     targetPosition.x = 925;
     targetPosition.y = 620;
@@ -41,7 +41,7 @@ bool Strategy::goBackToDigSite()
     targetPosition.y = 620;
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
-    robot->setTrajectoryToFollow(traj);
+    motionController->setTrajectoryToFollow(traj);
     servo->openValve() ;
     servo->openTube(0);
     servo->openTube(1);
@@ -52,7 +52,7 @@ bool Strategy::goBackToDigSite()
     servo->moveArm(false, arm::FOLD);
     servo->moveFinger(false, finger::FOLD);
 
-    return robot->waitForTrajectoryFinished();
+    return motionController->waitForTrajectoryFinished();
 }
 
 
@@ -68,10 +68,11 @@ Strategy::Strategy()
 
 }
 
-void Strategy::setup(RobotInterface *robot, ServoHandler *servo)
+void Strategy::setup(RobotInterface *robot)
 {
     this->robot = robot;
-    this->servo = servo;
+    this->servo = robot->getServos();
+    this->motionController = robot->getMotionController();
 
     servo->moveStatue(statue::FOLD);
     servo->activateMagnet(false);
@@ -115,7 +116,7 @@ void Strategy::match_impl()
     targetPosition.x = robotdimensions::CHASSIS_BACK;
     targetPosition.y = 1200;
     targetPosition.theta = 0;
-    robot->resetPosition(targetPosition, true, true, true);
+    motionController->resetPosition(targetPosition, true, true, true);
     robot->wait(0.05);
 
     // start camera
@@ -138,7 +139,7 @@ void Strategy::match_impl()
         // adverse robot should be near vitrine/side dist/presentoir
         // -> try go do dig sites
 
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         if (targetPosition.y > 1100)
         {
             // try not to knock samples off starting zone
@@ -146,8 +147,8 @@ void Strategy::match_impl()
             endPosition.x = 500;
             endPosition.y -= 200;
             traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
-            robot->setTrajectoryToFollow(traj);
-            robot->waitForTrajectoryFinished();
+            motionController->setTrajectoryToFollow(traj);
+            motionController->waitForTrajectoryFinished();
 
             if (!handleDigZone())
                 stopEverything();
@@ -157,19 +158,19 @@ void Strategy::match_impl()
                 // before folding claws try to go back a little in order not to get a sample stuck
                 // between claws
                 // trajectory should be feasible given position
-                targetPosition = robot->getCurrentPosition();
+                targetPosition = motionController->getCurrentPosition();
                 traj = computeTrajectoryStraightLine(targetPosition, -150);
-                robot->setTrajectoryToFollow(traj);
-                robot->waitForTrajectoryFinished();
+                motionController->setTrajectoryToFollow(traj);
+                motionController->waitForTrajectoryFinished();
                 stopEverything();
             }
-            
+
             if (!handleSideTripleSamples())
                 stopEverything();
         }
     }
 
-    
+
 
 
     //**********************************************************
@@ -187,7 +188,7 @@ void Strategy::match_impl()
     targetPosition.x = 292;
     targetPosition.y = 1667 ;
     targetPosition.theta = 4.66973;
-    robot->resetPosition(targetPosition, true, true, true);
+    motionController->resetPosition(targetPosition, true, true, true);
 
     #endif
 
@@ -208,7 +209,7 @@ void Strategy::match_impl()
             stopEverything();
 
             // go back not to knock samples
-            targetPosition = robot->getCurrentPosition();
+            targetPosition = motionController->getCurrentPosition();
             RobotPosition endPosition = targetPosition;
             endPosition.x = 600;
             endPosition.y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -10;
@@ -218,18 +219,18 @@ void Strategy::match_impl()
                 stopEverything();
 
             // then go back around 1100, 500 to get a better angle
-            targetPosition = robot->getCurrentPosition();
+            targetPosition = motionController->getCurrentPosition();
             endPosition = targetPosition;
             endPosition.x = 450;
             endPosition.y = 1100;
-            traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);   
-            robot->setTrajectoryToFollow(traj);
-            robot->waitForTrajectoryFinished();
+            traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
+            motionController->setTrajectoryToFollow(traj);
+            motionController->waitForTrajectoryFinished();
         }
 
     }
 
-    std::cout << robot->getCurrentPosition() << std::endl;
+    std::cout << motionController->getCurrentPosition() << std::endl;
     // robot->wait(1000);
 
     #endif
@@ -241,22 +242,22 @@ void Strategy::match_impl()
     targetPosition.x = 766.546;
     targetPosition.y = 1635.35 ;
     targetPosition.theta = 7.8531;
-    robot->resetPosition(targetPosition, true, true, true);
+    motionController->resetPosition(targetPosition, true, true, true);
 
     #endif
 
     //**********************************************************
     // Push the samples on the field
     //**********************************************************
-    if (!pushSamplesBelowShelter()) 
+    if (!pushSamplesBelowShelter())
     {
         // before folding claws try to go back a little in order not to get a sample stuck
         // between claws
         // trajectory should be feasible given position
-        targetPosition = robot->getCurrentPosition();
+        targetPosition = motionController->getCurrentPosition();
         traj = computeTrajectoryStraightLine(targetPosition, -150);
-        robot->setTrajectoryToFollow(traj);
-        robot->waitForTrajectoryFinished();
+        motionController->setTrajectoryToFollow(traj);
+        motionController->waitForTrajectoryFinished();
         stopEverything();
     }
 
@@ -301,7 +302,7 @@ void Strategy::match_impl()
         MATCH_COMPLETED = goBackToDigSite();
         robot->wait(0.1);
     }
-    
+
     if (MATCH_COMPLETED)
     {
         robot->updateScore(20); // match completed
@@ -338,15 +339,15 @@ void Strategy::match()
     if (!MATCH_COMPLETED)
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
-        
+
         servo->activatePump(false);
 
-        if (goBackToDigSite()) 
+        if (goBackToDigSite())
         {
             robot->updateScore(20); //match completed
             camera_.shutDown();
         }
-        
+
     }
 #endif
 }

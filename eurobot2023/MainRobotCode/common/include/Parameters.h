@@ -89,4 +89,10 @@
             YELLOW = 2,
             RED = 3
         };
+
+
+        // Right and left macros, for array addressing.
+        int const RIGHT = 0;
+        int const LEFT = 1;
+
  #endif

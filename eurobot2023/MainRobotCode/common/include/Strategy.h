@@ -19,7 +19,7 @@
             Strategy();
 
             // Called before the start of the match, to setup the robot.
-            void setup(RobotInterface *robot, ServoHandler *servos);
+            void setup(RobotInterface *robot);
 
             // The actual match code, which runs in its own thread.
             void match();
@@ -30,6 +30,7 @@
         private:
             void match_impl(); /// Actual implementation of the match code.
             RobotInterface *robot;
+            MotionController *motionController;
             ServoHandler *servo;
 
             // Actions

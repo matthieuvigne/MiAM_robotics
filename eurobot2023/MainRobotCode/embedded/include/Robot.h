@@ -36,9 +36,6 @@
     #include "Strategy.h"
 
     // Right and left macros, for array addressing.
-    int const RIGHT = 0;
-    int const LEFT = 1;
-
     using miam::RobotPosition;
     using miam::ProtectedPosition;
     using miam::trajectory::Trajectory;
@@ -54,48 +51,10 @@
     // Controller parameters
     namespace controller
     {
-        //~ double const transverseKp = 0.1;
-
-        double const linearKp = 3.5; // previously 3.0
-        double const linearKd = 0.01; // previously 0.0
-        double const linearKi = 0.0; // previously 0.1
-
-        double const transverseKp = 0.005;
-
-        double const rotationKp = 10.0;
-        //~ double const rotationKp = 0.0;
-        double const rotationKd = 0.01;
-        double const rotationKi = 0.0;
-
         double const railKp = 20.0;
         double const railKd = 0.0;
         double const railKi = 0.0;
     }
-
-    // Detection parameters
-    namespace detection {
-
-      // Zone radius
-      double constexpr r1 = 400;
-      double constexpr r2 = 700;
-
-      // Zone angular width
-      double constexpr theta1 = M_PI_2;
-      double constexpr theta2 = 0.70;
-
-      double const x_max = 500;
-      double const y_max = 300;
-      double const xfar_max = 700;
-      double const yfar_max = 500;
-    }
-
-    // Dimensions of the table
-    namespace table_dimensions {
-      double constexpr table_max_x = 2950;
-      double constexpr table_max_y = 1950;
-      double constexpr table_min_x = 50;
-      double constexpr table_min_y = 50;
-    } // namespace table dimensions
 
     class Robot : public RobotInterface
     {
@@ -137,11 +96,6 @@
 
             void stopMotors() override;
 
-            // List of all system on the robot, public for easy external access (they might be moved latter on).
-            ServoHandler servos_; ///< Interface for the servo driver.
-            MaestroDriver maestro_;
-            USBLCD screen_; ///< LCD screen and buttons.
-            RPLidarHandler lidar_; ///< Lidar
 
             bool isPlayingRightSide() const override
             {
@@ -151,9 +105,6 @@
             /// \brief Get time in current match.
             /// \return Time since start of the match, or 0 if not started.
             double getMatchTime();
-
-            bool ignoreDetection_; ///<< Turn off detection in some very specific instants.
-            int avoidanceTimeout_; ///<< Time to wait before abording, in number of iterations.
 
             ExcavationSquareColor getExcavationReadings(bool readRightSide) override;
 
@@ -167,32 +118,19 @@
                 return rangeMeasurements_[measureRightSide ? RIGHT : LEFT];
             }
 
+            /// \brief Shut down the robot when Ctrl+X is pressed.
+            void shutdown();
+
         private:
+            USBLCD screen_; ///< LCD screen and buttons.
+            RPLidarHandler lidar_; ///< Lidar
+            MaestroDriver maestro_; ///< Servo driver
+
             bool testMode_; // Test mode: no initial wait.
             bool disableLidar_; // Disable lidar (works only in test mode)
 
             /// \brief Update the logfile with current values.
             void updateLog();
-
-            /// \brief Update the target of the trajectory following algorithm.
-            /// \details This function is responsible for handling new trajectories, and switching through
-            ///          the trajectory vector to follow.
-            /// \param[in] dt Time since this function was last called, for PD controller.
-            void updateTrajectoryFollowingTarget(double const& dt);
-
-            /// \brief Follow a trajectory.
-            /// \details This function computes motor velocity to reach a specific trajectory point, and sends
-            ///          it to the motors.
-            /// \param[in] traj Current trajectory to follow.
-            /// \param[in] timeInTrajectory Current time since the start of the trajectory.
-            /// \param[in] dt Time since last servoing call, for PID controller.
-            /// \return True if trajectory following should continue, false if trajectory following is completed.
-            bool followTrajectory(Trajectory *traj, double const& timeInTrajectory, double const& dt);
-
-            /// \brief Updates the LiDAR and sets the avoidance strategy
-            /// \param [out] coefficient for trajectory time increase
-            double avoidOtherRobots();
-            bool isLidarPointWithinTable(LidarPoint const& point);
 
             /// \brief Perform robot setup, return wheather the match has started or not.
             ///
@@ -215,24 +153,10 @@
             uCData microcontrollerData_; ///< Data structure containing informations from the arduino board.
             Logger logger_; ///< Logger object.
 
-            // Traking errors.
-            double trackingLongitudinalError_; ///< Tracking error along tangent to trajectory.
-            double trackingTransverseError_; ///< Tracking error along normal to trajectory.
-            double trackingAngleError_; ///< Tracking angle error.
-
-            // Tracking PIDs
-            miam::PID PIDLinear_; ///< Longitudinal PID.
-            miam::PID PIDAngular_; ///< Angular PID.
-
             // Rail PID
             miam::PID PIDRail_; ///< PID for the rail.
-
-            // Rail
             int targetRailPosition_; ///< The desired rail position (in potentiometer unit). Should be -1 if not yet set during the match.
 
-            // Kinematics
-            DrivetrainKinematics kinematics_;
-            double coeff_ = 1.0;
 
             // Init variables.
             bool isScreenInit_ = {false}; ///< Boolean representing the initialization of the screen motors.
@@ -248,8 +172,6 @@
             bool initMotorBlocked_; ///< State of the motors during init.
             bool initStatueHigh_; ///< State of the motors during init.
 
-            double curvilinearAbscissa_;
-            int nLidarPoints_;  ///< Number of points read by the lidar.
 
             VL53L0X rangeSensors_[2];
 
@@ -259,6 +181,11 @@
             Strategy strategy_;
 
             double timeSinceLastCheckOnRailHeightDuringInit_;
+
+            bool hasMatchStarted_{false};
+            bool isPlayingRightSide_{false};
+            double matchStartTime_{0.0};
+            double currentTime_{0.0};
     };
 
     extern Robot robot;    ///< The robot instance, representing the current robot.

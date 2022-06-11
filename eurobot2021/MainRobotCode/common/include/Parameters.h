@@ -83,6 +83,10 @@
             ""
         };
 
+        // Right and left macros, for array addressing.
+        int const RIGHT = 0;
+        int const LEFT = 1;
+
         enum class ExcavationSquareColor{
             NONE = 0,
             PURPLE = 1,

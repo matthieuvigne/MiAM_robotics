@@ -17,29 +17,16 @@ const int RIGHT_RANGE_ACTIVATE = 4;
 
 
 Robot::Robot(bool const& testMode, bool const& disableLidar):
-    RobotInterface(),
-    servos_(&maestro_),
+    RobotInterface(ServoHandler(&maestro_)),
     lidar_(-M_PI_4),
-    ignoreDetection_(false),
-    avoidanceTimeout_(600),
     testMode_(testMode),
     disableLidar_(disableLidar),
     score_(0),
     startupStatus_(startupstatus::INIT),
     initMotorBlocked_(false),
     initStatueHigh_(true),
-    curvilinearAbscissa_(0.0),
     timeSinceLastCheckOnRailHeightDuringInit_(-1.0)
 {
-    kinematics_ = DrivetrainKinematics(robotdimensions::wheelRadius,
-                                       robotdimensions::wheelSpacing,
-                                       robotdimensions::encoderWheelRadius,
-                                       robotdimensions::encoderWheelSpacing);
-    // Update trajectory config.
-    miam::trajectory::setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
-                                                    robotdimensions::maxWheelAccelerationTrajectory,
-                                                    robotdimensions::wheelSpacing);
-
     // Create logger.
     std::time_t t = std::time(nullptr);
     char timestamp[100];
@@ -54,19 +41,6 @@ Robot::Robot(bool const& testMode, bool const& disableLidar):
                         "_stepSize:" + std::to_string(robotdimensions::stepSize);
 
     logger_ = Logger(filename, "Match code", info, getHeaderStringList());
-
-    // Set initial positon.
-    RobotPosition initialPosition;
-    initialPosition.x = 120;
-    initialPosition.y = 1200;
-    initialPosition.theta = 0;
-    currentPosition_.set(initialPosition);
-    currentBaseSpeed_.linear = 0;
-    currentBaseSpeed_.angular = 0;
-
-    // Set PIDs.
-    PIDLinear_ = miam::PID(controller::linearKp, controller::linearKd, controller::linearKi, 0.2);
-    PIDAngular_ = miam::PID(controller::rotationKp, controller::rotationKd, controller::rotationKi, 0.15);
     PIDRail_ = miam::PID(controller::railKp, controller::railKd, controller::railKi, 0.1);
 
     // Set initial rail target
@@ -241,7 +215,7 @@ bool Robot::setupBeforeMatchStart()
             screen_.setLCDBacklight(255, 255, 255);
             calibrateRail();
 
-            strategy_.setup(this, &this->servos_);
+            strategy_.setup(this);
 
             // Set status.
             stepperMotors_.getError();
@@ -258,24 +232,6 @@ bool Robot::setupBeforeMatchStart()
             screen_.setText("Waiting for", 0);
             screen_.setText("start switch", 1);
             screen_.setLCDBacklight(255, 255, 255);
-
-            // Test motors.
-            std::vector<double> speed;
-            motorSpeed_[0] = 150;
-            motorSpeed_[1] = 150;
-            stepperMotors_.setSpeed(motorSpeed_);
-            usleep(300000);
-            motorSpeed_[0] = 0;
-            motorSpeed_[1] = 0;
-            stepperMotors_.setSpeed(motorSpeed_);
-            usleep(300000);
-            motorSpeed_[0] = -150;
-            motorSpeed_[1] = -150;
-            stepperMotors_.setSpeed(motorSpeed_);
-            usleep(300000);
-            motorSpeed_[0] = 0;
-            motorSpeed_[1] = 0;
-            stepperMotors_.setSpeed(motorSpeed_);
         }
     }
     else if (startupStatus_ == startupstatus::WAITING_FOR_CABLE)
@@ -414,33 +370,32 @@ void Robot::lowLevelLoop()
         uCData oldData = microcontrollerData_;
         microcontrollerData_ = uCListener_getData();
 
-        // Compute encoder update.
-        WheelSpeed encoderIncrement;
-        encoderIncrement.right = microcontrollerData_.encoderValues[RIGHT] - oldData.encoderValues[RIGHT];
-        encoderIncrement.left = microcontrollerData_.encoderValues[LEFT] - oldData.encoderValues[LEFT];
+        // Compute drivetrain measurements.
 
-        // If playing right side: invert right/left encoders, with minus sign because both motors are opposite of each other.
+        DrivetrainMeasurements measurements;
+        measurements.encoderSpeed.right = microcontrollerData_.encoderValues[RIGHT] - oldData.encoderValues[RIGHT];
+        measurements.encoderSpeed.left = microcontrollerData_.encoderValues[LEFT] - oldData.encoderValues[LEFT];
+
+        // If playing right side: invert right/left encoders.
         if (isPlayingRightSide_)
         {
-            double temp = encoderIncrement.right;
-            encoderIncrement.right = encoderIncrement.left;
-            encoderIncrement.left = temp;
+            double temp = measurements.encoderSpeed.right;
+            measurements.encoderSpeed.right = measurements.encoderSpeed.left;
+            measurements.encoderSpeed.left = temp;
         }
 
-        // Update motor position.
-        motorPosition_ = stepperMotors_.getPosition();
+        measurements.motorSpeed = stepperMotors_.getSpeed();
 
         // Update the lidar
         if (!testMode_ || !disableLidar_)
         {
-            nLidarPoints_ = lidar_.update();
-            coeff_ = avoidOtherRobots();
+            int nLidarPoints_ = lidar_.update();
+            measurements.lidarDetection = lidar_.detectedRobots_;
         }
-        else
-        {
-            coeff_ = 1.0;
-        }
+
         // Update leds.
+        // FIXME
+        int coeff_ = 0;
         if (coeff_ == 0)
             screen_.turnOnLED(lcd::LEFT_LED);
         else
@@ -450,27 +405,22 @@ void Robot::lowLevelLoop()
         else
             screen_.turnOffLED(lcd::MIDDLE_LED);
 
+        DrivetrainTarget target;
         // Update position and perform tracking only after match start.
         if (hasMatchStarted_)
         {
-            // Integrate encoder measurements.
-            currentPosition_.update(kinematics_, encoderIncrement);
-
-            // Perform trajectory tracking.
-            updateTrajectoryFollowingTarget(dt);
+            target = motionController_.computeDrivetrainMotion(measurements, dt);
         }
 
-        // Get current encoder speeds (in rad/s)
-        WheelSpeed instantWheelSpeedEncoder;
-        instantWheelSpeedEncoder.right = encoderIncrement.right / dt;
-        instantWheelSpeedEncoder.left = encoderIncrement.left / dt;
+        // Apply target.
+        std::vector<double> speed;
+        speed.push_back(target.motorSpeed[0]);
+        speed.push_back(target.motorSpeed[1]);
+        stepperMotors_.setSpeed(speed);
 
-        // Get base speed
-        currentBaseSpeed_ = kinematics_.forwardKinematics(instantWheelSpeedEncoder, true);
 
         // Update log.
         updateLog();
-        // std::cout << microcontrollerData_ << std::endl;
     }
     // End of the match.
     std::cout << "Match end" << std::endl;
@@ -524,41 +474,41 @@ void Robot::calibrateRail()
 
 void Robot::updateLog()
 {
-    logger_.setData(LOGGER_TIME, currentTime_);
-    logger_.setData(LOGGER_COMMAND_VELOCITY_RIGHT, motorSpeed_[RIGHT]);
-    logger_.setData(LOGGER_COMMAND_VELOCITY_LEFT, motorSpeed_[LEFT]);
-    logger_.setData(LOGGER_MOTOR_POSITION_RIGHT, motorPosition_[RIGHT]);
-    logger_.setData(LOGGER_MOTOR_POSITION_LEFT, motorPosition_[LEFT]);
-    logger_.setData(LOGGER_ENCODER_RIGHT, microcontrollerData_.encoderValues[RIGHT]);
-    logger_.setData(LOGGER_ENCODER_LEFT, microcontrollerData_.encoderValues[LEFT]);
+    // logger_.setData(LOGGER_TIME, currentTime_);
+    // logger_.setData(LOGGER_COMMAND_VELOCITY_RIGHT, motorSpeed_[RIGHT]);
+    // logger_.setData(LOGGER_COMMAND_VELOCITY_LEFT, motorSpeed_[LEFT]);
+    // logger_.setData(LOGGER_MOTOR_POSITION_RIGHT, motorPosition_[RIGHT]);
+    // logger_.setData(LOGGER_MOTOR_POSITION_LEFT, motorPosition_[LEFT]);
+    // logger_.setData(LOGGER_ENCODER_RIGHT, microcontrollerData_.encoderValues[RIGHT]);
+    // logger_.setData(LOGGER_ENCODER_LEFT, microcontrollerData_.encoderValues[LEFT]);
 
-    RobotPosition currentPosition = currentPosition_.get();
-    logger_.setData(LOGGER_CURRENT_POSITION_X, currentPosition.x);
-    logger_.setData(LOGGER_CURRENT_POSITION_Y, currentPosition.y);
-    logger_.setData(LOGGER_CURRENT_POSITION_THETA, currentPosition.theta);
-    logger_.setData(LOGGER_CURRENT_VELOCITY_LINEAR, currentBaseSpeed_.linear);
-    logger_.setData(LOGGER_CURRENT_VELOCITY_ANGULAR, currentBaseSpeed_.angular);
+    // RobotPosition currentPosition = currentPosition_.get();
+    // logger_.setData(LOGGER_CURRENT_POSITION_X, currentPosition.x);
+    // logger_.setData(LOGGER_CURRENT_POSITION_Y, currentPosition.y);
+    // logger_.setData(LOGGER_CURRENT_POSITION_THETA, currentPosition.theta);
+    // logger_.setData(LOGGER_CURRENT_VELOCITY_LINEAR, currentBaseSpeed_.linear);
+    // logger_.setData(LOGGER_CURRENT_VELOCITY_ANGULAR, currentBaseSpeed_.angular);
 
-    logger_.setData(LOGGER_TARGET_POSITION_X, trajectoryPoint_.position.x);
-    logger_.setData(LOGGER_TARGET_POSITION_Y, trajectoryPoint_.position.y);
-    logger_.setData(LOGGER_TARGET_POSITION_THETA, trajectoryPoint_.position.theta);
-    logger_.setData(LOGGER_TARGET_LINEAR_VELOCITY, trajectoryPoint_.linearVelocity);
-    logger_.setData(LOGGER_TARGET_ANGULAR_VELOCITY, trajectoryPoint_.angularVelocity);
+    // logger_.setData(LOGGER_TARGET_POSITION_X, trajectoryPoint_.position.x);
+    // logger_.setData(LOGGER_TARGET_POSITION_Y, trajectoryPoint_.position.y);
+    // logger_.setData(LOGGER_TARGET_POSITION_THETA, trajectoryPoint_.position.theta);
+    // logger_.setData(LOGGER_TARGET_LINEAR_VELOCITY, trajectoryPoint_.linearVelocity);
+    // logger_.setData(LOGGER_TARGET_ANGULAR_VELOCITY, trajectoryPoint_.angularVelocity);
 
-    logger_.setData(LOGGER_TRACKING_LONGITUDINAL_ERROR, trackingLongitudinalError_);
-    logger_.setData(LOGGER_TRACKING_TRANSVERSE_ERROR, trackingTransverseError_);
-    logger_.setData(LOGGER_TRACKING_ANGLE_ERROR, trackingAngleError_);
+    // logger_.setData(LOGGER_TRACKING_LONGITUDINAL_ERROR, trackingLongitudinalError_);
+    // logger_.setData(LOGGER_TRACKING_TRANSVERSE_ERROR, trackingTransverseError_);
+    // logger_.setData(LOGGER_TRACKING_ANGLE_ERROR, trackingAngleError_);
 
-    logger_.setData(LOGGER_RAIL_POSITION, microcontrollerData_.potentiometerPosition);
+    // logger_.setData(LOGGER_RAIL_POSITION, microcontrollerData_.potentiometerPosition);
 
-    logger_.setData(LOGGER_LINEAR_P_I_D_CORRECTION, PIDLinear_.getCorrection());
-    logger_.setData(LOGGER_ANGULAR_P_I_D_CORRECTION, PIDAngular_.getCorrection());
-    logger_.setData(LOGGER_RAIL_P_I_D_CORRECTION, PIDRail_.getCorrection());
-    logger_.setData(LOGGER_DETECTION_COEFF, this->coeff_);
-    logger_.setData(LOGGER_LIDAR_N_POINTS, nLidarPoints_);
-    logger_.setData(LOGGER_RANGE_RIGHT, rangeMeasurements_[RIGHT]);
-    logger_.setData(LOGGER_RANGE_LEFT, rangeMeasurements_[LEFT]);
-    logger_.setData(LOGGER_CAMERA_EXCAVATION_COUNT, strategy_.camera_.getNumberOfMarkersInExcavationSite());
+    // logger_.setData(LOGGER_LINEAR_P_I_D_CORRECTION, PIDLinear_.getCorrection());
+    // logger_.setData(LOGGER_ANGULAR_P_I_D_CORRECTION, PIDAngular_.getCorrection());
+    // logger_.setData(LOGGER_RAIL_P_I_D_CORRECTION, PIDRail_.getCorrection());
+    // logger_.setData(LOGGER_DETECTION_COEFF, this->coeff_);
+    // logger_.setData(LOGGER_LIDAR_N_POINTS, nLidarPoints_);
+    // logger_.setData(LOGGER_RANGE_RIGHT, rangeMeasurements_[RIGHT]);
+    // logger_.setData(LOGGER_RANGE_LEFT, rangeMeasurements_[LEFT]);
+    // logger_.setData(LOGGER_CAMERA_EXCAVATION_COUNT, strategy_.camera_.getNumberOfMarkersInExcavationSite());
 
     logger_.writeLine();
 }
@@ -623,4 +573,12 @@ void Robot::updateRangeMeasurement()
             rangeMeasurements_[i] = static_cast<double>(average) / N_AVG;
         }
     }
+}
+
+void Robot::shutdown()
+{
+    servos_.shutdownServos();
+    servos_.activatePump(false);
+    stopMotors();
+    lidar_.stop();
 }
