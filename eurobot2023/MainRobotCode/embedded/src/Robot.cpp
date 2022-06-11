@@ -27,21 +27,9 @@ Robot::Robot(bool const& testMode, bool const& disableLidar):
     initStatueHigh_(true),
     timeSinceLastCheckOnRailHeightDuringInit_(-1.0)
 {
-    // Create logger.
-    std::time_t t = std::time(nullptr);
-    char timestamp[100];
-    std::strftime(timestamp, sizeof(timestamp), "%Y%m%dT%H%M%SZ", std::localtime(&t));
-    std::string filename = "logs/log" + std::string(timestamp) + ".csv";
-    if (testMode_)
-        filename = "/tmp/log" + std::string(timestamp) + ".csv";
-    std::string headers = getHeaderStringList();
-    // Log robot dimensions in header.
-    std::string info = "wheelRadius:" + std::to_string(robotdimensions::wheelRadius) + \
-                        "_wheelSpacing:" + std::to_string(robotdimensions::wheelSpacing) + \
-                        "_stepSize:" + std::to_string(robotdimensions::stepSize);
-
-    logger_ = Logger(filename, "Match code", info, getHeaderStringList());
     PIDRail_ = miam::PID(controller::railKp, controller::railKd, controller::railKi, 0.1);
+
+    motionController_.init(RobotPosition());
 
     // Set initial rail target
     targetRailPosition_ = -1;
@@ -373,6 +361,8 @@ void Robot::lowLevelLoop()
         // Compute drivetrain measurements.
 
         DrivetrainMeasurements measurements;
+        measurements.encoderPosition[0] = microcontrollerData_.encoderValues[0];
+        measurements.encoderPosition[1] = microcontrollerData_.encoderValues[1];
         measurements.encoderSpeed.right = microcontrollerData_.encoderValues[RIGHT] - oldData.encoderValues[RIGHT];
         measurements.encoderSpeed.left = microcontrollerData_.encoderValues[LEFT] - oldData.encoderValues[LEFT];
 
@@ -389,7 +379,7 @@ void Robot::lowLevelLoop()
         // Update the lidar
         if (!testMode_ || !disableLidar_)
         {
-            int nLidarPoints_ = lidar_.update();
+            lidar_.update();
             measurements.lidarDetection = lidar_.detectedRobots_;
         }
 
@@ -405,22 +395,15 @@ void Robot::lowLevelLoop()
         else
             screen_.turnOffLED(lcd::MIDDLE_LED);
 
-        DrivetrainTarget target;
-        // Update position and perform tracking only after match start.
-        if (hasMatchStarted_)
-        {
-            target = motionController_.computeDrivetrainMotion(measurements, dt);
-        }
+        // Compute motion target.
+        DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
+
 
         // Apply target.
         std::vector<double> speed;
         speed.push_back(target.motorSpeed[0]);
         speed.push_back(target.motorSpeed[1]);
         stepperMotors_.setSpeed(speed);
-
-
-        // Update log.
-        updateLog();
     }
     // End of the match.
     std::cout << "Match end" << std::endl;
@@ -470,47 +453,6 @@ void Robot::calibrateRail()
     }
     servos_.moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
     railHigh_ = uCListener_getData().potentiometerPosition;
-}
-
-void Robot::updateLog()
-{
-    // logger_.setData(LOGGER_TIME, currentTime_);
-    // logger_.setData(LOGGER_COMMAND_VELOCITY_RIGHT, motorSpeed_[RIGHT]);
-    // logger_.setData(LOGGER_COMMAND_VELOCITY_LEFT, motorSpeed_[LEFT]);
-    // logger_.setData(LOGGER_MOTOR_POSITION_RIGHT, motorPosition_[RIGHT]);
-    // logger_.setData(LOGGER_MOTOR_POSITION_LEFT, motorPosition_[LEFT]);
-    // logger_.setData(LOGGER_ENCODER_RIGHT, microcontrollerData_.encoderValues[RIGHT]);
-    // logger_.setData(LOGGER_ENCODER_LEFT, microcontrollerData_.encoderValues[LEFT]);
-
-    // RobotPosition currentPosition = currentPosition_.get();
-    // logger_.setData(LOGGER_CURRENT_POSITION_X, currentPosition.x);
-    // logger_.setData(LOGGER_CURRENT_POSITION_Y, currentPosition.y);
-    // logger_.setData(LOGGER_CURRENT_POSITION_THETA, currentPosition.theta);
-    // logger_.setData(LOGGER_CURRENT_VELOCITY_LINEAR, currentBaseSpeed_.linear);
-    // logger_.setData(LOGGER_CURRENT_VELOCITY_ANGULAR, currentBaseSpeed_.angular);
-
-    // logger_.setData(LOGGER_TARGET_POSITION_X, trajectoryPoint_.position.x);
-    // logger_.setData(LOGGER_TARGET_POSITION_Y, trajectoryPoint_.position.y);
-    // logger_.setData(LOGGER_TARGET_POSITION_THETA, trajectoryPoint_.position.theta);
-    // logger_.setData(LOGGER_TARGET_LINEAR_VELOCITY, trajectoryPoint_.linearVelocity);
-    // logger_.setData(LOGGER_TARGET_ANGULAR_VELOCITY, trajectoryPoint_.angularVelocity);
-
-    // logger_.setData(LOGGER_TRACKING_LONGITUDINAL_ERROR, trackingLongitudinalError_);
-    // logger_.setData(LOGGER_TRACKING_TRANSVERSE_ERROR, trackingTransverseError_);
-    // logger_.setData(LOGGER_TRACKING_ANGLE_ERROR, trackingAngleError_);
-
-    // logger_.setData(LOGGER_RAIL_POSITION, microcontrollerData_.potentiometerPosition);
-
-    // logger_.setData(LOGGER_LINEAR_P_I_D_CORRECTION, PIDLinear_.getCorrection());
-    // logger_.setData(LOGGER_ANGULAR_P_I_D_CORRECTION, PIDAngular_.getCorrection());
-    // logger_.setData(LOGGER_RAIL_P_I_D_CORRECTION, PIDRail_.getCorrection());
-    // logger_.setData(LOGGER_DETECTION_COEFF, this->coeff_);
-    // logger_.setData(LOGGER_LIDAR_N_POINTS, nLidarPoints_);
-    // logger_.setData(LOGGER_RANGE_RIGHT, rangeMeasurements_[RIGHT]);
-    // logger_.setData(LOGGER_RANGE_LEFT, rangeMeasurements_[LEFT]);
-    // logger_.setData(LOGGER_CAMERA_EXCAVATION_COUNT, strategy_.camera_.getNumberOfMarkersInExcavationSite());
-
-    logger_.writeLine();
 }
 
 double Robot::getMatchTime()

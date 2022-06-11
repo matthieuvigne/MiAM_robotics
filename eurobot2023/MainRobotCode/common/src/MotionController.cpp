@@ -1,4 +1,5 @@
 #include "MotionController.h"
+#include "LoggerFields.h"
 #include <miam_utils/trajectory/Utilities.h>
 
 
@@ -31,6 +32,23 @@ MotionController::MotionController():
 
 }
 
+void MotionController::init(RobotPosition const& startPosition)
+{
+    currentPosition_.set(startPosition);
+
+    // Create logger.
+    std::time_t t = std::time(nullptr);
+    char timestamp[100];
+    std::strftime(timestamp, sizeof(timestamp), "%Y%m%dT%H%M%SZ", std::localtime(&t));
+    std::string filename = "logs/log" + std::string(timestamp) + ".csv";
+    // Log robot dimensions in header.
+    std::string info = "wheelRadius:" + std::to_string(robotdimensions::wheelRadius) + \
+                        "_wheelSpacing:" + std::to_string(robotdimensions::wheelSpacing) + \
+                        "_stepSize:" + std::to_string(robotdimensions::stepSize);
+
+    logger_ = Logger(filename, "Match code", info, getHeaderStringList());
+    currentTime_ = 0.0;
+}
 
 miam::RobotPosition MotionController::getCurrentPosition()
 {
@@ -79,21 +97,31 @@ bool MotionController::wasTrajectoryFollowingSuccessful()
 }
 
 
-
-DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurements const& measurements, double const& dt)
+DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurements const& measurements,
+                                                           double const& dt,
+                                                           bool const& hasMatchStarted)
 {
-    // Odometry
-    currentPosition_.update(kinematics_, measurements.encoderSpeed);
+    // Log input
+    currentTime_ += dt;
+    logger_.setData(LOGGER_TIME, currentTime_);
+    logger_.setData(LOGGER_ENCODER_RIGHT, measurements.encoderPosition[RIGHT]);
+    logger_.setData(LOGGER_ENCODER_LEFT, measurements.encoderPosition[LEFT]);
 
+    // Odometry
+    RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderSpeed);
+    logger_.setData(LOGGER_CURRENT_POSITION_X, currentPosition.x);
+    logger_.setData(LOGGER_CURRENT_POSITION_Y, currentPosition.y);
+    logger_.setData(LOGGER_CURRENT_POSITION_THETA, currentPosition.theta);
+
+    BaseSpeed baseSpeed = kinematics_.forwardKinematics(measurements.encoderSpeed, true);
+    logger_.setData(LOGGER_CURRENT_VELOCITY_LINEAR, baseSpeed.linear);
+    logger_.setData(LOGGER_CURRENT_VELOCITY_ANGULAR, baseSpeed.angular);
 
     DrivetrainTarget target;
 
-    double slowDownCoeff = computeObstacleAvoidanceSlowdown(measurements.lidarDetection);
+    double slowDownCoeff = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
+    logger_.setData(LOGGER_DETECTION_COEFF, slowDownCoeff);
 
-    // FIXME
-    // Force stop robot
-    if (slowDownCoeff == 0)
-        return target;
 
     // Load new trajectory, if needed.
     newTrajectoryMutex_.lock();
@@ -152,6 +180,23 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
             }
         }
     }
+
+    // Force robot to stop if too close
+    if (slowDownCoeff == 0)
+        return target;
+
+    if (!hasMatchStarted)
+    {
+        target.motorSpeed[RIGHT] = 0.0;
+        target.motorSpeed[LEFT] = 0.0;
+        PIDLinear_.resetIntegral(0.0);
+        PIDAngular_.resetIntegral(0.0);
+    }
+
+    logger_.setData(LOGGER_COMMAND_VELOCITY_RIGHT, target.motorSpeed[RIGHT]);
+    logger_.setData(LOGGER_COMMAND_VELOCITY_LEFT, target.motorSpeed[LEFT]);
+
+    logger_.writeLine();
     return target;
 }
 
@@ -171,6 +216,12 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     targetPoint.linearVelocity *= slowDownRatio;
     targetPoint.angularVelocity *= slowDownRatio;
 
+    logger_.setData(LOGGER_TARGET_POSITION_X, targetPoint.position.x);
+    logger_.setData(LOGGER_TARGET_POSITION_Y, targetPoint.position.y);
+    logger_.setData(LOGGER_TARGET_POSITION_THETA, targetPoint.position.theta);
+    logger_.setData(LOGGER_TARGET_LINEAR_VELOCITY, targetPoint.linearVelocity);
+    logger_.setData(LOGGER_TARGET_ANGULAR_VELOCITY, targetPoint.angularVelocity);
+
     // Compute targets for rotation and translation motors.
     BaseSpeed targetSpeed;
 
@@ -185,18 +236,22 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // Rotate by -theta to express the error in the tangent frame.
     RobotPosition rotatedError = error.rotate(-targetPoint.position.theta);
 
-    double trackingLongitudinalError_ = rotatedError.x;
-    double trackingTransverseError_ = rotatedError.y;
+    double trackingLongitudinalError = rotatedError.x;
+    double trackingTransverseError = rotatedError.y;
 
     // Change sign if going backward.
     if(targetPoint.linearVelocity < 0)
-        trackingTransverseError_ = - trackingTransverseError_;
-    double trackingAngleError_ = miam::trajectory::moduloTwoPi(currentPosition.theta - targetPoint.position.theta);
+        trackingTransverseError = - trackingTransverseError;
+    double trackingAngleError = miam::trajectory::moduloTwoPi(currentPosition.theta - targetPoint.position.theta);
+
+    logger_.setData(LOGGER_TRACKING_LONGITUDINAL_ERROR, trackingLongitudinalError);
+    logger_.setData(LOGGER_TRACKING_TRANSVERSE_ERROR, trackingTransverseError);
+    logger_.setData(LOGGER_TRACKING_ANGLE_ERROR, trackingAngleError);
 
     // If we are beyon trajector end, look to see if we are close enough to the target point to stop.
     if(traj->getDuration() <= curvilinearAbscissa_)
     {
-        if(trackingLongitudinalError_ < 3 && trackingAngleError_ < 0.02 && measurements.motorSpeed[RIGHT] < 1.0 && measurements.motorSpeed[LEFT] < 1.0)
+        if(trackingLongitudinalError < 3 && trackingAngleError < 0.02 && measurements.motorSpeed[RIGHT] < 1.0 && measurements.motorSpeed[LEFT] < 1.0)
         {
             // Just stop the robot.
             target.motorSpeed[0] = 0.0;
@@ -210,13 +265,13 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // If trajectory has an angular velocity but no linear velocity, it's a point turn:
     // disable corresponding position servoing.
     if(std::abs(targetPoint.linearVelocity) > 0.1)
-        targetSpeed.linear += PIDLinear_.computeValue(trackingLongitudinalError_, dt);
+        targetSpeed.linear += PIDLinear_.computeValue(trackingLongitudinalError, dt);
 
     // Modify angular PID target based on transverse error, if we are going fast enough.
-    double angularPIDError = trackingAngleError_;
+    double angularPIDError = trackingAngleError;
     double transverseCorrection = 0.0;
     if(std::abs(targetPoint.linearVelocity) > 0.1 * robotdimensions::maxWheelSpeed)
-        transverseCorrection = motioncontroller::transverseKp * targetPoint.linearVelocity / robotdimensions::maxWheelSpeed * trackingTransverseError_;
+        transverseCorrection = motioncontroller::transverseKp * targetPoint.linearVelocity / robotdimensions::maxWheelSpeed * trackingTransverseError;
     if (targetPoint.linearVelocity < 0)
         transverseCorrection = - transverseCorrection;
     angularPIDError += transverseCorrection;
@@ -235,11 +290,15 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     target.motorSpeed[RIGHT] = wheelSpeed.right / robotdimensions::stepSize;
     target.motorSpeed[LEFT] = wheelSpeed.left / robotdimensions::stepSize;
 
+
+    logger_.setData(LOGGER_LINEAR_P_I_D_CORRECTION, PIDLinear_.getCorrection());
+    logger_.setData(LOGGER_ANGULAR_P_I_D_CORRECTION, PIDAngular_.getCorrection());
+
     return false;
 }
 
 
-double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots)
+double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted)
 {
   // Handle robot stops
   static int num_stop_iters = 0.;
@@ -307,8 +366,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
   // Before match: just return coeff, don't trigger memory.
 
   // FIXME !
-  bool hasMatchStarted_ = true;
-  if (!hasMatchStarted_ || currentTrajectories_.size() == 0)
+  if (!hasMatchStarted || currentTrajectories_.size() == 0)
   {
     num_stop_iters = 0;
     return coeff;

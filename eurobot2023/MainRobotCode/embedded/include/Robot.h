@@ -31,7 +31,6 @@
 
     #include "uCListener.h"
     #include "ServoHandler.h"
-    #include "LoggerFields.h"
     #include "RobotInterface.h"
     #include "Strategy.h"
 
@@ -129,9 +128,6 @@
             bool testMode_; // Test mode: no initial wait.
             bool disableLidar_; // Disable lidar (works only in test mode)
 
-            /// \brief Update the logfile with current values.
-            void updateLog();
-
             /// \brief Perform robot setup, return wheather the match has started or not.
             ///
             /// \details This function is called periodically before the match starts. It is responsible for
@@ -151,7 +147,6 @@
             miam::L6470 stepperMotors_; ///< Robot driving motors.
 
             uCData microcontrollerData_; ///< Data structure containing informations from the arduino board.
-            Logger logger_; ///< Logger object.
 
             // Rail PID
             miam::PID PIDRail_; ///< PID for the rail.

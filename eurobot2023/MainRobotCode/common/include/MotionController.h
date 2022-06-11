@@ -35,6 +35,7 @@
     }DrivetrainTarget;
 
     typedef struct {
+        double encoderPosition[2]; ///< Encoder position, rad.
         WheelSpeed encoderSpeed; ///< Speed, measured by the encoders
         std::vector<double> motorSpeed; ///<< Measured motor speed, in rad/s
         std::deque<DetectedRobot> lidarDetection; ///< Robots detected by the lidar.
@@ -87,6 +88,8 @@
         public:
             MotionController();
 
+            /// \brief Initialize the system - this also starts the logger.
+            void init(RobotPosition const& startPosition);
 
             /// \brief Get current robot position.
             /// \return Current robot position.
@@ -128,13 +131,16 @@
             /// \param[in] measurements Latest robot measurements
             /// \param[in] dt Elapsed time since last call.
             /// \return Target motor velocity
-            DrivetrainTarget computeDrivetrainMotion(DrivetrainMeasurements const& measurements, double const& dt);
+            DrivetrainTarget computeDrivetrainMotion(DrivetrainMeasurements const& measurements,
+                                                     double const& dt,
+                                                     bool const& hasMatchStarted);
 
             bool isPlayingRightSide_ = false;
 
         private:
-
+            Logger logger_; ///< Logger object.
             ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
+            double currentTime_{0.0};
 
             // Trajectory definition.
             std::vector<std::shared_ptr<Trajectory>> newTrajectories_; ///< Vector of new trajectories to follow.
@@ -167,7 +173,7 @@
             /// \brief Updates the LiDAR and sets the avoidance strategy
             /// \param [in] detectedRobots Obstacles detected by the lidar.
             /// \return coefficient for trajectory time increase
-            double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots);
+            double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
 
             bool isLidarPointWithinTable(LidarPoint const& point);
     };
