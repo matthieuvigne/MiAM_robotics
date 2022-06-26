@@ -3,6 +3,7 @@
 #include "miam_utils/drivers/IMUV5Driver.h"
 #include <unistd.h>
 #include <cmath>
+#include <iostream>
 
 IMUV5::IMUV5():
     isInit_(false)
@@ -51,7 +52,21 @@ bool IMUV5::init(I2CAdapter *device, bool turnOnMagneto, bool jumperShorted)
     // Configure magnetometer.
     if (turnOnMagneto)
     {
-        // TODO
+        // Check WHO AM I
+        if (i2c_readRegister(adapter_, magnetoAddress_, 0x0F) != 0x3D)
+            return false;
+        // CTRL1: ultra high performance, ODR: 80Hz
+        // CTRL1: enable temperature, high perf, max ODR
+        i2c_writeRegister(adapter_, magnetoAddress_, 0x20, 0b11010010);
+        // CTRL2: 16gauss range
+        i2c_writeRegister(adapter_, magnetoAddress_, 0x21, 0b01100000);
+        magnetoScaling_ = 0.0005844535359438924;
+        // CTRL3: turn on
+        i2c_writeRegister(adapter_, magnetoAddress_, 0x22, 0b00000000);
+        // CTRL4: Z axis
+        i2c_writeRegister(adapter_, magnetoAddress_, 0x23, 0b00001000);
+        // CTRL5: BDU
+        i2c_writeRegister(adapter_, magnetoAddress_, 0x24, 0b01000000);
     }
 
     // Leave some time for the gyro to fully start
@@ -131,7 +146,7 @@ vector3D IMUV5::getMagnetometerReadings()
     if (isInit_)
     {
         unsigned char rxbuf[6];
-        i2c_readRegisters(adapter_, magnetoAddress_, 0x88, 6, rxbuf);
+        i2c_readRegisters(adapter_, magnetoAddress_, 0x28, 6, rxbuf);
         readings.x = rxbuf[0] + (rxbuf[1] << 8);
         if(readings.x > 32767)
             readings.x -= 65536;
@@ -149,3 +164,19 @@ vector3D IMUV5::getMagnetometerReadings()
     return readings;
 }
 
+
+double IMUV5::getMagnetometerTemperature()
+{
+    double readings = 0.0;
+    if (isInit_)
+    {
+        unsigned char rxbuf[2];
+        i2c_readRegisters(adapter_, magnetoAddress_, 0x2E, 2, rxbuf);
+        readings = rxbuf[0] + (rxbuf[1] << 8);
+        if(readings > 32767)
+            readings -= 65536;
+        readings = 25 + readings / 8;
+    }
+
+    return readings;
+}

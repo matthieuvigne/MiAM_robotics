@@ -6,8 +6,8 @@
 /// \note    Sensor precision setting is hardcoded, see source code directly.
 /// \author Matthieu Vigne
 /// \copyright GNU GPLv3
-#ifndef IMUV3DRIVER_H
-    #define IMUV3DRIVER_H
+#ifndef IMUV5DRIVER_H
+    #define IMUV5DRIVER_H
     #include <miam_utils/drivers/I2C-Wrapper.h>
 
 #ifndef IMUVECTOR
@@ -49,8 +49,12 @@
             vector3D getAccelerometerReadings();
 
             /// \brief Get magnetometer readings.
-            /// \return Magnetometer readings on all three axis, in mgauss.
+            /// \return Magnetometer readings on all three axis, in gauss.
             vector3D getMagnetometerReadings();
+
+            /// \brief Get magnetometer temperature.
+            /// \return Magnetometer temperature, in deg C.
+            double getMagnetometerTemperature();
 
             /// \brief Get data from both sensors in a single transaction for more performance.
             void getData(vector3D& gyro, vector3D& accel);

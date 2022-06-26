@@ -56,9 +56,9 @@ bool IMUV3::init(I2CAdapter *device, bool turnOnMagneto, bool jumperShorted)
     i2c_writeRegister(adapter_, accelAddress_, 0x23, 0);
     // CTRL5: magneto high res, ODR 100Hz.
     i2c_writeRegister(adapter_, accelAddress_, 0x24, 0b01110100);
-    // CTRL6: magneto scale 2 gauss.
-    i2c_writeRegister(adapter_, accelAddress_, 0x25, 0b00000000);
-    magnetoScaling_ = 0.080;
+    // CTRL6: magneto scale 12 gauss.
+    i2c_writeRegister(adapter_, accelAddress_, 0x25, 0b01100000);
+    magnetoScaling_ = 0.000479;
     // CTRL7: no accel high-pass, turn on magneto if asked for.
     if (turnOnMagneto)
         i2c_writeRegister(adapter_, accelAddress_, 0x26, 0b00000000);
