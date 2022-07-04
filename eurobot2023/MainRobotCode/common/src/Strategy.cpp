@@ -96,6 +96,12 @@ void Strategy::setup(RobotInterface *robot)
         robot->wait(2.0);
         robot->moveRail(0.65);
     }
+    // Set initial position
+    RobotPosition targetPosition;
+    targetPosition.x = robotdimensions::CHASSIS_BACK;
+    targetPosition.y = 1200;
+    targetPosition.theta = 0;
+    motionController->resetPosition(targetPosition, true, true, true);
 }
 
 void Strategy::match_impl()
@@ -121,8 +127,10 @@ void Strategy::match_impl()
 
     // start camera
     #if USE_CAMERA
-    std::thread camThread(&network::CameraClient::run, &(camera_));
+    std::thread camThread(&network::CameraClient::run, &camera_);
+    pthread_t handle = camThread.native_handle();
     camThread.detach();
+    createdThreads_.push_back(handle);
     #endif
 
     //**********************************************************
@@ -323,17 +331,15 @@ void Strategy::match()
                                                     robotdimensions::maxWheelAccelerationTrajectory,
                                                     robotdimensions::wheelSpacing);
 
-#ifdef SIMULATION
-        match_impl();
-#else
     std::thread stratMain(&Strategy::match_impl, this);
-    auto stratPtr = stratMain.native_handle();
+    pthread_t handle = stratMain.native_handle();
+    createdThreads_.push_back(handle);
     stratMain.detach();
 
     double const FALLBACK_TIME = 95.0;
     robot->wait(FALLBACK_TIME);
     if (!MATCH_COMPLETED)
-        pthread_cancel(stratPtr);
+        pthread_cancel(handle);
     usleep(50000);
     servo->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
     if (!MATCH_COMPLETED)
@@ -347,8 +353,6 @@ void Strategy::match()
             robot->updateScore(20); //match completed
             camera_.shutDown();
         }
-
     }
-#endif
 }
 

@@ -19,6 +19,7 @@
     #include "miam_utils/trajectory/Trajectory.h"
     #include "miam_utils/drivers/L6470Driver.h"
     #include "miam_utils/RPLidarHandler.h"
+    #include "miam_utils/Types.h"
 
     #include <memory>
     #include <vector>
@@ -31,13 +32,13 @@
 
 
     typedef struct {
-        double motorSpeed[2] = {0.0, 0.0}; ///<< Target motor speed, in rad/s
+        Vector2 motorSpeed = Vector2::Zero(); ///<< Target motor speed, in rad/s
     }DrivetrainTarget;
 
     typedef struct {
-        double encoderPosition[2]; ///< Encoder position, rad.
+        Vector2 encoderPosition; ///< Encoder position, rad.
         WheelSpeed encoderSpeed; ///< Speed, measured by the encoders
-        std::vector<double> motorSpeed; ///<< Measured motor speed, in rad/s
+        Vector2 motorSpeed; ///<< Measured motor speed, in rad/s
         std::deque<DetectedRobot> lidarDetection; ///< Robots detected by the lidar.
     }DrivetrainMeasurements;
 
@@ -136,6 +137,11 @@
                                                      bool const& hasMatchStarted);
 
             bool isPlayingRightSide_ = false;
+
+            DrivetrainKinematics getKinematics()
+            {
+                return kinematics_;
+            }
 
         private:
             Logger logger_; ///< Logger object.

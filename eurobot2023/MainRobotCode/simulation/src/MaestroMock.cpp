@@ -1,7 +1,7 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
 #include "MaestroMock.h"
-
+#include <iostream>
 
 
 MaestroMock::MaestroMock()

@@ -7,8 +7,10 @@
     #define VIEWER_ROBOT_H
 
     #include <gtkmm.h>
+    #include <thread>
     #include <iostream>
     #include <miam_utils/trajectory/Trajectory.h>
+    #include <miam_utils/Types.h>
 
     #include "RobotInterface.h"
     #include "ServoHandler.h"
@@ -23,8 +25,6 @@
     struct ViewerTrajectoryPoint{
         double time;
         RobotPosition position;
-        double linearVelocity;
-        double angularVelocity;
         int score; ///< Current robot score.
         std::vector<double> servoState_;
         bool isPumpOn_;
@@ -32,8 +32,6 @@
         ViewerTrajectoryPoint():
             time(0.0),
             position(),
-            linearVelocity(0.0),
-            angularVelocity(0.0),
             score(0),
             servoState_(std::vector<double>(18, 0.0)),
             isPumpOn_(false)
@@ -48,65 +46,63 @@
                         Strategy const& strategy,
                         double const& r = 1.0, double const& g = 0.0, double const& b = 0.0);
 
-            /// \brief Get current robot position.
-            RobotPosition getCurrentPosition() override;
 
-            /// \brief Get viewer position.
-            ViewerTrajectoryPoint getViewerPoint(int const& index);
-
-            /// \brief Mock trajectory following.
-            /// \details Returns true on succes, false if obstacle was encounterd.
-            bool setTrajectoryToFollow(std::vector<std::shared_ptr<miam::trajectory::Trajectory>> const& trajectories) override;
-
-            /// \brief Mock trajectory following.
-            /// \details Returns true on succes, false if obstacle was encounterd.
-            bool waitForTrajectoryFinished() override;
-
-            /// \brief Reset robot position (velocity is set to 0, this is mostly done for position reset and init).
-            void resetPosition(RobotPosition const& resetPosition, bool const& resetX = true, bool const& resetY = true, bool const& resetTheta = true) override;
-
-            /// \brief Draw the robot and trajectory on the surface.
-            void draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mmToCairo, int const& currentIndex);
-
-            /// \brief Get length (i.e. number of samples) of the trajectory.
-            int getTrajectoryLength();
-
-            /// \brief Pad trajectory with the last point (zero velocity) to the desired length.
-            void padTrajectory(int const& desiredLength);
-
-            ///< Function computing the strategy, for a given obstacle position.
-            void recomputeStrategy(int const& obstacleX, int const& obstacleY, int const& obstacleSize, bool const& isPlayingRightSide);
-
-            ///< Increment robot score.
-            void updateScore(int const& scoreIncrement) override;
-
-            double getMatchTime() override;
-
-            void lowLevelLoop() override {};
-
-            void stopMotors() override {};
-
-            ///< Reset robot score.
-            void clearScore();
-
-            ///< Robot is always playing on the right side.
-            bool isPlayingRightSide()
+            bool isPlayingRightSide() const override
             {
                 return isPlayingRightSide_;
             }
 
+            /// \brief Set a new target to the rail.
+            /// \param position Relative rail position, form 0 (down) to 1 (up).
             void moveRail(double const& position) override;
 
-            void wait(double const& waitTimeS) override;
+            // Sleep a specified number of seconds.
+            virtual void wait(double const& waitTimeS) override;
 
-            int getScore(int const& index);
+            /// \brief The low-level thread of the robot.
+            /// \details This thread runs a periodic loop. At each iteration, it updates sensor values,
+            ///          estimates the position of the robot on the table, and performs motor servoing.
+            ///          It also logs everything in a log file.
+            void lowLevelLoop() override {}
+
+            /// \brief Update the robot score.
+            /// \details This function increments the score then updates the display accordingly.
+            ///
+            /// \param[in] scoreIncrement Amount to increment the score, both positive or negative.
+            void updateScore(int const& scoreIncrement)
+            {
+                score_ += scoreIncrement;
+            }
+
+            int getScore()
+            {
+                return score_;
+            }
+
+            /// \brief Draw the robot and trajectory on the surface.
+            void draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mmToCairo);
+
+            /// \brief Get time in current match.
+            /// \return Time since start of the match, or 0 if not started.
+            double getMatchTime() override;
+
+            /// \brief Stop the wheel motors.
+            void stopMotors() override {}
+
+            // Functions specific to the simulation.
+            void reset(bool const& isPlayingRightSide);
+
+            void tick(double const& dt, double const& simulationTime, Vector2 const& obstaclePosition);
 
         private:
-            bool followTrajectory(miam::trajectory::Trajectory * traj); ///< Perform actual trajectory following.
-            Strategy strategy_;
             ServoHandler handler_;
             MaestroMock servoMock_;
+            Strategy strategy_;
             std::vector<ViewerTrajectoryPoint> trajectory_;
+            RobotPosition simulationPosition_;
+            DrivetrainMeasurements measurements_;
+            DrivetrainTarget motionTarget_;
+            DrivetrainKinematics kinematics_;
 
             Glib::RefPtr<Gdk::Pixbuf> image_;
 
@@ -114,15 +110,12 @@
             double g_;  ///< Trajectory color.
             double b_;  ///< Trajectory color.
             int score_; ///< Current robot score.
-            bool trajectoryFollowingStatus_; ///< Status of last trajectory following.
 
+            bool isPlayingRightSide_ = false;
 
-            double obstacleX_;  // Obstacle information.
-            double obstacleY_;
-            double obstacleSize_;
+            double simulationTime_ = 0.0;
 
-            bool isRobotPositionInit_;
-            bool isPlayingRightSide_;
+            pthread_t runningThread_ = 0;
     };
 
 #endif

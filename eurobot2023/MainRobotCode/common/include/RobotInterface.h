@@ -17,7 +17,7 @@
     class RobotInterface
     {
         public:
-            RobotInterface(ServoHandler const& servos):
+            RobotInterface(ServoHandler *servos):
                 motionController_(),
                 servos_(servos)
             { }
@@ -73,10 +73,10 @@
             virtual void stopMotors() = 0;
 
             MotionController* getMotionController() { return &motionController_;}
-            ServoHandler* getServos() { return &servos_;}
+            ServoHandler* getServos() { return servos_;}
 
         protected:
             MotionController motionController_;
-            ServoHandler servos_;
+            ServoHandler *servos_;
     };
  #endif

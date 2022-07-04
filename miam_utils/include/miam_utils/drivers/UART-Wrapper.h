@@ -27,8 +27,8 @@
     /// \param[in] file File descriptor.
     /// \param[out] buffer Buffer to fill - must be preallocated.
     /// \param[in] size Maximum amount of data to read - buffer must be at least size long.
-    /// \param[in] timeoutMs Timeout in milliseconds.
+    /// \param[in] timeout Timeout, in seconds.
     ///
     /// \return -1 on error, 0 on timeout, or the same as the underlying read call
-    int read_timeout(int const& file, unsigned char *buffer, size_t const& size, uint const& timeoutMs);
+    int read_timeout(int const& file, unsigned char *buffer, size_t const& size, double const& timeout);
 #endif

@@ -62,14 +62,6 @@
             /// \brief Constructor: do nothing for now.
             Robot(bool const& testMode, bool const& disableLidar);
 
-            /// \brief Initialize every system of the robot.
-            /// \details This function tries to initialize every component of the robot, by creating the software
-            ///          object and, when applicable, testing the connection with the real component.
-            ///          This function can be called several times, and only tries to re-initialize a component
-            ///          if previous initializations failed.
-            /// \return true if all components were initialized successfully, false otherwise.
-            bool initSystem();
-
             /// \brief The low-level thread of the robot.
             /// \details This thread runs a periodic loop. At each iteration, it updates sensor values,
             ///          estimates the position of the robot on the table, and performs motor servoing.
@@ -124,9 +116,19 @@
             USBLCD screen_; ///< LCD screen and buttons.
             RPLidarHandler lidar_; ///< Lidar
             MaestroDriver maestro_; ///< Servo driver
+            ServoHandler handler_;
 
             bool testMode_; // Test mode: no initial wait.
             bool disableLidar_; // Disable lidar (works only in test mode)
+
+
+            /// \brief Initialize every system of the robot.
+            /// \details This function tries to initialize every component of the robot, by creating the software
+            ///          object and, when applicable, testing the connection with the real component.
+            ///          This function can be called several times, and only tries to re-initialize a component
+            ///          if previous initializations failed.
+            /// \return true if all components were initialized successfully, false otherwise.
+            bool initSystem();
 
             /// \brief Perform robot setup, return wheather the match has started or not.
             ///

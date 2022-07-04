@@ -35,11 +35,14 @@ BaseSpeed DrivetrainKinematics::forwardKinematics(WheelSpeed const& wheelSpeedIn
     return speed;
 }
 
-WheelSpeed DrivetrainKinematics::inverseKinematics(BaseSpeed const& baseSpeedIn) const
+WheelSpeed DrivetrainKinematics::inverseKinematics(BaseSpeed const& baseSpeedIn, bool const& useEncoders) const
 {
     WheelSpeed speed;
-    speed.right = (baseSpeedIn.linear + motorWheelSpacing_ * baseSpeedIn.angular) / motorWheelRadius_;
-    speed.left = (baseSpeedIn.linear - motorWheelSpacing_ * baseSpeedIn.angular) / motorWheelRadius_;
+    double wheelRadius = (useEncoders ? encoderWheelRadius_ : motorWheelRadius_);
+    double wheelSpacing = (useEncoders ? encoderWheelSpacing_ : motorWheelSpacing_);
+
+    speed.right = (baseSpeedIn.linear + wheelSpacing * baseSpeedIn.angular) / wheelRadius;
+    speed.left = (baseSpeedIn.linear - wheelSpacing * baseSpeedIn.angular) / wheelRadius;
     return speed;
 }
 

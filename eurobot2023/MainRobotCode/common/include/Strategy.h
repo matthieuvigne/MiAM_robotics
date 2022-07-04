@@ -27,6 +27,7 @@
 
             network::CameraClient camera_;
 
+            std::vector<pthread_t> createdThreads_;
         private:
             void match_impl(); /// Actual implementation of the match code.
             RobotInterface *robot;

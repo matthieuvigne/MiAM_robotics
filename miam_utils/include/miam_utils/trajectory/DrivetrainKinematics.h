@@ -10,6 +10,7 @@
 #define MIAM_DRIVETRAIN_KINEMATICS
 
     #include "miam_utils/trajectory/RobotPosition.h"
+    #include "miam_utils/Types.h"
 
     /// \brief Class to represent base speed.
     class BaseSpeed
@@ -19,10 +20,20 @@
                 linear(linearIn),
                 angular(angularIn)
             {}
+            BaseSpeed(Vector2 const& vector):
+                linear(vector[0]),
+                angular(vector[1])
+            {}
             BaseSpeed():
                 linear(0.0),
                 angular(0.0)
             {}
+            Vector2 toVector()
+            {
+                Vector2 v;
+                v << linear, angular;
+                return v;
+            }
             double linear; ///< Base linear velocity, by convention in mm.
             double angular; ///< Base angular velocity, by convention in rad/s.
     };
@@ -35,10 +46,20 @@
                 right(rightIn),
                 left(leftIn)
             {}
+            WheelSpeed(Vector2 const& vector):
+                right(vector[0]),
+                left(vector[1])
+            {}
             WheelSpeed():
                 right(0.0),
                 left(0.0)
             {}
+            Vector2 toVector()
+            {
+                Vector2 v;
+                v << right, left;
+                return v;
+            }
             double right; ///< Right wheel speed, by convention in rad/s.
             double left; ///< Left wheel speed, by convention in rad/s.
     };
@@ -81,7 +102,7 @@
             /// \param[in] baseSpeedIn Base velocity
             ///
             /// \return Motor wheel speed.
-            WheelSpeed inverseKinematics(BaseSpeed const& baseSpeedIn) const;
+            WheelSpeed inverseKinematics(BaseSpeed const& baseSpeedIn, bool const& useEncoders = false) const;
 
             /// \brief Integrate the (infinitesimal) wheel displacement into a robot position.
             /// \details By default, wheelSpeedIn is intepreted as the angular displacement of the encoder wheels:

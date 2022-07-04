@@ -20,11 +20,8 @@ file(GLOB_RECURSE SOURCES ../common/src/*.cpp
                   ../../../vision/src/common/logger.cpp
                   ../../../vision/src/common/marker.cpp
                   ../../../vision/src/network/server_response.cpp
-                  ../../../vision/src/network/message.cpp
-                  ../../../miam_utils/src/*.c
-                  ../../../miam_utils/src/*.cpp)
+                  ../../../vision/src/network/message.cpp)
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX )
-include_directories(../../../miam_utils/include)
 
 #compile flag
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -fdiagnostics-color -DSIMULATION -pthread")
@@ -32,12 +29,14 @@ set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -fdiagnostics-color -DSIMULATION -pthread"
 # Use the package PkgConfig to detect GTK+ headers/library files
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtkmm-3.0>=3.18.0)
+find_package(Eigen3 REQUIRED)
 
-
-pkg_search_module(RPLIDARLIB REQUIRED rplidar)
-message(STATUS "Found rplidar v." ${RPLIDARLIB_VERSION})
-include_directories(${RPLIDARLIB_INCLUDE_DIRS})
-link_directories(${RPLIDARLIB_LIBRARY_DIRS})
+pkg_search_module(RPLIDAR REQUIRED rplidar)
+message(STATUS "Found rplidar v." ${RPLIDAR_VERSION})
+pkg_search_module(MIAM_UTILS REQUIRED miam_utils)
+message(STATUS "Found miam_utils v." ${MIAM_UTILS_VERSION})
+include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_INCLUDE_DIRS})
+link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS})
 
 # Include
 include_directories(${GTK3_INCLUDE_DIRS})
@@ -49,4 +48,4 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINA
 
 # Build executables
 add_executable(strategyViewer ${SOURCES})
-target_link_libraries(strategyViewer ${GTK3_LIBRARIES} ${RPLIDARLIB_LIBRARIES})
+target_link_libraries(strategyViewer ${GTK3_LIBRARIES} ${RPLIDAR_LIBRARIES} ${MIAM_UTILS_LIBRARIES})

@@ -17,7 +17,8 @@ const int RIGHT_RANGE_ACTIVATE = 4;
 
 
 Robot::Robot(bool const& testMode, bool const& disableLidar):
-    RobotInterface(ServoHandler(&maestro_)),
+    handler_(&maestro_),
+    RobotInterface(&handler_),
     lidar_(-M_PI_4),
     testMode_(testMode),
     disableLidar_(disableLidar),
@@ -108,7 +109,7 @@ bool Robot::initSystem()
 
     if (!isServosInit_)
     {
-        isServosInit_ = servos_.init("/dev/maestro");
+        isServosInit_ = servos_->init("/dev/maestro");
         if (!isServosInit_)
         {
             #ifdef DEBUG
@@ -374,7 +375,9 @@ void Robot::lowLevelLoop()
             measurements.encoderSpeed.left = temp;
         }
 
-        measurements.motorSpeed = stepperMotors_.getSpeed();
+        std::vector<double> const motorSpeed = stepperMotors_.getSpeed();
+        measurements.motorSpeed(0) = motorSpeed[0];
+        measurements.motorSpeed(1) = motorSpeed[1];
 
         // Update the lidar
         if (!testMode_ || !disableLidar_)
@@ -401,8 +404,8 @@ void Robot::lowLevelLoop()
 
         // Apply target.
         std::vector<double> speed;
-        speed.push_back(target.motorSpeed[0]);
-        speed.push_back(target.motorSpeed[1]);
+        speed.push_back(target.motorSpeed[0] / robotdimensions::stepSize);
+        speed.push_back(target.motorSpeed[1] / robotdimensions::stepSize);
         stepperMotors_.setSpeed(speed);
     }
     // End of the match.
@@ -434,24 +437,24 @@ void Robot::moveRail(double const& position)
             robotdimensions::MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
         );
         // Send target to servo
-        servos_.moveRail(targetVelocity);
+        servos_->moveRail(targetVelocity);
 
         usleep(20000);
         error = uCListener_getData().potentiometerPosition - targetValue;
         nIter++;
     }
-    servos_.moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
+    servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
 
 }
 
 void Robot::calibrateRail()
 {
-    servos_.moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY - 250);
+    servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY - 250);
     while (RPi_readGPIO(RAIL_SWITCH) == 1)
     {
         usleep(20000);
     }
-    servos_.moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
+    servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
     railHigh_ = uCListener_getData().potentiometerPosition;
 }
 
@@ -519,8 +522,8 @@ void Robot::updateRangeMeasurement()
 
 void Robot::shutdown()
 {
-    servos_.shutdownServos();
-    servos_.activatePump(false);
+    servos_->shutdownServos();
+    servos_->activatePump(false);
     stopMotors();
     lidar_.stop();
 }

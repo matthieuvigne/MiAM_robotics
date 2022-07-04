@@ -13,6 +13,7 @@ fi
 cd /miam_workspace
 
 mkdir -p build/rplidar
+mkdir -p build/miam_utils
 mkdir -p build/eurobot2023/embedded
 mkdir -p build/eurobot2023/simulation
 mkdir install
@@ -26,9 +27,18 @@ make -j4 install
 cmake /miam_workspace/src/MiAM_robotics/rplidar_sdk -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
 make -j4 install
 
+# Compile and install miam_utils
+cd /miam_workspace/build/miam_utils
+
+cmake /miam_workspace/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
+make -j4 install
+
+cmake /miam_workspace/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
+make -j4 install
+
 # Setup python environment
 cd /miam_workspace/install
-mkdir miam_venv
+mkdir -p miam_venv
 python3 -m venv miam_venv
 source /miam_workspace/install/miam_venv/bin/activate
 

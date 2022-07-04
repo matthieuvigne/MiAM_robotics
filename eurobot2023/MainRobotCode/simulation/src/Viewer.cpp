@@ -5,25 +5,27 @@
 #include <iomanip>
 #include <sstream>
 
+double const ROBOT_DT = 0.010;
+double const MATCH_TIME = 100.0;
 
 // Build window from Glade.
 Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade, std::string const& tableImagePath) :
     Gtk::Window(cobject),
-    obstacleX_(-500),
-    obstacleY_(-500),
-    obstacleSize_(200),
     mmToCairo_(1.0),
     originX_(0.0),
     originY_(0.0)
 {
-    currentTrajectoryIndex_ = 0;
     // Associate key press to entry.
     Gtk::Widget *window;
     refGlade->get_widget("mainWindow", window);
 
     // Associate widgets.
-    refGlade->get_widget("replayTime", replayTime);
-    refGlade->get_widget("velocityLabel", velocityLabel);
+    refGlade->get_widget("timeLabel", timeLabel);
+    refGlade->get_widget("scoreLabel", scoreLabel);
+    refGlade->get_widget("progressBar", progressBar);
+    refGlade->get_widget("sideButton", sideButton);
+    refGlade->get_widget("simulationRatioSpin", simulationRatioSpin);
+    simulationRatioSpin->signal_value_changed().connect(sigc::mem_fun(this, &Viewer::updateTimeRatio));
     refGlade->get_widget("drawingArea", drawingArea);
     drawingArea->signal_draw().connect(sigc::mem_fun(this, &Viewer::redraw));
 
@@ -35,21 +37,17 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     drawingArea->signal_button_release_event().connect(sigc::mem_fun(this, &Viewer::clickObstacle));
 
     Gtk::Button *button;
-    refGlade->get_widget("recomputeButton", button);
-    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::recompute));
-    refGlade->get_widget("rightSideToggle", rightSideButton_);
-    rightSideButton_->signal_toggled().connect(sigc::mem_fun(this, &Viewer::recompute));
-    // Configure slider based on viewerTrajectory.
-    refGlade->get_widget("playbackSpeed", playbackSpeed);
-    refGlade->get_widget("timeSlider", timeSlider_);
-    timeSlider_->signal_change_value().connect(sigc::mem_fun(this, &Viewer::timeChanged));
-
-    refGlade->get_widget("playButton", playButton);
-    playButton->signal_toggled().connect(sigc::mem_fun(this, &Viewer::toggleReplayState));
+    refGlade->get_widget("play", button);
+    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::playClicked));
+    refGlade->get_widget("pause", button);
+    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::pauseClicked));
+    refGlade->get_widget("reset", button);
+    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::resetClicked));
 
     // Load images.
     tableImage = Gdk::Pixbuf::create_from_file(tableImagePath, -1, -1);
-    trajectoryLength_ = 0;
+
+    Glib::signal_timeout().connect(sigc::mem_fun(*this,&Viewer::runSimulation), 50);
 }
 
 
@@ -58,21 +56,51 @@ Viewer::~Viewer()
 
 }
 
+bool Viewer::runSimulation()
+{
+    // Increment currentTrajectoryIndex_ based on time elapsed: increment as much as needed to catch back with real
+    // clock.
+    std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+    double realElapsedTime = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - lastTime_).count();
+    while (isRunning_ && realElapsedTime > ROBOT_DT / simulationTimeRatio_)
+    {
+        simulationTime_ += ROBOT_DT;
+        for(auto r : robots_)
+            r->tick(ROBOT_DT, simulationTime_, obstaclePosition_);
+        realElapsedTime -= ROBOT_DT / simulationTimeRatio_;
+        lastTime_ += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(ROBOT_DT / simulationTimeRatio_));
+        if (simulationTime_ > MATCH_TIME)
+        {
+            isRunning_ = false;
+            simulationTime_ = MATCH_TIME;
+        }
+    }
+    if (!isRunning_)
+        lastTime_ = currentTime;
+
+    progressBar->set_fraction(simulationTime_ / MATCH_TIME);
+    std::stringstream stream;
+    stream << "Time: " << std::fixed << std::setprecision(3) << simulationTime_;
+    progressBar->set_text(stream.str());
+
+    drawingArea->queue_draw();
+    return true;
+}
+
+
+void Viewer::start()
+{
+    Glib::signal_timeout().connect(sigc::mem_fun(*this,&Viewer::runSimulation), 50);
+    resetClicked();
+}
+
 void Viewer::addRobot(ViewerRobot & robot)
 {
     robots_.push_back(&robot);
-    recompute();
 }
 
 bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
-    // Check replay index.
-    if(currentTrajectoryIndex_ < 0)
-        currentTrajectoryIndex_ = 0;
-    if(currentTrajectoryIndex_ >= trajectoryLength_)
-        currentTrajectoryIndex_ = trajectoryLength_ - 1;
-
-
     // Put scaled table, keeping ratio.
     double heightToWidthRatio = tableImage->get_height() / (1.0 * tableImage->get_width());
     int widgetWidth = drawingArea->get_allocated_width();
@@ -97,74 +125,32 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
     int score = 0;
     for(auto robot : robots_)
     {
-        robot->draw(cr, mmToCairo_, currentTrajectoryIndex_);
-        score += robot->getScore(currentTrajectoryIndex_);
+        robot->draw(cr, mmToCairo_);
+        score += robot->getScore();
     }
 
     // Draw obstacle.
     cr->set_source_rgb(1.0, 0.0, 0.0);
-    cr->arc(mmToCairo_ * obstacleX_, mmToCairo_ * (2000 - obstacleY_), mmToCairo_ * obstacleSize_, 0, 2 * M_PI - 0.1);
+    cr->arc(mmToCairo_ * obstaclePosition_(0), mmToCairo_ * (2000 - obstaclePosition_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
     cr->fill();
 
     // Update labels.
-    double currentTime = currentTrajectoryIndex_ * TIMESTEP ;
     std::stringstream stream;
-    stream << std::fixed << std::setprecision(2) << currentTime << "/" << ((trajectoryLength_ - 1) * TIMESTEP);
-    replayTime->set_text("Time: " + stream.str());
-    timeSlider_->set_value(currentTime);
-
-    std::stringstream scoreStream;
-    scoreStream << "Score: " << score;
-    velocityLabel->set_text(scoreStream.str());
-
-
-    return TRUE;
-}
-
-bool Viewer::timeChanged(Gtk::ScrollType scroll, double new_value)
-{
-    currentTrajectoryIndex_ = static_cast<int>(new_value / TIMESTEP);
-    drawingArea->queue_draw();
-    return true;
-}
-
-
-bool Viewer::playTrajectory()
-{
-    // Increment currentTrajectoryIndex_ based on time elapsed: increment as much as needed to catch back with real
-    // clock.
-    std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
-    double realElapsedTime = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - lastTime_).count();
-    lastTime_ = currentTime;
-
-    currentTrajectoryIndex_ += static_cast<int>(std::floor(realElapsedTime * playbackSpeed->get_value() / TIMESTEP));
-    // If end of the trajectory is reached, stop the connection.
-    if(currentTrajectoryIndex_ >= trajectoryLength_)
-        toggleReplayState();
-    drawingArea->queue_draw();
+    stream << std::fixed << std::setprecision(2) << simulationTime_;
+    timeLabel->set_text("Time: " + stream.str());
+    scoreLabel->set_text("Score: " + std::to_string(score));
 
     return true;
-}
-
-void Viewer::toggleReplayState()
-{
-    if(!replayConnection_.connected())
-    {
-        replayConnection_ = Glib::signal_timeout().connect(sigc::mem_fun(*this,&Viewer::playTrajectory), 50);
-        lastTime_ = std::chrono::high_resolution_clock::now();
-    }
-     else
-        replayConnection_.disconnect();
 }
 
 
 bool Viewer::moveObstacle(GdkEventMotion* motion_event)
 {
-    obstacleX_ = motion_event->x;
-    obstacleY_ = motion_event->y;
+    obstaclePosition_(0) = motion_event->x;
+    obstaclePosition_(1) = motion_event->y;
     // Convert coordinates to table coordinates
-    obstacleX_ = (obstacleX_ - originX_) / mmToCairo_;
-    obstacleY_ = 2000 - (obstacleY_ - originY_) / mmToCairo_;
+    obstaclePosition_(0) = (obstaclePosition_(0) - originX_) / mmToCairo_;
+    obstaclePosition_(1) = 2000 - (obstaclePosition_(1) - originY_) / mmToCairo_;
     drawingArea->queue_draw();
     return true;
 }
@@ -172,33 +158,34 @@ bool Viewer::moveObstacle(GdkEventMotion* motion_event)
 
 bool Viewer::clickObstacle(GdkEventButton* motion_event)
 {
-    obstacleX_ = motion_event->x;
-    obstacleY_ = motion_event->y;
+    obstaclePosition_(0) = motion_event->x;
+    obstaclePosition_(1) = motion_event->y;
     // Convert coordinates to table coordinates
-    obstacleX_ = (obstacleX_ - originX_) / mmToCairo_;
-    obstacleY_ = 2000 - (obstacleY_ - originY_) / mmToCairo_;
+    obstaclePosition_(0) = (obstaclePosition_(0) - originX_) / mmToCairo_;
+    obstaclePosition_(1) = 2000 - (obstaclePosition_(1) - originY_) / mmToCairo_;
     drawingArea->queue_draw();
     return true;
 }
 
-void Viewer::recompute()
+void Viewer::playClicked()
 {
-    // Recompute strategies.
-    for(auto r : robots_)
-        r->recomputeStrategy(obstacleX_, obstacleY_, obstacleSize_, rightSideButton_->get_active());
-    // Re-equalize time vectors.
-    trajectoryLength_ = 0.0;
-    for(auto r : robots_)
-        trajectoryLength_ = std::max(trajectoryLength_, r->getTrajectoryLength());
-    for(auto r : robots_)
-        r->padTrajectory(trajectoryLength_);
-    // Update config.
-    double endTime = TIMESTEP * (trajectoryLength_ - 1);
+    isRunning_ = true;
+}
 
-    Glib::RefPtr<Gtk::Adjustment> adjustment = timeSlider_->get_adjustment();
-    adjustment->set_lower(0.0);
-    adjustment->set_upper(endTime);
-    adjustment->set_step_increment(TIMESTEP);
-    timeSlider_->set_fill_level(endTime);
-    drawingArea->queue_draw();
+void Viewer::pauseClicked()
+{
+    isRunning_ = false;
+}
+
+void Viewer::resetClicked()
+{
+    isRunning_ = false;
+    simulationTime_ = 0.0;
+    for(auto r : robots_)
+        r->reset(sideButton->get_active());
+}
+
+void Viewer::updateTimeRatio()
+{
+    simulationTimeRatio_ = simulationRatioSpin->get_value();
 }

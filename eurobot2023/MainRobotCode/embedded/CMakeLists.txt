@@ -22,13 +22,12 @@ endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 # Use pkg-config to find rplidar
 find_package(PkgConfig REQUIRED)
 pkg_search_module(RPLIDAR REQUIRED rplidar_arm)
+message(STATUS "Found rplidar_arm v." ${RPLIDAR_VERSION})
+pkg_search_module(MIAM_UTILS REQUIRED miam_utils_arm)
+message(STATUS "Found miam_utils_arm v." ${MIAM_UTILS_VERSION})
 find_package(Eigen3 REQUIRED)
-
-include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS})
-link_directories(${RPLIDAR_LIBRARY_DIRS})
-
-include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS})
-link_directories(${RPLIDAR_LIBRARY_DIRS})
+include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_INCLUDE_DIRS})
+link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS})
 
 # Include source files from src directory.
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "../common/src/*.cpp"
@@ -41,23 +40,18 @@ file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "../common/src/*.cpp"
                                           "../../../vision/src/common/logger.cpp"
                                           "../../../vision/src/common/marker.cpp"
                                           "../../../vision/src/network/server_response.cpp"
-                                          "../../../vision/src/network/message.cpp"
-                                          "../../../miam_utils/src/*.c"
-                                          "../../../miam_utils/src/*.cpp")
+                                          "../../../vision/src/network/message.cpp")
 set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX )
 
 # Add directory containing the headers.
 include_directories(../common/include)
 include_directories(./include)
 include_directories(../../../vision/include)
-include_directories(../../../miam_utils/include)
-include_directories(/usr/local/include/)
 
 message(${RPLIDAR_INCLUDE_DIRS})
 
 # Set executable target and link libraries.
 add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${MIAMLIB_LIBRARIES} ${RPLIDAR_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${MIAM_UTILS_LIBRARIES} ${RPLIDAR_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")
-

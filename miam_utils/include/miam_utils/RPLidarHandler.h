@@ -83,8 +83,7 @@
     struct DetectedRobot
     {
         DetectedRobot():
-            point(),
-            addedTime(0.0)
+            point()
         {
         }
 
@@ -96,8 +95,8 @@
         }
 
         LidarPoint point; ///< Robot position.
-        double addedTime; ///< Absolute time at which the robot was detected.
-        int nPoints;    ///< Number of points in the blob.
+        double addedTime = 0.0; ///< Absolute time at which the robot was detected.
+        int nPoints = 0;    ///< Number of points in the blob.
     };
 
 

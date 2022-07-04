@@ -36,15 +36,17 @@ int uart_open(std::string const& portName, int speed)
     return port;
 }
 
-int read_timeout(int const& file, unsigned char *buffer, size_t const& size, uint const& timeoutMs)
+int read_timeout(int const& file, unsigned char *buffer, size_t const& size, double const& timeoutSec)
 {
     struct timeval timeout;
+    // timeout.tv_sec = static_cast<int>(timeoutSec);
+    // timeout.tv_usec = (timeoutSec - timeout.tv_sec) * 1e6;
     timeout.tv_sec = 0;
-    timeout.tv_usec = 1000 * timeoutMs;
+    timeout.tv_usec = 10000;
     fd_set set;
     FD_ZERO(&set);
     FD_SET(file, &set);
-    
+
     int nFiles = select(file + 1, &set, NULL, NULL, &timeout);
     // If there is something to read, read and return the number of bytes read.
     if (nFiles > 0)

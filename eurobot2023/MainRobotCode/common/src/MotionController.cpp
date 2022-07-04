@@ -287,8 +287,8 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // Convert from base velocity to motor wheel velocity.
     WheelSpeed wheelSpeed = kinematics_.inverseKinematics(targetSpeed);
     // Convert to motor unit.
-    target.motorSpeed[RIGHT] = wheelSpeed.right / robotdimensions::stepSize;
-    target.motorSpeed[LEFT] = wheelSpeed.left / robotdimensions::stepSize;
+    target.motorSpeed[RIGHT] = wheelSpeed.right;
+    target.motorSpeed[LEFT] = wheelSpeed.left;
 
 
     logger_.setData(LOGGER_LINEAR_P_I_D_CORRECTION, PIDLinear_.getCorrection());

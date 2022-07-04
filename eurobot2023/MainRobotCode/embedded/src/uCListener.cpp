@@ -135,7 +135,7 @@ bool uCListener_start(std::string const& portName)
     // Check that an Arduino with the MiAMSlave code is present.
     unsigned char returnData[10];
     returnData[9] = '\0';
-    int returnValue = read_timeout(port, returnData, 9, 2500);
+    int returnValue = read_timeout(port, returnData, 9, 2.5);
     if(returnValue < 9 || strcmp((char*)returnData, "MiAMSlave") != 0)
     {
         std::cout << "Didn't recieve correct message from Arduino slave: expected MiAMSlave, got \"" << returnData << "\"" << std::endl;
