@@ -39,10 +39,8 @@ int uart_open(std::string const& portName, int speed)
 int read_timeout(int const& file, unsigned char *buffer, size_t const& size, double const& timeoutSec)
 {
     struct timeval timeout;
-    // timeout.tv_sec = static_cast<int>(timeoutSec);
-    // timeout.tv_usec = (timeoutSec - timeout.tv_sec) * 1e6;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 10000;
+    timeout.tv_sec = static_cast<int>(timeoutSec);
+    timeout.tv_usec = (timeoutSec - timeout.tv_sec) * 1e6;
     fd_set set;
     FD_ZERO(&set);
     FD_SET(file, &set);

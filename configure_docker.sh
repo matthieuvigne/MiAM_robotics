@@ -2,8 +2,6 @@
 
 # This script is meant to be run inside docker: check that.
 
-# TODO
-
 if ! [ -f /.dockerenv ]; then
    echo "This script must run inside the docker container"
    exit -1

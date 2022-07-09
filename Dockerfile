@@ -58,6 +58,8 @@ RUN cd &&\
     cmake  ../../raspicam  -DCMAKE_INSTALL_PREFIX=/usr/local/ -DBUILD_UTILS=OFF -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ -DBUILD_SHARED_LIBS=OFF -DUSE_MMX=OFF -DUSE_O3=OFF -DUSE_FAST_MATH=ON -DUSE_O2=OFF -DUSE_SSE=OFF -DUSE_SSE2=OFF -DUSE_SSE3=OFF &&\
     make -j8 install
 
+# Configure ssh key sharing with host, and keep history between sessions.
+RUN mkdir -p /root/.ssh && echo "cp /root/ssh_source/* /root/.ssh/" >> /root/.bashrc &&\
+    echo "export PROMPT_COMMAND='history -a' && export HISTFILE=/root/commandhistory/.bash_history" >> /root/.bashrc
 
 WORKDIR /miam_workspace
-
