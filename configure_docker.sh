@@ -14,6 +14,7 @@ cd /miam_workspace
 
 mkdir -p build/rplidar
 mkdir -p build/miam_utils
+mkdir -p build/vision
 mkdir -p build/eurobot2023/embedded
 mkdir -p build/eurobot2023/simulation
 mkdir install
@@ -22,19 +23,19 @@ mkdir install
 cd build/rplidar
 
 cmake /miam_workspace/src/MiAM_robotics/rplidar_sdk -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
-make -j4 install
+make -j8 install
 
 cmake /miam_workspace/src/MiAM_robotics/rplidar_sdk -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
-make -j4 install
+make -j8 install
 
 # Compile and install miam_utils
 cd /miam_workspace/build/miam_utils
 
 cmake /miam_workspace/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
-make -j4 install
+make -j8 install
 
 cmake /miam_workspace/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
-make -j4 install
+make -j8 install
 
 # Setup python environment
 cd /miam_workspace/install
@@ -46,13 +47,18 @@ cd /miam_workspace/src/MiAM_robotics/miam_py
 pip install -U pip
 pip install -e .
 
+# Compile vision code
+cd /miam_workspace/build/vision
+cmake /miam_workspace/src/MiAM_robotics/vision -DCMAKE_BUILD_TYPE=Release
+make -j8
+
 # Compile robot code
 cd /miam_workspace/build/eurobot2023/embedded
 cmake /miam_workspace/src/MiAM_robotics/eurobot2023/MainRobotCode/embedded/ -DCMAKE_BUILD_TYPE=Release
-make -j4
+make -j8
 
 # Compile simulation code
 cd /miam_workspace/build/eurobot2023/simulation
 cmake /miam_workspace/src/MiAM_robotics/eurobot2023/MainRobotCode/simulation/ -DCMAKE_BUILD_TYPE=Release
-make -j4
+make -j8
 

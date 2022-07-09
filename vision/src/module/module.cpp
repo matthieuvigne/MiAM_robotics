@@ -1,7 +1,6 @@
 #include <memory>
 
 #include <miam_utils/raspberry_pi/RPiGPIO.h>
-#include <yaml-cpp/yaml.h>
 
 #include <camera/distortion_null.hpp>
 #include <camera/distortion_radtan.hpp>
