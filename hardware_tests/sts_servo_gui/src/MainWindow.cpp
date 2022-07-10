@@ -122,11 +122,6 @@ bool MainWindow::updateReadings()
 }
 
 
-void MainWindow::updateTargetPosition(int const& servoNumber)
-{
-    driver_->setTargetPosition(servoIds_[servoNumber], targetPositions_[servoNumber].get_value_as_int());
-}
-
 
 void MainWindow::updateId(int const& servoNumber)
 {
@@ -176,12 +171,28 @@ void MainWindow::resetPosition(int const& servoNumber)
 
 void MainWindow::updateEnable(int const& servoNumber)
 {
-    driver_->disable(servoIds_[servoNumber], !torqueEnabled_[servoNumber].get_state());
+    if (torqueEnabled_[servoNumber].get_active())
+    {
+        targetPositions_[servoNumber].set_value(driver_->getCurrentPosition(servoIds_[servoNumber]));
+        targetVelocities_[servoNumber].set_value(0);
+        updateTargetPosition(servoNumber);
+        updateTargetVelocity(servoNumber);
+    }
+    driver_->disable(servoIds_[servoNumber], !torqueEnabled_[servoNumber].get_active());
 }
+
+
+void MainWindow::updateTargetPosition(int const& servoNumber)
+{
+    if (torqueEnabled_[servoNumber].get_active())
+        driver_->setTargetPosition(servoIds_[servoNumber], targetPositions_[servoNumber].get_value_as_int());
+}
+
 
 void MainWindow::updateTargetVelocity(int const& servoNumber)
 {
-    driver_->setTargetVelocity(servoIds_[servoNumber], targetVelocities_[servoNumber].get_value_as_int());
+    if (torqueEnabled_[servoNumber].get_active())
+        driver_->setTargetVelocity(servoIds_[servoNumber], targetVelocities_[servoNumber].get_value_as_int());
 }
 
 
