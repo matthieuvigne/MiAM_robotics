@@ -8,6 +8,8 @@
 
     #include "RobotInterface.h"
     #include "ServoHandler.h"
+    #include "AbstractAction.h"
+    #include "MotionPlanning.h"
 
     //~ #include "CameraClient.h"
     #include <network/camera_client.hpp>
@@ -63,6 +65,12 @@
             void dropElements();
             ExcavationSquareColor testExcavationSite();
             void stopEverything();
+
+            Action* chooseNextAction(
+                std::vector<Action>& actions,
+                RobotPosition currentPosition,
+                MotionPlanning motionPlanner
+            );
     };
 
  #endif

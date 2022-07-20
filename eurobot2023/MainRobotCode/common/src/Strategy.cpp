@@ -104,6 +104,46 @@ void Strategy::setup(RobotInterface *robot)
     motionController->resetPosition(targetPosition, true, true, true);
 }
 
+
+Action* Strategy::chooseNextAction(
+    std::vector<Action>& actions,
+    RobotPosition currentPosition,
+    MotionPlanning motionPlanner
+)
+{
+
+    Action* bestAction = &actions.front();
+    double bestLoss = 0;
+
+    int i = 0;
+
+    for (auto & a : actions)
+    {
+
+        if (a.isActivated_)
+        {
+            // compute loss
+            double timeItTakesToGoThere = motionPlanner.computeMotionTime(currentPosition, a.startPosition_);
+            double currentLoss = a.nPointsToGain_ /(a.timeItTakes_ + timeItTakesToGoThere);
+
+            std::cout << "Calcul pour " << i << " : " << timeItTakesToGoThere << ", " << currentLoss << std::endl;
+
+            if (bestLoss < currentLoss)
+            {
+                bestAction = &a;
+                bestLoss = currentLoss;
+                std::cout << "Chosen action " << i << std::endl;
+            }
+        }
+
+        a.isActivated_ = true;
+
+        i++;
+    }
+
+    return bestAction;
+}
+
 void Strategy::match_impl()
 {
 
@@ -115,9 +155,6 @@ void Strategy::match_impl()
     robot->updateScore(2);  //depose statuette
     robot->updateScore(2);  //depose vitrine
 
-
-#ifndef SKIP_TO_GRABBING_SAMPLES
-
     // Set initial position
     targetPosition.x = robotdimensions::CHASSIS_BACK;
     targetPosition.y = 1200;
@@ -125,197 +162,56 @@ void Strategy::match_impl()
     motionController->resetPosition(targetPosition, true, true, true);
     robot->wait(0.05);
 
-    // start camera
-    #if USE_CAMERA
-    std::thread camThread(&network::CameraClient::run, &camera_);
-    pthread_t handle = camThread.native_handle();
-    camThread.detach();
-    createdThreads_.push_back(handle);
-    #endif
+    // create brain
+    MotionPlanning motion_planner;
 
-    //**********************************************************
-    // Go get the statue
-    //**********************************************************
-    if (!handleStatue())
+    Action action1(100,1, RobotPosition(1500, 1200, 0));
+    Action action2(10, 1, RobotPosition(1500, 1800, 0));
+    // Action action3(15, 1, RobotPosition(1500, 2200, 0));
+
+    std::vector<Action> actionVector;
+    actionVector.push_back(action1);
+    actionVector.push_back(action2);
+    // actionVector.push_back(action3);
+
+
+
+    while (!actionVector.empty())
     {
-        // Strategy fallback: alt 2
 
-        stopEverything();
-
-        // if failing to get the statue, the most probable reason should be sth
-        // prevents us from getting to the vitrine
-        // adverse robot should be near vitrine/side dist/presentoir
-        // -> try go do dig sites
-
-        targetPosition = motionController->getCurrentPosition();
-        if (targetPosition.y > 1100)
+        std::cout << "Remaining actions : " << actionVector.size() << std::endl;
+        for (auto v : actionVector)
         {
-            // try not to knock samples off starting zone
-            endPosition = targetPosition;
-            endPosition.x = 500;
-            endPosition.y -= 200;
-            traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
-            motionController->setTrajectoryToFollow(traj);
-            motionController->waitForTrajectoryFinished();
-
-            if (!handleDigZone())
-                stopEverything();
-
-            if (!pushSamplesBelowShelter())
-            {
-                // before folding claws try to go back a little in order not to get a sample stuck
-                // between claws
-                // trajectory should be feasible given position
-                targetPosition = motionController->getCurrentPosition();
-                traj = computeTrajectoryStraightLine(targetPosition, -150);
-                motionController->setTrajectoryToFollow(traj);
-                motionController->waitForTrajectoryFinished();
-                stopEverything();
-            }
-
-            if (!handleSideTripleSamples())
-                stopEverything();
-        }
-    }
-
-
-
-
-    //**********************************************************
-    // Go to the side distributor
-    //**********************************************************
-    if (!moveSideSample())
-        stopEverything();
-
-    #endif
-
-    #ifndef SKIP_TO_PUSHING_SAMPLES
-
-    #ifdef SKIP_TO_GRABBING_SAMPLES
-
-    targetPosition.x = 292;
-    targetPosition.y = 1667 ;
-    targetPosition.theta = 4.66973;
-    motionController->resetPosition(targetPosition, true, true, true);
-
-    #endif
-
-    //**********************************************************
-    // Grab the three samples on the ground, and drop them
-    //**********************************************************
-    if (!moveThreeSamples())
-    {
-        // Strategy fallback: alt 1
-
-        stopEverything();
-
-        // go dig zone
-        if (!handleDigZone())
-        {
-            // if failing dig zone, assume adverse robot
-            // in the area and fallback to the side dist
-            stopEverything();
-
-            // go back not to knock samples
-            targetPosition = motionController->getCurrentPosition();
-            RobotPosition endPosition = targetPosition;
-            endPosition.x = 600;
-            endPosition.y = robotdimensions::CHASSIS_WIDTH + 80 + 60 -10;
-            traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
-
-            if (!handleSideTripleSamples())
-                stopEverything();
-
-            // then go back around 1100, 500 to get a better angle
-            targetPosition = motionController->getCurrentPosition();
-            endPosition = targetPosition;
-            endPosition.x = 450;
-            endPosition.y = 1100;
-            traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
-            motionController->setTrajectoryToFollow(traj);
-            motionController->waitForTrajectoryFinished();
+            std::cout << v << std::endl;
         }
 
-    }
+        Action* nextAction = chooseNextAction(actionVector, motionController->getCurrentPosition(), motion_planner);
 
-    std::cout << motionController->getCurrentPosition() << std::endl;
-    // robot->wait(1000);
 
-    #endif
+        std::cout << "nextAction : " << *nextAction << std::endl;
 
-    #ifndef SKIP_TO_GRABBING_SAMPLES_SIDE_DIST
-
-    #ifdef SKIP_TO_PUSHING_SAMPLES
-
-    targetPosition.x = 766.546;
-    targetPosition.y = 1635.35 ;
-    targetPosition.theta = 7.8531;
-    motionController->resetPosition(targetPosition, true, true, true);
-
-    #endif
-
-    //**********************************************************
-    // Push the samples on the field
-    //**********************************************************
-    if (!pushSamplesBelowShelter())
-    {
-        // before folding claws try to go back a little in order not to get a sample stuck
-        // between claws
-        // trajectory should be feasible given position
         targetPosition = motionController->getCurrentPosition();
-        traj = computeTrajectoryStraightLine(targetPosition, -150);
+        traj = motion_planner.computeTraj(targetPosition, nextAction->startPosition_);
         motionController->setTrajectoryToFollow(traj);
-        motionController->waitForTrajectoryFinished();
-        stopEverything();
+        bool moveSuccess = motionController->waitForTrajectoryFinished();
+
+
+        if (moveSuccess)
+        {
+            nextAction->performAction(robot);
+            actionVector.erase(std::find(actionVector.begin(), actionVector.end(), *nextAction));
+
+        }
+        else
+        {
+            // penaliser l'action
+            nextAction->isActivated_ = false;
+        }
+
+
+
     }
 
-    //**********************************************************
-    // Flip the dig zone
-    //**********************************************************
-    if (!handleDigZone())
-        stopEverything();
-
-    //**********************************************************
-    // Go to the side tripledist
-    //**********************************************************
-    servo->moveArm(true, arm::FOLD);
-    servo->moveFinger(true, finger::FOLD);
-    servo->moveArm(false, arm::FOLD);
-    servo->moveFinger(false, finger::FOLD);
-    #endif
-
-    if (!handleSideTripleSamples())
-        stopEverything();
-
-
-    //**********************************************************
-    // Strategy fallback: attempt moveThreeSamples if not done
-    //**********************************************************
-
-    if (!handleDigZone())
-        stopEverything();
-    if (!moveThreeSamplesBackup())
-        stopEverything();
-
-
-    //**********************************************************
-    // Rotate to come back to the campment
-    //**********************************************************
-
-    servo->activatePump(false);
-
-    // try to complete match
-    while (!MATCH_COMPLETED)
-    {
-        MATCH_COMPLETED = goBackToDigSite();
-        robot->wait(0.1);
-    }
-
-    if (MATCH_COMPLETED)
-    {
-        robot->updateScore(20); // match completed
-        camera_.shutDown();
-    }
 
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
