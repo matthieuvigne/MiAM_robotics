@@ -8,6 +8,7 @@
 #include "Viewer.h"
 #include "Strategy.h"
 #include "ServoHandler.h"
+#include "RobotGUI.h"
 
 Glib::RefPtr<Gtk::Application> app;
 
@@ -40,6 +41,10 @@ int main (int argc, char *argv[])
     refBuilder->get_widget_derived("mainWindow", viewer, "./config/tableAgeOfBots.png");
     ViewerRobot mainRobot("./config/mainRobotAgeOfBots.png", Strategy());
     viewer->addRobot(mainRobot);
+
+    // Create gui
+    std::thread t(startRobotGUI, &mainRobot);
+    t.detach();
 
     return app->run(*viewer);
 }
