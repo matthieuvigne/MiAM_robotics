@@ -21,11 +21,16 @@ int main (int argc, char *argv[])
         std::cout << "Failed to init communication with servos." << std::endl;
         return 0;
     }
+    // Start all servos in position mode.
+    driver.setMode(0xFE, STS::Mode::POSITION);
 
     // Create GUI
     Glib::RefPtr<Gtk::Application> app = Gtk::Application::create();
     MainWindow window(&driver);
-    return app->run(window);
+    app->run(window);
+    // Stop all motors
+    driver.disable(0xFE);
+    return 0;
 }
 
 

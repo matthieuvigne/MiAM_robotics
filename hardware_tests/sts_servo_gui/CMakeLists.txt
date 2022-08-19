@@ -13,7 +13,7 @@ include_directories(include)
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
 #compile flag
-set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -fdiagnostics-color -DSIMULATION -pthread")
+set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -fdiagnostics-color -pthread")
 
 # Use the package PkgConfig to detect GTK+ headers/library files - cross-compiled
 find_package(PkgConfig REQUIRED)

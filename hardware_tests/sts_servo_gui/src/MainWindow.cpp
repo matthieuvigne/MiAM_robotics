@@ -202,16 +202,20 @@ void MainWindow::updateControlMode(int const& servoNumber)
     if (mode == "Position")
     {
         driver_->setMode(servoIds_[servoNumber], STS::Mode::POSITION);
+        usleep(5000);
         targetPositions_[servoNumber].set_value(driver_->getCurrentPosition(servoIds_[servoNumber]));
+        updateTargetPosition(servoNumber);
     }
     else if (mode == "Velocity")
     {
-        driver_->setMode(servoIds_[servoNumber], STS::Mode::VELOCITY);
         targetVelocities_[servoNumber].set_value(0);
+        updateTargetVelocity(servoNumber);
+        driver_->setMode(servoIds_[servoNumber], STS::Mode::VELOCITY);
     }
     else
     {
-        driver_->setMode(servoIds_[servoNumber], STS::Mode::STEP);
         targetPositions_[servoNumber].set_value(0);
+        updateTargetPosition(servoNumber);
+        driver_->setMode(servoIds_[servoNumber], STS::Mode::STEP);
     }
 }
