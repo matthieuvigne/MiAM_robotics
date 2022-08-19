@@ -10,7 +10,7 @@
 
     namespace miam{
         namespace trajectory{
-            enum rotationside{
+            enum class rotationside{
                 RIGHT,
                 LEFT
             };

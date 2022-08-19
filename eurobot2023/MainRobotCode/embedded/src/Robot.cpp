@@ -26,7 +26,8 @@ Robot::Robot(bool const& testMode, bool const& disableLidar):
     startupStatus_(startupstatus::INIT),
     initMotorBlocked_(false),
     initStatueHigh_(true),
-    timeSinceLastCheckOnRailHeightDuringInit_(-1.0)
+    timeSinceLastCheckOnRailHeightDuringInit_(-1.0),
+    motorSpi_(RPI_SPI_00)
 {
     PIDRail_ = miam::PID(controller::railKp, controller::railKd, controller::railKi, 0.1);
 
@@ -88,7 +89,7 @@ bool Robot::initSystem()
         int maxSpeed = robotdimensions::maxWheelSpeed / robotdimensions::wheelRadius / robotdimensions::stepSize;
         int maxAcceleration = robotdimensions::maxWheelAcceleration / robotdimensions::wheelRadius / robotdimensions::stepSize;
         // Initialize both motors.
-        stepperMotors_ = miam::L6470(RPI_SPI_00, 2);
+        stepperMotors_ = miam::L6470(&motorSpi_, 2);
         isStepperInit_ = stepperMotors_.init(maxSpeed, maxAcceleration, MOTOR_KVAL_HOLD,
                                              MOTOR_BEMF[0], MOTOR_BEMF[1], MOTOR_BEMF[2], MOTOR_BEMF[3]);
         if (!isStepperInit_)

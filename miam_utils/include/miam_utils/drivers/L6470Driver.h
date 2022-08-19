@@ -14,7 +14,7 @@
 #define dualL6470_DRIVER
 
     #include <vector>
-    #include <mutex>
+    #include "SPI-Wrapper.h"
 
     namespace miam{
 
@@ -37,13 +37,13 @@
                 /// \brief Constructor.
                 /// \details This function only builds the object, but does not perform any operation on the
                 ///          SPI port.
-                /// \param[in] portName Name of the port, in the file system (i.e. a string "/dev/spidevx").
+                /// \param[in] spiDriver SPI driver.
                 /// \param[in] numberOfSlaves Number of devices to drive.
                 /// \param[in] speed Bus clock frequency. Default: 4Mhz.
-                L6470(std::string const& portName, int const& numberOfDevices, int const& busFrequency = 4000000);
+                L6470(SPIWrapper *spiDriver, int const& numberOfDevices);
 
                 /// \brief Assignment operator.
-                L6470& operator=(L6470 const& l);
+                // L6470& operator=(L6470 const& l);
 
                 /// \brief Try to init all devices.
                 ///
@@ -152,13 +152,6 @@
 
 
             private:
-
-                /// \brief Send and receives an array of data over spi.
-                /// \param[in] data Data to send - the buffer is overwritten with new data.
-                /// \param[in] len Length of the input buffer.
-                /// \return <0 on error.
-                int spiReadWrite(uint8_t* data, uint8_t const& len);
-
                 /// \brief Send a command to the devices, and read corresponding response.
                 ///    \details If the length of one of the two input vectors is not numberOfDevices_, this function
                 ///          returns immediately.
@@ -182,11 +175,8 @@
                 /// \return Vector of errors from devices.
                 std::vector<uint32_t> getStatus();
 
-                std::string portName_;
+                SPIWrapper* spiDriver_;
                 uint numberOfDevices_;
-                int frequency_;
-                std::recursive_mutex mutex_;    ///< Mutex, for thread safety. recursive_mutex that can be locked several
-                                                /// times by the same thread: is this to prevent deadlock when sending a kill signal to the code.
 
                 double stepModeMultiplier_; ///< Number of steps in one full step.
         };

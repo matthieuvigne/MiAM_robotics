@@ -17,10 +17,12 @@
     #include <miam_utils/miam_utils.h>
     #include <miam_utils/drivers/USBLCDDriver.h>
     #include <miam_utils/raspberry_pi/RaspberryPi.h>
+    #include <miam_utils/drivers/SPI-Wrapper.h>
     #include <miam_utils/trajectory/PointTurn.h>
     #include <miam_utils/trajectory/Utilities.h>
     #include <miam_utils/trajectory/DrivetrainKinematics.h>
-    #include "miam_utils/RPLidarHandler.h"
+    #include <miam_utils/RPLidarHandler.h>
+
     #include <math.h>
     #include <stdlib.h>
     #include <stdio.h>
@@ -147,6 +149,8 @@
             int railHigh_;
 
             miam::L6470 stepperMotors_; ///< Robot driving motors.
+            SPIWrapper motorSpi_;
+
 
             uCData microcontrollerData_; ///< Data structure containing informations from the arduino board.
 

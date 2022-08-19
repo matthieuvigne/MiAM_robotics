@@ -19,32 +19,20 @@
 namespace miam
 {
     L6470::L6470():
-        portName_(""),
+        spiDriver_(nullptr),
         numberOfDevices_(0),
-        frequency_(0),
         stepModeMultiplier_(1.0)
     {
 
     }
 
 
-    L6470::L6470(std::string const& portName, int const& numberOfDevices, int const& busFrequency):
-        portName_(portName),
+    L6470::L6470(SPIWrapper *spiDriver, int const& numberOfDevices):
+        spiDriver_(spiDriver),
         numberOfDevices_(std::abs(numberOfDevices)),
-        frequency_(std::abs(busFrequency)),
         stepModeMultiplier_(1.0)
     {
 
-    }
-
-
-    L6470& L6470::operator=(L6470 const& l)
-    {
-        portName_ = l.portName_;
-        numberOfDevices_ = l.numberOfDevices_;
-        frequency_ = l.frequency_;
-        stepModeMultiplier_ = l.stepModeMultiplier_;
-        return *this;
     }
 
 
@@ -356,44 +344,15 @@ namespace miam
     }
 
 
-    int L6470::spiReadWrite(uint8_t* data, uint8_t const& len)
-    {
-        if (numberOfDevices_ == 0)
-            return -1;
-        // len represent total message size: split it in packets of numberOfDevices_
-        uint8_t nPackets = len / numberOfDevices_;
-        mutex_.lock();
-        int port = spi_open(portName_, frequency_);
-
-        struct spi_ioc_transfer spiCtrl[nPackets];
-        // Transmit data in blocks of 2, since two controllers are daisy-chained.
-        // This can easily be changed to handle more controllers, but this requires API rethinking.
-        for(int x = 0; x < nPackets; x++)
-        {
-            spiCtrl[x].tx_buf        = (unsigned long)&data[2 * x];
-            spiCtrl[x].rx_buf        = (unsigned long)&data[2 * x];
-            spiCtrl[x].len           = numberOfDevices_;
-            spiCtrl[x].delay_usecs   = 1;
-            spiCtrl[x].speed_hz      = frequency_;
-            spiCtrl[x].bits_per_word = 8;
-            spiCtrl[x].cs_change = true;
-            spiCtrl[x].pad = 0;
-            spiCtrl[x].tx_nbits = 0;
-            spiCtrl[x].rx_nbits = 0;
-        }
-        int res = ioctl(port, SPI_IOC_MESSAGE(nPackets), &spiCtrl);
-        spi_close(port);
-        mutex_.unlock();
-
-        return res;
-    }
-
-
     std::vector<uint32_t> L6470::sendCommand(std::vector<uint8_t> const& commands, std::vector<uint32_t> const& parameters, uint8_t paramLength)
     {
         std::vector<uint32_t> response;
         for(uint i = 0; i < numberOfDevices_; i++)
             response.push_back(0.0);
+
+        // Not init: do nothing
+        if (numberOfDevices_ == 0)
+            return response;
 
         // Check length of input vector
         if(commands.size() != numberOfDevices_)
@@ -414,7 +373,26 @@ namespace miam
         }
 
         // Do SPI communication
-        int result = spiReadWrite(data, numberOfDevices_ * (1 + paramLength));
+        // len represent total message size: split it in packets of numberOfDevices_
+        uint8_t nPackets = 1 + paramLength;
+
+        struct spi_ioc_transfer spiCtrl[nPackets];
+        // Transmit data in blocks of 2, since two controllers are daisy-chained.
+        // This can easily be changed to handle more controllers, but this requires API rethinking.
+        for(int x = 0; x < nPackets; x++)
+        {
+            spiCtrl[x].tx_buf        = (unsigned long)&data[2 * x];
+            spiCtrl[x].rx_buf        = (unsigned long)&data[2 * x];
+            spiCtrl[x].len           = numberOfDevices_;
+            spiCtrl[x].delay_usecs   = 1;
+            spiCtrl[x].bits_per_word = 8;
+            spiCtrl[x].cs_change = true;
+            spiCtrl[x].pad = 0;
+            spiCtrl[x].tx_nbits = 0;
+            spiCtrl[x].rx_nbits = 0;
+        }
+        int result = spiDriver_->spiReadWrite(nPackets, spiCtrl);
+
         if(result < 0)
         {
             #ifdef DEBUG
