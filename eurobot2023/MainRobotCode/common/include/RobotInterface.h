@@ -17,14 +17,18 @@
     class RobotInterface
     {
         public:
+            RobotInterface():
+                motionController_(),
+                servos_(nullptr)
+            { }
             RobotInterface(ServoHandler *servos):
                 motionController_(),
                 servos_(servos)
             { }
 
-            /// \brief Set a new target to the rail.
-            /// \param position Relative rail position, form 0 (down) to 1 (up).
-            virtual void moveRail(double const& position) = 0;
+            // /// \brief Set a new target to the rail.
+            // /// \param position Relative rail position, form 0 (down) to 1 (up).
+            // virtual void moveRail(double const& position) = 0;
 
             // Sleep a specified number of seconds.
             virtual void wait(double const& waitTimeS)
@@ -37,21 +41,21 @@
                 return false;
             }
 
-            virtual ExcavationSquareColor getExcavationReadings(bool readRightSide)
-            {
-                return ExcavationSquareColor::RED;
-            }
+            // virtual ExcavationSquareColor getExcavationReadings(bool readRightSide)
+            // {
+            //     return ExcavationSquareColor::RED;
+            // }
 
             virtual bool getTestMode() const
             {
                 return false;
             }
 
-            // Return the measured distance, from robot center, given by the range sensor, in mm.
-            virtual double getRangeSensorMeasurement(bool measureRightSide) const
-            {
-                return 0;
-            }
+            // // Return the measured distance, from robot center, given by the range sensor, in mm.
+            // virtual double getRangeSensorMeasurement(bool measureRightSide) const
+            // {
+            //     return 0;
+            // }
 
             /// \brief The low-level thread of the robot.
             /// \details This thread runs a periodic loop. At each iteration, it updates sensor values,
@@ -73,7 +77,7 @@
             virtual void stopMotors() = 0;
 
             MotionController* getMotionController() { return &motionController_;}
-            ServoHandler* getServos() { return servos_;}
+            // ServoHandler* getServos() { return servos_;}
 
         protected:
             MotionController motionController_;

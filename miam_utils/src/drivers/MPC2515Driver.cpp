@@ -53,6 +53,7 @@ static const uint8_t RXB1CTRL_REGISTER  = 0x70 ;
 static const uint8_t RXFSIDH_REGISTER [6] = {0x00, 0x04, 0x08, 0x10, 0x14, 0x18} ;
 
 
+namespace miam{
 
 MCP2515::MCP2515():
     spiDriver_(nullptr)
@@ -205,5 +206,6 @@ bool MCP2515::readAvailableMessage(CANMessage & message)
 
 
     return res == 4;
+}
 }
 

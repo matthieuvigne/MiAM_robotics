@@ -23,6 +23,8 @@
     #include <miam_utils/trajectory/DrivetrainKinematics.h>
     #include <miam_utils/RPLidarHandler.h>
 
+    #include <miam_utils/drivers/RMDX.h>
+
     #include <math.h>
     #include <stdlib.h>
     #include <stdio.h>
@@ -70,16 +72,16 @@
             ///          It also logs everything in a log file.
             void lowLevelLoop() override;
 
-            /// \brief Set a new target to the rail.
-            ///
-            /// \param position Relative rail position, form 0 (down) to 1 (up).
-            /// \param wait If set, this function blocks until motion is complete.
-            void moveRail(double const& position) override;
+            // /// \brief Set a new target to the rail.
+            // ///
+            // /// \param position Relative rail position, form 0 (down) to 1 (up).
+            // /// \param wait If set, this function blocks until motion is complete.
+            // void moveRail(double const& position) override;
 
-            /// \brief Get current rail position.
-            ///
-            /// \return Current relative rail position, form 0 (down) to 1 (up).
-            double getRailPosition();
+            // /// \brief Get current rail position.
+            // ///
+            // /// \return Current relative rail position, form 0 (down) to 1 (up).
+            // double getRailPosition();
 
             /// \brief Update the robot score.
             /// \details This function increments the score then updates the display accordingly.
@@ -99,17 +101,17 @@
             /// \return Time since start of the match, or 0 if not started.
             double getMatchTime();
 
-            ExcavationSquareColor getExcavationReadings(bool readRightSide) override;
+            // ExcavationSquareColor getExcavationReadings(bool readRightSide) override;
 
             bool getTestMode() const override
             {
                 return testMode_;
             }
 
-            double getRangeSensorMeasurement(bool measureRightSide) const override
-            {
-                return rangeMeasurements_[measureRightSide ? RIGHT : LEFT];
-            }
+            // double getRangeSensorMeasurement(bool measureRightSide) const override
+            // {
+            //     return rangeMeasurements_[measureRightSide ? RIGHT : LEFT];
+            // }
 
             /// \brief Shut down the robot when Ctrl+X is pressed.
             void shutdown();
@@ -117,8 +119,8 @@
         private:
             USBLCD screen_; ///< LCD screen and buttons.
             RPLidarHandler lidar_; ///< Lidar
-            MaestroDriver maestro_; ///< Servo driver
-            ServoHandler handler_;
+            // MaestroDriver maestro_; ///< Servo driver
+            // ServoHandler handler_;
 
             bool testMode_; // Test mode: no initial wait.
             bool disableLidar_; // Disable lidar (works only in test mode)
@@ -139,49 +141,53 @@
             ///          has started.
             bool setupBeforeMatchStart();
 
-            /// \brief Move the rail to the target position.
-            /// \details This function computes the velocity to be applied to the rail servo in order to reach
-            /// the desired target rail position using the potentiometer data.
-            /// \param[in] dt Time since last servoing call, for PID controller.
-            void updateMoveRail(double const& dt);
+            // /// \brief Move the rail to the target position.
+            // /// \details This function computes the velocity to be applied to the rail servo in order to reach
+            // /// the desired target rail position using the potentiometer data.
+            // /// \param[in] dt Time since last servoing call, for PID controller.
+            // void updateMoveRail(double const& dt);
 
-            void calibrateRail();
-            int railHigh_;
+            // void calibrateRail();
+            // int railHigh_;
 
-            miam::L6470 stepperMotors_; ///< Robot driving motors.
+            // miam::L6470 stepperMotors_; ///< Robot driving motors.
+            miam::RMDX brushlessMotors_; ///< Robot driving motors.
+            int const motorRightId = 1;
+            int const motorLeftId = 2;
+
             SPIWrapper motorSpi_;
-
+            miam::MCP2515 motorMcp_;
 
             uCData microcontrollerData_; ///< Data structure containing informations from the arduino board.
 
-            // Rail PID
-            miam::PID PIDRail_; ///< PID for the rail.
-            int targetRailPosition_; ///< The desired rail position (in potentiometer unit). Should be -1 if not yet set during the match.
+            // // Rail PID
+            // miam::PID PIDRail_; ///< PID for the rail.
+            // int targetRailPosition_; ///< The desired rail position (in potentiometer unit). Should be -1 if not yet set during the match.
 
 
             // Init variables.
-            bool isScreenInit_ = {false}; ///< Boolean representing the initialization of the screen motors.
+            // bool isScreenInit_ = {false}; ///< Boolean representing the initialization of the screen motors.
             bool isStepperInit_ = {false}; ///< Boolean representing the initialization of the stepper motors.
-            bool isServosInit_ = {false}; ///< Boolean representing the initialization of the servo driving board.
+            // bool isServosInit_ = {false}; ///< Boolean representing the initialization of the servo driving board.
             bool isArduinoInit_ = {false}; ///< Boolean representing the initialization of the slave arduino board.
             bool isLidarInit_ = {false}; ///< Boolean representing the initialization of the lidar.
-            bool isRangeSensorInit_[2] = {false, false}; ///< Initialization of range sensors.
+            // bool isRangeSensorInit_[2] = {false, false}; ///< Initialization of range sensors.
             int score_={0}; ///< Current robot score.
             std::mutex mutex_; ///< Mutex, for thread safety.
 
             startupstatus startupStatus_; ///< Current startup status.
             bool initMotorBlocked_; ///< State of the motors during init.
-            bool initStatueHigh_; ///< State of the motors during init.
+            // bool initStatueHigh_; ///< State of the motors during init.
 
 
-            VL53L0X rangeSensors_[2];
+            // VL53L0X rangeSensors_[2];
 
-            double rangeMeasurements_[2] = {0, 0};
-            void updateRangeMeasurement(); // Range measurement thread
+            // double rangeMeasurements_[2] = {0, 0};
+            // void updateRangeMeasurement(); // Range measurement thread
 
             Strategy strategy_;
 
-            double timeSinceLastCheckOnRailHeightDuringInit_;
+            // double timeSinceLastCheckOnRailHeightDuringInit_;
 
             bool hasMatchStarted_{false};
             bool isPlayingRightSide_{false};

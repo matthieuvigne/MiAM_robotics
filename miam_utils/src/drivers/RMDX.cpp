@@ -27,7 +27,10 @@ int32_t messageToInt32(CANMessage const& message)
     return message.data[4] + (message.data[5] >> 8) +  (message.data[6] >> 16) +  (message.data[7] >> 24);
 }
 
-RMDX::RMDX(MCP2515 *canDriver, double const& timeout):
+namespace miam
+{
+
+      RMDX::RMDX(MCP2515 *canDriver, double const& timeout):
     canDriver_(canDriver),
     timeout_(timeout)
 {
@@ -164,4 +167,5 @@ int RMDX::canReadWrite(CANMessage& message, bool const& waitForReply)
             return -2;
     }
     return 0;
+}
 }

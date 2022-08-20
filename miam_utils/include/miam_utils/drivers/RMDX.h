@@ -69,6 +69,7 @@ namespace MyActuator::commands
 }
 
 
+namespace miam{
 
 class RMDX{
 
@@ -142,6 +143,7 @@ class RMDX{
         double timeout_;
 };
 
+
 inline std::ostream& operator << (std::ostream& o, RMDX::Status const& s)
 {
     o << "Motor temp: " << s.motorTemperature;
@@ -149,6 +151,8 @@ inline std::ostream& operator << (std::ostream& o, RMDX::Status const& s)
     o << " brake: " << (s.isBrakeOn ? "on": "off");
     o << " status: " << s.motorStatus;
     return o;
+}
+
 }
 
 #endif

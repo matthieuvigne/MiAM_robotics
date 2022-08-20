@@ -33,4 +33,8 @@
     #include <miam_utils/drivers/UART-Wrapper.h>
     #include <miam_utils/drivers/VL53L0XDriver.h>
 
+    #include <miam_utils/drivers/RMDX.h>
+    #include <miam_utils/drivers/MCP2515Driver.h>
+
+
 #endif

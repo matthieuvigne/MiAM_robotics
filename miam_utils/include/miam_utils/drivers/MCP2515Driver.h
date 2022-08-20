@@ -19,6 +19,9 @@
         uint8_t  data[8] = {0, 0, 0, 0, 0, 0, 0, 0}; //Actual data
     } ;
 
+
+namespace miam{
+
     class MCP2515{
         public:
             /// \brief Default constructor.
@@ -60,4 +63,5 @@
 
 
     };
+}
 #endif

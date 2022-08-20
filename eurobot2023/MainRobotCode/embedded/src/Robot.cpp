@@ -17,52 +17,53 @@ const int RIGHT_RANGE_ACTIVATE = 4;
 
 
 Robot::Robot(bool const& testMode, bool const& disableLidar):
-    handler_(&maestro_),
-    RobotInterface(&handler_),
+    // handler_(&maestro_),
+    // RobotInterface(&handler_),
+    RobotInterface(),
     lidar_(-M_PI_4),
     testMode_(testMode),
     disableLidar_(disableLidar),
     score_(0),
     startupStatus_(startupstatus::INIT),
     initMotorBlocked_(false),
-    initStatueHigh_(true),
-    timeSinceLastCheckOnRailHeightDuringInit_(-1.0),
+    // initStatueHigh_(true),
+    // timeSinceLastCheckOnRailHeightDuringInit_(-1.0),
     motorSpi_(RPI_SPI_00)
 {
-    PIDRail_ = miam::PID(controller::railKp, controller::railKd, controller::railKi, 0.1);
+    // PIDRail_ = miam::PID(controller::railKp, controller::railKd, controller::railKi, 0.1);
 
     motionController_.init(RobotPosition());
 
-    // Set initial rail target
-    targetRailPosition_ = -1;
+    // // Set initial rail target
+    // targetRailPosition_ = -1;
 }
 
 
 bool Robot::initSystem()
 {
     RPi_setupGPIO(START_SWITCH, PI_GPIO_INPUT_PULLUP); // Starting cable.
-    RPi_setupGPIO(RAIL_SWITCH, PI_GPIO_INPUT_PULLUP); // Rail limit cable.
-    RPi_setupGPIO(RIGHT_RANGE_ACTIVATE, PI_GPIO_OUTPUT); // Activation of right range sensor - for cusom I2C addressing.
-    RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, true);
+    // RPi_setupGPIO(RAIL_SWITCH, PI_GPIO_INPUT_PULLUP); // Rail limit cable.
+    // RPi_setupGPIO(RIGHT_RANGE_ACTIVATE, PI_GPIO_OUTPUT); // Activation of right range sensor - for cusom I2C addressing.
+    // RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, true);
     bool allInitSuccessful = true;
 
-    if (!isScreenInit_)
-    {
-        isScreenInit_ = screen_.init("/dev/LCDScreen");
-        if(!isScreenInit_)
-        {
-            #ifdef DEBUG
-                std::cout << "[Robot] Failed to init communication with LCD screen." << std::endl;
-            #endif
-            allInitSuccessful = false;
-        }
-        else
-        {
-            screen_.setText("Initializing", 0);
-            screen_.setLCDBacklight(255, 255, 255);
-        }
+    // if (!isScreenInit_)
+    // {
+    //     isScreenInit_ = screen_.init("/dev/LCDScreen");
+    //     if(!isScreenInit_)
+    //     {
+    //         #ifdef DEBUG
+    //             std::cout << "[Robot] Failed to init communication with LCD screen." << std::endl;
+    //         #endif
+    //         allInitSuccessful = false;
+    //     }
+    //     else
+    //     {
+    //         screen_.setText("Initializing", 0);
+    //         screen_.setLCDBacklight(255, 255, 255);
+    //     }
 
-    }
+    // }
 
     if (!isArduinoInit_)
     {
@@ -81,90 +82,88 @@ bool Robot::initSystem()
 
     if (!isStepperInit_)
     {
-        // Motor config values.
-        const int MOTOR_KVAL_HOLD = 0x30;
-        const int MOTOR_BEMF[4] = {0x3B, 0x1430, 0x22, 0x53};
 
-        // Compute max stepper motor speed.
-        int maxSpeed = robotdimensions::maxWheelSpeed / robotdimensions::wheelRadius / robotdimensions::stepSize;
-        int maxAcceleration = robotdimensions::maxWheelAcceleration / robotdimensions::wheelRadius / robotdimensions::stepSize;
-        // Initialize both motors.
-        stepperMotors_ = miam::L6470(&motorSpi_, 2);
-        isStepperInit_ = stepperMotors_.init(maxSpeed, maxAcceleration, MOTOR_KVAL_HOLD,
-                                             MOTOR_BEMF[0], MOTOR_BEMF[1], MOTOR_BEMF[2], MOTOR_BEMF[3]);
-        if (!isStepperInit_)
+        // init MCP
+        motorMcp_ = miam::MCP2515(&motorSpi_);
+        if (!motorMcp_.init())
         {
-            #ifdef DEBUG
-                std::cout << "[Robot] Failed to init communication with stepper motors." << std::endl;
-            #endif
-            allInitSuccessful = false;
-            screen_.setText("Failed to init", 0);
-            screen_.setText("stepper motors", 1);
-            screen_.setLCDBacklight(255, 0, 0);
+            std::cout << "Failed to talk to MCP" << std::endl;
+            exit(0);
         }
-        else
-        {
-            stepperMotors_.setStepMode(miam::L6470_STEP_MODE::MICRO_128);
-        }
+
+        // init motors
+        brushlessMotors_ = miam::RMDX(&motorMcp_, 0.1);
+
+
+        motorMcp_.init();
+        brushlessMotors_.enable(motorRightId);
+
+        usleep(10000);
+
+        // FIXME: mcp needs to be re-init between every message.
+        motorMcp_.init();
+        brushlessMotors_.enable(motorLeftId);
+
+        usleep(5000000);
     }
 
-    if (!isServosInit_)
-    {
-        isServosInit_ = servos_->init("/dev/maestro");
-        if (!isServosInit_)
-        {
-            #ifdef DEBUG
-                std::cout << "[Robot] Failed to init communication with servo driver." << std::endl;
-            #endif
-            allInitSuccessful = false;
-            screen_.setText("Failed to init", 0);
-            screen_.setText("servos", 1);
-            screen_.setLCDBacklight(255, 0, 0);
-        }
-    }
+    // if (!isServosInit_)
+    // {
+    //     isServosInit_ = servos_->init("/dev/maestro");
+    //     if (!isServosInit_)
+    //     {
+    //         #ifdef DEBUG
+    //             std::cout << "[Robot] Failed to init communication with servo driver." << std::endl;
+    //         #endif
+    //         allInitSuccessful = false;
+    //         screen_.setText("Failed to init", 0);
+    //         screen_.setText("servos", 1);
+    //         screen_.setLCDBacklight(255, 0, 0);
+    //     }
+    // }
 
-    // Init range sensor - starting with left sensor
-    if (!isRangeSensorInit_[LEFT])
-    {
-        RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, false);
-        // Try with defalut address
-        isRangeSensorInit_[LEFT] = rangeSensors_[LEFT].init(&RPI_I2C);
-        if (!isRangeSensorInit_[LEFT])
-        {
-            // Try with new address - in case it was already changed.
-            isRangeSensorInit_[LEFT] = rangeSensors_[LEFT].init(&RPI_I2C, 0x42);
-        }
-        if (!isRangeSensorInit_[LEFT])
-        {
-            #ifdef DEBUG
-                std::cout << "[Robot] Failed to init communication with left range sensor." << std::endl;
-            #endif
-            allInitSuccessful = false;
-            screen_.setText("Failed to init", 0);
-            screen_.setText("left range sensor", 1);
-            screen_.setLCDBacklight(255, 0, 0);
-        }
-        else
-        {
-            rangeSensors_[LEFT].setAddress(0x42);
-            RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, true);
-            usleep(10000);
-        }
-    }
-    if (isRangeSensorInit_[LEFT] && !isRangeSensorInit_[RIGHT])
-    {
-        isRangeSensorInit_[RIGHT] = rangeSensors_[RIGHT].init(&RPI_I2C);
-        if (!isRangeSensorInit_[RIGHT])
-        {
-            #ifdef DEBUG
-                std::cout << "[Robot] Failed to init communication with right range sensor." << std::endl;
-            #endif
-            allInitSuccessful = false;
-            screen_.setText("Failed to init", 0);
-            screen_.setText("right range sensor", 1);
-            screen_.setLCDBacklight(255, 0, 0);
-        }
-    }
+    // // Init range sensor - starting with left sensor
+    // if (!isRangeSensorInit_[LEFT])
+    // {
+    //     RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, false);
+    //     // Try with defalut address
+    //     isRangeSensorInit_[LEFT] = rangeSensors_[LEFT].init(&RPI_I2C);
+    //     if (!isRangeSensorInit_[LEFT])
+    //     {
+    //         // Try with new address - in case it was already changed.
+    //         isRangeSensorInit_[LEFT] = rangeSensors_[LEFT].init(&RPI_I2C, 0x42);
+    //     }
+    //     if (!isRangeSensorInit_[LEFT])
+    //     {
+    //         #ifdef DEBUG
+    //             std::cout << "[Robot] Failed to init communication with left range sensor." << std::endl;
+    //         #endif
+    //         allInitSuccessful = false;
+    //         screen_.setText("Failed to init", 0);
+    //         screen_.setText("left range sensor", 1);
+    //         screen_.setLCDBacklight(255, 0, 0);
+    //     }
+    //     else
+    //     {
+    //         rangeSensors_[LEFT].setAddress(0x42);
+    //         RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, true);
+    //         usleep(10000);
+    //     }
+    // }
+    // if (isRangeSensorInit_[LEFT] && !isRangeSensorInit_[RIGHT])
+    // {
+    //     isRangeSensorInit_[RIGHT] = rangeSensors_[RIGHT].init(&RPI_I2C);
+    //     if (!isRangeSensorInit_[RIGHT])
+    //     {
+    //         #ifdef DEBUG
+    //             std::cout << "[Robot] Failed to init communication with right range sensor." << std::endl;
+    //         #endif
+    //         allInitSuccessful = false;
+    //         screen_.setText("Failed to init", 0);
+    //         screen_.setText("right range sensor", 1);
+    //         screen_.setLCDBacklight(255, 0, 0);
+    //     }
+    // }
 
     if (testMode_ && disableLidar_)
         isLidarInit_ = true;
@@ -176,9 +175,9 @@ bool Robot::initSystem()
             #ifdef DEBUG
                 std::cout << "[Robot] Failed to init communication with lidar driver." << std::endl;
             #endif
-            screen_.setText("Failed to init", 0);
-            screen_.setText("lidar", 1);
-            screen_.setLCDBacklight(255, 0, 0);
+            // screen_.setText("Failed to init", 0);
+            // screen_.setText("lidar", 1);
+            // screen_.setLCDBacklight(255, 0, 0);
             allInitSuccessful = false;
         }
     }
@@ -200,15 +199,15 @@ bool Robot::setupBeforeMatchStart()
         bool isInit = initSystem();
         if (isInit)
         {
-            screen_.setText("Calibrating rail", 0);
-            screen_.setText("", 1);
-            screen_.setLCDBacklight(255, 255, 255);
-            calibrateRail();
+            // screen_.setText("Calibrating rail", 0);
+            // screen_.setText("", 1);
+            // screen_.setLCDBacklight(255, 255, 255);
+            // calibrateRail();
 
             strategy_.setup(this);
 
             // Set status.
-            stepperMotors_.getError();
+            // stepperMotors_.getError();
             microcontrollerData_ = uCListener_getData();
             if (testMode_)
             {
@@ -216,12 +215,12 @@ bool Robot::setupBeforeMatchStart()
                 isPlayingRightSide_ = true;
                 return true;
             }
-            moveRail(0.5);
-            initStatueHigh_ = false;
+            // moveRail(0.5);
+            // initStatueHigh_ = false;
             startupStatus_ = startupstatus::WAITING_FOR_CABLE;
-            screen_.setText("Waiting for", 0);
-            screen_.setText("start switch", 1);
-            screen_.setLCDBacklight(255, 255, 255);
+            // screen_.setText("Waiting for", 0);
+            // screen_.setText("start switch", 1);
+            // screen_.setLCDBacklight(255, 255, 255);
         }
     }
     else if (startupStatus_ == startupstatus::WAITING_FOR_CABLE)
@@ -237,71 +236,71 @@ bool Robot::setupBeforeMatchStart()
     }
     else if (startupStatus_ == startupstatus::WAITING_FOR_START)
     {
-        // Switch side based on button press.
-        if (screen_.wasButtonPressedSinceLastCall(lcd::button::LEFT))
-        {
-            isPlayingRightSide_ = !isPlayingRightSide_;
-        }
-        if (screen_.wasButtonPressedSinceLastCall(lcd::button::MIDDLE))
-            initMotorBlocked_ = !initMotorBlocked_;
-        if (screen_.wasButtonPressedSinceLastCall(lcd::button::RIGHT))
-        {
-            initStatueHigh_ = !initStatueHigh_;
-            if (initStatueHigh_)
-                moveRail(0.75);
-            else
-                moveRail(0.5);
-        }
+        // // Switch side based on button press.
+        // if (screen_.wasButtonPressedSinceLastCall(lcd::button::LEFT))
+        // {
+        //     isPlayingRightSide_ = !isPlayingRightSide_;
+        // }
+        // if (screen_.wasButtonPressedSinceLastCall(lcd::button::MIDDLE))
+        //     initMotorBlocked_ = !initMotorBlocked_;
+        // if (screen_.wasButtonPressedSinceLastCall(lcd::button::RIGHT))
+        // {
+        //     initStatueHigh_ = !initStatueHigh_;
+        //     if (initStatueHigh_)
+        //         moveRail(0.75);
+        //     else
+        //         moveRail(0.5);
+        // }
 
-        if (timeSinceLastCheckOnRailHeightDuringInit_ < 0)
-            timeSinceLastCheckOnRailHeightDuringInit_ = currentTime_;
-        if (currentTime_ - timeSinceLastCheckOnRailHeightDuringInit_ > 5.0)
-        {
-            std::cout << "Resetting servo position since last time" << std::endl;
-            if (initStatueHigh_)
-                moveRail(0.75);
-            else
-                moveRail(0.5);
+        // if (timeSinceLastCheckOnRailHeightDuringInit_ < 0)
+        //     timeSinceLastCheckOnRailHeightDuringInit_ = currentTime_;
+        // if (currentTime_ - timeSinceLastCheckOnRailHeightDuringInit_ > 5.0)
+        // {
+        //     std::cout << "Resetting servo position since last time" << std::endl;
+        //     if (initStatueHigh_)
+        //         moveRail(0.75);
+        //     else
+        //         moveRail(0.5);
 
-            timeSinceLastCheckOnRailHeightDuringInit_ = currentTime_;
-        }
+        //     timeSinceLastCheckOnRailHeightDuringInit_ = currentTime_;
+        // }
 
-        screen_.setText("SIDE  MOT STATUE", 0);
-        std::string secondLine = "";
-        if (isPlayingRightSide_)
-        {
-            secondLine = "PURPLE";
-            screen_.setLCDBacklight(255, 0, 255);
-        }
-        else
-        {
-            secondLine = "YELLOW";
-            screen_.setLCDBacklight(255, 255, 0);
-        }
-        if (initMotorBlocked_)
-        {
-            stepperMotors_.hardStop();
-            secondLine += " ON ";
-        }
-        else
-        {
-            stepperMotors_.highZ();
-            secondLine += " OFF ";
-        }
-        if (initStatueHigh_)
-            secondLine += "   UP";
-        else
-            secondLine += " DOWN";
-        screen_.setText(secondLine, 1);
+        // screen_.setText("SIDE  MOT STATUE", 0);
+        // std::string secondLine = "";
+        // if (isPlayingRightSide_)
+        // {
+        //     secondLine = "PURPLE";
+        //     screen_.setLCDBacklight(255, 0, 255);
+        // }
+        // else
+        // {
+        //     secondLine = "YELLOW";
+        //     screen_.setLCDBacklight(255, 255, 0);
+        // }
+        // if (initMotorBlocked_)
+        // {
+        //     stepperMotors_.hardStop();
+        //     secondLine += " ON ";
+        // }
+        // else
+        // {
+        //     stepperMotors_.highZ();
+        //     secondLine += " OFF ";
+        // }
+        // if (initStatueHigh_)
+        //     secondLine += "   UP";
+        // else
+        //     secondLine += " DOWN";
+        // screen_.setText(secondLine, 1);
 
-        // If start button is pressed, return true to end startup.
-        if (currentTime_ - matchStartTime_ > 1.5 && (RPi_readGPIO(START_SWITCH) == 1))
-        {
-            screen_.setText("", 0);
-            screen_.setText("", 1);
-            screen_.setLCDBacklight(255, 255, 255);
-            return true;
-        }
+        // // If start button is pressed, return true to end startup.
+        // if (currentTime_ - matchStartTime_ > 1.5 && (RPi_readGPIO(START_SWITCH) == 1))
+        // {
+        //     screen_.setText("", 0);
+        //     screen_.setText("", 1);
+        //     screen_.setLCDBacklight(255, 255, 255);
+        //     return true;
+        // }
     }
     return false;
 }
@@ -332,10 +331,20 @@ void Robot::lowLevelLoop()
         if (nIter % 50 == 0)
         {
             heartbeatLed = !heartbeatLed;
+            // if (heartbeatLed)
+            //     screen_.turnOnLED(lcd::RIGHT_LED);
+            // else
+            //     screen_.turnOffLED(lcd::RIGHT_LED);
+            #ifdef DEBUG
             if (heartbeatLed)
-                screen_.turnOnLED(lcd::RIGHT_LED);
+            {
+                std::cout << "Metronome tick ON" << std::endl;
+            }
             else
-                screen_.turnOffLED(lcd::RIGHT_LED);
+            {
+                std::cout << "Metronome tick OFF" << std::endl;
+            }
+            #endif
         }
 
         // If match hasn't started, look at switch value to see if it has.
@@ -349,9 +358,9 @@ void Robot::lowLevelLoop()
                 // Start strategy thread.
                 strategyThread = std::thread(&Strategy::match, strategy_);
                 strategyThread.detach();
-                // Start range aquisition
-                std::thread measureThread = std::thread(&Robot::updateRangeMeasurement, this);
-                measureThread.detach();
+                // // Start range aquisition
+                // std::thread measureThread = std::thread(&Robot::updateRangeMeasurement, this);
+                // measureThread.detach();
             }
 
         }
@@ -376,9 +385,10 @@ void Robot::lowLevelLoop()
             measurements.encoderSpeed.left = temp;
         }
 
-        std::vector<double> const motorSpeed = stepperMotors_.getSpeed();
-        measurements.motorSpeed(0) = motorSpeed[0];
-        measurements.motorSpeed(1) = motorSpeed[1];
+        // FIXME
+        // std::vector<double> const motorSpeed = brushlessMotors_.getSpeed();
+        measurements.motorSpeed(0) = 0;
+        measurements.motorSpeed(1) = 0;
 
         // Update the lidar
         if (!testMode_ || !disableLidar_)
@@ -387,27 +397,33 @@ void Robot::lowLevelLoop()
             measurements.lidarDetection = lidar_.detectedRobots_;
         }
 
-        // Update leds.
-        // FIXME
-        int coeff_ = 0;
-        if (coeff_ == 0)
-            screen_.turnOnLED(lcd::LEFT_LED);
-        else
-            screen_.turnOffLED(lcd::LEFT_LED);
-        if (coeff_ < 1.0)
-            screen_.turnOnLED(lcd::MIDDLE_LED);
-        else
-            screen_.turnOffLED(lcd::MIDDLE_LED);
+        // // Update leds.
+        // // FIXME
+        // int coeff_ = 0;
+        // if (coeff_ == 0)
+        //     screen_.turnOnLED(lcd::LEFT_LED);
+        // else
+        //     screen_.turnOffLED(lcd::LEFT_LED);
+        // if (coeff_ < 1.0)
+        //     screen_.turnOnLED(lcd::MIDDLE_LED);
+        // else
+        //     screen_.turnOffLED(lcd::MIDDLE_LED);
 
         // Compute motion target.
-        DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
+        DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_, isPlayingRightSide_);
 
 
         // Apply target.
-        std::vector<double> speed;
-        speed.push_back(target.motorSpeed[0] / robotdimensions::stepSize);
-        speed.push_back(target.motorSpeed[1] / robotdimensions::stepSize);
-        stepperMotors_.setSpeed(speed);
+        // std::vector<double> speed;
+        // speed.push_back(target.motorSpeed[0] / robotdimensions::stepSize);
+        // speed.push_back(target.motorSpeed[1] / robotdimensions::stepSize);
+        // stepperMotors_.setSpeed(speed);
+
+        // FIXME
+        motorMcp_.init();
+        brushlessMotors_.setSpeed(motorRightId, -target.motorSpeed[RIGHT]);
+        motorMcp_.init();
+        brushlessMotors_.setSpeed(motorLeftId, target.motorSpeed[LEFT]);
     }
     // End of the match.
     std::cout << "Match end" << std::endl;
@@ -419,45 +435,45 @@ void Robot::lowLevelLoop()
 }
 
 
-void Robot::moveRail(double const& position)
-{
-    // Compute target potentiometer value.
-    int targetValue = railHigh_ + robotdimensions::MIAM_POTENTIOMETER_RANGE * (position - 1);
+// void Robot::moveRail(double const& position)
+// {
+//     // Compute target potentiometer value.
+//     int targetValue = railHigh_ + robotdimensions::MIAM_POTENTIOMETER_RANGE * (position - 1);
 
-    // Compute error
-    int error = uCListener_getData().potentiometerPosition - targetValue;
-    int nIter = 0;
-    while (std::abs(error) > 8 && nIter < 120)
-    {
-        int targetVelocity = -PIDRail_.computeValue(error, 0.020);
-        targetVelocity = std::max(
-            std::min(
-                robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY + targetVelocity,
-                robotdimensions::MIAM_RAIL_SERVO_MAX_UP_VELOCITY
-                ),
-            robotdimensions::MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
-        );
-        // Send target to servo
-        servos_->moveRail(targetVelocity);
+//     // Compute error
+//     int error = uCListener_getData().potentiometerPosition - targetValue;
+//     int nIter = 0;
+//     while (std::abs(error) > 8 && nIter < 120)
+//     {
+//         int targetVelocity = -PIDRail_.computeValue(error, 0.020);
+//         targetVelocity = std::max(
+//             std::min(
+//                 robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY + targetVelocity,
+//                 robotdimensions::MIAM_RAIL_SERVO_MAX_UP_VELOCITY
+//                 ),
+//             robotdimensions::MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
+//         );
+//         // Send target to servo
+//         servos_->moveRail(targetVelocity);
 
-        usleep(20000);
-        error = uCListener_getData().potentiometerPosition - targetValue;
-        nIter++;
-    }
-    servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
+//         usleep(20000);
+//         error = uCListener_getData().potentiometerPosition - targetValue;
+//         nIter++;
+//     }
+//     servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
 
-}
+// }
 
-void Robot::calibrateRail()
-{
-    servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY - 250);
-    while (RPi_readGPIO(RAIL_SWITCH) == 1)
-    {
-        usleep(20000);
-    }
-    servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
-    railHigh_ = uCListener_getData().potentiometerPosition;
-}
+// void Robot::calibrateRail()
+// {
+//     servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY - 250);
+//     while (RPi_readGPIO(RAIL_SWITCH) == 1)
+//     {
+//         usleep(20000);
+//     }
+//     servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
+//     railHigh_ = uCListener_getData().potentiometerPosition;
+// }
 
 double Robot::getMatchTime()
 {
@@ -477,49 +493,53 @@ void Robot::updateScore(int const& scoreIncrement)
 
 void Robot::stopMotors()
 {
-    stepperMotors_.hardStop();
-    usleep(50000);
-    stepperMotors_.highZ();
+    // stepperMotors_.hardStop();
+    // usleep(50000);
+    // stepperMotors_.highZ();
+    motorMcp_.init();
+    brushlessMotors_.setSpeed(motorRightId, 0);
+    motorMcp_.init();
+    brushlessMotors_.setSpeed(motorLeftId, 0);
 }
 
 
-ExcavationSquareColor Robot::getExcavationReadings(bool readRightSide)
-{
-    if (readRightSide)
-        return microcontrollerData_.rightArmColor;
-    return microcontrollerData_.leftArmColor;
-}
+// ExcavationSquareColor Robot::getExcavationReadings(bool readRightSide)
+// {
+//     if (readRightSide)
+//         return microcontrollerData_.rightArmColor;
+//     return microcontrollerData_.leftArmColor;
+// }
 
 
-void Robot::updateRangeMeasurement()
-{
-    // Offset from measurement to position of center of robot.
-    // To update this: place the robot a fixed distance (e.g. 10cm) from
-    // a flat surface, and look at the measurement value.
-    // Don't forget to add robot width.
-    // This offset thus integrates sensor position, sensor offset...
-    int const OFFSET[2] = {78, 75};
+// void Robot::updateRangeMeasurement()
+// {
+//     // Offset from measurement to position of center of robot.
+//     // To update this: place the robot a fixed distance (e.g. 10cm) from
+//     // a flat surface, and look at the measurement value.
+//     // Don't forget to add robot width.
+//     // This offset thus integrates sensor position, sensor offset...
+//     int const OFFSET[2] = {78, 75};
 
-    // Perform average of last N values.
-    #define N_AVG 3
-    int oldValues[2][N_AVG];
-    for (int i = 0; i < 2; i++)
-        for (int j = 0; j < N_AVG; j++)
-            oldValues[i][j] = 0;
-    while (true)
-    {
-        for (int i = 0; i < 2; i++)
-        {
-            for (int j = 1; j < N_AVG; j++)
-                oldValues[i][j - 1] = oldValues[i][j];
-            oldValues[i][N_AVG - 1] = rangeSensors_[i].getMeasurement() + OFFSET[i];
-            int average = 0;
-            for (int j = 0; j < N_AVG; j++)
-                average += oldValues[i][j];
-            rangeMeasurements_[i] = static_cast<double>(average) / N_AVG;
-        }
-    }
-}
+//     // Perform average of last N values.
+//     #define N_AVG 3
+//     int oldValues[2][N_AVG];
+//     for (int i = 0; i < 2; i++)
+//         for (int j = 0; j < N_AVG; j++)
+//             oldValues[i][j] = 0;
+//     while (true)
+//     {
+//         for (int i = 0; i < 2; i++)
+//         {
+//             for (int j = 1; j < N_AVG; j++)
+//                 oldValues[i][j - 1] = oldValues[i][j];
+//             oldValues[i][N_AVG - 1] = rangeSensors_[i].getMeasurement() + OFFSET[i];
+//             int average = 0;
+//             for (int j = 0; j < N_AVG; j++)
+//                 average += oldValues[i][j];
+//             rangeMeasurements_[i] = static_cast<double>(average) / N_AVG;
+//         }
+//     }
+// }
 
 void Robot::shutdown()
 {

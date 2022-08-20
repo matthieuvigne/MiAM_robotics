@@ -57,6 +57,17 @@
         double const rotationKp = 10.0;
         double const rotationKd = 0.01;
         double const rotationKi = 0.0;
+
+        // double const linearKp = 0; // previously 3.0
+        // double const linearKd = 0; // previously 0.0
+        // double const linearKi = 0.0; // previously 0.1
+
+        // double const transverseKp = 0.0;
+
+        // double const rotationKp = 0.0;
+        // double const rotationKd = 0.0;
+        // double const rotationKi = 0.0;
+
     }
 
     // Detection parameters
@@ -134,9 +145,10 @@
             /// \return Target motor velocity
             DrivetrainTarget computeDrivetrainMotion(DrivetrainMeasurements const& measurements,
                                                      double const& dt,
-                                                     bool const& hasMatchStarted);
+                                                     bool const& hasMatchStarted,
+                                                     bool const& isPlayingRightSide);
 
-            bool isPlayingRightSide_ = false;
+            // bool isPlayingRightSide_ = false;
 
             DrivetrainKinematics getKinematics()
             {
@@ -174,12 +186,13 @@
                                     double const& dt,
                                     double const& slowDownRatio,
                                     DrivetrainMeasurements const &measurements,
-                                    DrivetrainTarget &target);
+                                    DrivetrainTarget &target,
+                                    bool const& isPlayingRightSide);
 
             /// \brief Updates the LiDAR and sets the avoidance strategy
             /// \param [in] detectedRobots Obstacles detected by the lidar.
             /// \return coefficient for trajectory time increase
-            double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
+            double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted, bool const& isPlayingRightSide);
 
             bool isLidarPointWithinTable(LidarPoint const& point);
     };

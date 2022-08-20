@@ -34,37 +34,37 @@
             void match_impl(); /// Actual implementation of the match code.
             RobotInterface *robot;
             MotionController *motionController;
-            ServoHandler *servo;
+            // ServoHandler *servo;
 
-            // Actions
-            bool handleStatue();
-            bool is_handle_statue_finished;
+            // // Actions
+            // bool handleStatue();
+            // bool is_handle_statue_finished;
 
-            bool moveSideSample();
-            bool is_move_side_sample_finished;
+            // bool moveSideSample();
+            // bool is_move_side_sample_finished;
 
-            bool moveThreeSamples();
-            bool moveThreeSamplesBackup();
-            bool is_move_three_samples_finished;
+            // bool moveThreeSamples();
+            // bool moveThreeSamplesBackup();
+            // bool is_move_three_samples_finished;
 
-            bool pushSamplesBelowShelter();
-            bool is_push_samples_below_shelter_finished;
+            // bool pushSamplesBelowShelter();
+            // bool is_push_samples_below_shelter_finished;
 
-            bool handleDigZone();
-            bool is_handle_dig_zone_finished;
-            bool is_bonus_already_counted;
+            // bool handleDigZone();
+            // bool is_handle_dig_zone_finished;
+            // bool is_bonus_already_counted;
 
-            bool handleSideTripleSamples();
-            bool is_handle_side_triple_samples_finished;
+            // bool handleSideTripleSamples();
+            // bool is_handle_side_triple_samples_finished;
 
             bool goBackToDigSite();
 
-            // Utility functions
-            void pushExcavationSite();
-            bool shouldPushExcavationSite(ExcavationSquareColor color);
-            void dropElements();
-            ExcavationSquareColor testExcavationSite();
-            void stopEverything();
+            // // Utility functions
+            // void pushExcavationSite();
+            // bool shouldPushExcavationSite(ExcavationSquareColor color);
+            // void dropElements();
+            // ExcavationSquareColor testExcavationSite();
+            // void stopEverything();
 
             Action* chooseNextAction(
                 std::vector<Action>& actions,

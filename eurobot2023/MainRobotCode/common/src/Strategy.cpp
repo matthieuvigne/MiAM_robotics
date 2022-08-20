@@ -42,15 +42,15 @@ bool Strategy::goBackToDigSite()
     positions.push_back(targetPosition);
     TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
     motionController->setTrajectoryToFollow(traj);
-    servo->openValve() ;
-    servo->openTube(0);
-    servo->openTube(1);
-    servo->openTube(2);
+    // servo->openValve() ;
+    // servo->openTube(0);
+    // servo->openTube(1);
+    // servo->openTube(2);
 
-    servo->moveArm(true, arm::FOLD);
-    servo->moveFinger(true, finger::FOLD);
-    servo->moveArm(false, arm::FOLD);
-    servo->moveFinger(false, finger::FOLD);
+    // servo->moveArm(true, arm::FOLD);
+    // servo->moveFinger(true, finger::FOLD);
+    // servo->moveArm(false, arm::FOLD);
+    // servo->moveFinger(false, finger::FOLD);
 
     return motionController->waitForTrajectoryFinished();
 }
@@ -58,44 +58,44 @@ bool Strategy::goBackToDigSite()
 
 Strategy::Strategy()
 {
-    is_handle_statue_finished = false;
-    is_move_side_sample_finished = false;
-    is_handle_side_triple_samples_finished = false;
-    is_move_three_samples_finished = false;
-    is_handle_dig_zone_finished = false;
-    is_bonus_already_counted = false;
-    is_push_samples_below_shelter_finished = false;
+    // is_handle_statue_finished = false;
+    // is_move_side_sample_finished = false;
+    // is_handle_side_triple_samples_finished = false;
+    // is_move_three_samples_finished = false;
+    // is_handle_dig_zone_finished = false;
+    // is_bonus_already_counted = false;
+    // is_push_samples_below_shelter_finished = false;
 
 }
 
 void Strategy::setup(RobotInterface *robot)
 {
     this->robot = robot;
-    this->servo = robot->getServos();
+    // this->servo = robot->getServos();
     this->motionController = robot->getMotionController();
 
-    servo->moveStatue(statue::FOLD);
-    servo->activateMagnet(false);
+    // servo->moveStatue(statue::FOLD);
+    // servo->activateMagnet(false);
 
-    dropElements();
+    // dropElements();
 
-    servo->moveArm(true, arm::FOLD);
-    servo->moveFinger(true, finger::FOLD);
-    servo->moveArm(false, arm::FOLD);
-    servo->moveFinger(false, finger::FOLD);
-    servo->moveClaw(claw::FOLD);
+    // servo->moveArm(true, arm::FOLD);
+    // servo->moveFinger(true, finger::FOLD);
+    // servo->moveArm(false, arm::FOLD);
+    // servo->moveFinger(false, finger::FOLD);
+    // servo->moveClaw(claw::FOLD);
 
-    //init ventouse & rail
-    for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::FOLD);
-    servo->moveSuction(1, suction::FOLD);
+    // //init ventouse & rail
+    // for (int i = 0; i < 3; i++)
+    //     servo->moveSuction(i, suction::FOLD);
+    // servo->moveSuction(1, suction::FOLD);
 
-    if (robot->getTestMode())
-    {
-        robot->moveRail(0.5);
-        robot->wait(2.0);
-        robot->moveRail(0.65);
-    }
+    // if (robot->getTestMode())
+    // {
+    //     robot->moveRail(0.5);
+    //     robot->wait(2.0);
+    //     robot->moveRail(0.65);
+    // }
     // Set initial position
     RobotPosition targetPosition;
     targetPosition.x = robotdimensions::CHASSIS_BACK;
@@ -158,6 +158,17 @@ void Strategy::match_impl()
     targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
     robot->wait(0.05);
+
+    endPosition = motionController->getCurrentPosition();
+    endPosition.x += 1000;
+
+    traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
+    motionController->setTrajectoryToFollow(traj);
+
+    motionController->waitForTrajectoryFinished();
+
+    return;
+
 
     // create brain
     MotionPlanning motion_planner;
@@ -344,12 +355,12 @@ void Strategy::match()
     if (!MATCH_COMPLETED)
         pthread_cancel(handle);
     usleep(50000);
-    servo->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
+    // servo->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
     if (!MATCH_COMPLETED)
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
 
-        servo->activatePump(false);
+        // servo->activatePump(false);
 
         if (goBackToDigSite())
         {

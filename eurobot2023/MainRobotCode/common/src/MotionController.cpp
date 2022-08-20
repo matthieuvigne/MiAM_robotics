@@ -99,13 +99,17 @@ bool MotionController::wasTrajectoryFollowingSuccessful()
 
 DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurements const& measurements,
                                                            double const& dt,
-                                                           bool const& hasMatchStarted)
+                                                           bool const& hasMatchStarted,
+                                                           bool const& isPlayingRightSide)
 {
     // Log input
     currentTime_ += dt;
     logger_.setData(LOGGER_TIME, currentTime_);
     logger_.setData(LOGGER_ENCODER_RIGHT, measurements.encoderPosition[RIGHT]);
     logger_.setData(LOGGER_ENCODER_LEFT, measurements.encoderPosition[LEFT]);
+    logger_.setData(LOGGER_ENCODER_SPEED_RIGHT, measurements.encoderSpeed.right);
+    logger_.setData(LOGGER_ENCODER_SPEED_LEFT, measurements.encoderSpeed.left);
+
 
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderSpeed);
@@ -116,10 +120,11 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     BaseSpeed baseSpeed = kinematics_.forwardKinematics(measurements.encoderSpeed, true);
     logger_.setData(LOGGER_CURRENT_VELOCITY_LINEAR, baseSpeed.linear);
     logger_.setData(LOGGER_CURRENT_VELOCITY_ANGULAR, baseSpeed.angular);
+    
 
     DrivetrainTarget target;
 
-    double slowDownCoeff = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
+    double slowDownCoeff = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted, isPlayingRightSide);
     logger_.setData(LOGGER_DETECTION_COEFF, slowDownCoeff);
 
 
@@ -169,7 +174,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         else
         {
             // Servo robot on current trajectory.
-            bool trajectoryDone = computeMotorTarget(traj, curvilinearAbscissa_, dt, slowDownCoeff, measurements, target);
+            bool trajectoryDone = computeMotorTarget(traj, curvilinearAbscissa_, dt, slowDownCoeff, measurements, target, isPlayingRightSide);
             // If we finished the last trajectory, we can just end it straight away.
             if(trajectoryDone && currentTrajectories_.size() == 1)
             {
@@ -207,7 +212,8 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
                                           double const& dt,
                                           double const& slowDownRatio,
                                           DrivetrainMeasurements const& measurements,
-                                          DrivetrainTarget &target)
+                                          DrivetrainTarget &target,
+                                          bool const& isPlayingRightSide)
 {
     // Get current trajectory state.
     TrajectoryPoint targetPoint = traj->getCurrentPoint(curvilinearAbscissa_);
@@ -281,7 +287,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
         targetSpeed.angular += PIDAngular_.computeValue(angularPIDError, dt);
 
     // Invert velocity if playing on right side.
-    if (isPlayingRightSide_)
+    if (isPlayingRightSide)
         targetSpeed.angular = -targetSpeed.angular;
 
     // Convert from base velocity to motor wheel velocity.
@@ -298,7 +304,10 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
 }
 
 
-double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted)
+double MotionController::computeObstacleAvoidanceSlowdown(
+    std::deque<DetectedRobot> const& detectedRobots, 
+    bool const& hasMatchStarted,
+    bool const& isPlayingRightSide)
 {
   // Handle robot stops
   static int num_stop_iters = 0.;
@@ -324,7 +333,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
   for(const DetectedRobot& robot : detectedRobots)
   {
     // Get the Lidar Point, symeterize it if needed and check its projection
-    LidarPoint const point = this->isPlayingRightSide_
+    LidarPoint const point = isPlayingRightSide
       ? LidarPoint(robot.point.r, -robot.point.theta)
       : LidarPoint(robot.point.r, robot.point.theta);
 
