@@ -47,6 +47,11 @@ void RMDX::enable(unsigned char const& motorId)
     canReadWrite(message, false);
 }
 
+void RMDX::stop(unsigned char const& motorId)
+{
+    CANMessage message = createMessage(motorId, MyActuator::commands::STOP);
+    canReadWrite(message, false);
+}
 
 void RMDX::disable(unsigned char const& motorId)
 {
@@ -55,20 +60,27 @@ void RMDX::disable(unsigned char const& motorId)
 }
 
 
-int32_t RMDX::getAccelerationCommand(unsigned char const& motorId)
+double RMDX::getMaxAcceleration(unsigned char const& motorId, double const& reductionRatio)
 {
     CANMessage message = createMessage(motorId, MyActuator::commands::READ_ACCEL);
-    if (canReadWrite(message) == 0)
-        return messageToInt32(message);
+    if (canReadWrite(message) > 0)
+        return messageToInt32(message) / RAD_TO_DEG / reductionRatio;
 
     return -1;
+}
+
+bool RMDX::setMaxAcceleration(unsigned char const& motorId, double const& targetAcceleration, double const& reductionRatio)
+{
+    int32_t accelCount = static_cast<int32_t>(targetAcceleration * RAD_TO_DEG * reductionRatio);
+    CANMessage message = createMessage(motorId, MyActuator::commands::WRITE_ACCEL, accelCount);
+    return canReadWrite(message, false) >= 0;
 }
 
 double RMDX::setSpeed(unsigned char const& motorId, double const& targetSpeed, double const& reductionRatio)
 {
     int32_t speedCount = static_cast<int32_t>(targetSpeed * RAD_TO_DEG * reductionRatio * 100);
     CANMessage message = createMessage(motorId, MyActuator::commands::SPEED_COMMAND, speedCount);
-    int result = canReadWrite(message, true);
+    int result = canReadWrite(message);
     if (result <= 0)
         return 0;
     return static_cast<double>(message.data[4] + (message.data[5] << 8)) / RAD_TO_DEG / reductionRatio;
@@ -113,7 +125,7 @@ int RMDX::getMode(unsigned char const& motorId)
     return 0;
 }
 
-bool RMDX::setCommunicationTimeOut(unsigned char const& motorId, int32_t const& timeoutMS)
+bool RMDX::setCommunicationTimeout(unsigned char const& motorId, int32_t const& timeoutMS)
 {
     CANMessage message = createMessage(motorId, MyActuator::commands::COMM_INTERRUPT_TIMEOUT, timeoutMS);
     return canReadWrite(message, false) == 0;

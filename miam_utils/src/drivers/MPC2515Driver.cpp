@@ -19,8 +19,8 @@ static const uint8_t RESET_COMMAND = 0xC0 ;
 static const uint8_t WRITE_COMMAND = 0x02 ;
 static const uint8_t READ_COMMAND  = 0x03 ;
 static const uint8_t BIT_MODIFY_COMMAND         = 0x05 ;
-static const uint8_t LOAD_TX_BUFFER_COMMAND     = 0x40 ;
-static const uint8_t REQUEST_TO_SEND_COMMAND    = 0x81 ;
+static const uint8_t LOAD_TX_BUFFER_COMMAND     = 0x44 ;
+static const uint8_t REQUEST_TO_SEND_COMMAND    = 0x84 ;
 static const uint8_t READ_FROM_RXB0SIDH_COMMAND = 0x90 ;
 static const uint8_t READ_FROM_RXB1SIDH_COMMAND = 0x94 ;
 static const uint8_t READ_STATUS_COMMAND        = 0xA0 ;
@@ -119,7 +119,8 @@ bool MCP2515::init()
     writeRegister(CNF3_REGISTER, PS2 - 1);
 
     // Interrupts not used
-    writeRegister(CANINTE_REGISTER, 0x1F);
+    writeRegister(CANINTE_REGISTER, 0b11110000);
+    writeRegister(CANINTF_REGISTER, 0x00);
 
     // Disable RXnBF, set TXnRTS as inputs
     writeRegister(BFPCTRL_REGISTER, 0);
@@ -129,7 +130,7 @@ bool MCP2515::init()
     writeRegister(RXB0CTRL_REGISTER, 0x60);
 
     // TXB2CTRL_REGISTER as highest priority
-    writeRegister(TXB0CTRL_REGISTER, 3);
+    writeRegister(TXB2CTRL_REGISTER, 11);
 
     // Set device to normal operation, non-one-shot
     writeRegister(CANCTRL_REGISTER, 0);
@@ -143,6 +144,7 @@ bool MCP2515::init()
 bool MCP2515::sendMessage(CANMessage const& message)
 {
     // Send data
+
     uint8_t data[6 + message.len];
     data[0] = LOAD_TX_BUFFER_COMMAND;
     data[1] = message.id >> 3;
@@ -152,33 +154,36 @@ bool MCP2515::sendMessage(CANMessage const& message)
     data[5] = message.len;
     for (uint8_t i = 0; i < message.len; i++)
         data[6 + i] = message.data[i];
-    spiDriver_->spiReadWriteSingle(data, 6 + message.len);
+    int res = spiDriver_->spiReadWriteSingle(data, 6 + message.len);
+    if (res != 6 + message.len)
+        return false;
 
     data[0] = REQUEST_TO_SEND_COMMAND;
-    spiDriver_->spiReadWriteSingle(data, 1);
+    res = spiDriver_->spiReadWriteSingle(data, 1);
 
-    std::cout << "CAN sending:";
-    for (int i = 0; i < 8; i++)
-        std::cout << int(message.data[i]) << " ";
-    std::cout << std::endl;
+    // std::cout << "CAN sending:";
+    // for (int i = 0; i < 8; i++)
+    //     std::cout << int(message.data[i]) << " ";
+    // std::cout << std::endl;
 
-    // Todo: check that message has been sent ?
-    return true;
+    return res == 1;
 }
 
 bool MCP2515::isDataAvailable()
 {
     uint8_t data[2] = {RX_STATUS_COMMAND, 0};
-    spiDriver_->spiReadWriteSingle(data, 2);
+    int res = spiDriver_->spiReadWriteSingle(data, 2);
     return (data[1] & 0b01000000) > 0;
 }
 
 bool MCP2515::readAvailableMessage(CANMessage & message)
 {
     // Read receive buffer
-    uint8_t data[6 + 8];
+    uint8_t data[14];
     data[0] = READ_FROM_RXB0SIDH_COMMAND;
-    spiDriver_->spiReadWriteSingle(data, 6 + 8);
+    int res = spiDriver_->spiReadWriteSingle(data, 14);
+    if (res != 14)
+        return false;
 
     message.id = (data[1] << 3) + (data[2] >> 5);
     message.len = std::min(data[5] & 0x0F, 8);
@@ -191,15 +196,14 @@ bool MCP2515::readAvailableMessage(CANMessage & message)
     data[1] = CANINTF_REGISTER;
     data[2] = 0x01;
     data[3] = 0;
-    spiDriver_->spiReadWriteSingle(data, 4);
+    res = spiDriver_->spiReadWriteSingle(data, 4);
+
+    // std::cout << "CAN read:";
+    // for (int i = 0; i < 8; i++)
+    //     std::cout << int(message.data[i]) << " ";
+    // std::cout << std::endl;
 
 
-    std::cout << "CAN read:";
-    for (int i = 0; i < 8; i++)
-        std::cout << int(message.data[i]) << " ";
-    std::cout << std::endl;
-
-
-    return false;
+    return res == 4;
 }
 

@@ -7,7 +7,7 @@
 #ifndef MYACTUATOR_RMDX
 #define MYACTUATOR_RMDX
 
-#include "miam_utils/drivers/MCP2515Driver.h"
+#include "MCP2515Driver2.h"
 #include <iostream>
 
 
@@ -80,7 +80,7 @@ class RMDX{
             int16_t motorStatus = 0; ///< Motor status
         };
 
-        RMDX(MCP2515 *canDriver, double const& timeout = 0.05);
+        RMDX(MCP25152 *canDriver, double const& timeout = 0.05);
 
         /// \brief Reset a given motor
         /// \param[in] motorId Motor id
@@ -88,21 +88,11 @@ class RMDX{
 
         void enable(unsigned char const& motorId);
         void disable(unsigned char const& motorId);
-        void stop(unsigned char const& motorId);
-
-
-        /// \brief Get the motor maximum acceleration (when in velocity / position mode).
-        /// \param[in] motorId Motor id
-        /// \param[in] reductionRatio Motor reduction ratio
-        /// \return Acceleration command, in rad/s2 ; -1 on failure.
-        double getMaxAcceleration(unsigned char const& motorId, double const& reductionRatio = 6);
 
         /// \brief Get the motor acceleration command
         /// \param[in] motorId Motor id
-        /// \param[in] targetSpeed Target acceleration, joint side, in rad/s2
-        /// \param[in] reductionRatio Motor reduction ratio
-        /// \return True on success
-        bool setMaxAcceleration(unsigned char const& motorId, double const& desiredAcceleration, double const& reductionRatio = 6);
+        /// \return Acceleration command, in dps/s ; -1 on failure.
+        int32_t getAccelerationCommand(unsigned char const& motorId);
 
         /// \brief Set target speed, joint side.
         /// \param[in] motorId Motor id
@@ -128,7 +118,7 @@ class RMDX{
         /// \param[in] motorId Motor id
         /// \param[in] timeoutMS Timeout, in ms.
         /// \return True on success
-        bool setCommunicationTimeout(unsigned char const& motorId, int32_t const& timeoutMS);
+        bool setCommunicationTimeOut(unsigned char const& motorId, int32_t const& timeoutMS);
     private:
 
         /// \brief Send and recieve a data frame from the motor.
@@ -138,7 +128,7 @@ class RMDX{
         /// \return 0 on succes ; -1 if write failed ; -2 if write succeeded but read failed.
         int canReadWrite(CANMessage& message, bool const& waitForReply = true);
 
-        MCP2515 *canDriver_;
+        MCP25152 *canDriver_;
         double timeout_;
 };
 

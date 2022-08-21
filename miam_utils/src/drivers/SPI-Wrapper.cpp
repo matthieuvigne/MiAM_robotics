@@ -40,8 +40,10 @@ int SPIWrapper::spiReadWriteSingle(uint8_t* data, uint8_t const& len)
 int SPIWrapper::spiReadWrite(uint8_t const& numberOfPackets, struct spi_ioc_transfer* spiCtrl)
 {
     for (int i = 0; i < numberOfPackets; i++)
+    {
         spiCtrl[i].speed_hz = frequency_;
-
+        spiCtrl[i].delay_usecs = static_cast<uint16_t>(2e6 / frequency_) + 1;
+    }
     mutex_.lock();
     spi_open();
     int res = ioctl(fd_, SPI_IOC_MESSAGE(numberOfPackets), spiCtrl);
