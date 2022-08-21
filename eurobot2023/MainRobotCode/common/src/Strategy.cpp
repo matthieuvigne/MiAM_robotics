@@ -153,16 +153,25 @@ void Strategy::match_impl()
     robot->updateScore(2);  //depose vitrine
 
     // Set initial position
-    targetPosition.x = robotdimensions::CHASSIS_BACK;
+    targetPosition.x = robotdimensions::CHASSIS_BACK + 1000;
     targetPosition.y = 1200;
     targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
     robot->wait(0.05);
 
+    // traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
+    
+    positions.clear();
     endPosition = motionController->getCurrentPosition();
+    positions.push_back(endPosition);
     endPosition.x += 1000;
+    positions.push_back(endPosition);
+    endPosition.y += 500;
+    positions.push_back(endPosition);
 
-    traj = computeTrajectoryStraightLineToPoint(targetPosition, endPosition);
+    
+    traj = computeTrajectoryRoundedCorner(positions, 400.0, 0.3);
+
     motionController->setTrajectoryToFollow(traj);
 
     motionController->waitForTrajectoryFinished();

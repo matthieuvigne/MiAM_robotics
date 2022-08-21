@@ -4,6 +4,8 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
 
+#define DEBUG
+
 #include "Robot.h"
 //~ #include "CameraClient.h"
 #include "network/camera_client.hpp"

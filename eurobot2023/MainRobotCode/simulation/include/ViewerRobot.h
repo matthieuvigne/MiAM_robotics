@@ -52,9 +52,9 @@
                 return isPlayingRightSide_;
             }
 
-            /// \brief Set a new target to the rail.
-            /// \param position Relative rail position, form 0 (down) to 1 (up).
-            void moveRail(double const& position) override;
+            // /// \brief Set a new target to the rail.
+            // /// \param position Relative rail position, form 0 (down) to 1 (up).
+            // void moveRail(double const& position) override;
 
             // Sleep a specified number of seconds.
             virtual void wait(double const& waitTimeS) override;

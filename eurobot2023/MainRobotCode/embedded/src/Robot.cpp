@@ -92,7 +92,7 @@ bool Robot::initSystem()
         }
 
         // init motors
-        brushlessMotors_ = miam::RMDX(&motorMcp_, 0.1);
+        brushlessMotors_ = miam::RMDX(&motorMcp_, 0.01);
 
 
         motorMcp_.init();
@@ -212,7 +212,8 @@ bool Robot::setupBeforeMatchStart()
             if (testMode_)
             {
                 usleep(1000000);
-                isPlayingRightSide_ = true;
+                // isPlayingRightSide_ = true;
+                isPlayingRightSide_ = false;
                 return true;
             }
             // moveRail(0.5);

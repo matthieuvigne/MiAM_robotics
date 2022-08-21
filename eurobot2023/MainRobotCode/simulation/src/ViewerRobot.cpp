@@ -119,10 +119,10 @@ double ViewerRobot::getMatchTime()
     return simulationTime_;
 }
 
-void ViewerRobot::moveRail(double const& position)
-{
-    handler_.moveRail(100 * position);
-}
+// void ViewerRobot::moveRail(double const& position)
+// {
+//     handler_.moveRail(100 * position);
+// }
 
 void ViewerRobot::wait(double const& waitTimeS)
 {
@@ -162,7 +162,7 @@ void ViewerRobot::tick(double const& dt, double const& simulationTime, Vector2 c
 
 
     // Run iteration of controller
-    motionTarget_ = motionController_.computeDrivetrainMotion(measurements_, dt, true);
+    motionTarget_ = motionController_.computeDrivetrainMotion(measurements_, dt, true, isPlayingRightSide_);
 
     // Store result.
     ViewerTrajectoryPoint p;
