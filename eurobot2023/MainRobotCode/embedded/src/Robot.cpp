@@ -420,10 +420,7 @@ void Robot::lowLevelLoop()
         // speed.push_back(target.motorSpeed[1] / robotdimensions::stepSize);
         // stepperMotors_.setSpeed(speed);
 
-        // FIXME
-        motorMcp_.init();
         brushlessMotors_.setSpeed(motorRightId, -target.motorSpeed[RIGHT]);
-        motorMcp_.init();
         brushlessMotors_.setSpeed(motorLeftId, target.motorSpeed[LEFT]);
     }
     // End of the match.

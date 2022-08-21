@@ -74,6 +74,10 @@ bool MotionController::setTrajectoryToFollow(std::vector<std::shared_ptr<Traject
     newTrajectories_ = trajectories;
     wasTrajectoryFollowingSuccessful_ = true;
     newTrajectoryMutex_.unlock();
+
+
+    robotStoppedBecauseRobot_ = false;
+
     return true;
 }
 
@@ -82,6 +86,14 @@ bool MotionController::waitForTrajectoryFinished()
 {
     while(!isTrajectoryFinished())
         usleep(15000);
+    
+    if (robotStoppedBecauseRobot_)
+    {
+        std::cout << "I stopped because robot" << std::endl;
+        // std::cout << stoppingRobot_ << std::end;
+    }
+        
+
     return wasTrajectoryFollowingSuccessful_;
 }
 
@@ -353,6 +365,10 @@ double MotionController::computeObstacleAvoidanceSlowdown(
                 coeff = 0.0;
                 is_robot_stopped = true;
                 detected_point = point;
+
+                stoppingRobot_ = robot;
+                // stoppingRobot_.point.r = point.r;
+                // stoppingRobot_.point.theta = point.theta;
             }
         }
         else if (x < detection::xfar_max)
@@ -411,8 +427,15 @@ double MotionController::computeObstacleAvoidanceSlowdown(
       // Failed to perform avoidance.
       // Raise flag and end trajectory following.
       wasTrajectoryFollowingSuccessful_ = false;
+
+      // indicate robot was stopped because avoidance
+      robotStoppedBecauseRobot_ = true;
+
+
       currentTrajectories_.clear();
       std::cout << "Obstacle still present, canceling trajectory" << std::endl;
+      if (robotStoppedBecauseRobot_)
+        std::cout << "I stopped bc robot in loop" << std::endl;
     }
   }
   else

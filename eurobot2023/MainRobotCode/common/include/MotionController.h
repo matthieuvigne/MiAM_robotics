@@ -155,6 +155,12 @@
                 return kinematics_;
             }
 
+
+            // robot was stopped because of other robot
+            bool robotStoppedBecauseRobot_;
+            // robot which stopped robot
+            DetectedRobot stoppingRobot_;
+
         private:
             Logger logger_; ///< Logger object.
             ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
