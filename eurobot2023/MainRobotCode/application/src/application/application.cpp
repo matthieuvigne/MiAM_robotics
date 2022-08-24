@@ -16,7 +16,7 @@ RobotApplication::RobotApplication()
   // Load the main window from the corresponding builder
   try
   {
-    builder_->add_from_file("../config/main_window.glade");
+    builder_->add_from_file("./config/main_window.glade");
   } catch(Glib::FileError const& e){
     std::cerr << "File error: " << e.what() << std::endl;
     return;

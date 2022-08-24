@@ -14,6 +14,9 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtkmm-3.0>=3.18.0)
 message(STATUS "Found GTK v." ${GTK3_VERSION})
 
+# Copy config.
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
 # Build the library
 include_directories("include")
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp")
