@@ -5,12 +5,6 @@
 
 #include <gtkmm.h>
 
-#include <application/initialization_widget.hpp>
-#include <application/menu_widget.hpp>
-#include <application/preparation_widget.hpp>
-#include <application/sensors_widget.hpp>
-#include <application/scoring_widget.hpp>
-#include <application/viewer_widget.hpp>
 #include <common/macros.hpp>
 
 namespace application {
@@ -36,20 +30,17 @@ class RobotApplication : public Gtk::Application {
      * It thus calls the signal handle 'on_activate' which we override below.
      */
     void on_activate() override;
+    void on_init_button_clicked();
+    void on_match_button_clicked();
+    void on_score_button_clicked();
+    void on_sensor_button_clicked();
+    void on_strategy_button_clicked();
   
   protected:
   
     // Application window
     Glib::RefPtr<Gtk::Builder> builder_;
     Gtk::Window* main_window_;
-  
-    // Menu widgets
-    MenuWidget main_menu_;
-    InitializationWidget initialization_;
-    PreparationWidget preparation_;
-    ScoringWidget scoring_;
-    SensorsWidget sensors_;
-    ViewerWidget viewer_;
   
 }; // class RobotApplication
 
