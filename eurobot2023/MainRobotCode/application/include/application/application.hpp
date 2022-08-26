@@ -41,6 +41,22 @@ class RobotApplication : public Gtk::Application {
     // Application window
     Glib::RefPtr<Gtk::Builder> builder_;
     Gtk::Window* main_window_;
+    
+    // Initialization panel
+    Gtk::TreeView init_tree_view_;
+    Glib::RefPtr<Gtk::ListStore> init_tree_model_;
+    class InitModelColumns : public Gtk::TreeModel::ColumnRecord
+    {
+      public:
+        InitModelColumns();
+      public:
+        Gtk::TreeModelColumn<Glib::ustring> col_type_;
+        Gtk::TreeModelColumn<Glib::ustring> col_status_;
+        Gtk::TreeModelColumn<Glib::ustring> col_comment_;
+    };
+    InitModelColumns init_columns_;
+    
+    
   
 }; // class RobotApplication
 

@@ -12,7 +12,7 @@ add_compile_options(-std=c++11)
 find_package(Eigen3 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtkmm-3.0>=3.18.0)
-message(STATUS "Found GTK v." ${GTK3_VERSION})
+message(STATUS "Found GTK v." ${GTK3_VERSION}) # => sources: /usr/include/gtkmm-3.0/gtkmm
 
 # Copy config.
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

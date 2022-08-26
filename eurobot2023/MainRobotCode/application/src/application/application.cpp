@@ -17,6 +17,7 @@ RobotApplication::RobotApplication()
   try
   {
     builder_->add_from_file("./config/main_window.glade");
+    builder_->add_from_file("./config/init_panel.glade");
     builder_->add_from_file("./config/match_panel.glade");
   } catch(Glib::FileError const& e){
     std::cerr << "File error: " << e.what() << std::endl;
@@ -56,6 +57,21 @@ RobotApplication::RobotApplication()
   strategy_button->signal_clicked().connect(
     sigc::mem_fun(*this,&RobotApplication::on_strategy_button_clicked));
   
+  // Initialization panel
+  init_tree_model_ = Gtk::ListStore::create(init_columns_);
+  init_tree_view_.set_model(init_tree_model_);
+  Gtk::TreeModel::Row row = *(init_tree_model_->append());
+  row[init_columns_.col_type_] = "Sensor 1";
+  row[init_columns_.col_status_] = "OK";
+  row[init_columns_.col_comment_] = "Activated";
+  row = *(init_tree_model_->append());
+  row[init_columns_.col_type_] = "Sensor 2";
+  row[init_columns_.col_status_] = "NOK";
+  row[init_columns_.col_comment_] = "Sensor not found";
+  init_tree_view_.append_column("Type",init_columns_.col_type_);
+  init_tree_view_.append_column("Status",init_columns_.col_status_);
+  init_tree_view_.append_column("Comment",init_columns_.col_comment_);
+  
   // Create and the main window
   // Don't add any window to the application before it gets initialized.
   // The application gets initialized when it is run, via the on_activate signal handler.
@@ -71,6 +87,15 @@ RobotApplication::RobotApplication()
 RobotApplication::~RobotApplication()
 {
   // [EMPTY DESTRUCTOR]
+}
+
+//--------------------------------------------------------------------------------------------------
+
+RobotApplication::InitModelColumns::InitModelColumns()
+{
+  add(col_type_);
+  add(col_status_);
+  add(col_comment_);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -99,9 +124,18 @@ void RobotApplication::on_init_button_clicked()
 {
   std::cout << "Init button clicked" << std::endl;
   
-  // Get the window frame and set the initialization menu
-  Gtk::Frame* window_frame;
-  builder_->get_widget<Gtk::Frame>("window_frame",window_frame);
+  // Set the menu name
+  Gtk::Label* window_name;
+  builder_->get_widget<Gtk::Label>("window_name",window_name);
+  window_name->set_text("Initialization of the components:");
+
+  // Check whether the frame already holds children and remove then if so
+  Gtk::Alignment* window_frame;
+  builder_->get_widget<Gtk::Alignment>("window_alignment",window_frame);
+  Gtk::Widget* child_ptr = window_frame->get_child();
+  if(child_ptr) window_frame->remove();
+  window_frame->add(init_tree_view_);
+  window_frame->show_all_children();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -110,14 +144,20 @@ void RobotApplication::on_match_button_clicked()
 {
   std::cout << "Match button clicked" << std::endl;  
 
-  // Get the window frame and set the match menu
+  // Set the menu name
   Gtk::Label* window_name;
   builder_->get_widget<Gtk::Label>("window_name",window_name);
   window_name->set_text("Choose your team:");
-  Gtk::Alignment* window_frame;
-  builder_->get_widget<Gtk::Alignment>("window_alignment",window_frame);
+  
+  // Get the menu widget
   Gtk::Grid* match_grid;
   builder_->get_widget<Gtk::Grid>("match_grid",match_grid);
+  
+  // Check whether the frame already holds children and remove then if so
+  Gtk::Alignment* window_frame;
+  builder_->get_widget<Gtk::Alignment>("window_alignment",window_frame);
+  Gtk::Widget* child_ptr = window_frame->get_child();
+  if(child_ptr) window_frame->remove();
   window_frame->add(*match_grid);
 }
 
