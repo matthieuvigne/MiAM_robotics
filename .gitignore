@@ -10,3 +10,9 @@ data/
 *.aux
 *.log
 *.pdf
+
+# Kicad
+*-backups/
+
+# Glade
+*.glade~
