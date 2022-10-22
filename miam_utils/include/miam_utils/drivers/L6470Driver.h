@@ -39,7 +39,6 @@
                 ///          SPI port.
                 /// \param[in] spiDriver SPI driver.
                 /// \param[in] numberOfSlaves Number of devices to drive.
-                /// \param[in] speed Bus clock frequency. Default: 4Mhz.
                 L6470(SPIWrapper *spiDriver, int const& numberOfDevices);
 
                 /// \brief Assignment operator.

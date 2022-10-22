@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # Process latest argument.
     logname = main_arguments.input
     if logname == 'latest':
-        logfiles = [i for i in os.listdir('.') if 'log' in i]
+        logfiles = [i for i in os.listdir('.') if i.startswith('log')]
         logname = sorted(logfiles)[-1]
         print("Loading log: {}".format(logname))
     logfile = LogLoader(logname)

@@ -9,7 +9,6 @@ data/
 # LaTeX
 *.aux
 *.log
-*.pdf
 
 # Kicad
 *-backups/

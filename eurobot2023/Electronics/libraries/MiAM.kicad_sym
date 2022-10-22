@@ -660,6 +660,112 @@
       )
     )
   )
+  (symbol "Amazon 10A stepdown" (pin_names (offset 1.016)) (in_bom yes) (on_board yes)
+    (property "Reference" "P" (id 0) (at 0 2.54 0)
+      (effects (font (size 1.524 1.524)))
+    )
+    (property "Value" "Amazon 10A stepdown" (id 1) (at 0 0 0)
+      (effects (font (size 1.524 1.524)))
+    )
+    (property "Footprint" "MiAM:StepDown10A" (id 2) (at 0 6.35 0)
+      (effects (font (size 1.524 1.524)) hide)
+    )
+    (property "Datasheet" "https://www.amazon.fr/dalimentation-Convertisseur-Abaisseur-6-5V-60V-1-25-30V/dp/B07TLHM71W/ref=sr_1_5?__mk_fr_FR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=TAPY62YN7AE7&keywords=regulateur+tension+ajustable+10A&qid=1662732280&sprefix=regulateur+tension+ajustable+10a%2Caps%2C58&sr=8-5" (id 3) (at 0 0 0)
+      (effects (font (size 1.524 1.524)) hide)
+    )
+    (symbol "Amazon 10A stepdown_0_0"
+      (polyline
+        (pts
+          (xy -6.35 2.54)
+          (xy -3.81 2.54)
+        )
+        (stroke (width 0.762) (type default) (color 0 0 0 0))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy -5.08 -5.08)
+          (xy 6.35 -5.08)
+        )
+        (stroke (width 0.254) (type default) (color 0 0 0 0))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy -5.08 -2.54)
+          (xy -5.08 -5.08)
+        )
+        (stroke (width 0.254) (type default) (color 0 0 0 0))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy -5.08 2.54)
+          (xy -5.08 -2.54)
+        )
+        (stroke (width 0.254) (type default) (color 0 0 0 0))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy -5.08 5.08)
+          (xy -5.08 2.54)
+        )
+        (stroke (width 0.254) (type default) (color 0 0 0 0))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy 6.35 -5.08)
+          (xy 6.35 5.08)
+        )
+        (stroke (width 0.254) (type default) (color 0 0 0 0))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy 6.35 5.08)
+          (xy -5.08 5.08)
+        )
+        (stroke (width 0.254) (type default) (color 0 0 0 0))
+        (fill (type none))
+      )
+      (pin passive line (at -8.89 2.54 0) (length 2.54)
+        (name "1" (effects (font (size 1.016 1.016))))
+        (number "1" (effects (font (size 1.016 1.016))))
+      )
+      (pin passive line (at 0 -10.16 90) (length 2.54)
+        (name "2" (effects (font (size 1.016 1.016))))
+        (number "2" (effects (font (size 1.016 1.016))))
+      )
+    )
+    (symbol "Amazon 10A stepdown_0_1"
+      (polyline
+        (pts
+          (xy 7.62 2.54)
+          (xy 5.08 2.54)
+        )
+        (stroke (width 0.762) (type default) (color 0 0 0 0))
+        (fill (type none))
+      )
+    )
+    (symbol "Amazon 10A stepdown_1_0"
+      (polyline
+        (pts
+          (xy 0 -5.08)
+          (xy 0 -7.62)
+        )
+        (stroke (width 0.762) (type default) (color 0 0 0 0))
+        (fill (type none))
+      )
+    )
+    (symbol "Amazon 10A stepdown_1_1"
+      (pin input line (at 10.16 2.54 180) (length 2.54)
+        (name "3" (effects (font (size 1.27 1.27))))
+        (number "3" (effects (font (size 1.27 1.27))))
+      )
+    )
+  )
   (symbol "BD4xxxG" (pin_names (offset 0)) (in_bom yes) (on_board yes)
     (property "Reference" "I" (id 0) (at 0 2.54 0)
       (effects (font (size 1.524 1.524)))
