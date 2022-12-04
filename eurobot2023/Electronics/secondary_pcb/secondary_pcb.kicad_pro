@@ -366,7 +366,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "specctra_dsn": "",
+      "specctra_dsn": "secondary_pcb.dsn",
       "step": "main_pcb.step",
       "vrml": ""
     },
