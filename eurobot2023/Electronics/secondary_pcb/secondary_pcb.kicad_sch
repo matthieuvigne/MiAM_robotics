@@ -3020,7 +3020,7 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid b6e98f3a-893a-459b-a104-8f9dedc81ff8)
   )
-  (label "UART_RX_5" (at 115.57 95.25 180)
+  (label "UART_HD" (at 115.57 95.25 180)
     (effects (font (size 1.27 1.27)) (justify right bottom))
     (uuid b78e81e5-2edb-4ca7-867e-d6671c98d19e)
   )
