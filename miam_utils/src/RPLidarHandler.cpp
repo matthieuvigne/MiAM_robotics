@@ -3,6 +3,7 @@
 #include "miam_utils/RPLidarHandler.h"
 #include "miam_utils/trajectory/Utilities.h"
 #include <stdio.h>
+#include <unistd.h>
 
 using namespace rp::standalone::rplidar;
 
@@ -42,11 +43,19 @@ bool RPLidarHandler::init(std::string const& portNameIn)
 {
     isInit_ = false;
     lidar =  RPlidarDriver::CreateDriver(DRIVER_TYPE_SERIALPORT);
-    if(IS_FAIL(lidar->connect(portNameIn.c_str(), 115200)))
-        return false;
+    if(IS_FAIL(lidar->connect(portNameIn.c_str(), 256400)))
+    {
+        // Retry because A2M12 or A2 don't use the same baudrate.
+        lidar->disconnect();
+        usleep(50000);
+        lidar =  RPlidarDriver::CreateDriver(DRIVER_TYPE_SERIALPORT);
+        if(IS_FAIL(lidar->connect(portNameIn.c_str(), 115200)))
+            return false;
+    }
 
     // Set rotation speed and start with fastest scan rate possible.
     std::vector<RplidarScanMode> modes;
+    rplidar_response_device_health_t health;
     if(IS_FAIL(lidar->getAllSupportedScanModes(modes)))
         return false;
 
@@ -60,8 +69,11 @@ bool RPLidarHandler::init(std::string const& portNameIn)
             lidarMode_ = i;
         }
     }
-    // Start scan.
+    // Start scan, at right speed.
     isInit_ = true;
+    double const speed = 60 / (LIDAR_POINTS_PER_TURN * fastestModeTime * 1e-6);
+    desiredSpeed_ = static_cast<uint16_t>(speed);
+    robotTimeout_ = 1.2 * 60 / speed;
     if(!start())
         isInit_ = false;
     return isInit_;
@@ -99,7 +111,7 @@ int RPLidarHandler::update()
         wasElementRemoved = false;
         if (!detectedRobots_.empty())
         {
-            if (detectedRobots_.front().addedTime < time - ROBOT_TIMEOUT)
+            if (detectedRobots_.front().addedTime < time - robotTimeout_)
             {
                 detectedRobots_.pop_front();
                 wasElementRemoved = true;
@@ -180,6 +192,6 @@ bool RPLidarHandler::start()
     if (!isInit_)
         return false;
     lidar->startMotor();
-    lidar->setMotorPWM(LIDAR_RPM);
+    lidar->setMotorPWM(desiredSpeed_);
     return !IS_FAIL(lidar->startScanExpress(false, lidarMode_));
 }

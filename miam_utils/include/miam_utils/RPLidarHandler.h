@@ -22,7 +22,8 @@
     // Constant parameters.
     #define DEBUGGING_BUFFER_LENGTH 2000
 
-    const double LIDAR_RPM = 600.0;    ///< Lidar velocity, in rpm.
+    const double LIDAR_POINTS_PER_TURN = 800;// Lidar: number of points per turn.
+
     const double MAX_DISTANCE = 1700.0; ///< Maximum distance for processing, in mm: points above that distance are discarded.
     const double MIN_DISTANCE = 50.0; ///< Minimum distance for processing, in mm: points below that distance are discarded.
 
@@ -35,8 +36,7 @@
     const int MIN_POINTS = 9;///< Minimum number of points inside a blob to be considered a robot.
                                 ///< At 1.5m, 600rpm, 8ksamples/s, a circle of 70mm corresponds to 6 points.
 
-    const double ROBOT_TIMEOUT = 1.2 * 60 / LIDAR_RPM; ///< Timeout, in s, to remove a robot for the list of ostacle.
-                                                        ///  Corresponds to 1.2 theoretical lidar motion.
+    const double TIMEOUT_NTURNS = 1.2; /// Number of turns before removing the robot: 1.2 turns.
 
     /// \brief Structure representing a data point returned by the lidar.
     struct LidarPoint
@@ -137,6 +137,8 @@
 
         private:
             bool isInit_;
+            uint16_t desiredSpeed_;
+            double robotTimeout_;
             /// \brief Add a point to the current blob.
             void addPointToBlob(LidarPoint *point);
 
