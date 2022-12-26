@@ -3829,7 +3829,7 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid b2fc8e96-d3cf-4e77-b155-c7021549fdaf)
   )
-  (label "UART_RX_5" (at 115.57 83.185 180)
+  (label "UART_HD" (at 115.57 83.185 180)
     (effects (font (size 1.27 1.27)) (justify right bottom))
     (uuid b78e81e5-2edb-4ca7-867e-d6671c98d19e)
   )
