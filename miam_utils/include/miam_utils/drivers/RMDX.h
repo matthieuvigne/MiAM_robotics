@@ -80,11 +80,19 @@ class RMDX{
             int16_t motorStatus = 0; ///< Motor status
         };
 
-        RMDX(MCP2515 *canDriver, double const& timeout = 0.05);
+        RMDX(MCP2515 *canDriver, double const& timeout = 0.100);
 
         /// \brief Reset a given motor
         /// \param[in] motorId Motor id
         void reset(unsigned char const& motorId);
+
+
+        /// @brief  \brief Init communication with motor, checking that it is present
+        /// @param motorId Motor id
+        /// @param motorTimeout Motor timeout before autostop, in s.
+        /// @return True if motor answered back.
+        bool init(unsigned char const& motorId, double const& motorTimeout = 0.300);
+
 
         void enable(unsigned char const& motorId);
         void disable(unsigned char const& motorId);
@@ -110,6 +118,12 @@ class RMDX{
         /// \param[in] reductionRatio Motor reduction ratio
         /// \return Current speed, in rad/s. 0 on failure.
         double setSpeed(unsigned char const& motorId, double const& targetSpeed, double const& reductionRatio = 6);
+
+        /// \brief Set target speed, joint side.
+        /// \param[in] motorId Motor id
+        /// \param[in] targetCurrent Target current, in A
+        /// \return True on success
+        bool setCurrent(unsigned char const& motorId, double const& targetCurrent);
 
         /// \brief Get the current joint position, in rad.
         /// \param[in] motorId Motor id

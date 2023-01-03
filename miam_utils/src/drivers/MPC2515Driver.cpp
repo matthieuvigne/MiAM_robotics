@@ -87,7 +87,7 @@ bool MCP2515::init()
     // Soft reset
     uint8_t data[1] = {RESET_COMMAND};
     spiDriver_->spiReadWriteSingle(data, 1);
-    usleep(15);
+    usleep(50);
 
     // Test connection
     writeRegister(CNF1_REGISTER, 0x55);
@@ -160,11 +160,6 @@ bool MCP2515::sendMessage(CANMessage const& message)
 
     data[0] = REQUEST_TO_SEND_COMMAND;
     res = spiDriver_->spiReadWriteSingle(data, 1);
-
-    // std::cout << "CAN sending:";
-    // for (int i = 0; i < 8; i++)
-    //     std::cout << int(message.data[i]) << " ";
-    // std::cout << std::endl;
 
     return res == 1;
 }

@@ -42,7 +42,9 @@ int SPIWrapper::spiReadWrite(uint8_t const& numberOfPackets, struct spi_ioc_tran
     for (int i = 0; i < numberOfPackets; i++)
     {
         spiCtrl[i].speed_hz = frequency_;
-        spiCtrl[i].delay_usecs = static_cast<uint16_t>(2e6 / frequency_) + 1;
+        spiCtrl[i].delay_usecs = 1;
+        // TODO: this extra delay might be needed when sending more than one packet: check with L6470.
+        // spiCtrl[i].delay_usecs = static_cast<uint16_t>(2e6 / frequency_) + 1;
     }
     mutex_.lock();
     spi_open();

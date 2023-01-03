@@ -34,6 +34,18 @@ RMDX::RMDX(MCP2515 *canDriver, double const& timeout):
 
 }
 
+bool RMDX::init(unsigned char const& motorId, double const& motorTimeout)
+{
+    // Test communication
+    if (getStatus(motorId).batteryVoltage < 10)
+        return false;
+
+    // Configure motor
+    enable(motorId);
+    setCommunicationTimeout(motorId, static_cast<int32_t>(1000 * motorTimeout));
+    return true;
+}
+
 
 void RMDX::reset(unsigned char const& motorId)
 {
@@ -84,6 +96,16 @@ double RMDX::setSpeed(unsigned char const& motorId, double const& targetSpeed, d
     if (result <= 0)
         return 0;
     return static_cast<double>(message.data[4] + (message.data[5] << 8)) / RAD_TO_DEG / reductionRatio;
+}
+
+bool RMDX::setCurrent(unsigned char const& motorId, double const& targetCurrent)
+{
+    int32_t currentCount = static_cast<int32_t>(targetCurrent * 2000 / 32);
+    CANMessage message = createMessage(motorId, MyActuator::commands::TORQUE_COMMAND, currentCount);
+    int result = canReadWrite(message, false);
+    if (result <= 0)
+        return false;
+    return true;
 }
 
 
@@ -146,17 +168,15 @@ int RMDX::canReadWrite(CANMessage& message, bool const& waitForReply)
 
         while (!canDriver_->isDataAvailable())
         {
-            usleep(100);
+            usleep(20);
             clock_gettime(CLOCK_MONOTONIC, &currentTime);
             double const elapsed = currentTime.tv_sec - startTime.tv_sec + (currentTime.tv_nsec - startTime.tv_nsec) / 1e9;
             if (elapsed > timeout_)
                 break;
         }
 
-        if (true)
-        // if (canDriver_->isDataAvailable())
+        if (canDriver_->isDataAvailable())
         {
-            canDriver_->readAvailableMessage(message);
             canDriver_->readAvailableMessage(message);
             return 1;
         }

@@ -6,8 +6,6 @@ project(rmdx_test)
 set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
 #g++ color output
 SET(CMAKE_COLOR_MAKEFILE ON)
-#Header directory
-include_directories(include)
 
 # Add all source files.
 file(GLOB_RECURSE SOURCES src/*.cpp)
