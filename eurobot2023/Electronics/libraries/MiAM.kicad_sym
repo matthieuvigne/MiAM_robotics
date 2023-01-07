@@ -2217,10 +2217,7 @@
     (property "Datasheet" "" (id 3) (at 0 0 0)
       (effects (font (size 1.524 1.524)) hide)
     )
-    (property "RS" "Recom R-78B5.0-2.0" (id 4) (at 0 8.89 0)
-      (effects (font (size 1.524 1.524)) hide)
-    )
-    (property "Field5" "RS  139-2959" (id 5) (at 0 11.43 0)
+    (property "RS" "139-2959" (id 4) (at 0 8.89 0)
       (effects (font (size 1.524 1.524)) hide)
     )
     (symbol "R-78Bxx-2.0_0_0"
