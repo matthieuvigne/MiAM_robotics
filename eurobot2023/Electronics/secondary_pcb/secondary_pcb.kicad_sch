@@ -3272,7 +3272,7 @@
     (property "Value" "10k" (id 1) (at 215.9 57.1499 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Footprint" "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal" (id 2) (at 215.138 55.88 90)
+    (property "Footprint" "Resistor_SMD:R_0805_2012Metric" (id 2) (at 215.138 55.88 90)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 213.36 55.88 0)
@@ -3496,22 +3496,6 @@
     (pin "9" (uuid d03f4b93-19fd-4bb4-8c63-61dfb1aac9f9))
   )
 
-  (symbol (lib_id "power:+5V") (at 107.95 88.265 0) (unit 1)
-    (in_bom yes) (on_board yes) (fields_autoplaced)
-    (uuid 3a69cbac-169e-48b5-b5ce-6298d03e7001)
-    (property "Reference" "#PWR0105" (id 0) (at 107.95 92.075 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Value" "+5V" (id 1) (at 107.95 83.185 0))
-    (property "Footprint" "" (id 2) (at 107.95 88.265 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "" (id 3) (at 107.95 88.265 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid 62d6d17f-b816-41d5-af53-9ed7587ac373))
-  )
-
   (symbol (lib_id "power:GND") (at 64.77 172.72 0) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid 3b3b5b29-4cb4-4fd7-be55-13806cf66e12)
@@ -3686,6 +3670,22 @@
     (pin "7" (uuid 34afe8ef-1332-4fe6-917d-df65cbcc347b))
     (pin "8" (uuid def8ec85-a339-485e-b3d1-4aa67a2e27c7))
     (pin "9" (uuid 9a01850e-d93c-494c-8f23-d0476334abd9))
+  )
+
+  (symbol (lib_id "power:+3.3V") (at 107.95 88.265 0) (unit 1)
+    (in_bom yes) (on_board yes) (fields_autoplaced)
+    (uuid 49032196-12fe-4141-bb29-ee6cdbb5d8ee)
+    (property "Reference" "#PWR?" (id 0) (at 107.95 92.075 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "+3.3V" (id 1) (at 107.95 83.185 0))
+    (property "Footprint" "" (id 2) (at 107.95 88.265 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (id 3) (at 107.95 88.265 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 9abb8622-48f7-48b6-a556-19c0d9801f7f))
   )
 
   (symbol (lib_id "power:GND") (at 45.72 74.93 0) (unit 1)
@@ -4816,9 +4816,6 @@
     (path "/bca9f329-b3b0-473d-9f04-a44bb4d0f04a"
       (reference "#PWR0104") (unit 1) (value "+3.3V") (footprint "")
     )
-    (path "/3a69cbac-169e-48b5-b5ce-6298d03e7001"
-      (reference "#PWR0105") (unit 1) (value "+5V") (footprint "")
-    )
     (path "/72894b86-2212-4a36-9be0-8e5b526f1a1e"
       (reference "#PWR0106") (unit 1) (value "GND") (footprint "")
     )
@@ -4945,6 +4942,9 @@
     (path "/6a3b9e02-7f9f-4608-88c6-afe26403c94b"
       (reference "#PWR0148") (unit 1) (value "+3.3V") (footprint "")
     )
+    (path "/49032196-12fe-4141-bb29-ee6cdbb5d8ee"
+      (reference "#PWR?") (unit 1) (value "+3.3V") (footprint "")
+    )
     (path "/7d5f7387-88d2-4a9e-aece-db6d70feb6c5"
       (reference "C1") (unit 1) (value "C") (footprint "Capacitor_THT:C_Disc_D8.0mm_W5.0mm_P10.00mm")
     )
@@ -5036,7 +5036,7 @@
       (reference "R5") (unit 1) (value "120") (footprint "Resistor_SMD:R_0805_2012Metric")
     )
     (path "/0b2324c2-ebae-4281-8010-7504e7b6873a"
-      (reference "R6") (unit 1) (value "10k") (footprint "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+      (reference "R6") (unit 1) (value "10k") (footprint "Resistor_SMD:R_0805_2012Metric")
     )
     (path "/c4c736d4-965b-4f3c-8867-f2b0ac9fcbb3"
       (reference "Servo1") (unit 1) (value "22-03-5035") (footprint "MiAM:SHDR3W60P0X250_1X3_990X490X590P")
