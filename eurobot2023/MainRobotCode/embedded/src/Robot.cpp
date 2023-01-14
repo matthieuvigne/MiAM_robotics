@@ -16,9 +16,9 @@ const int RAIL_SWITCH = 13;
 const int RIGHT_RANGE_ACTIVATE = 4;
 
 
-Robot::Robot(bool const& testMode, bool const& disableLidar):
+Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, bool const& testMode, bool const& disableLidar):
     handler_(&maestro_),
-    RobotInterface(&handler_),
+    RobotInterface(parameters, &handler_),
     lidar_(-M_PI_4),
     testMode_(testMode),
     disableLidar_(disableLidar),
@@ -27,7 +27,8 @@ Robot::Robot(bool const& testMode, bool const& disableLidar):
     initMotorBlocked_(false),
     initStatueHigh_(true),
     timeSinceLastCheckOnRailHeightDuringInit_(-1.0),
-    motorSpi_(RPI_SPI_00)
+    motorSpi_(RPI_SPI_00),
+    strategy_(strategy)
 {
     PIDRail_ = miam::PID(controller::railKp, controller::railKd, controller::railKi, 0.1);
 
@@ -42,7 +43,7 @@ bool Robot::initSystem()
 {
     RPi_setupGPIO(START_SWITCH, PI_GPIO_INPUT_PULLUP); // Starting cable.
     RPi_setupGPIO(RAIL_SWITCH, PI_GPIO_INPUT_PULLUP); // Rail limit cable.
-    RPi_setupGPIO(RIGHT_RANGE_ACTIVATE, PI_GPIO_OUTPUT); // Activation of right range sensor - for cusom I2C addressing.
+    RPi_setupGPIO(RIGHT_RANGE_ACTIVATE, PI_GPIO_OUTPUT); // Activation of side::RIGHT range sensor - for cusom I2C addressing.
     RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, true);
     bool allInitSuccessful = true;
 
@@ -86,11 +87,11 @@ bool Robot::initSystem()
         const int MOTOR_BEMF[4] = {0x3B, 0x1430, 0x22, 0x53};
 
         // Compute max stepper motor speed.
-        int maxSpeed = robotdimensions::maxWheelSpeed / robotdimensions::wheelRadius / robotdimensions::stepSize;
-        int maxAcceleration = robotdimensions::maxWheelAcceleration / robotdimensions::wheelRadius / robotdimensions::stepSize;
+        // int maxSpeed = getParameters().maxWheelSpeed / getParameters().wheelRadius / getParameters().stepSize;
+        // int maxAcceleration = getParameters().maxWheelAcceleration / getParameters().wheelRadius / getParameters().stepSize;
         // Initialize both motors.
         stepperMotors_ = miam::L6470(&motorSpi_, 2);
-        isStepperInit_ = stepperMotors_.init(maxSpeed, maxAcceleration, MOTOR_KVAL_HOLD,
+        isStepperInit_ = stepperMotors_.init(10, 10, MOTOR_KVAL_HOLD,
                                              MOTOR_BEMF[0], MOTOR_BEMF[1], MOTOR_BEMF[2], MOTOR_BEMF[3]);
         if (!isStepperInit_)
         {
@@ -123,45 +124,45 @@ bool Robot::initSystem()
         }
     }
 
-    // Init range sensor - starting with left sensor
-    if (!isRangeSensorInit_[LEFT])
+    // Init range sensor - starting with side::LEFT sensor
+    if (!isRangeSensorInit_[side::LEFT])
     {
         RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, false);
         // Try with defalut address
-        isRangeSensorInit_[LEFT] = rangeSensors_[LEFT].init(&RPI_I2C);
-        if (!isRangeSensorInit_[LEFT])
+        isRangeSensorInit_[side::LEFT] = rangeSensors_[side::LEFT].init(&RPI_I2C);
+        if (!isRangeSensorInit_[side::LEFT])
         {
             // Try with new address - in case it was already changed.
-            isRangeSensorInit_[LEFT] = rangeSensors_[LEFT].init(&RPI_I2C, 0x42);
+            isRangeSensorInit_[side::LEFT] = rangeSensors_[side::LEFT].init(&RPI_I2C, 0x42);
         }
-        if (!isRangeSensorInit_[LEFT])
+        if (!isRangeSensorInit_[side::LEFT])
         {
             #ifdef DEBUG
-                std::cout << "[Robot] Failed to init communication with left range sensor." << std::endl;
+                std::cout << "[Robot] Failed to init communication with side::LEFT range sensor." << std::endl;
             #endif
             allInitSuccessful = false;
             screen_.setText("Failed to init", 0);
-            screen_.setText("left range sensor", 1);
+            screen_.setText("side::LEFT range sensor", 1);
             screen_.setLCDBacklight(255, 0, 0);
         }
         else
         {
-            rangeSensors_[LEFT].setAddress(0x42);
+            rangeSensors_[side::LEFT].setAddress(0x42);
             RPi_writeGPIO(RIGHT_RANGE_ACTIVATE, true);
             usleep(10000);
         }
     }
-    if (isRangeSensorInit_[LEFT] && !isRangeSensorInit_[RIGHT])
+    if (isRangeSensorInit_[side::LEFT] && !isRangeSensorInit_[side::RIGHT])
     {
-        isRangeSensorInit_[RIGHT] = rangeSensors_[RIGHT].init(&RPI_I2C);
-        if (!isRangeSensorInit_[RIGHT])
+        isRangeSensorInit_[side::RIGHT] = rangeSensors_[side::RIGHT].init(&RPI_I2C);
+        if (!isRangeSensorInit_[side::RIGHT])
         {
             #ifdef DEBUG
-                std::cout << "[Robot] Failed to init communication with right range sensor." << std::endl;
+                std::cout << "[Robot] Failed to init communication with side::RIGHT range sensor." << std::endl;
             #endif
             allInitSuccessful = false;
             screen_.setText("Failed to init", 0);
-            screen_.setText("right range sensor", 1);
+            screen_.setText("side::RIGHT range sensor", 1);
             screen_.setLCDBacklight(255, 0, 0);
         }
     }
@@ -205,7 +206,7 @@ bool Robot::setupBeforeMatchStart()
             screen_.setLCDBacklight(255, 255, 255);
             calibrateRail();
 
-            strategy_.setup(this);
+            strategy_->setup(this);
 
             // Set status.
             stepperMotors_.getError();
@@ -347,7 +348,7 @@ void Robot::lowLevelLoop()
                 matchStartTime_ = currentTime_;
                 metronome.resetLag();
                 // Start strategy thread.
-                strategyThread = std::thread(&Strategy::match, strategy_);
+                strategyThread = std::thread(&AbstractStrategy::match, strategy_);
                 strategyThread.detach();
                 // Start range aquisition
                 std::thread measureThread = std::thread(&Robot::updateRangeMeasurement, this);
@@ -365,10 +366,10 @@ void Robot::lowLevelLoop()
         DrivetrainMeasurements measurements;
         measurements.encoderPosition[0] = microcontrollerData_.encoderValues[0];
         measurements.encoderPosition[1] = microcontrollerData_.encoderValues[1];
-        measurements.encoderSpeed.right = microcontrollerData_.encoderValues[RIGHT] - oldData.encoderValues[RIGHT];
-        measurements.encoderSpeed.left = microcontrollerData_.encoderValues[LEFT] - oldData.encoderValues[LEFT];
+        measurements.encoderSpeed.right = microcontrollerData_.encoderValues[side::RIGHT] - oldData.encoderValues[side::RIGHT];
+        measurements.encoderSpeed.left = microcontrollerData_.encoderValues[side::LEFT] - oldData.encoderValues[side::LEFT];
 
-        // If playing right side: invert right/left encoders.
+        // If playing side::RIGHT side: invert side::RIGHT/side::LEFT encoders.
         if (isPlayingRightSide_)
         {
             double temp = measurements.encoderSpeed.right;
@@ -405,8 +406,8 @@ void Robot::lowLevelLoop()
 
         // Apply target.
         std::vector<double> speed;
-        speed.push_back(target.motorSpeed[0] / robotdimensions::stepSize);
-        speed.push_back(target.motorSpeed[1] / robotdimensions::stepSize);
+        // speed.push_back(target.motorSpeed[0] / getParameters().stepSize);
+        // speed.push_back(target.motorSpeed[1] / getParameters().stepSize);
         stepperMotors_.setSpeed(speed);
     }
     // End of the match.
@@ -421,42 +422,43 @@ void Robot::lowLevelLoop()
 
 void Robot::moveRail(double const& position)
 {
-    // Compute target potentiometer value.
-    int targetValue = railHigh_ + robotdimensions::MIAM_POTENTIOMETER_RANGE * (position - 1);
+    return;
+    // // Compute target potentiometer value.
+    // int targetValue = railHigh_ + getParameters().MIAM_POTENTIOMETER_RANGE * (position - 1);
 
-    // Compute error
-    int error = uCListener_getData().potentiometerPosition - targetValue;
-    int nIter = 0;
-    while (std::abs(error) > 8 && nIter < 120)
-    {
-        int targetVelocity = -PIDRail_.computeValue(error, 0.020);
-        targetVelocity = std::max(
-            std::min(
-                robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY + targetVelocity,
-                robotdimensions::MIAM_RAIL_SERVO_MAX_UP_VELOCITY
-                ),
-            robotdimensions::MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
-        );
-        // Send target to servo
-        servos_->moveRail(targetVelocity);
+    // // Compute error
+    // int error = uCListener_getData().potentiometerPosition - targetValue;
+    // int nIter = 0;
+    // while (std::abs(error) > 8 && nIter < 120)
+    // {
+    //     int targetVelocity = -PIDRail_.computeValue(error, 0.020);
+    //     targetVelocity = std::max(
+    //         std::min(
+    //             getParameters().MIAM_RAIL_SERVO_ZERO_VELOCITY + targetVelocity,
+    //             getParameters().MIAM_RAIL_SERVO_MAX_UP_VELOCITY
+    //             ),
+    //         getParameters().MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
+    //     );
+    //     // Send target to servo
+    //     servos_->moveRail(targetVelocity);
 
-        usleep(20000);
-        error = uCListener_getData().potentiometerPosition - targetValue;
-        nIter++;
-    }
-    servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
+    //     usleep(20000);
+    //     error = uCListener_getData().potentiometerPosition - targetValue;
+    //     nIter++;
+    // }
+    // servos_->moveRail(getParameters().MIAM_RAIL_SERVO_ZERO_VELOCITY);
 
 }
 
 void Robot::calibrateRail()
 {
-    servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY - 250);
-    while (RPi_readGPIO(RAIL_SWITCH) == 1)
-    {
-        usleep(20000);
-    }
-    servos_->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
-    railHigh_ = uCListener_getData().potentiometerPosition;
+    // servos_->moveRail(getParameters().MIAM_RAIL_SERVO_ZERO_VELOCITY - 250);
+    // while (RPi_readGPIO(RAIL_SWITCH) == 1)
+    // {
+    //     usleep(20000);
+    // }
+    // servos_->moveRail(getParameters().MIAM_RAIL_SERVO_ZERO_VELOCITY);
+    // railHigh_ = uCListener_getData().potentiometerPosition;
 }
 
 double Robot::getMatchTime()
@@ -480,14 +482,6 @@ void Robot::stopMotors()
     stepperMotors_.hardStop();
     usleep(50000);
     stepperMotors_.highZ();
-}
-
-
-ExcavationSquareColor Robot::getExcavationReadings(bool readRightSide)
-{
-    if (readRightSide)
-        return microcontrollerData_.rightArmColor;
-    return microcontrollerData_.leftArmColor;
 }
 
 

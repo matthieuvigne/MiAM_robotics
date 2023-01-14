@@ -17,14 +17,14 @@
                     /// \details Note: only zero-velocity transitions is supported, due to the singular configuration
                     ///          of this trajectory.
                     ///
+                    /// \param[in] config Trajectory configuration (wheel spacing, max speed and acceleration)
                     /// \param[in] startPoint Trajectory starting point.
                     /// \param[in] endAngle Ending angle - it will be taken modulo 2 pi.
                     /// \param[in] maxVelocity Max wheel velocity. Only absolute value is taken into account.
                     /// \param[in] maxAcceleration Max acceleration. Only absolute value is taken into account.
-                    PointTurn(RobotPosition const& startPoint,
-                              double const& endAngle,
-                              double maxVelocity=config::maxWheelVelocity,
-                              double maxAcceleration=config::maxWheelAcceleration);
+                    PointTurn(TrajectoryConfig const& config,
+                              RobotPosition const& startPoint,
+                              double const& endAngle);
 
                     TrajectoryPoint getCurrentPoint(double const& currentTime);
 
@@ -37,8 +37,6 @@
                     Trapezoid trapezoid_; ///< Velocity trapezoid.
 
                     double endAngle_;     ///< End angle.
-                    double maxVelocity_; ///< Maximum velocity.
-                    double maxAcceleration_; ///< Maximum acceleration.
             };
         }
     }

@@ -24,6 +24,7 @@
                     ///          and final angle along the arc. The final angle is the angle between -pi and
                     ///          pi of the end point along the circle, and not the robot angle.
                     ///
+                    /// \param[in] config Trajectory configuration (wheel spacing, max speed and acceleration)
                     /// \param[in] startPoint Strating point.
                     /// \param[in] radius Circle radius.
                     /// \param[in] side  On which side the trajectory is generated.
@@ -31,17 +32,14 @@
                     /// \param[in] startVelocity Start velocity.
                     /// \param[in] endVelocity Desired end velocity.
                     /// \param[in] backward If robot should move backward along the trajectory.
-                    /// \param[in] maxVelocity Max velocity. Only absolute value is taken into account.
-                    /// \param[in] maxAcceleration Max acceleration. Only absolute value is taken into account.
-                    ArcCircle(RobotPosition const& startPoint,
-                             double const& radius,
-                             rotationside const& side,
-                             double const& endAngle,
-                             double const& startVelocity=0.0,
-                             double const& endVelocity=0.0,
-                             bool const& backward = false,
-                             double maxVelocity=config::maxWheelVelocity,
-                             double maxAcceleration=config::maxWheelAcceleration);
+                    ArcCircle(TrajectoryConfig const& config,
+                              RobotPosition const& startPoint,
+                              double const& radius,
+                              rotationside const& side,
+                              double const& endAngle,
+                              double const& startVelocity=0.0,
+                              double const& endVelocity=0.0,
+                              bool const& backward = false);
 
                     TrajectoryPoint getCurrentPoint(double const& currentTime);
 
@@ -59,8 +57,6 @@
                     rotationside side_; ///< Rotation direction.
                     double endAngle_; ///< End angle.
                     double endVelocity_; ///< End velocity.
-                    double maxVelocity_; ///< Maximum velocity.
-                    double maxAcceleration_; ///< Maximum acceleration.
             };
         }
     }

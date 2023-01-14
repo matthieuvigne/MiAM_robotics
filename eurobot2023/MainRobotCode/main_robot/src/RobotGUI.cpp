@@ -1,12 +1,12 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
 #include <miam_utils/raspberry_pi/RPiGPIO.h>
-#include "RobotGUI.h"
+#include "main_robot/RobotGUI.h"
 
-
-#include "Parameters.h"
 #include <unistd.h>
 
+namespace main_robot
+{
 RobotGUI::RobotGUI(BaseObjectType* cobject,
                    const Glib::RefPtr<Gtk::Builder>& refGlade,
                    RobotInterface *robot):
@@ -46,7 +46,7 @@ void startRobotGUI(RobotInterface *robot)
     auto refBuilder = Gtk::Builder::create();
     try
     {
-        refBuilder->add_from_file("/miam_workspace/src/MiAM_robotics/eurobot2023/MainRobotCode/common/robot_gui.glade");
+        refBuilder->add_from_file("/miam_workspace/src/MiAM_robotics/eurobot2023/MainRobotCode/main_robot/robot_gui.glade");
     }
     catch(const Glib::FileError& ex)
     {
@@ -65,4 +65,5 @@ void startRobotGUI(RobotInterface *robot)
     RobotGUI *robotGUI;
     refBuilder->get_widget_derived("mainWindow", robotGUI,  robot);
     app->run(*robotGUI);
+}
 }

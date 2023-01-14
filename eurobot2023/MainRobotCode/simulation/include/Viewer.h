@@ -24,6 +24,9 @@ class Viewer : public Gtk::Window
         /// \brief Start the simulation.
         void start();
 
+        /// @brief Reset button clicked callback.
+        void resetClicked();
+
     private:
         std::vector<ViewerRobot*> robots_;  ///< List of robots being displayed.
 
@@ -36,7 +39,6 @@ class Viewer : public Gtk::Window
         // Recompute trajectories, based on obstacle positon.
         void playClicked();
         void pauseClicked();
-        void resetClicked();
         void updateTimeRatio();
 
         // Function actually running the simulation

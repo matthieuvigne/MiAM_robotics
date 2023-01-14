@@ -8,22 +8,20 @@
 
 namespace miam{
     namespace trajectory{
-        ArcCircle::ArcCircle(RobotPosition const& startPoint,
+        ArcCircle::ArcCircle(TrajectoryConfig const& config,
+                             RobotPosition const& startPoint,
                              double const& radius,
                              rotationside const& side,
                              double const& endAngle,
                              double const& startVelocity,
                              double const& endVelocity,
-                             bool const& backward,
-                             double maxVelocity,
-                             double maxAcceleration):
-             movingBackward_(1.0),
-             radius_(std::abs(radius)),
-             side_(side),
-             endAngle_(endAngle),
-             endVelocity_(endVelocity),
-             maxVelocity_(maxVelocity),
-             maxAcceleration_(maxAcceleration)
+                             bool const& backward):
+            Trajectory(config),
+            movingBackward_(1.0),
+            radius_(std::abs(radius)),
+            side_(side),
+            endAngle_(endAngle),
+            endVelocity_(endVelocity)
         {
             if (backward)
                 movingBackward_ = -1.0;
@@ -77,8 +75,8 @@ namespace miam{
             }
 
             // Compute trapezoid.
-            double maxAngularVelocity = maxVelocity_ / (radius_ + config::robotWheelSpacing);
-            double maxAngularAcceleration = maxAcceleration_ / (radius_ + config::robotWheelSpacing);
+            double maxAngularVelocity = config_.maxWheelVelocity / (radius_ + config_.robotWheelSpacing);
+            double maxAngularAcceleration = config_.maxWheelAcceleration / (radius_ + config_.robotWheelSpacing);
             trapezoid_ = Trapezoid(travelAngle, startVelocity, endVelocity_, maxAngularVelocity, maxAngularAcceleration);
 
             duration_ = trapezoid_.getDuration();

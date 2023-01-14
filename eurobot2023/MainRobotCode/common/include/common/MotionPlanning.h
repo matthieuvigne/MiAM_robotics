@@ -1,5 +1,8 @@
 #include <miam_utils/trajectory/Utilities.h>
 
+#ifndef MOTION_PLANNING_H
+     #define MOTION_PLANNING_H
+
 using namespace miam::trajectory;
 class MotionPlanning{
 
@@ -14,16 +17,16 @@ public:
     //     return smoothTraj;
     // }
 
-    TrajectoryVector computeTraj(RobotPosition start, RobotPosition end)
+    TrajectoryVector computeTraj(TrajectoryConfig const& config, RobotPosition start, RobotPosition end)
     {
-        return computeTrajectoryStraightLineToPoint(start, end);
+        return computeTrajectoryStraightLineToPoint(config, start, end);
     }
 
-    double computeMotionTime(RobotPosition start, RobotPosition end) {
+    double computeMotionTime(TrajectoryConfig const& config, RobotPosition start, RobotPosition end) {
 
         double duration = 0;
 
-        for (auto v : computeTraj(start, end)) {
+        for (auto v : computeTraj(config, start, end)) {
             duration += v->getDuration();
         }
         return duration;
@@ -34,3 +37,5 @@ public:
 
     // }
 };
+
+#endif

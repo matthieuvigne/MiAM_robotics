@@ -5,6 +5,9 @@
 /// \copyright GNU GPLv3
 
 #include "Robot.h"
+#include "main_robot/Parameters.h"
+#include "main_robot/Strategy.h"
+
 //~ #include "CameraClient.h"
 #include "network/camera_client.hpp"
 
@@ -48,7 +51,8 @@ int main(int argc, char **argv)
     // Init raspberry serial ports and GPIO.
     RPi_enablePorts();
 
-    Robot robot(testMode, noLidar);
+    main_robot::Strategy strategy;
+    Robot robot(main_robot::generateParams(), &strategy, testMode, noLidar);
     robotPtr = &robot;
 
     // Wire signals.

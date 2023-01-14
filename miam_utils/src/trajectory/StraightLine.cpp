@@ -7,18 +7,16 @@
 
 namespace miam{
     namespace trajectory{
-        StraightLine::StraightLine(RobotPosition const& startPoint,
+        StraightLine::StraightLine(TrajectoryConfig const& config,
+                                   RobotPosition const& startPoint,
                                    RobotPosition const& endPoint,
                                    double const& startVelocity,
                                    double const& endVelocity,
-                                   bool const& backward,
-                                   double maxVelocity,
-                                   double maxAcceleration):
-             endPoint_(endPoint),
-             endVelocity_(endVelocity),
-             backward_(backward),
-             maxVelocity_(maxVelocity),
-             maxAcceleration_(maxAcceleration)
+                                   bool const& backward):
+            Trajectory(config),
+            endPoint_(endPoint),
+            endVelocity_(endVelocity),
+            backward_(backward)
         {
             make(startPoint, startVelocity);
         }
@@ -33,7 +31,7 @@ namespace miam{
                 motionSign_ = -1.0;
             // Create trapezoid.
             double length = distance(startPoint, endPoint_);
-            trapezoid_ = Trapezoid(length, startVelocity, endVelocity_, maxVelocity_, maxAcceleration_);
+            trapezoid_ = Trapezoid(length, startVelocity, endVelocity_, config_.maxWheelVelocity, config_.maxWheelAcceleration);
 
             duration_ = trapezoid_.getDuration();
 

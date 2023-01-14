@@ -12,10 +12,12 @@
     #include <miam_utils/trajectory/Trajectory.h>
     #include <miam_utils/Types.h>
 
-    #include "RobotInterface.h"
-    #include "ServoHandler.h"
+    #include "common/RobotParameters.h"
+    #include "common/RobotInterface.h"
+    #include "common/ServoHandler.h"
+    #include "common/AbstractStrategy.h"
+
     #include "MaestroMock.h"
-    #include "Strategy.h"
 
     // Replay timestep.
     static double const TIMESTEP = 0.01;
@@ -42,8 +44,9 @@
     {
         public:
             /// \brief Constructor.
-            ViewerRobot(std::string const& imageFileName,
-                        Strategy const& strategy,
+            ViewerRobot(RobotParameters const& robotParameters,
+                        std::string const& imageFileName,
+                        AbstractStrategy *strategy,
                         double const& r = 1.0, double const& g = 0.0, double const& b = 0.0);
 
 
@@ -97,7 +100,7 @@
         private:
             ServoHandler handler_;
             MaestroMock servoMock_;
-            Strategy strategy_;
+            AbstractStrategy *strategy_;
             std::vector<ViewerTrajectoryPoint> trajectory_;
             RobotPosition simulationPosition_;
             DrivetrainMeasurements measurements_;

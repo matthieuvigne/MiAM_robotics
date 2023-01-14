@@ -1,15 +1,15 @@
 /// \author Matthieu Vigne
 /// \copyright GNU GPLv3
 #include "ViewerRobot.h"
-#include "Parameters.h"
 #include <string>
 
 
-ViewerRobot::ViewerRobot(std::string const& imageFileName,
-                         Strategy const& strategy,
+ViewerRobot::ViewerRobot(RobotParameters const& robotParameters,
+                         std::string const& imageFileName,
+                         AbstractStrategy *strategy,
                          double const& r, double const& g, double const& b):
     handler_(&servoMock_),
-    RobotInterface(&handler_),
+    RobotInterface(robotParameters, &handler_),
     strategy_(strategy),
     r_(r),
     g_(g),
@@ -60,57 +60,6 @@ void ViewerRobot::draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mm
     cr->set_source_rgb(r_, g_, b_);
     cr->set_line_width(2.0);
     cr->stroke();
-
-    cr->set_line_width(3.0);
-    double font_size = 55 * mmToCairo;
-    cr->set_font_size(font_size);
-    double const X = 3100;
-    double const Y = 700;
-    cr->save();
-    cr->translate(mmToCairo * X, mmToCairo * Y);
-
-    cr->move_to(2 * font_size, 0);
-    cr->set_source_rgb(0.0, 0.0, 0.0);
-    cr->show_text("Servo state");
-
-    uint lenght = currentViewerPoint.servoState_.size();
-    for (uint i = 0; i < lenght; i++)
-    {
-        cr->move_to(0, 1.2 * font_size * (1 + i));
-        cr->set_source_rgb(0.0, 0.0, 0.0);
-        cr->show_text(std::to_string(i));
-        cr->move_to(1.8 * font_size, 1.2 * font_size * (1 + i));
-        cr->set_source_rgb(1.0, 0.0, 0.0);
-        int const servoState = int(currentViewerPoint.servoState_[i]);
-        if (servoState == 0)
-        {
-            cr->set_source_rgb(1.0, 0.0, 0.0);
-            cr->show_text("OFF");
-        }
-        else
-        {
-            cr->set_source_rgb(0.0, 0.5, 0.0);
-            cr->show_text(std::to_string(servoState));
-        }
-        cr->move_to(5 * font_size, 1.2 * font_size * (1 + i));
-        cr->set_source_rgb(0.0, 0.0, 0.0);
-        cr->show_text(SERVO_NAMES[i]);
-    }
-    cr->move_to(0, - 1.2 * font_size);
-    cr->set_source_rgb(0.0, 0.0, 0.0);
-    cr->show_text("Pump: ");
-    if (currentViewerPoint.isPumpOn_)
-    {
-        cr->set_source_rgb(0.0, 0.5, 0.0);
-        cr->show_text("ON");
-    }
-    else
-    {
-        cr->set_source_rgb(1.0, 0.0, 0.0);
-        cr->show_text("OFF");
-    }
-    cr->stroke();
-    cr->restore();
 }
 
 
@@ -190,13 +139,13 @@ void ViewerRobot::reset(bool const& isPlayingRightSide)
 
     if (runningThread_ > 0)
         pthread_cancel(runningThread_);
-    for (auto t : strategy_.createdThreads_)
+    for (auto t : strategy_->createdThreads_)
         pthread_cancel(t);
-    strategy_.createdThreads_.clear();
-    strategy_.setup(this);
+    strategy_->createdThreads_.clear();
+    strategy_->setup(this);
     simulationPosition_ = motionController_.getCurrentPosition();
 
-    std::thread tr = std::thread(&Strategy::match, &strategy_);
+    std::thread tr = std::thread(&AbstractStrategy::match, strategy_);
     runningThread_ = tr.native_handle();
     tr.detach();
 }

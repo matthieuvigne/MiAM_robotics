@@ -8,13 +8,11 @@
 
 namespace miam{
     namespace trajectory{
-        PointTurn::PointTurn(RobotPosition const& startPoint,
-                             double const& endAngle,
-                             double maxVelocity,
-                             double maxAcceleration):
-             endAngle_(endAngle),
-             maxVelocity_(maxVelocity),
-             maxAcceleration_(maxAcceleration)
+        PointTurn::PointTurn(TrajectoryConfig const& config,
+                             RobotPosition const& startPoint,
+                             double const& endAngle):
+            Trajectory(config),
+            endAngle_(endAngle)
         {
             make(startPoint);
         }
@@ -41,8 +39,8 @@ namespace miam{
                 motionSign_ = -1.0;
 
             // Compute max angular velocity and acceleration, taking into account wheel spacing.
-            double maxRobotAngularVelocity = maxVelocity_ / config::robotWheelSpacing;
-            double maxRobotAngularAcceleration = maxAcceleration_ / config::robotWheelSpacing;
+            double maxRobotAngularVelocity = config_.maxWheelVelocity / config_.robotWheelSpacing;
+            double maxRobotAngularAcceleration = config_.maxWheelAcceleration / config_.robotWheelSpacing;
 
             trapezoid_ = Trapezoid(length, 0.0, 0.0, maxRobotAngularVelocity, maxRobotAngularAcceleration);
             duration_ = trapezoid_.getDuration();

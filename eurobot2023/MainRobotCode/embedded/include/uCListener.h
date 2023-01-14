@@ -12,28 +12,16 @@
 
     ///< Global includes
     #include <miam_utils/miam_utils.h>
-    #include "Parameters.h"
-
-    static inline std::ostream& operator<< (std::ostream& out, ExcavationSquareColor const& c)
-    {
-        std::string const names[] = {"None", "Purple", "Yellow", "Red"};
-        return out << names[static_cast<int>(c)];
-    }
-
 
     typedef struct {
         double encoderValues[2]; ///<< Current position of the two encoders, in rad.
         int potentiometerPosition; ///<< Position of the vertical rail potentiometer.
-        ExcavationSquareColor rightArmColor;
-        ExcavationSquareColor leftArmColor;
     }uCData;
 
     static inline std::ostream& operator<< (std::ostream& out, uCData const& d)
     {
         out << "First encoder:" << d.encoderValues[0] << " Second encoder:" << d.encoderValues[1];
         out << " Potentiometer:" << d.potentiometerPosition;
-        out << " Right arm:" << d.rightArmColor;
-        out << " Left arm:" << d.leftArmColor;
         return out;
     }
 

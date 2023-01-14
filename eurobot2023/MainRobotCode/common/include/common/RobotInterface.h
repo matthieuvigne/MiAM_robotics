@@ -10,17 +10,22 @@
 
     #include <miam_utils/AbstractRobot.h>
     #include <unistd.h>
-    #include "Parameters.h"
-    #include "MotionController.h"
-    #include "ServoHandler.h"
+    #include "common/RobotParameters.h"
+    #include "common/MotionController.h"
+    #include "common/ServoHandler.h"
 
     class RobotInterface
     {
         public:
-            RobotInterface(ServoHandler *servos):
-                motionController_(),
+            RobotInterface(RobotParameters const& robotParameters, ServoHandler *servos):
+                motionController_(robotParameters),
                 servos_(servos)
             { }
+
+            RobotParameters getParameters()
+            {
+                return motionController_.robotParams_;
+            }
 
             /// \brief Set a new target to the rail.
             /// \param position Relative rail position, form 0 (down) to 1 (up).
@@ -35,11 +40,6 @@
             virtual bool isPlayingRightSide() const
             {
                 return false;
-            }
-
-            virtual ExcavationSquareColor getExcavationReadings(bool readRightSide)
-            {
-                return ExcavationSquareColor::RED;
             }
 
             virtual bool getTestMode() const

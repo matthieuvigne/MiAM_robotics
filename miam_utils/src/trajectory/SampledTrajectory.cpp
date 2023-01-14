@@ -7,9 +7,10 @@
 namespace miam{
     namespace trajectory{
         SampledTrajectory::SampledTrajectory(
+            TrajectoryConfig const& config,
             std::vector<TrajectoryPoint > sampledTrajectory,
             double duration
-            ) : Trajectory()
+            ) : Trajectory(config)
         {
             duration_ = duration;
             sampledTrajectory_ = sampledTrajectory;

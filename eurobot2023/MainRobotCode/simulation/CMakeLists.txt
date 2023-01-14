@@ -1,17 +1,22 @@
 #minimum CMake Version
 cmake_minimum_required(VERSION 3.2)
 #project name
-project(StrategyViewer)
+project(matchSimulation)
 #g++ color output
 SET(CMAKE_COLOR_MAKEFILE ON)
 #Header directory
 include_directories(
-  ../common/include include
+  ../common/include
+  include
+  ../main_robot/include
+  ../secondary_robot/include
   ../embedded/include
   ../../../vision/include)
 
 # Add all source files.
 file(GLOB_RECURSE SOURCES ../common/src/*.cpp
+                  ../main_robot/src/*.cpp
+                  ../secondary_robot/src/*.cpp
                   src/*.cpp
                   ../../../vision/src/network/camera_client.cpp
                   ../../../vision/src/network/client*.cpp
@@ -33,7 +38,7 @@ find_package(Eigen3 REQUIRED)
 
 pkg_search_module(RPLIDAR REQUIRED rplidar)
 message(STATUS "Found rplidar v." ${RPLIDAR_VERSION})
-pkg_search_module(MIAM_UTILS REQUIRED miam_utils)
+pkg_search_module(MIAM_UTILS REQUIRED miam_utils >= 2.7.0)
 message(STATUS "Found miam_utils v." ${MIAM_UTILS_VERSION})
 include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_INCLUDE_DIRS})
 link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS})

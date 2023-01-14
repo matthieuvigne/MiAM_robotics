@@ -42,8 +42,8 @@
                     Trapezoid(double const& distance,
                               double const& startVelocity,
                               double const& endVelocity,
-                              double maxVelocity = config::maxWheelVelocity,
-                              double maxAcceleration = config::maxWheelAcceleration);
+                              double maxVelocity,
+                              double maxAcceleration);
 
                     /// \brief Get point along the trapezoid curve, at a given time.
                     ///

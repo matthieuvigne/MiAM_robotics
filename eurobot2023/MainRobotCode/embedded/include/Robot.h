@@ -32,9 +32,9 @@
     #include <mutex>
 
     #include "uCListener.h"
-    #include "ServoHandler.h"
-    #include "RobotInterface.h"
-    #include "Strategy.h"
+    #include "common/ServoHandler.h"
+    #include "common/RobotInterface.h"
+    #include "common/AbstractStrategy.h"
 
     // Right and left macros, for array addressing.
     using miam::RobotPosition;
@@ -62,7 +62,7 @@
         public:
 
             /// \brief Constructor: do nothing for now.
-            Robot(bool const& testMode, bool const& disableLidar);
+            Robot(RobotParameters const& parameters, AbstractStrategy *strategy, bool const& testMode, bool const& disableLidar);
 
             /// \brief The low-level thread of the robot.
             /// \details This thread runs a periodic loop. At each iteration, it updates sensor values,
@@ -99,7 +99,6 @@
             /// \return Time since start of the match, or 0 if not started.
             double getMatchTime();
 
-            ExcavationSquareColor getExcavationReadings(bool readRightSide) override;
 
             bool getTestMode() const override
             {
@@ -108,7 +107,7 @@
 
             double getRangeSensorMeasurement(bool measureRightSide) const override
             {
-                return rangeMeasurements_[measureRightSide ? RIGHT : LEFT];
+                return rangeMeasurements_[measureRightSide ? side::RIGHT : side::LEFT];
             }
 
             /// \brief Shut down the robot when Ctrl+X is pressed.
@@ -179,7 +178,7 @@
             double rangeMeasurements_[2] = {0, 0};
             void updateRangeMeasurement(); // Range measurement thread
 
-            Strategy strategy_;
+            AbstractStrategy *strategy_;
 
             double timeSinceLastCheckOnRailHeightDuringInit_;
 

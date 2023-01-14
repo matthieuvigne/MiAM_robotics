@@ -5,8 +5,10 @@
     #define ROBOT_GUI_H
 
         #include <gtkmm.h>
-        #include "RobotInterface.h"
+        #include "common/RobotInterface.h"
 
+        namespace main_robot
+        {
         class RobotGUI : public Gtk::Window
         {
             public:
@@ -23,4 +25,5 @@
         };
 
         void startRobotGUI(RobotInterface *robot);
+        }
  #endif

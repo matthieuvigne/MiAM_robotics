@@ -24,13 +24,12 @@
                     /// \param[in] backward If robot should move backward along the straight line.
                     /// \param[in] maxVelocity Max velocity. Only absolute value is taken into account.
                     /// \param[in] maxAcceleration Max acceleration. Only absolute value is taken into account.
-                    StraightLine(RobotPosition const& startPoint,
+                    StraightLine(TrajectoryConfig const& config,
+                                 RobotPosition const& startPoint,
                                  RobotPosition const& endPoint,
                                  double const& startVelocity = 0.0,
                                  double const& endVelocity = 0.0,
-                                 bool const& backward = false,
-                                 double maxVelocity=config::maxWheelVelocity,
-                                 double maxAcceleration=config::maxWheelAcceleration);
+                                 bool const& backward = false);
 
                     TrajectoryPoint getCurrentPoint(double const& currentTime);
 
@@ -50,8 +49,6 @@
                     RobotPosition endPoint_; ///< End position.
                     double endVelocity_; ///< End velocity.
                     bool backward_;     ///< True if going backward.
-                    double maxVelocity_; ///< Maximum velocity.
-                    double maxAcceleration_; ///< Maximum acceleration.
             };
         }
     }

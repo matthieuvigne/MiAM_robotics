@@ -10,7 +10,7 @@
 
     #include <miam_utils/AbstractRobot.h>
     #include <unistd.h>
-    #include "Parameters.h"
+    #include "RobotParameters.h"
 
 
     #include <miam_utils/miam_utils.h>
@@ -29,6 +29,11 @@
     using miam::ProtectedPosition;
     using miam::trajectory::Trajectory;
     using miam::trajectory::TrajectoryPoint;
+
+    namespace side{
+        int const RIGHT = 0;
+        int const LEFT = 1;
+    }
 
 
     typedef struct {
@@ -87,7 +92,7 @@
     class MotionController
     {
         public:
-            MotionController();
+            MotionController(RobotParameters const& robotParameters);
 
             /// \brief Initialize the system - this also starts the logger.
             void init(RobotPosition const& startPosition);
@@ -142,6 +147,8 @@
             {
                 return kinematics_;
             }
+
+            RobotParameters robotParams_;
 
         private:
             Logger logger_; ///< Logger object.

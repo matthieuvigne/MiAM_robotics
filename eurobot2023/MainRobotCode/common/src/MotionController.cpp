@@ -1,23 +1,20 @@
-#include "MotionController.h"
-#include "LoggerFields.h"
+#include "common/MotionController.h"
+#include "common/LoggerFields.h"
 #include <miam_utils/trajectory/Utilities.h>
 
 
-MotionController::MotionController():
+MotionController::MotionController(RobotParameters const& robotParameters):
     currentPosition_(),
     newTrajectories_(),
     currentTrajectories_(),
     wasTrajectoryFollowingSuccessful_(true),
-    curvilinearAbscissa_(0.0)
+    curvilinearAbscissa_(0.0),
+    robotParams_(robotParameters)
 {
-    kinematics_ = DrivetrainKinematics(robotdimensions::wheelRadius,
-                                       robotdimensions::wheelSpacing,
-                                       robotdimensions::encoderWheelRadius,
-                                       robotdimensions::encoderWheelSpacing);
-    // Update trajectory config.
-    miam::trajectory::setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
-                                                    robotdimensions::maxWheelAccelerationTrajectory,
-                                                    robotdimensions::wheelSpacing);
+    kinematics_ = DrivetrainKinematics(robotParams_.wheelRadius,
+                                       robotParams_.wheelSpacing,
+                                       robotParams_.encoderWheelRadius,
+                                       robotParams_.encoderWheelSpacing);
 
     // Set initial positon.
     RobotPosition initialPosition;
@@ -42,9 +39,8 @@ void MotionController::init(RobotPosition const& startPosition)
     std::strftime(timestamp, sizeof(timestamp), "%Y%m%dT%H%M%SZ", std::localtime(&t));
     std::string filename = "logs/log" + std::string(timestamp) + ".csv";
     // Log robot dimensions in header.
-    std::string info = "wheelRadius:" + std::to_string(robotdimensions::wheelRadius) + \
-                        "_wheelSpacing:" + std::to_string(robotdimensions::wheelSpacing) + \
-                        "_stepSize:" + std::to_string(robotdimensions::stepSize);
+    std::string info = "wheelRadius:" + std::to_string(robotParams_.wheelRadius) + \
+                        "_wheelSpacing:" + std::to_string(robotParams_.wheelSpacing);
 
     logger_ = Logger(filename, "Match code", info, getHeaderStringList());
     currentTime_ = 0.0;
@@ -104,8 +100,8 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     // Log input
     currentTime_ += dt;
     logger_.setData(LOGGER_TIME, currentTime_);
-    logger_.setData(LOGGER_ENCODER_RIGHT, measurements.encoderPosition[RIGHT]);
-    logger_.setData(LOGGER_ENCODER_LEFT, measurements.encoderPosition[LEFT]);
+    logger_.setData(LOGGER_ENCODER_RIGHT, measurements.encoderPosition[side::RIGHT]);
+    logger_.setData(LOGGER_ENCODER_LEFT, measurements.encoderPosition[side::LEFT]);
 
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderSpeed);
@@ -187,14 +183,14 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
     if (!hasMatchStarted)
     {
-        target.motorSpeed[RIGHT] = 0.0;
-        target.motorSpeed[LEFT] = 0.0;
+        target.motorSpeed[side::RIGHT] = 0.0;
+        target.motorSpeed[side::LEFT] = 0.0;
         PIDLinear_.resetIntegral(0.0);
         PIDAngular_.resetIntegral(0.0);
     }
 
-    logger_.setData(LOGGER_COMMAND_VELOCITY_RIGHT, target.motorSpeed[RIGHT]);
-    logger_.setData(LOGGER_COMMAND_VELOCITY_LEFT, target.motorSpeed[LEFT]);
+    logger_.setData(LOGGER_COMMAND_VELOCITY_RIGHT, target.motorSpeed[side::RIGHT]);
+    logger_.setData(LOGGER_COMMAND_VELOCITY_LEFT, target.motorSpeed[side::LEFT]);
 
     logger_.writeLine();
     return target;
@@ -251,7 +247,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // If we are beyon trajector end, look to see if we are close enough to the target point to stop.
     if(traj->getDuration() <= curvilinearAbscissa_)
     {
-        if(trackingLongitudinalError < 3 && trackingAngleError < 0.02 && measurements.motorSpeed[RIGHT] < 1.0 && measurements.motorSpeed[LEFT] < 1.0)
+        if(trackingLongitudinalError < 3 && trackingAngleError < 0.02 && measurements.motorSpeed[side::RIGHT] < 1.0 && measurements.motorSpeed[side::LEFT] < 1.0)
         {
             // Just stop the robot.
             target.motorSpeed[0] = 0.0;
@@ -270,8 +266,8 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // Modify angular PID target based on transverse error, if we are going fast enough.
     double angularPIDError = trackingAngleError;
     double transverseCorrection = 0.0;
-    if(std::abs(targetPoint.linearVelocity) > 0.1 * robotdimensions::maxWheelSpeed)
-        transverseCorrection = motioncontroller::transverseKp * targetPoint.linearVelocity / robotdimensions::maxWheelSpeed * trackingTransverseError;
+    if(std::abs(targetPoint.linearVelocity) > 0.1 * robotParams_.maxWheelSpeed)
+        transverseCorrection = motioncontroller::transverseKp * targetPoint.linearVelocity / robotParams_.maxWheelSpeed * trackingTransverseError;
     if (targetPoint.linearVelocity < 0)
         transverseCorrection = - transverseCorrection;
     angularPIDError += transverseCorrection;
@@ -280,15 +276,15 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     if(std::abs(targetPoint.linearVelocity) > 0.1 || std::abs(targetPoint.angularVelocity) > 0.005 )
         targetSpeed.angular += PIDAngular_.computeValue(angularPIDError, dt);
 
-    // Invert velocity if playing on right side.
+    // Invert velocity if playing on side::RIGHT side.
     if (isPlayingRightSide_)
         targetSpeed.angular = -targetSpeed.angular;
 
     // Convert from base velocity to motor wheel velocity.
     WheelSpeed wheelSpeed = kinematics_.inverseKinematics(targetSpeed);
     // Convert to motor unit.
-    target.motorSpeed[RIGHT] = wheelSpeed.right;
-    target.motorSpeed[LEFT] = wheelSpeed.left;
+    target.motorSpeed[side::RIGHT] = wheelSpeed.right;
+    target.motorSpeed[side::LEFT] = wheelSpeed.left;
 
 
     logger_.setData(LOGGER_LINEAR_P_I_D_CORRECTION, PIDLinear_.getCorrection());

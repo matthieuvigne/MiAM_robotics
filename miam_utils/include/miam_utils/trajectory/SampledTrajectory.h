@@ -19,6 +19,7 @@
                     /// \param[in] start_time Time at the first point of the trajectory.
                     /// \param[in] end_time Time at the last point of the trajectory.
                     SampledTrajectory(
+                        TrajectoryConfig const& config,
                         std::vector<TrajectoryPoint > sampledTrajectory,
                         double duration
                         );

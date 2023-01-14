@@ -75,7 +75,8 @@
             /// \param[in] endVelocity Final velocity.
             /// \param[in] backward If translation should be done backward.
             /// \return Vector of pointer toward two trajectories: rotation then translation.
-            TrajectoryVector computeTrajectoryStraightLineToPoint(RobotPosition const& startPosition,
+            TrajectoryVector computeTrajectoryStraightLineToPoint(TrajectoryConfig const& config,
+                                                                  RobotPosition const& startPosition,
                                                                   RobotPosition const& endPosition,
                                                                   double const& endVelocity = 0.0,
                                                                   bool const& backward = false);
@@ -91,7 +92,8 @@
             /// \param[in] radius Circle radius - the same is used at each point.
             /// \param[in] transitionVelocityFactor Percentage of the maximum velocity along the circle at which to do the transition.
             /// \return Vector of pointer toward the full trajectory.
-            TrajectoryVector computeTrajectoryRoundedCorner(std::vector<RobotPosition> const& positions,
+            TrajectoryVector computeTrajectoryRoundedCorner(TrajectoryConfig const& config,
+                                                            std::vector<RobotPosition> const& positions,
                                                             double radius,
                                                             double transitionVelocityFactor = 0.5,
                                                             bool backward = false);
@@ -103,7 +105,9 @@
             /// \param[in, out] position The starting position ; this is updated to the end position of the trajectory.
             /// \param[in] distance Travel distance ; can be negative, in which case the robot will go backward.
             /// \return The trajectory.
-            TrajectoryVector computeTrajectoryStraightLine(RobotPosition & position, double const& distance);
+            TrajectoryVector computeTrajectoryStraightLine(TrajectoryConfig const& config,
+                                                           RobotPosition & position,
+                                                           double const& distance);
         }
     }
 #endif

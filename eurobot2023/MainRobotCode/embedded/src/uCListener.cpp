@@ -112,8 +112,8 @@ void uCListener_listenerThread(int const& port)
                         uCMutex.lock();
                         listenerData.potentiometerPosition = (buffer[4] << 8) + buffer[5];
                         // Right / left arm
-                        listenerData.leftArmColor = static_cast<ExcavationSquareColor>(buffer[6] & 0b11);
-                        listenerData.rightArmColor = static_cast<ExcavationSquareColor>((buffer[6] >> 2) & 0b11);
+                        // listenerData.leftArmColor = static_cast<ExcavationSquareColor>(buffer[6] & 0b11);
+                        // listenerData.rightArmColor = static_cast<ExcavationSquareColor>((buffer[6] >> 2) & 0b11);
                         uCMutex.unlock();
                     }
                 }

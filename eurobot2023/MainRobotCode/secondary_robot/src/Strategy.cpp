@@ -8,8 +8,7 @@
 #include <miam_utils/trajectory/StraightLine.h>
 #include <miam_utils/trajectory/PointTurn.h>
 #include <miam_utils/trajectory/Utilities.h>
-#include "Parameters.h"
-#include "Strategy.h"
+#include "secondary_robot/Strategy.h"
 
 using namespace miam::trajectory;
 using miam::RobotPosition;
@@ -25,46 +24,10 @@ using miam::RobotPosition;
 // at the end of the match.
 bool MATCH_COMPLETED = false;
 
-
-bool Strategy::goBackToDigSite()
-{
-    RobotPosition targetPosition;
-    std::vector<RobotPosition> positions;
-
-    positions.clear();
-    targetPosition = motionController->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.x = 925;
-    targetPosition.y = 620;
-    positions.push_back(targetPosition);
-    targetPosition.x = 930;
-    targetPosition.y = 620;
-    positions.push_back(targetPosition);
-    TrajectoryVector traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
-    motionController->setTrajectoryToFollow(traj);
-    servo->openValve() ;
-    servo->openTube(0);
-    servo->openTube(1);
-    servo->openTube(2);
-
-    servo->moveArm(true, arm::FOLD);
-    servo->moveFinger(true, finger::FOLD);
-    servo->moveArm(false, arm::FOLD);
-    servo->moveFinger(false, finger::FOLD);
-
-    return motionController->waitForTrajectoryFinished();
-}
-
+namespace secondary_robot {
 
 Strategy::Strategy()
 {
-    is_handle_statue_finished = false;
-    is_move_side_sample_finished = false;
-    is_handle_side_triple_samples_finished = false;
-    is_move_three_samples_finished = false;
-    is_handle_dig_zone_finished = false;
-    is_bonus_already_counted = false;
-    is_push_samples_below_shelter_finished = false;
 
 }
 
@@ -77,7 +40,6 @@ void Strategy::setup(RobotInterface *robot)
     servo->moveStatue(statue::FOLD);
     servo->activateMagnet(false);
 
-    dropElements();
 
     servo->moveArm(true, arm::FOLD);
     servo->moveFinger(true, finger::FOLD);
@@ -98,8 +60,8 @@ void Strategy::setup(RobotInterface *robot)
     }
     // Set initial position
     RobotPosition targetPosition;
-    targetPosition.x = robotdimensions::CHASSIS_BACK;
-    targetPosition.y = 1200;
+    targetPosition.x = robot->getParameters().CHASSIS_BACK + 1000;
+    targetPosition.y = 1700;
     targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
 }
@@ -123,7 +85,7 @@ Action* Strategy::chooseNextAction(
         if (a.isActivated_)
         {
             // compute loss
-            double timeItTakesToGoThere = motionPlanner.computeMotionTime(currentPosition, a.startPosition_);
+            double timeItTakesToGoThere = motionPlanner.computeMotionTime(robot->getParameters().getTrajConf(), currentPosition, a.startPosition_);
             double currentLoss = a.nPointsToGain_ /(a.timeItTakes_ + timeItTakesToGoThere);
 
             std::cout << "Calcul pour " << i << " : " << timeItTakesToGoThere << ", " << currentLoss << std::endl;
@@ -153,7 +115,7 @@ void Strategy::match_impl()
     robot->updateScore(2);  //depose vitrine
 
     // Set initial position
-    targetPosition.x = robotdimensions::CHASSIS_BACK;
+    targetPosition.x = robot->getParameters().CHASSIS_BACK;
     targetPosition.y = 1200;
     targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
@@ -162,9 +124,9 @@ void Strategy::match_impl()
     // create brain
     MotionPlanning motion_planner;
 
-    Action action1(100,1, RobotPosition(1500, 1200, 0));
-    Action action2(50, 1, RobotPosition(1500, 1800, 0));
-    Action action3(15, 1, RobotPosition(500, 2200, 0));
+    Action action1(100,1, RobotPosition(2000, 1700, 0));
+    Action action2(500, 1, RobotPosition(2200, 500, 0));
+    Action action3(15, 1, RobotPosition(1500, 200, 0));
 
     std::vector<Action> actionVector;
     actionVector.push_back(action1);
@@ -188,7 +150,7 @@ void Strategy::match_impl()
         std::cout << "nextAction : " << *nextAction << std::endl;
 
         targetPosition = motionController->getCurrentPosition();
-        traj = motion_planner.computeTraj(targetPosition, nextAction->startPosition_);
+        traj = motion_planner.computeTraj(robot->getParameters().getTrajConf(), targetPosition, nextAction->startPosition_);
         motionController->setTrajectoryToFollow(traj);
         bool moveSuccess = motionController->waitForTrajectoryFinished();
 
@@ -224,7 +186,7 @@ void Strategy::match_impl()
                 positions.push_back(targetPosition);
                 positions.push_back(left_point);
                 positions.push_back(nextAction->startPosition_);
-                traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
+                traj = computeTrajectoryRoundedCorner(robot->getParameters().getTrajConf(), positions, 200.0, 0.3);
                 motionController->setTrajectoryToFollow(traj);
 
                 if (motionController->waitForTrajectoryFinished())
@@ -276,7 +238,7 @@ void Strategy::match_impl()
                     positions.push_back(targetPosition);
                     positions.push_back(right_point);
                     positions.push_back(nextAction->startPosition_);
-                    traj = computeTrajectoryRoundedCorner(positions, 200.0, 0.3);
+                    traj = computeTrajectoryRoundedCorner(robot->getParameters().getTrajConf(), positions, 200.0, 0.3);
                     motionController->setTrajectoryToFollow(traj);
 
                     if (motionController->waitForTrajectoryFinished())
@@ -318,9 +280,6 @@ void Strategy::match_impl()
 
 
     }
-
-
-
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }
 
@@ -328,11 +287,6 @@ void Strategy::match()
 {
 
     std::cout << "Strategy thread started." << std::endl;
-
-    // Update config.
-    setTrajectoryGenerationConfig(robotdimensions::maxWheelSpeedTrajectory,
-                                                    robotdimensions::maxWheelAccelerationTrajectory,
-                                                    robotdimensions::wheelSpacing);
 
     std::thread stratMain(&Strategy::match_impl, this);
     pthread_t handle = stratMain.native_handle();
@@ -344,18 +298,13 @@ void Strategy::match()
     if (!MATCH_COMPLETED)
         pthread_cancel(handle);
     usleep(50000);
-    servo->moveRail(robotdimensions::MIAM_RAIL_SERVO_ZERO_VELOCITY);
     if (!MATCH_COMPLETED)
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
 
         servo->activatePump(false);
 
-        if (goBackToDigSite())
-        {
-            robot->updateScore(20); //match completed
-            camera_.shutDown();
-        }
     }
 }
 
+}

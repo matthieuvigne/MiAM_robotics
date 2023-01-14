@@ -6,9 +6,16 @@
 #include <miam_utils/Logger.h>
 
 #include "Viewer.h"
-#include "Strategy.h"
-#include "ServoHandler.h"
-#include "RobotGUI.h"
+#include "main_robot/Strategy.h"
+#include "common/ServoHandler.h"
+
+
+#include "main_robot/Parameters.h"
+#include "main_robot/Strategy.h"
+#include "main_robot/RobotGUI.h"
+
+#include "secondary_robot/Parameters.h"
+#include "secondary_robot/Strategy.h"
 
 Glib::RefPtr<Gtk::Application> app;
 
@@ -39,11 +46,18 @@ int main (int argc, char *argv[])
     // Create handler.
     Viewer *viewer = nullptr;
     refBuilder->get_widget_derived("mainWindow", viewer, "./config/tableAgeOfBots.png");
-    ViewerRobot mainRobot("./config/mainRobotAgeOfBots.png", Strategy());
+    main_robot::Strategy mainStrategy;
+    ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobotAgeOfBots.png", &mainStrategy);
     viewer->addRobot(mainRobot);
 
+    secondary_robot::Strategy secondaryStrategy;
+    ViewerRobot secondaryRobot(secondary_robot::generateParams(), "./config/secondaryRobot.png", &secondaryStrategy, 0.0, 0.0, 1.0);
+    viewer->addRobot(secondaryRobot);
+
+    viewer->resetClicked();
+
     // Create gui
-    std::thread t(startRobotGUI, &mainRobot);
+    std::thread t(main_robot::startRobotGUI, &mainRobot);
     t.detach();
 
     return app->run(*viewer);

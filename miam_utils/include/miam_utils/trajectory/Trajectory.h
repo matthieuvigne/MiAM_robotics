@@ -15,23 +15,12 @@
         namespace trajectory{
 
             // Config variables, used for trajectory generation.
-            namespace config
-            {
-                extern double maxWheelVelocity;     ///< Maximum wheel velocity along a trajectory, mm/s.
-                extern double maxWheelAcceleration; ///< Maximum wheel acceleration of a trajectory, mm/s2.
-                extern double robotWheelSpacing;     ///< Distance from wheel to robot center, in mm. Used to compute velocity of external wheel while along a curve.
-            }
+            struct TrajectoryConfig{
 
-            /// \brief Set the velocity and dimension value of the config parameters.
-            /// \details The config parameters are used as default parameters for trajectory generation.
-            ///          This function enables chaning these parameters.
-            ///
-            /// \param[in] maxWheelVelocity Maximum wheel velocity, mm/s.
-            /// \param[in] maxWheelAcceleration Maximum wheel acceleration, mm/s2.
-            /// \param[in] robotWheelSpacing Distance from wheel to robot center, in mm.
-            void setTrajectoryGenerationConfig(double const& maxWheelVelocity,
-                                               double const& maxWheelAcceleration,
-                                               double const& robotWheelSpacing);
+                double maxWheelVelocity = 300.0;    // Wheel max velocity, in mm/s
+                double maxWheelAcceleration = 300.0;  // Wheel max velocity, in mm/s2
+                double robotWheelSpacing = 100.0;  // Wheel spacing, in mm
+            };
 
             /// \brief A trajectory point, containing everything for servoing along this trajectory.
             struct TrajectoryPoint{
@@ -50,7 +39,7 @@
             class Trajectory
             {
                 public:
-                    Trajectory();
+                    Trajectory(TrajectoryConfig const& config);
 
                     /// \brief Get trajectory point at current time.
                     ///
@@ -75,6 +64,7 @@
 
                 protected:
                     double duration_; ///< Trajectory duration.
+                    TrajectoryConfig config_;
             };
         }
     }
