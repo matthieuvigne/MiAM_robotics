@@ -28,81 +28,23 @@ namespace main_robot
 bool MATCH_COMPLETED = false;
 
 
-bool Strategy::goBackToDigSite()
-{
-    RobotPosition targetPosition;
-    std::vector<RobotPosition> positions;
-
-    positions.clear();
-    targetPosition = motionController->getCurrentPosition();
-    positions.push_back(targetPosition);
-    targetPosition.x = 925;
-    targetPosition.y = 620;
-    positions.push_back(targetPosition);
-    targetPosition.x = 930;
-    targetPosition.y = 620;
-    positions.push_back(targetPosition);
-    TrajectoryVector traj = computeTrajectoryRoundedCorner(robot->getParameters().getTrajConf(), positions, 200.0, 0.3);
-    motionController->setTrajectoryToFollow(traj);
-    servo->openValve() ;
-    servo->openTube(0);
-    servo->openTube(1);
-    servo->openTube(2);
-
-    servo->moveArm(true, arm::FOLD);
-    servo->moveFinger(true, finger::FOLD);
-    servo->moveArm(false, arm::FOLD);
-    servo->moveFinger(false, finger::FOLD);
-
-    return motionController->waitForTrajectoryFinished();
-}
-
-
 Strategy::Strategy()
 {
-    is_handle_statue_finished = false;
-    is_move_side_sample_finished = false;
-    is_handle_side_triple_samples_finished = false;
-    is_move_three_samples_finished = false;
-    is_handle_dig_zone_finished = false;
-    is_bonus_already_counted = false;
-    is_push_samples_below_shelter_finished = false;
-
+  // [TODO]
 }
 
 void Strategy::setup(RobotInterface *robot)
 {
+    // Get robot
     this->robot = robot;
     this->servo = robot->getServos();
     this->motionController = robot->getMotionController();
 
-    servo->moveStatue(statue::FOLD);
-    servo->activateMagnet(false);
-
-    // dropElements();
-
-    servo->moveArm(true, arm::FOLD);
-    servo->moveFinger(true, finger::FOLD);
-    servo->moveArm(false, arm::FOLD);
-    servo->moveFinger(false, finger::FOLD);
-    servo->moveClaw(claw::FOLD);
-
-    //init ventouse & rail
-    for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::FOLD);
-    servo->moveSuction(1, suction::FOLD);
-
-    if (robot->getTestMode())
-    {
-        robot->moveRail(0.5);
-        robot->wait(2.0);
-        robot->moveRail(0.65);
-    }
     // Set initial position
     RobotPosition targetPosition;
-    targetPosition.x = robot->getParameters().CHASSIS_BACK;
-    targetPosition.y = 1200;
-    targetPosition.theta = 0;
+    targetPosition.x = 2000 - robot->getParameters().CHASSIS_BACK;
+    targetPosition.y = 2000 - robot->getParameters().CHASSIS_WIDTH/2.0;
+    targetPosition.theta = M_PI;
     motionController->resetPosition(targetPosition, true, true, true);
 }
 
@@ -151,27 +93,34 @@ void Strategy::match_impl()
     TrajectoryVector traj;
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
-    robot->updateScore(2);  //depose statuette
-    robot->updateScore(2);  //depose vitrine
-
+    
     // Set initial position
-    targetPosition.x = robot->getParameters().CHASSIS_BACK;
-    targetPosition.y = 1200;
-    targetPosition.theta = 0;
+    targetPosition.x = 2000 - robot->getParameters().CHASSIS_BACK;
+    targetPosition.y = 2000 - robot->getParameters().CHASSIS_WIDTH/2.0;
+    targetPosition.theta = M_PI;
     motionController->resetPosition(targetPosition, true, true, true);
     robot->wait(0.05);
 
-    // create brain
+    // Create brain
     MotionPlanning motion_planner;
-
-    Action action1(100,1, RobotPosition(1500, 1200, 0));
-    Action action2(50, 1, RobotPosition(1500, 1800, 0));
-    Action action3(15, 1, RobotPosition(500, 2200, 0));
+     //~ action1(0, 1, RobotPosition(1275+robot->getParameters().CHASSIS_FRONT,1875,0));
+    //~ Action action2(0, 1, RobotPosition(345+robot->getParameters().CHASSIS_FRONT,2325,0));
+    //~ Action action3(0, 1, RobotPosition(120+robot->getParameters().CHASSIS_FRONT,2325,0));
+    //~ Action action3(0, 1, RobotPosition(120+robot->getParameters().CHASSIS_FRONT,2325,0));
 
     std::vector<Action> actionVector;
-    actionVector.push_back(action1);
-    actionVector.push_back(action2);
-    actionVector.push_back(action3);
+    actionVector.push_back(Action(0, 1, RobotPosition(1275+robot->getParameters().CHASSIS_FRONT,1875,0)));
+    actionVector.push_back(Action(0, 1, RobotPosition(345+robot->getParameters().CHASSIS_FRONT,2325,0)));
+    actionVector.push_back(Action(0, 1, RobotPosition(120+robot->getParameters().CHASSIS_FRONT,2325,0)));
+    actionVector.push_back(Action(0, 1, RobotPosition(225,2775-3*120,0)));
+    actionVector.push_back(Action(0, 1, RobotPosition(450+275,1875,0)));
+    actionVector.push_back(Action(0, 1, RobotPosition(1775-robot->getParameters().CHASSIS_FRONT,2275,0)));
+    actionVector.push_back(Action(0, 1, RobotPosition(2000-120-robot->getParameters().CHASSIS_FRONT,2275,0)));
+    actionVector.push_back(Action(0, 1, RobotPosition(2000-225,1500+225+375+350-3*120,0)));
+    actionVector.push_back(Action(0, 1, RobotPosition(2000-225,1500+225+375+350-3*120+20,0)));
+    actionVector.push_back(Action(0, 1, RobotPosition(225,450+125+200+125+225,0)));
+    // [TODO] Assemblage gateau
+    //~ actionVector.push_back(action3);
 
 
 
@@ -357,11 +306,11 @@ void Strategy::match()
 
         servo->activatePump(false);
 
-        if (goBackToDigSite())
-        {
-            robot->updateScore(20); //match completed
-            camera_.shutDown();
-        }
+        //~ if (goBackToDigSite())
+        //~ {
+            //~ robot->updateScore(20); //match completed
+            //~ camera_.shutDown();
+        //~ }
     }
 }
 
