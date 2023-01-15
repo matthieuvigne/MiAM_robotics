@@ -296,10 +296,6 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
 
 double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted)
 {
-  // Handle robot stops
-  static int num_stop_iters = 0.;
-  constexpr int min_stop_iters = 12; // Minimum number of iterations to stop, i.e 10ms.
-  constexpr int min_restart_iter = 20; // Minimum number of iterations to restart, i.e 10ms.
 
   double coeff = 1.0;
   bool is_robot_stopped = false;
@@ -412,6 +408,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
           {
               currentTrajectories_.at(0)->replanify(curvilinearAbscissa_);
               curvilinearAbscissa_ = 0;
+              std::cout << "Continue trajectory; replan" << std::endl;
           }
       }
       num_stop_iters = 0;

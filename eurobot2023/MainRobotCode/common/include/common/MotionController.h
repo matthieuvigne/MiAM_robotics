@@ -189,5 +189,11 @@
             double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
 
             bool isLidarPointWithinTable(LidarPoint const& point);
+
+
+            // Handle robot stops
+            int num_stop_iters = 0.;
+            const int min_stop_iters = 12; // Minimum number of iterations to stop, i.e 10ms.
+            const int min_restart_iter = 20; // Minimum number of iterations to restart, i.e 10ms.
     };
  #endif
