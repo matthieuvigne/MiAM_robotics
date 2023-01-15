@@ -50,9 +50,9 @@ int main (int argc, char *argv[])
     ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobotAgeOfBots.png", &mainStrategy);
     viewer->addRobot(mainRobot);
 
-    secondary_robot::Strategy secondaryStrategy;
-    ViewerRobot secondaryRobot(secondary_robot::generateParams(), "./config/secondaryRobot.png", &secondaryStrategy, 0.0, 0.0, 1.0);
-    viewer->addRobot(secondaryRobot);
+    // secondary_robot::Strategy secondaryStrategy;
+    // ViewerRobot secondaryRobot(secondary_robot::generateParams(), "./config/secondaryRobot.png", &secondaryStrategy, 0.0, 0.0, 1.0);
+    // viewer->addRobot(secondaryRobot);
 
     viewer->resetClicked();
 

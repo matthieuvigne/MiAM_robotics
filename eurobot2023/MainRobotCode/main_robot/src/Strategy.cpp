@@ -61,9 +61,22 @@ Action* Strategy::chooseNextAction(
 
     int i = 0;
 
+    // if all actions are deactivated, reactivate all actions
+    bool all_actions_deactivated = true;
     for (auto & a : actions)
     {
+        if (a.isActivated_)
+            all_actions_deactivated = false;
+    }
+    if (all_actions_deactivated)
+    {
+        std::cout << "All actions are deactivated: reactivate all" << std::endl;
+        for (auto & a : actions)
+            a.isActivated_ = true;
+    }
 
+    for (auto & a : actions)
+    {
         if (a.isActivated_)
         {
             // compute loss
@@ -127,6 +140,8 @@ void Strategy::match_impl()
     while (!actionVector.empty())
     {
 
+        std::cout << ">>> RE-ASSESSING ACTIONS" << std::endl;
+
         std::cout << "Remaining actions : " << actionVector.size() << std::endl;
         for (auto v : actionVector)
         {
@@ -135,148 +150,32 @@ void Strategy::match_impl()
 
         Action* nextAction = chooseNextAction(actionVector, motionController->getCurrentPosition(), motion_planner);
 
-
-        std::cout << "nextAction : " << *nextAction << std::endl;
+        std::cout << ">>> nextAction : " << *nextAction << std::endl;
 
         targetPosition = motionController->getCurrentPosition();
         traj = motion_planner.computeTraj(robot->getParameters().getTrajConf(), targetPosition, nextAction->startPosition_);
+        // Disable avoidance?
+        // for (auto i : traj)
+        // {
+        //     i->setAvoidanceEnabled(false);
+        // }
         motionController->setTrajectoryToFollow(traj);
         bool moveSuccess = motionController->waitForTrajectoryFinished();
-
-        if (!moveSuccess)
-        {
-            // attempt alternative route
-            // assume object size is ~20 cm
-
-            std::cout << "attempting alternative route" << std::endl;
-
-            // attempt left
-            RobotPosition left_point(motionController->getCurrentPosition());
-            // 20 cm to the left
-            left_point.x = left_point.x - 400 * sin(left_point.theta);
-            left_point.y = left_point.y + 400 * cos(left_point.theta);
-
-            // left point plus 20 cm
-            RobotPosition left_point_further(left_point);
-            left_point_further.x += 400 * cos(left_point.theta);
-            left_point_further.y += 400 * sin(left_point.theta);
-
-            if(left_point.x < table_dimensions::table_max_x and left_point.x > table_dimensions::table_min_x
-                and left_point.y < table_dimensions::table_max_y and left_point.y > table_dimensions::table_min_y )
-            {
-
-
-                std::cout << "trying to go left" << std::endl;
-                std::cout << "current position : " << motionController->getCurrentPosition() <<  std::endl;
-                std::cout << "waypoint : " << left_point <<  std::endl;
-
-                // // attempt following the trajectory
-                // targetPosition = motionController->getCurrentPosition();
-                // traj = computeTrajectoryStraightLineToPoint(targetPosition, left_point);
-                // motionController->setTrajectoryToFollow(traj);
-
-                targetPosition = motionController->getCurrentPosition();
-                positions.clear();
-                positions.push_back(targetPosition);
-                positions.push_back(left_point);
-                positions.push_back(left_point_further);
-                positions.push_back(nextAction->startPosition_);
-                traj = computeTrajectoryRoundedCorner(robot->getParameters().getTrajConf(), positions, 200.0, 0.3);
-                motionController->setTrajectoryToFollow(traj);
-
-                moveSuccess = motionController->waitForTrajectoryFinished();
-
-                if (moveSuccess)
-                {
-                    std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
-
-                    // targetPosition = motionController->getCurrentPosition();
-                    // traj = motion_planner.computeTraj(targetPosition, nextAction->startPosition_);
-                    // motionController->setTrajectoryToFollow(traj);
-                    // moveSuccess = motionController->waitForTrajectoryFinished();
-                } else
-                {
-                    std::cout << "waypoint NOT reached :" << motionController->getCurrentPosition() <<  std::endl;
-
-                }
-
-
-            }
-
-            if (!moveSuccess)
-            {
-                // attempt alternative route
-                // assume object size is ~20 cm
-
-                std::cout << "attempting alternative route" << std::endl;
-
-                // attempt right
-                RobotPosition right_point(motionController->getCurrentPosition());
-                // 20 cm to the right
-                right_point.x = right_point.x + 400 * sin(right_point.theta);
-                right_point.y = right_point.y - 400 * cos(right_point.theta);
-
-                if(right_point.x < table_dimensions::table_max_x and right_point.x > table_dimensions::table_min_x
-                    and right_point.y < table_dimensions::table_max_y and right_point.y > table_dimensions::table_min_y )
-                {
-
-
-                    std::cout << "trying to go right" << std::endl;
-                    std::cout << "current position : " << motionController->getCurrentPosition() <<  std::endl;
-                    std::cout << "waypoint : " << right_point <<  std::endl;
-
-                    // // attempt following the trajectory
-                    // targetPosition = motionController->getCurrentPosition();
-                    // traj = computeTrajectoryStraightLineToPoint(targetPosition, right_point);
-                    // motionController->setTrajectoryToFollow(traj);
-
-                    targetPosition = motionController->getCurrentPosition();
-                    positions.clear();
-                    positions.push_back(targetPosition);
-                    positions.push_back(right_point);
-                    positions.push_back(nextAction->startPosition_);
-                    traj = computeTrajectoryRoundedCorner(robot->getParameters().getTrajConf(), positions, 200.0, 0.3);
-                    motionController->setTrajectoryToFollow(traj);
-
-                    moveSuccess = motionController->waitForTrajectoryFinished();
-
-                    if (moveSuccess)
-                    {
-                        std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
-
-                        // targetPosition = motionController->getCurrentPosition();
-                        // traj = motion_planner.computeTraj(targetPosition, nextAction->startPosition_);
-                        // motionController->setTrajectoryToFollow(traj);
-                        // moveSuccess = motionController->waitForTrajectoryFinished();
-                    } else
-                    {
-                        std::cout << "waypoint NOT reached :" << motionController->getCurrentPosition() <<  std::endl;
-
-                    }
-
-
-                }
-            }
-
-        }
-
 
         if (moveSuccess)
         {
             nextAction->performAction(robot);
             actionVector.erase(std::find(actionVector.begin(), actionVector.end(), *nextAction));
 
-            // If action successful, reactivate all actions
+            // Reactivate all actions
             for (auto & a : actionVector)
-                nextAction->isActivated_ = true;
+                a.isActivated_ = true;
         }
         else
         {
-            // penaliser l'action
+            // Penaliser l'action
             nextAction->isActivated_ = false;
         }
-
-
 
     }
 

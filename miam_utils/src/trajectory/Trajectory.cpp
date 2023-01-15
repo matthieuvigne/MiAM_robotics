@@ -8,7 +8,8 @@ namespace miam{
     namespace trajectory{
         Trajectory::Trajectory(TrajectoryConfig const& config):
             duration_(0.0),
-            config_(config)
+            config_(config),
+            avoidanceEnabled_(true)
         {
         }
 

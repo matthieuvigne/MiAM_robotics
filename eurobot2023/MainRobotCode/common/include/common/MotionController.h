@@ -192,8 +192,12 @@
 
 
             // Handle robot stops
-            int num_stop_iters = 0.;
-            const int min_stop_iters = 12; // Minimum number of iterations to stop, i.e 10ms.
-            const int min_restart_iter = 20; // Minimum number of iterations to restart, i.e 10ms.
+            int numStopIters_ = 0.;
+            const int minStopIters_ = 12; // Minimum number of iterations to stop, i.e 10ms.
+            const int minRestartIters_ = 20; // Minimum number of iterations to restart, i.e 10ms.
+            int const maxStopIters_ = 50; // Maximum number of iterations until attempting something
+            
+            int avoidanceCount_;
+            const int maxAvoidanceAttempts_ = 2;
     };
  #endif

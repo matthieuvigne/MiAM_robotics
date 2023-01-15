@@ -62,9 +62,18 @@
                     /// \param[in] replanificationTime Time at which we replanify, in seconds.
                     virtual void replanify(double const& replanificationTime) = 0;
 
+                    /// \brief Set trajectory avoidance flag
+                    void setAvoidanceEnabled(bool avoidanceEnabled) {
+                        avoidanceEnabled_ = avoidanceEnabled;
+                    };
+
+                    bool isAvoidanceEnabled() {
+                        return(avoidanceEnabled_);
+                    };
                 protected:
                     double duration_; ///< Trajectory duration.
                     TrajectoryConfig config_;
+                    bool avoidanceEnabled_;
             };
         }
     }
