@@ -83,8 +83,8 @@
 
     // Dimensions of the table
     namespace table_dimensions {
-      double constexpr table_max_x = 2950;
-      double constexpr table_max_y = 1950;
+      double constexpr table_max_x = 1950;
+      double constexpr table_max_y = 2950;
       double constexpr table_min_x = 50;
       double constexpr table_min_y = 50;
     } // namespace table dimensions
