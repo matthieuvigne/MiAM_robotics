@@ -19,6 +19,11 @@
 
     #include "MaestroMock.h"
 
+
+    #define TABLE_WIDTH_MM 2000.0
+    #define TABLE_HEIGHT_MM 3000.0
+    #define TABLE_MARGIN_MM 0.0
+
     // Replay timestep.
     static double const TIMESTEP = 0.01;
 

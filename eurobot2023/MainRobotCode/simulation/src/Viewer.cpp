@@ -115,10 +115,10 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
     cr->paint();
 
     // Get table origin and scaling.
-    mmToCairo_ = newWidth / 4000.0;
+    mmToCairo_ = newWidth / TABLE_WIDTH_MM;
 
-    originX_ = (widgetWidth - newWidth) / 2 + 500.0 * mmToCairo_;
-    originY_ = (widgetHeight - newHeight) / 2 + 500.0 * mmToCairo_;
+    originX_ = (widgetWidth - newWidth) / 2 + TABLE_MARGIN_MM * mmToCairo_;
+    originY_ = (widgetHeight - newHeight) / 2 + TABLE_MARGIN_MM * mmToCairo_;
 
     cr->translate(originX_, originY_);
 
@@ -131,7 +131,7 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     // Draw obstacle.
     cr->set_source_rgb(1.0, 0.0, 0.0);
-    cr->arc(mmToCairo_ * obstaclePosition_(0), mmToCairo_ * (2000 - obstaclePosition_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
+    cr->arc(mmToCairo_ * obstaclePosition_(0), mmToCairo_ * (TABLE_HEIGHT_MM - obstaclePosition_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
     cr->fill();
 
     // Update labels.
@@ -150,7 +150,7 @@ bool Viewer::moveObstacle(GdkEventMotion* motion_event)
     obstaclePosition_(1) = motion_event->y;
     // Convert coordinates to table coordinates
     obstaclePosition_(0) = (obstaclePosition_(0) - originX_) / mmToCairo_;
-    obstaclePosition_(1) = 2000 - (obstaclePosition_(1) - originY_) / mmToCairo_;
+    obstaclePosition_(1) = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
     drawingArea->queue_draw();
     return true;
 }
@@ -162,7 +162,7 @@ bool Viewer::clickObstacle(GdkEventButton* motion_event)
     obstaclePosition_(1) = motion_event->y;
     // Convert coordinates to table coordinates
     obstaclePosition_(0) = (obstaclePosition_(0) - originX_) / mmToCairo_;
-    obstaclePosition_(1) = 2000 - (obstaclePosition_(1) - originY_) / mmToCairo_;
+    obstaclePosition_(1) = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
     drawingArea->queue_draw();
     return true;
 }

@@ -60,8 +60,8 @@ void Strategy::setup(RobotInterface *robot)
     }
     // Set initial position
     RobotPosition targetPosition;
-    targetPosition.x = robot->getParameters().CHASSIS_BACK + 1000;
-    targetPosition.y = 1700;
+    targetPosition.x = 0; //robot->getParameters().CHASSIS_BACK + 1000;
+    targetPosition.y = 0; // 1700;
     targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
 }
@@ -115,8 +115,8 @@ void Strategy::match_impl()
     robot->updateScore(2);  //depose vitrine
 
     // Set initial position
-    targetPosition.x = robot->getParameters().CHASSIS_BACK;
-    targetPosition.y = 1200;
+    targetPosition.x = 0; //robot->getParameters().CHASSIS_BACK;
+    targetPosition.y = 0; // 1200;
     targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
     robot->wait(0.05);

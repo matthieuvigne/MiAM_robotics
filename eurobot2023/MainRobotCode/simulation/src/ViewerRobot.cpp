@@ -28,9 +28,9 @@ void ViewerRobot::draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mm
     ViewerTrajectoryPoint currentViewerPoint = trajectory_.back();
     RobotPosition p = currentViewerPoint.position;
 
-    double robotImageSize = 500 * mmToCairo;
+    double robotImageSize = 500.0 * mmToCairo;
     double robotOriginX = p.x * mmToCairo;
-    double robotOriginY = (2000 - p.y) * mmToCairo;
+    double robotOriginY = (TABLE_HEIGHT_MM - p.y) * mmToCairo;
 
     cr->save();
     cr->translate(robotOriginX, robotOriginY);
@@ -38,20 +38,20 @@ void ViewerRobot::draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mm
     cr->rotate(-p.theta);
     Gdk::Cairo::set_source_pixbuf(cr,
                                   image_->scale_simple(robotImageSize, robotImageSize, Gdk::INTERP_BILINEAR ),
-                                  -250 * mmToCairo,
-                                  -250 * mmToCairo);
+                                  -robotImageSize / 2.0,
+                                  -robotImageSize / 2.0);
     cr->paint();
     cr->restore();
 
     // Draw robot path.
     double pointX =  mmToCairo * trajectory_.at(0).position.x;
-    double pointY =  mmToCairo * (2000 - trajectory_.at(0).position.y);
+    double pointY =  mmToCairo * (TABLE_HEIGHT_MM - trajectory_.at(0).position.y);
 
     cr->move_to(pointX, pointY);
     for(unsigned long i = 0; i < trajectory_.size(); i+=10)
     {
         pointX =  mmToCairo * trajectory_.at(i).position.x;
-        pointY =  mmToCairo * (2000 - trajectory_.at(i).position.y);
+        pointY =  mmToCairo * (TABLE_HEIGHT_MM - trajectory_.at(i).position.y);
         cr->line_to(pointX, pointY);
     }
     cr->set_source_rgb(1.0, 1.0, 1.0);
@@ -123,7 +123,7 @@ void ViewerRobot::tick(double const& dt, double const& simulationTime, Vector2 c
     // Miror.
     if (isPlayingRightSide_)
     {
-        p.position.x = 3000 - p.position.x;
+        p.position.x = TABLE_WIDTH_MM - p.position.x;
         p.position.theta = M_PI - p.position.theta;
     }
     trajectory_.push_back(p);

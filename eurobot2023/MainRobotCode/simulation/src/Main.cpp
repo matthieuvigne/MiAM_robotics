@@ -45,7 +45,7 @@ int main (int argc, char *argv[])
 
     // Create handler.
     Viewer *viewer = nullptr;
-    refBuilder->get_widget_derived("mainWindow", viewer, "./config/tableAgeOfBots.png");
+    refBuilder->get_widget_derived("mainWindow", viewer, "./config/tableCherryOnTheCake.png");
     main_robot::Strategy mainStrategy;
     ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobotAgeOfBots.png", &mainStrategy);
     viewer->addRobot(mainRobot);
