@@ -207,6 +207,11 @@ void Strategy::match_impl()
             left_point.x = left_point.x - 400 * sin(left_point.theta);
             left_point.y = left_point.y + 400 * cos(left_point.theta);
 
+            // left point plus 20 cm
+            RobotPosition left_point_further(left_point);
+            left_point_further.x += 400 * cos(left_point.theta);
+            left_point_further.y += 400 * sin(left_point.theta);
+
             if(left_point.x < table_dimensions::table_max_x and left_point.x > table_dimensions::table_min_x
                 and left_point.y < table_dimensions::table_max_y and left_point.y > table_dimensions::table_min_y )
             {
@@ -225,11 +230,14 @@ void Strategy::match_impl()
                 positions.clear();
                 positions.push_back(targetPosition);
                 positions.push_back(left_point);
+                positions.push_back(left_point_further);
                 positions.push_back(nextAction->startPosition_);
                 traj = computeTrajectoryRoundedCorner(robot->getParameters().getTrajConf(), positions, 200.0, 0.3);
                 motionController->setTrajectoryToFollow(traj);
 
-                if (motionController->waitForTrajectoryFinished())
+                moveSuccess = motionController->waitForTrajectoryFinished();
+
+                if (moveSuccess)
                 {
                     std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
 
@@ -281,7 +289,9 @@ void Strategy::match_impl()
                     traj = computeTrajectoryRoundedCorner(robot->getParameters().getTrajConf(), positions, 200.0, 0.3);
                     motionController->setTrajectoryToFollow(traj);
 
-                    if (motionController->waitForTrajectoryFinished())
+                    moveSuccess = motionController->waitForTrajectoryFinished();
+
+                    if (moveSuccess)
                     {
                         std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
 
