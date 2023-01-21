@@ -149,9 +149,9 @@
             }
 
             RobotParameters robotParams_;
+            Logger logger_; ///< Logger object.
 
         private:
-            Logger logger_; ///< Logger object.
             ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
             double currentTime_{0.0};
 

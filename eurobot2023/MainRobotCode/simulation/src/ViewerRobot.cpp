@@ -144,6 +144,7 @@ void ViewerRobot::reset(bool const& isPlayingRightSide)
     strategy_->createdThreads_.clear();
     strategy_->setup(this);
     simulationPosition_ = motionController_.getCurrentPosition();
+    motionController_.init(simulationPosition_);
 
     std::thread tr = std::thread(&AbstractStrategy::match, strategy_);
     runningThread_ = tr.native_handle();

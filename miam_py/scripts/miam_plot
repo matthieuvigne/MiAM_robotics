@@ -36,8 +36,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description = description_str, formatter_class = argparse.RawTextHelpFormatter)
     parser.add_argument("input", help = "Input csv log file, or keyword 'latest'.")
-    parser.add_argument("-nt", "--notime", required = False, default = False, action = "store_true",
-                        help = "If set, using index number for X axis instead of time.")
     parser.add_argument("-fft", required = False, default = False, action = "store_true",
                         help = "If set, plot Fourier transform instead.")
     main_arguments, plotting_commands = parser.parse_known_args()
@@ -51,11 +49,9 @@ if __name__ == "__main__":
         print("Loading log: {}".format(logname))
     logfile = LogLoader(logname)
 
-    dt = np.average(logfile.data["timeDiffs"][1:])
-
     if len(plotting_commands) == 0:
         print("Available data:")
-        for h in logfile.headers:
+        for h in logfile.variables:
             print(" - {}".format(h))
         exit(0)
 
@@ -67,7 +63,7 @@ if __name__ == "__main__":
         # Expand each element according to regular expression.
         matching_headers = []
         for h in headers:
-            matching_headers.append(sorted(filter(logfile.headers, h)))
+            matching_headers.append(sorted(filter(logfile.variables, h)))
         # Get minimum size for number of subplots.
         n_subplots = min([len(l) for l in matching_headers])
         for i in range(n_subplots):
@@ -90,20 +86,16 @@ if __name__ == "__main__":
         axs = np.array([axs])
     axs = axs.flatten()
 
-    plt.suptitle(logfile.log_name + "\nFile: " + logfile.filename)
-    # X axis: time or simple index, based on user input.
-    if main_arguments.notime:
-        x_values = range(len(logfile.data[logfile.headers[0]]))
-    else:
-        x_values = logfile.data['time']
+    plt.suptitle(logfile.filename)
+
     # Plot each element.
     for i in range(n_plot):
         for name in plotted_elements[i]:
             if main_arguments.fft:
-                f, v = my_fft(logfile.data[name], dt)
+                f, v = my_fft(logfile.data[name][1], np.average(np.diff(logfile.data[name][0])))
                 axs[i].plot(f, v, label = name)
             else:
-                axs[i].plot(x_values, logfile.data[name], label = name)
+                axs[i].plot(logfile.data[name][0], logfile.data[name][1], label = name)
     # Add legend to upper left corner.
     for ax in axs:
         ax.legend(bbox_to_anchor=(1.0, 1.0), loc = 1)

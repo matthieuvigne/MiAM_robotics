@@ -15,5 +15,5 @@ setup(
              "scripts/miam_merge",
              "scripts/miam_analyse_tracking",],
     data_files=[('images', ['images/table.png'])],
-    install_requires=["numpy", "matplotlib", "scipy", "tk"],
+    install_requires=["numpy", "matplotlib", "scipy", "tk", "h5py"],
     zip_safe=False)

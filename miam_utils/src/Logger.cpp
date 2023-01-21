@@ -4,50 +4,79 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <thread>
 
-Logger::Logger(std::string const& filename,
-               std::string const& logName,
-               std::string const& description,
-               std::string const& headerList)
-{
-    // Create CSV file.
-    logFile.open(filename);
-    if (!logFile.is_open())
-    {
-        #ifdef DEBUG
-            std::cout << "Logger error when creating log file: " << filename << std::endl;
-        #endif
-        return;
-    }
-    // Write header.
-    logFile << "Robot Log: " << logName << "," << description << std::endl;
-    logFile << headerList << std::endl;
-
-    // Determine number of elements from number of commas in header list.
-    int nElement = std::count(headerList.begin(), headerList.end(), ',') + 1;
-    currentData_ = std::vector<double>(nElement, 0.0);
-}
 
 Logger::Logger():
-    currentData_(std::vector<double>(0, 0.0))
+    teleplot_(Teleplot::localhost()),
+    datasets_(),
+    names_(),
+    queuedDatapoints_(),
+    mutex_()
 {
 }
 
-void Logger::setData(unsigned int const& position, double const& data)
+void Logger::start(std::string const& filename)
 {
-    if (position < currentData_.size())
-        currentData_[position] = data;
+    std::thread th = std::thread(&Logger::loggerThread, this, filename);
+    th.detach();
 }
 
-void Logger::writeLine()
+void Logger::loggerThread(std::string const& filename)
 {
-    // If file is not open, do nothing.
-    if (!logFile.is_open())
-        return;
+    H5::H5File file(filename, H5F_ACC_TRUNC);
 
-    // Print data line.
-    for(unsigned int i = 0; i < currentData_.size() - 1; i++)
-        logFile << currentData_[i] << ",";
-    // Last element: don't add trailing comma.
-    logFile << currentData_.back() << std::endl;
+    while (true)
+    {
+        std::vector<Datapoint> newDataPoints;
+
+        mutex_.lock();
+        newDataPoints = queuedDatapoints_;
+        queuedDatapoints_.clear();
+        int nNames = names_.size();
+        mutex_.unlock();
+        // Create new datasets as needed
+        for (unsigned int i = datasets_.size(); i < nNames; i++)
+            datasets_.push_back(DatasetHandler(file, names_.at(i)));
+        // Process data points
+        bool hasFlush = false;
+        for (auto p : newDataPoints)
+        {
+            hasFlush |= datasets_.at(p.datasetId).addPoint(p.timestamp, p.value);
+            teleplot_.update(names_[p.datasetId], p.value);
+        }
+        // Flush everything if at least one buffer was full
+        if (hasFlush)
+        {
+            for (auto d : datasets_)
+                d.flush();
+        }
+        usleep(1000);
+    }
 }
+
+
+
+void Logger::log(std::string const& name, double const& time, double const& value)
+{
+    // Lookup name - if it doesn't exist, add a new entry.
+    int id = 0;
+    auto itr = std::find(names_.begin(), names_.end(), name);
+
+    mutex_.lock();
+    if (itr == names_.end())
+    {
+        id = names_.size();
+        names_.push_back(name);
+    }
+    else
+        id = itr - names_.begin();
+    queuedDatapoints_.push_back(Datapoint{id, time, value});
+    mutex_.unlock();
+}
+
+void Logger::flush()
+{
+
+}
+

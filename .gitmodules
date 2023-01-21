@@ -1,3 +1,9 @@
 [submodule "rplidar_sdk"]
 	path = rplidar_sdk
 	url = git@github.com:matthieuvigne/rplidar_sdk.git
+[submodule "teleplot"]
+	path = teleplot
+	url = https://github.com/nesnes/teleplot.git
+[submodule "miam_utils/HighFive"]
+	path = miam_utils/HighFive
+	url = https://github.com/BlueBrain/HighFive.git

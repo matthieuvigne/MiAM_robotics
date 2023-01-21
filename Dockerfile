@@ -62,4 +62,13 @@ RUN cd &&\
 RUN mkdir -p /root/.ssh && echo "cp /root/ssh_source/* /root/.ssh/" >> /root/.bashrc &&\
     echo "export PROMPT_COMMAND='history -a' && export HISTFILE=/root/commandhistory/.bash_history" >> /root/.bashrc
 
+# Install other dependencies: HDF5
+RUN apt update &&\
+    apt install -y libhdf5-dev:armhf &&\
+    apt install -y libhdf5-dev &&\
+    # Both devel version are in conflict, so we manualy copy the files requires for compilation after the normal install had overwritten the crossed-compiled one.
+    cd /tmp/ && apt download libhdf5-dev:armhf &&\
+    dpkg -x libhdf5-dev_1.10.4+repack-11ubuntu1_armhf.deb /tmp/ &&\
+    cp -r /tmp/usr/lib/arm-linux-gnueabihf/* /usr/lib/arm-linux-gnueabihf/ &&\
+    apt-get clean -y
 WORKDIR /miam_workspace

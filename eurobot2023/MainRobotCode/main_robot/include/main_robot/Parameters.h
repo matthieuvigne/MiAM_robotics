@@ -13,6 +13,7 @@
             inline RobotParameters generateParams()
             {
                 RobotParameters param;
+                param.name = "MainRobot";
 
                 param.wheelRadius = 49.1; ///< Wheel radius, in mm - identified during open loop experiments.
                 param.wheelSpacing = 100.5; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.

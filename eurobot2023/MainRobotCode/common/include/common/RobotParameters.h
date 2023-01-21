@@ -11,6 +11,7 @@
 
         // Parameters defining a robot
         struct RobotParameters {
+            std::string name;
             double wheelRadius; ///< Wheel radius, in mm
             double wheelSpacing; ///< Wheel spacing from robot center, in mm
             double encoderWheelRadius;  ///< Radius of encoder wheels, in mm.

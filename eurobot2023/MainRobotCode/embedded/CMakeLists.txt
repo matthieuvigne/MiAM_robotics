@@ -23,16 +23,20 @@ endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 find_package(PkgConfig REQUIRED)
 pkg_search_module(RPLIDAR REQUIRED rplidar_arm)
 message(STATUS "Found rplidar_arm v." ${RPLIDAR_VERSION})
+unset(MIAM_UTILS_FOUND CACHE)
 pkg_search_module(MIAM_UTILS REQUIRED miam_utils_arm >= 2.7.0)
 message(STATUS "Found miam_utils_arm v." ${MIAM_UTILS_VERSION})
+
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 
 # Find GTK+ headers/library files - cross-compiled
 set(ENV{PKG_CONFIG_PATH} "/usr/lib/arm-linux-gnueabihf/pkgconfig")
 pkg_search_module(GTK REQUIRED gtkmm-3.0)
+pkg_search_module(HDF5LIB REQUIRED hdf5)
 
 find_package(Eigen3 REQUIRED)
-include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_INCLUDE_DIRS} ${GTK_INCLUDE_DIRS})
-link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS} ${GTK_LIBRARY_DIRS})
+include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_INCLUDE_DIRS} ${GTK_INCLUDE_DIRS} ${HDF5LIB_INCLUDE_DIRS})
+link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS} ${GTK_LIBRARY_DIRS} ${HDF5LIB_LIBRARY_DIRS})
 
 # Include source files from src directory.
 file(GLOB_RECURSE COMMON_SOURCES "../common/src/*.cpp"
@@ -66,10 +70,10 @@ message(${RPLIDAR_INCLUDE_DIRS})
 
 # Set executable target and link libraries.
 add_executable(mainRobotCode ${MAIN_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(mainRobotCode ${MIAM_UTILS_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES})
+target_link_libraries(mainRobotCode ${MIAM_UTILS_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")
 
 
 add_executable(secondaryRobotCode ${SECONDARY_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(secondaryRobotCode ${MIAM_UTILS_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES})
+target_link_libraries(secondaryRobotCode ${MIAM_UTILS_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")

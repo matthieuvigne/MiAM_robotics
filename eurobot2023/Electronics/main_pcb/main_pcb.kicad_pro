@@ -33,7 +33,7 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.762,
+          "drill": 1.016,
           "height": 1.524,
           "width": 1.524
         },
@@ -368,7 +368,7 @@
       "netlist": "",
       "specctra_dsn": "",
       "step": "main_pcb.step",
-      "vrml": ""
+      "vrml": "main_pcb.wrl"
     },
     "page_layout_descr_file": ""
   },

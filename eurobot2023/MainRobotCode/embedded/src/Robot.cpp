@@ -33,7 +33,13 @@ Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, bool
     PIDRail_ = miam::PID(controller::railKp, controller::railKd, controller::railKi, 0.1);
 
     motionController_.init(RobotPosition());
-
+    int i = 0;
+    while (true)
+    {
+        motionController_.logger_.log("mine", i, 10 + i);
+        i++;
+        usleep(10000);
+    }
     // Set initial rail target
     targetRailPosition_ = -1;
 }

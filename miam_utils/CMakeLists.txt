@@ -45,6 +45,9 @@ set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX )
 include_directories(include)
 file(GLOB_RECURSE ${PROJECT_NAME}_HEADERS "include/*.h")
 
+# Teleplot
+include_directories(../teleplot/clients/cpp)
+
 # Setup static library
 add_library(${LIBRARY_NAME} STATIC ${${PROJECT_NAME}_SOURCES})
 
@@ -54,16 +57,18 @@ unset(RPLIDARLIB_FOUND CACHE)
 # Link to rplidar library (take the correct version depending on wheather we are cross-compiling or not).
 if(CROSS_COMPILE)
     pkg_search_module(RPLIDARLIB REQUIRED rplidar_arm)
+    set(ENV{PKG_CONFIG_PATH} "/usr/lib/arm-linux-gnueabihf/pkgconfig")
 else()
     pkg_search_module(RPLIDARLIB REQUIRED rplidar)
 endif()
+pkg_search_module(HDF5LIB REQUIRED hdf5)
 message(STATUS "Found rplidar v." ${RPLIDARLIB_VERSION})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-include_directories(${RPLIDARLIB_INCLUDE_DIRS})
-link_directories(${RPLIDARLIB_LIBRARY_DIRS})
+include_directories(${RPLIDARLIB_INCLUDE_DIRS} ${HDF5LIB_INCLUDE_DIRS})
+link_directories(${RPLIDARLIB_LIBRARY_DIRS} ${HDF5LIB_LIBRARY_DIRS})
 
-target_link_libraries(${LIBRARY_NAME} ${RPLIDARLIB_LIBRARIES})
+target_link_libraries(${LIBRARY_NAME} ${RPLIDARLIB_LIBRARIES} ${HDF5LIB_LIBRARIES})
 
 # Create package config file from template.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/miam_utilsTemplate.pc" "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}.pc")
@@ -71,4 +76,5 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/miam_utilsTemplate.pc" "${CMAKE_CURR
 # Set install rules: copy library and headers.
 install(TARGETS ${LIBRARY_NAME} DESTINATION "lib")
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION "include")
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../teleplot/clients/cpp/" DESTINATION "include")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}.pc" DESTINATION "lib/pkgconfig/")
