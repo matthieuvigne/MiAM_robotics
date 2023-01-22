@@ -53,14 +53,22 @@ int main() {
     std::vector<RobotPosition> positions;
 
     miam::trajectory::TrajectoryConfig c;
-    c.maxWheelVelocity = 500;
-    c.maxWheelAcceleration = 600;
+    c.maxWheelVelocity = 450; // 50 less than the solver constraint
+    c.maxWheelAcceleration = 550; // 50 less than the solver constraint
     c.robotWheelSpacing = 100.5;
 
+    positions.clear();
     targetPosition = RobotPosition(0, 0, 0);
-    endPosition = RobotPosition(1000, 0, 0);
+    positions.push_back(targetPosition);
+    targetPosition = RobotPosition(500, 0, 0);
+    positions.push_back(targetPosition);
+    endPosition = RobotPosition(1000, 1000, 0);
 
-    traj = trajectory::computeTrajectoryStraightLineToPoint(c, targetPosition, endPosition);
+    positions.push_back(endPosition);
+
+    traj = trajectory::computeTrajectoryRoundedCorner(c,  positions, 1000.0, 0.3);
+
+    std::cout << "Number of subtrajectories : " << traj.size() << std::endl;
 
     std::cout << "EndPoint : " << traj.getEndPoint().position << std::endl;
 
@@ -68,7 +76,7 @@ int main() {
     std::ofstream myfile;
     myfile.open ("ref.txt");
 
-    trajectory::StraightLine* current_traj = static_cast<trajectory::StraightLine*>(traj.back().get());
+    trajectory::ArcCircle* current_traj = static_cast<trajectory::ArcCircle*>(traj.at(2).get());
     std::cout << "Duration : " << current_traj->getDuration() << std::endl;
 
     /* Initialize the solver. */
@@ -111,9 +119,9 @@ int main() {
         std::cout << "pert: " << "t=" << t << " --- " << 
             acadoVariables.x[ j * NX ] * 1000 << "\t" << 
             acadoVariables.x[ j * NX + 1] * 1000 << "\t" << 
-            acadoVariables.x[ j * NX + 2] << "\t" << 
+            acadoVariables.x[ j * NX + 2] * 1000 << "\t" << 
             acadoVariables.x[ j * NX + 3] * 1000 << "\t" << 
-            acadoVariables.x[ j * NX + 4] << std::endl;
+            acadoVariables.x[ j * NX + 4] * 1000 << std::endl;
 
 
 
