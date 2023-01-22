@@ -10,6 +10,7 @@
 #include "generated_code/acado_common.h"
 #include "generated_code/acado_auxiliary_functions.h"
 
+#include "mpc_parameterization.hpp"
 
 /* Some convenient definitions. */
 #define NX          ACADO_NX  /* Number of differential state variables.  */
@@ -28,20 +29,12 @@
 /*
  * Parameters with which the custom solver was compiled
  */
-#define DELTA_T    0.01
+#define DELTA_T    MPC_DELTA_T
 #define HORIZON_T   DELTA_T * N
-
 
 /* Global variables used by the solver. */
 ACADOvariables acadoVariables;
 ACADOworkspace acadoWorkspace;
-
-// double mu_traj = 100;
-// double mu_theta = 0.5;
-// double mu_vlin = 0.01;
-// double mu_vang = 0.01;
-
-// double ponderation_final_state = 10;
 
 using namespace miam;
 using namespace std;
@@ -52,10 +45,7 @@ int main() {
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
 
-    miam::trajectory::TrajectoryConfig c;
-    c.maxWheelVelocity = 450; // 50 less than the solver constraint
-    c.maxWheelAcceleration = 550; // 50 less than the solver constraint
-    c.robotWheelSpacing = 100.5;
+    miam::trajectory::TrajectoryConfig c = getMPCTrajectoryConfig();
 
     positions.clear();
     targetPosition = RobotPosition(0, 0, 0);

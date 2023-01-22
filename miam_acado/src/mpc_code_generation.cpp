@@ -10,29 +10,21 @@
 #include <acado_toolkit.hpp>
 #include <acado_gnuplot.hpp>
 
-double mu_traj = 100;
-double mu_theta = 0.5;
-double mu_vlin = 0.01;
-double mu_vang = 0.01;
-
-double ponderation_final_state = 10;
+#include "mpc_parameterization.hpp"
 
 using namespace miam;
 
 int main() {
-    miam::trajectory::TrajectoryConfig c;
-    c.maxWheelVelocity = 500;
-    c.maxWheelAcceleration = 600;
-    c.robotWheelSpacing = 100.5;
+    miam::trajectory::TrajectoryConfig c = getMPCTrajectoryConfig();
 
     USING_NAMESPACE_ACADO
     
     // Number of time intervals
-    int N = 100;
+    int N = MPC_N_TIME_INTERVALS;
     
     // Duration of the timestep
     // 10 ms
-    double dt = 0.01;
+    double dt = MPC_DELTA_T;
     
     // Final time
     double T = N * dt;
@@ -52,18 +44,18 @@ int main() {
     hN << x << y << theta << v << w;
 
     DMatrix W ( h.getDim(), h.getDim() );
-    W(0, 0) = mu_traj;
-    W(1, 1) = mu_traj;
-    W(2, 2) = mu_theta;
-    W(3, 3) = mu_vlin;
-    W(4, 4) = mu_vang;
+    W(0, 0) = MPC_MU_TRAJ;
+    W(1, 1) = MPC_MU_TRAJ;
+    W(2, 2) = MPC_MU_THETA;
+    W(3, 3) = MPC_MU_VLIN;
+    W(4, 4) = MPC_MU_VANG;
     
     DMatrix WN ( hN.getDim(), hN.getDim() );
-    WN(0, 0) = ponderation_final_state * mu_traj;
-    WN(1, 1) = ponderation_final_state * mu_traj;
-    WN(2, 2) = ponderation_final_state * mu_theta;
-    WN(3, 3) = ponderation_final_state * mu_vlin;
-    WN(4, 4) = ponderation_final_state * mu_vang;
+    WN(0, 0) = MPC_PONDERATION_FINAL_STATE * MPC_MU_TRAJ;
+    WN(1, 1) = MPC_PONDERATION_FINAL_STATE * MPC_MU_TRAJ;
+    WN(2, 2) = MPC_PONDERATION_FINAL_STATE * MPC_MU_THETA;
+    WN(3, 3) = MPC_PONDERATION_FINAL_STATE * MPC_MU_VLIN;
+    WN(4, 4) = MPC_PONDERATION_FINAL_STATE * MPC_MU_VANG;
 
     //
     // Optimal Control Problem
@@ -87,8 +79,10 @@ int main() {
 
     mpc.set( HESSIAN_APPROXIMATION,       GAUSS_NEWTON    );
     mpc.set( DISCRETIZATION_TYPE,         MULTIPLE_SHOOTING );
-    mpc.set( INTEGRATOR_TYPE,             INT_RK4         );
+    // mpc.set( INTEGRATOR_TYPE,             INT_RK4         );
+    mpc.set( INTEGRATOR_TYPE,             INT_IRK_GL4         );
     mpc.set( NUM_INTEGRATOR_STEPS,        N              );
+    mpc.set( IMPLICIT_INTEGRATOR_NUM_ITS,        2              );
 
     mpc.set( QP_SOLVER,                   QP_QPOASES      );
     mpc.set( GENERATE_TEST_FILE,          NO             );

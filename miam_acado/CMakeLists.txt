@@ -54,6 +54,7 @@ include_directories(
 	src/qpoases/INCLUDE
 	src/qpoases/SRC
 	src/generated_code
+	include/
 )
 link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS})
 
