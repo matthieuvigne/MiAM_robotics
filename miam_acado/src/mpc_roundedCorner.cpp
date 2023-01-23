@@ -11,6 +11,7 @@
 #include "generated_code/acado_auxiliary_functions.h"
 
 #include "mpc_parameterization.hpp"
+#include "gnuplot-iostream.h"
 
 /* Some convenient definitions. */
 #define NX          ACADO_NX  /* Number of differential state variables.  */
@@ -66,6 +67,29 @@ int main() {
     std::ofstream myfile;
     myfile.open ("ref.txt");
 
+    // variables for plots
+    std::vector<double> pts_true_theta;
+    std::vector<double> pts_true_v;
+    std::vector<double> pts_true_w;
+
+    std::vector<double> pts_res_theta;
+    std::vector<double> pts_res_v;
+    std::vector<double> pts_res_w;
+
+    std::vector<std::pair<double, double> > xy_pts_init;
+    std::vector<std::pair<double, double> > xy_pts_true;
+    std::vector<std::pair<double, double> > xy_pts_res;
+
+    std::vector<std::pair<double, double> > v_pts_init;
+    std::vector<std::pair<double, double> > v_pts_true;
+    std::vector<std::pair<double, double> > v_pts_res;
+
+    std::vector<std::pair<double, double> > w_pts_init;
+    std::vector<std::pair<double, double> > w_pts_true;
+    std::vector<std::pair<double, double> > w_pts_res;
+
+
+
     trajectory::ArcCircle* current_traj = static_cast<trajectory::ArcCircle*>(traj.at(2).get());
     std::cout << "Duration : " << current_traj->getDuration() << std::endl;
 
@@ -84,6 +108,7 @@ int main() {
 
     // perturbation
     float perturbation_scale = 100.0 / 1000.0;
+    float perturbation_scale_angle = 0.2;
 
     for (int j = 0; j < N+1; j++) {
 
@@ -96,15 +121,23 @@ int main() {
         tp = current_traj->getCurrentPoint(t);
         myfile << tp.position.x << "\t" << tp.position.y << "\t" << tp.position.theta << "\t" << tp.linearVelocity << "\t" << tp.angularVelocity << std::endl;
         std::cout << "true: " << "t=" << t << " --- " << tp.position.x << "\t" << tp.position.y << "\t" << tp.position.theta << "\t" << tp.linearVelocity << "\t" << tp.angularVelocity << std::endl;
+                    
+        pts_true_theta.push_back(tp.position.theta);
+        pts_true_v.push_back(tp.linearVelocity);
+        pts_true_w.push_back(tp.angularVelocity);
+
+        xy_pts_true.push_back(std::make_pair(tp.position.x, tp.position.y));
+        v_pts_true.push_back(std::make_pair(t, tp.linearVelocity));
+        w_pts_true.push_back(std::make_pair(t, tp.angularVelocity));
 
         /* Initialize the states. */        
-        acadoVariables.x[ j * NX ] = tp.position.x / 1000.0 + perturbation_scale * (float) rand()/RAND_MAX;
-        acadoVariables.x[ j * NX + 1] = tp.position.y / 1000.0  + perturbation_scale * (float) rand()/RAND_MAX;
-        acadoVariables.x[ j * NX + 2] = tp.position.theta;
+        acadoVariables.x[ j * NX ] = tp.position.x / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
+        acadoVariables.x[ j * NX + 1] = tp.position.y / 1000.0  + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
+        acadoVariables.x[ j * NX + 2] = tp.position.theta + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
     
         /* Initialize the controls. */
-        acadoVariables.x[ j * NX + 3] = tp.linearVelocity / 1000.0 + perturbation_scale * (float) rand()/RAND_MAX;
-        acadoVariables.x[ j * NX + 4] = tp.angularVelocity;
+        acadoVariables.x[ j * NX + 3] = tp.linearVelocity / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
+        acadoVariables.x[ j * NX + 4] = tp.angularVelocity + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
 
         std::cout << "pert: " << "t=" << t << " --- " << 
             acadoVariables.x[ j * NX ] * 1000 << "\t" << 
@@ -114,6 +147,9 @@ int main() {
             acadoVariables.x[ j * NX + 4] * 1000 << std::endl;
 
 
+        xy_pts_init.push_back(std::make_pair(acadoVariables.x[ j * NX ] * 1000, acadoVariables.x[ j * NX + 1] * 1000));
+        v_pts_init.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 3] * 1000));
+        w_pts_init.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 4]));
 
         acadoVariables.y[ j * NY ] = tp.position.x / 1000.0;
         acadoVariables.y[ j * NY + 1] = tp.position.y / 1000.0;
@@ -154,7 +190,10 @@ int main() {
 
     if (VERBOSE )
     {
-        // acado_printDifferentialVariables();
+
+        Gnuplot gp;
+
+        // acado_printDifferentialVarNUiables();
         // acado_printControlVariables();
 
         for (int j = 0; j < N+1; j++) {
@@ -166,7 +205,12 @@ int main() {
             }
 
             tp = current_traj->getCurrentPoint(t);
-            std::cout << "true: " << "t=" << t << " --- " << tp.position.x << "\t" << tp.position.y << "\t" << tp.position.theta << "\t" << tp.linearVelocity << "\t" << tp.angularVelocity << std::endl;
+            std::cout << "true: " << "t=" << t << " --- " << 
+                tp.position.x << "\t" << 
+                tp.position.y << "\t" << 
+                tp.position.theta << "\t" << 
+                tp.linearVelocity << "\t" << 
+                tp.angularVelocity << std::endl;
 
             std::cout << "resu: " << "t=" << t << " --- " << 
                 acadoVariables.x[ j * NX ] * 1000 << "\t" << 
@@ -174,8 +218,41 @@ int main() {
                 acadoVariables.x[ j * NX + 2] << "\t" << 
                 acadoVariables.x[ j * NX + 3] * 1000 << "\t" << 
                 acadoVariables.x[ j * NX + 4] << std::endl;
+
+            pts_res_theta.push_back(acadoVariables.x[ j * NX + 2]);
+            pts_res_v.push_back(acadoVariables.x[ j * NX + 3] * 1000);
+            pts_res_w.push_back(acadoVariables.x[ j * NX + 4]);
+
+            xy_pts_res.push_back(std::make_pair(acadoVariables.x[ j * NX ] * 1000, acadoVariables.x[ j * NX + 1] * 1000));
+            v_pts_res.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 3] * 1000));
+            w_pts_res.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 4]));
+	        
         }
+        
+        gp << "set term wxt 0\n";
+        gp << "set xrange [0:1000]\nset yrange [0:1000]\n";
+        gp << "plot" << gp.file1d(xy_pts_true) << "with lines title 'true',"
+            << gp.file1d(xy_pts_res) << "with lines title 'res',"
+            << gp.file1d(xy_pts_init) << "with lines title 'init'" << std::endl;
+        
+        gp << "set term wxt 1\n";
+        gp << "set xrange [0:10]\nset yrange [0:1000]\n";
+        gp << "plot" << gp.file1d(v_pts_true) << "with lines title 'true',"
+            << gp.file1d(v_pts_res) << "with lines title 'res'," 
+            << gp.file1d(v_pts_init) << "with lines title 'init'" << std::endl;
+
+        gp << "set term wxt 2\n";
+        gp << "set xrange [0:10]\nset yrange [-1:1]\n";
+        gp << "plot" << gp.file1d(w_pts_true) << "with lines title 'true',"
+            << gp.file1d(w_pts_res) << "with lines title 'res'," 
+            << gp.file1d(w_pts_init) << "with lines title 'init'" << std::endl;
+
+
         acado_printControlVariables();
     }
+
+    
+
+
 
 }

@@ -13,7 +13,7 @@ PROJECT( CODE_GENERATION_MPC CXX C)
 SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR} )
 message(${CMAKE_MODULE_PATH})
 # Ignore ignored-attributes (ACADO warnings) & deprecated-declarations (Eigen warnings)
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-attributes -Wno-deprecated-declarations")
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wno-ignored-attributes -Wno-deprecated-declarations")
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-psabi -fdiagnostics-color")
 
 # #
@@ -27,6 +27,7 @@ set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-psabi -fdiagnostics-color")
 
 find_package(PkgConfig REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(Boost COMPONENTS system iostreams filesystem REQUIRED) # sudo apt-get install libboost-all-dev
 
 
 #
@@ -50,13 +51,18 @@ include_directories(
 	${RPLIDAR_INCLUDE_DIRS} 
 	${MIAM_UTILS_INCLUDE_DIRS} 
 	${ACADO_INCLUDE_DIRS}
+	${Boost_INCLUDE_DIR}
 	src/qpoases
 	src/qpoases/INCLUDE
 	src/qpoases/SRC
 	src/generated_code
 	include/
 )
-link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS})
+link_directories(
+	${RPLIDAR_LIBRARY_DIRS} 
+	${MIAM_UTILS_LIBRARY_DIRS} 
+	${Boost_LIBRARY_DIRS}
+)
 
 # Copy config.
 # file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
@@ -87,10 +93,11 @@ FOREACH( TEST_SOURCE_FILE ${TEST_SOURCES} )
 	GET_FILENAME_COMPONENT( TEST_NAME ${TEST_SOURCE_FILE} NAME_WE )
 	ADD_EXECUTABLE( ${TEST_NAME} ${TEST_SOURCE_FILE} )
 	TARGET_LINK_LIBRARIES( 
-		${TEST_NAME} 
+		${TEST_NAME}
 		${ACADO_SHARED_LIBRARIES} 
 		${RPLIDAR_LIBRARIES} 
 		${MIAM_UTILS_LIBRARIES} 
+		${Boost_LIBRARIES}
 		CustomSolver 
 		QPoases 
 	)
