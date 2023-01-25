@@ -80,7 +80,7 @@ class RMDX{
             int16_t motorStatus = 0; ///< Motor status
         };
 
-        RMDX(MCP2515 *canDriver, double const& timeout = 0.100);
+        RMDX(MCP2515 *canDriver, double const& timeout = 0.020);
 
         /// \brief Reset a given motor
         /// \param[in] motorId Motor id
@@ -91,43 +91,30 @@ class RMDX{
         /// @param motorId Motor id
         /// @param motorTimeout Motor timeout before autostop, in s.
         /// @return True if motor answered back.
-        bool init(unsigned char const& motorId, double const& motorTimeout = 0.300);
-
+        bool init(unsigned char const& motorId, double const& motorTimeout = 0.050);
 
         void enable(unsigned char const& motorId);
         void disable(unsigned char const& motorId);
         void stop(unsigned char const& motorId);
 
-
-        /// \brief Get the motor maximum acceleration (when in velocity / position mode).
-        /// \param[in] motorId Motor id
-        /// \param[in] reductionRatio Motor reduction ratio
-        /// \return Acceleration command, in rad/s2 ; -1 on failure.
-        double getMaxAcceleration(unsigned char const& motorId, double const& reductionRatio = 6);
-
-        /// \brief Get the motor acceleration command
-        /// \param[in] motorId Motor id
-        /// \param[in] targetSpeed Target acceleration, joint side, in rad/s2
-        /// \param[in] reductionRatio Motor reduction ratio
-        /// \return True on success
-        bool setMaxAcceleration(unsigned char const& motorId, double const& desiredAcceleration, double const& reductionRatio = 6);
-
         /// \brief Set target speed, joint side.
         /// \param[in] motorId Motor id
         /// \param[in] targetSpeed Target speed, joint side, in rad/
         /// \param[in] reductionRatio Motor reduction ratio
+        /// \note On RMDXV2, speed control behavior is determined by PD gains, but also
+        ///       by hidden acceleration limit parameter, only accessible through the debugging
+        ///       software (not CAN).
         /// \return Current speed, in rad/s. 0 on failure.
         double setSpeed(unsigned char const& motorId, double const& targetSpeed, double const& reductionRatio = 6);
 
         /// \brief Set target speed, joint side.
         /// \param[in] motorId Motor id
         /// \param[in] targetCurrent Target current, in A
-        /// \return True on success
-        bool setCurrent(unsigned char const& motorId, double const& targetCurrent);
+        /// \return Actual current
+        double setCurrent(unsigned char const& motorId, double const& targetCurrent);
 
         /// \brief Get the current joint position, in rad.
         /// \param[in] motorId Motor id
-        /// \param[in] encoderResolution Encoder resolution: number of ticks per turn.
         /// \param[in] reductionRatio Reduction ratio
         /// \return Joint angular position, in rad.
         double getCurrentPosition(unsigned char const& motorId, double const& reductionRatio = 6);
@@ -136,14 +123,14 @@ class RMDX{
         /// \param[in] motorId Motor id
         /// \return Motor status (voltage, temperature, error code)
         RMDX::Status getStatus(unsigned char const& motorId);
-        int getMode(unsigned char const& motorId);
+
+    private:
 
         /// \brief Set communication timeout (0 to disable)
         /// \param[in] motorId Motor id
         /// \param[in] timeoutMS Timeout, in ms.
         /// \return True on success
         bool setCommunicationTimeout(unsigned char const& motorId, int32_t const& timeoutMS);
-    private:
 
         /// \brief Send and recieve a data frame from the motor.
         ///

@@ -24,7 +24,12 @@ CANMessage createMessage(unsigned char const& motorId, unsigned char const& comm
 
 int32_t messageToInt32(CANMessage const& message)
 {
-    return message.data[4] + (message.data[5] >> 8) +  (message.data[6] >> 16) +  (message.data[7] >> 24);
+    return message.data[4] + (message.data[5] << 8) +  (message.data[6] << 16) +  (message.data[7] << 24);
+}
+
+uint32_t messageToUInt32(CANMessage const& message)
+{
+    return message.data[4] + (message.data[5] << 8) +  (message.data[6] << 16) +  (message.data[7] << 24);
 }
 
 RMDX::RMDX(MCP2515 *canDriver, double const& timeout):
@@ -43,6 +48,7 @@ bool RMDX::init(unsigned char const& motorId, double const& motorTimeout)
     // Configure motor
     enable(motorId);
     setCommunicationTimeout(motorId, static_cast<int32_t>(1000 * motorTimeout));
+
     return true;
 }
 
@@ -72,22 +78,6 @@ void RMDX::disable(unsigned char const& motorId)
 }
 
 
-double RMDX::getMaxAcceleration(unsigned char const& motorId, double const& reductionRatio)
-{
-    CANMessage message = createMessage(motorId, MyActuator::commands::READ_ACCEL);
-    if (canReadWrite(message) > 0)
-        return messageToInt32(message) / RAD_TO_DEG / reductionRatio;
-
-    return -1;
-}
-
-bool RMDX::setMaxAcceleration(unsigned char const& motorId, double const& targetAcceleration, double const& reductionRatio)
-{
-    int32_t accelCount = static_cast<int32_t>(targetAcceleration * RAD_TO_DEG * reductionRatio);
-    CANMessage message = createMessage(motorId, MyActuator::commands::WRITE_ACCEL, accelCount);
-    return canReadWrite(message, false) >= 0;
-}
-
 double RMDX::setSpeed(unsigned char const& motorId, double const& targetSpeed, double const& reductionRatio)
 {
     int32_t speedCount = static_cast<int32_t>(targetSpeed * RAD_TO_DEG * reductionRatio * 100);
@@ -95,17 +85,24 @@ double RMDX::setSpeed(unsigned char const& motorId, double const& targetSpeed, d
     int result = canReadWrite(message);
     if (result <= 0)
         return 0;
-    return static_cast<double>(message.data[4] + (message.data[5] << 8)) / RAD_TO_DEG / reductionRatio;
+    int16_t data = message.data[4] + (message.data[5] << 8);
+    return static_cast<double>(data) / RAD_TO_DEG / reductionRatio;
 }
 
-bool RMDX::setCurrent(unsigned char const& motorId, double const& targetCurrent)
+double RMDX::setCurrent(unsigned char const& motorId, double const& targetCurrent)
 {
-    int32_t currentCount = static_cast<int32_t>(targetCurrent * 2000 / 32);
-    CANMessage message = createMessage(motorId, MyActuator::commands::TORQUE_COMMAND, currentCount);
-    int result = canReadWrite(message, false);
+
+    int16_t currentCount = static_cast<int16_t>(targetCurrent * 2000 / 32);
+
+    CANMessage message = createMessage(motorId, MyActuator::commands::TORQUE_COMMAND);
+    message.data[4] = currentCount & 0xFF;
+    message.data[5] = (currentCount >> 8) & 0xFF;
+
+    int result = canReadWrite(message);
     if (result <= 0)
-        return false;
-    return true;
+        return 0;
+    int16_t data = message.data[2] + (message.data[3] << 8);
+    return static_cast<double>(data) * 33.0 / 2048.0;
 }
 
 
@@ -114,11 +111,7 @@ double RMDX::getCurrentPosition(unsigned char const& motorId, double const& redu
     CANMessage message = createMessage(motorId, MyActuator::commands::READ_MULTITURN_ANGLE);
     if (canReadWrite(message) > 0)
     {
-        double result = 0;
-        for (int i = 0; i < 6; i++)
-            result += message.data[1 + i] << (8 * i);
-        if (message.data[7] != 0)
-            result = -result;
+        double result = messageToInt32(message);
         return result / RAD_TO_DEG / 100.0 / reductionRatio;
     }
     return 0;
@@ -137,14 +130,6 @@ RMDX::Status RMDX::getStatus(unsigned char const& motorId)
         status.motorStatus = message.data[6] + (message.data[7] << 8);
     }
     return status;
-}
-
-int RMDX::getMode(unsigned char const& motorId)
-{
-    CANMessage message = createMessage(motorId, 0x70);
-    if (canReadWrite(message) > 0)
-        return message.data[7];
-    return 0;
 }
 
 bool RMDX::setCommunicationTimeout(unsigned char const& motorId, int32_t const& timeoutMS)

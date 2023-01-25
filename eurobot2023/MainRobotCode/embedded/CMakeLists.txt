@@ -32,7 +32,7 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 # Find GTK+ headers/library files - cross-compiled
 set(ENV{PKG_CONFIG_PATH} "/usr/lib/arm-linux-gnueabihf/pkgconfig")
 pkg_search_module(GTK REQUIRED gtkmm-3.0)
-pkg_search_module(HDF5LIB REQUIRED hdf5)
+pkg_search_module(HDF5LIB REQUIRED hdf5-serial)
 
 find_package(Eigen3 REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_INCLUDE_DIRS} ${GTK_INCLUDE_DIRS} ${HDF5LIB_INCLUDE_DIRS})

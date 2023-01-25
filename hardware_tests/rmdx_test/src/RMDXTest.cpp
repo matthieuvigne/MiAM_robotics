@@ -3,6 +3,9 @@
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
 #include <miam_utils/drivers/MCP2515Driver.h>
 #include <miam_utils/drivers/RMDX.h>
+#include <miam_utils/Logger.h>
+#include <miam_utils/Metronome.h>
+#include <miam_utils/PID.h>
 #include <cstdlib>
 #include <iostream>
 #include <unistd.h>
@@ -22,10 +25,9 @@ double time()
 
 int main (int argc, char *argv[])
 {
-    setStart();
     RPi_enablePorts();
 
-    SPIWrapper spi(RPI_SPI_00, 500000);
+    SPIWrapper spi(RPI_SPI_00, 300000);
     MCP2515 mcp(&spi);
     if (!mcp.init())
     {
@@ -34,7 +36,6 @@ int main (int argc, char *argv[])
     }
 
     RMDX motor(&mcp);
-
     int const motorRightId = 1;
     int const motorLeftId = 2;
 
@@ -49,28 +50,56 @@ int main (int argc, char *argv[])
         return -1;
     }
 
+    Logger log;
+    log.start("test.hdf5");
+
+    setStart();
+
     while (time() < 6)
     {
         motor.setCurrent(motorRightId, 0);
         motor.setCurrent(motorLeftId, 0);
     }
 
-    while (time() < 6.8)
-    {
-        motor.setCurrent(motorRightId, -3);
-        motor.setCurrent(motorLeftId, 3);
-    }
+    int i = 0;
+    double rightTarget, leftTarget;
 
-    while (time() < 20.0)
+    Metronome m(2000000);
+
+    double oldt;
+    oldt = m.getElapsedTime();;
+
+    while (true)
     {
-        motor.setCurrent(motorRightId, 0);
-        motor.setCurrent(motorLeftId, 0);
+        while (time() / 2 > i)
+            i++;
+        if (i % 2)
+        {
+            rightTarget = 2.0;
+            leftTarget = -2.0;
+        }
+        else
+        {
+            rightTarget = -2.0;
+            leftTarget = 3.0;
+        }
+        leftTarget = -rightTarget;
+
+        m.wait();
+        double t = m.getElapsedTime();
+        double dt = t - oldt;
+        oldt = t;
+
+        double rightSpeed = motor.setSpeed(motorRightId, rightTarget);
+        double leftSpeed = motor.setSpeed(motorLeftId, leftTarget);
+
+        log.log("rightTargetSpeed", time(), rightTarget);
+        log.log("rightSpeed", time(), rightSpeed);
+        log.log("leftTargetSpeed", time(), leftTarget);
+        log.log("leftSpeed", time(), leftSpeed);
+
+        log.log("dt", time(), dt);
     }
-    // while (time() < 15)
-    // {
-    //     motor.setSpeed(motorRightId, 2);
-    //     motor.setSpeed(motorLeftId, -2);
-    // }
 
     // Time it.
     // while (true)
