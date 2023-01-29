@@ -12,7 +12,7 @@
     #include "miam_utils/DatasetHandler.h"
 
     struct Datapoint{
-        int datasetId;
+        std::string name;
         double timestamp;
         double value;
     };
