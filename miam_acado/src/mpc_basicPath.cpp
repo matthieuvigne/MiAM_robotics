@@ -64,21 +64,21 @@ int main() {
     myfile.open ("ref.txt");
 
         // variables for plots
-    std::vector<std::pair<double, double> > xy_pts_init;
-    std::vector<std::pair<double, double> > xy_pts_true;
-    std::vector<std::pair<double, double> > xy_pts_res;
+    std::vector<std::pair<real_t, real_t> > xy_pts_init;
+    std::vector<std::pair<real_t, real_t> > xy_pts_true;
+    std::vector<std::pair<real_t, real_t> > xy_pts_res;
 
-    std::vector<std::pair<double, double> > theta_pts_init;
-    std::vector<std::pair<double, double> > theta_pts_true;
-    std::vector<std::pair<double, double> > theta_pts_res;
+    std::vector<std::pair<real_t, real_t> > theta_pts_init;
+    std::vector<std::pair<real_t, real_t> > theta_pts_true;
+    std::vector<std::pair<real_t, real_t> > theta_pts_res;
 
-    std::vector<std::pair<double, double> > v_pts_init;
-    std::vector<std::pair<double, double> > v_pts_true;
-    std::vector<std::pair<double, double> > v_pts_res;
+    std::vector<std::pair<real_t, real_t> > v_pts_init;
+    std::vector<std::pair<real_t, real_t> > v_pts_true;
+    std::vector<std::pair<real_t, real_t> > v_pts_res;
 
-    std::vector<std::pair<double, double> > w_pts_init;
-    std::vector<std::pair<double, double> > w_pts_true;
-    std::vector<std::pair<double, double> > w_pts_res;
+    std::vector<std::pair<real_t, real_t> > w_pts_init;
+    std::vector<std::pair<real_t, real_t> > w_pts_true;
+    std::vector<std::pair<real_t, real_t> > w_pts_res;
 
     std::cout << "Duration : " << getDurationBasicPath(traj) << std::endl;
 
@@ -86,6 +86,10 @@ int main() {
     cout << "Initializing solver" << endl;
     acado_initializeSolver();    
 
+
+    cout << "N: " << N << endl;
+    cout << "ACADO_N: " << ACADO_N << endl;
+    cout << "MPC_N_TIME_INTERVALS: " << MPC_N_TIME_INTERVALS << endl;
 
     miam::trajectory::TrajectoryPoint tp = getCurrentPointBasicPath(traj, 0.0);
 
@@ -99,9 +103,13 @@ int main() {
     float perturbation_scale = 0.0 / 1000.0;
     float perturbation_scale_angle = 0.0;
 
-    for (int j = 0; j < N+1; j++) {
+    int indice = 0;
 
-        double t = j * DELTA_T ; 
+    for (int indice = 0; indice < N+1; indice++) {
+
+        cout << indice << endl;
+
+        real_t t = indice * DELTA_T ; 
 
         if (t > getDurationBasicPath(traj)) {
             t = getDurationBasicPath(traj);
@@ -118,32 +126,34 @@ int main() {
         w_pts_true.push_back(std::make_pair(t, tp.angularVelocity));
 
         /* Initialize the states. */        
-        acadoVariables.x[ j * NX ] = tp.position.x / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-        acadoVariables.x[ j * NX + 1] = tp.position.y / 1000.0  + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-        acadoVariables.x[ j * NX + 2] = tp.position.theta + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
+        acadoVariables.x[ indice * NX ] = tp.position.x / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
+        acadoVariables.x[ indice * NX + 1] = tp.position.y / 1000.0  + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
+        acadoVariables.x[ indice * NX + 2] = tp.position.theta + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
     
         /* Initialize the controls. */
-        acadoVariables.x[ j * NX + 3] = tp.linearVelocity / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-        acadoVariables.x[ j * NX + 4] = tp.angularVelocity + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
+        acadoVariables.x[ indice * NX + 3] = tp.linearVelocity / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
+        acadoVariables.x[ indice * NX + 4] = tp.angularVelocity + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
 
         std::cout << "pert: " << "t=" << t << " --- " << 
-            acadoVariables.x[ j * NX ] * 1000 << "\t" << 
-            acadoVariables.x[ j * NX + 1] * 1000 << "\t" << 
-            acadoVariables.x[ j * NX + 2] << "\t" << 
-            acadoVariables.x[ j * NX + 3] * 1000 << "\t" << 
-            acadoVariables.x[ j * NX + 4] << std::endl;
+            acadoVariables.x[ indice * NX ] * 1000 << "\t" << 
+            acadoVariables.x[ indice * NX + 1] * 1000 << "\t" << 
+            acadoVariables.x[ indice * NX + 2] << "\t" << 
+            acadoVariables.x[ indice * NX + 3] * 1000 << "\t" << 
+            acadoVariables.x[ indice * NX + 4] << std::endl;
 
 
-        xy_pts_init.push_back(std::make_pair(acadoVariables.x[ j * NX ] * 1000, acadoVariables.x[ j * NX + 1] * 1000));
-        theta_pts_init.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 2]));
-        v_pts_init.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 3] * 1000));
-        w_pts_init.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 4]));
+        xy_pts_init.push_back(std::make_pair(acadoVariables.x[ indice * NX ] * 1000, acadoVariables.x[ indice * NX + 1] * 1000));
+        theta_pts_init.push_back(std::make_pair(t, acadoVariables.x[ indice * NX + 2]));
+        v_pts_init.push_back(std::make_pair(t, acadoVariables.x[ indice * NX + 3] * 1000));
+        w_pts_init.push_back(std::make_pair(t, acadoVariables.x[ indice * NX + 4]));
 
-        acadoVariables.y[ j * NY ] = tp.position.x / 1000.0;
-        acadoVariables.y[ j * NY + 1] = tp.position.y / 1000.0;
-        acadoVariables.y[ j * NY + 2] = tp.position.theta;
-        acadoVariables.y[ j * NY + 3] = tp.linearVelocity / 1000.0;
-        acadoVariables.y[ j * NY + 4] = tp.angularVelocity ;
+        if (indice < N) {
+            acadoVariables.y[ indice * NY ] = tp.position.x / 1000.0;
+            acadoVariables.y[ indice * NY + 1] = tp.position.y / 1000.0;
+            acadoVariables.y[ indice * NY + 2] = tp.position.theta;
+            acadoVariables.y[ indice * NY + 3] = tp.linearVelocity / 1000.0;
+            acadoVariables.y[ indice * NY + 4] = tp.angularVelocity ;
+        }
     }
 
     acadoVariables.yN[0] = tp.position.x / 1000.0;
@@ -155,14 +165,11 @@ int main() {
     /* Some temporary variables. */
     acado_timer t;
 
-
-      if( VERBOSE ) acado_printHeader();
+    /* Get the time before start of the loop. */
+    acado_tic( &t );
 
     /* Prepare step */
     acado_preparationStep();
-
-    /* Get the time before start of the loop. */
-    acado_tic( &t );
 
     /* Perform the feedback step. */
     acado_feedbackStep( );
@@ -184,9 +191,9 @@ int main() {
         // acado_printDifferentialVarNUiables();
         // acado_printControlVariables();
 
-        for (int j = 0; j < N+1; j++) {
+        for (int indice = 0; indice < N+1; indice++) {
 
-            double t = j * DELTA_T;
+            real_t t = indice * DELTA_T;
 
             if (t > getDurationBasicPath(traj)) {
                 t = getDurationBasicPath(traj);
@@ -201,17 +208,17 @@ int main() {
                 tp.angularVelocity << std::endl;
 
             std::cout << "resu: " << "t=" << t << " --- " << 
-                acadoVariables.x[ j * NX ] * 1000 << "\t" << 
-                acadoVariables.x[ j * NX + 1] * 1000 << "\t" << 
-                acadoVariables.x[ j * NX + 2] << "\t" << 
-                acadoVariables.x[ j * NX + 3] * 1000 << "\t" << 
-                acadoVariables.x[ j * NX + 4] << std::endl;
+                acadoVariables.x[ indice * NX ] * 1000 << "\t" << 
+                acadoVariables.x[ indice * NX + 1] * 1000 << "\t" << 
+                acadoVariables.x[ indice * NX + 2] << "\t" << 
+                acadoVariables.x[ indice * NX + 3] * 1000 << "\t" << 
+                acadoVariables.x[ indice * NX + 4] << std::endl;
 
 
-            xy_pts_res.push_back(std::make_pair(acadoVariables.x[ j * NX ] * 1000, acadoVariables.x[ j * NX + 1] * 1000));
-            theta_pts_res.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 2]));
-            v_pts_res.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 3] * 1000));
-            w_pts_res.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 4]));
+            xy_pts_res.push_back(std::make_pair(acadoVariables.x[ indice * NX ] * 1000, acadoVariables.x[ indice * NX + 1] * 1000));
+            theta_pts_res.push_back(std::make_pair(t, acadoVariables.x[ indice * NX + 2]));
+            v_pts_res.push_back(std::make_pair(t, acadoVariables.x[ indice * NX + 3] * 1000));
+            w_pts_res.push_back(std::make_pair(t, acadoVariables.x[ indice * NX + 4]));
 	        
         }
         

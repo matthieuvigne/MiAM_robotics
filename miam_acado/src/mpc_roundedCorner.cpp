@@ -110,7 +110,7 @@ int main() {
     float perturbation_scale = 100.0 / 1000.0;
     float perturbation_scale_angle = 0.2;
 
-    for (int j = 0; j < N+1; j++) {
+    for (int j = 0; j < MPC_N_TIME_INTERVALS+1; j++) {
 
         double t = j * DELTA_T ; 
 
@@ -151,11 +151,14 @@ int main() {
         v_pts_init.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 3] * 1000));
         w_pts_init.push_back(std::make_pair(t, acadoVariables.x[ j * NX + 4]));
 
-        acadoVariables.y[ j * NY ] = tp.position.x / 1000.0;
-        acadoVariables.y[ j * NY + 1] = tp.position.y / 1000.0;
-        acadoVariables.y[ j * NY + 2] = tp.position.theta;
-        acadoVariables.y[ j * NY + 3] = tp.linearVelocity / 1000.0;
-        acadoVariables.y[ j * NY + 4] = tp.angularVelocity ;
+        if (j < N) {
+            acadoVariables.y[ j * NY ] = tp.position.x / 1000.0;
+            acadoVariables.y[ j * NY + 1] = tp.position.y / 1000.0;
+            acadoVariables.y[ j * NY + 2] = tp.position.theta;
+            acadoVariables.y[ j * NY + 3] = tp.linearVelocity / 1000.0;
+            acadoVariables.y[ j * NY + 4] = tp.angularVelocity ;
+        }
+
     }
 
     acadoVariables.yN[0] = tp.position.x / 1000.0;
@@ -167,14 +170,11 @@ int main() {
     /* Some temporary variables. */
     acado_timer t;
 
-
-      if( VERBOSE ) acado_printHeader();
+    /* Get the time before start of the loop. */
+    acado_tic( &t );
 
     /* Prepare step */
     acado_preparationStep();
-
-    /* Get the time before start of the loop. */
-    acado_tic( &t );
 
     /* Perform the feedback step. */
     acado_feedbackStep( );

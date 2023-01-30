@@ -79,10 +79,11 @@ int main() {
 
     mpc.set( HESSIAN_APPROXIMATION,       GAUSS_NEWTON    );
     mpc.set( DISCRETIZATION_TYPE,         MULTIPLE_SHOOTING );
-    // mpc.set( INTEGRATOR_TYPE,             INT_RK4         );
-    mpc.set( INTEGRATOR_TYPE,             INT_IRK_GL4         );
+    mpc.set( INTEGRATOR_TYPE,             INT_RK4         );
+    // mpc.set( INTEGRATOR_TYPE,             INT_EX_EULER         );
     mpc.set( NUM_INTEGRATOR_STEPS,        N              );
-    mpc.set( IMPLICIT_INTEGRATOR_NUM_ITS,        2              );
+    // mpc.set( IMPLICIT_INTEGRATOR_NUM_ITS,        2              );
+    mpc.set( USE_SINGLE_PRECISION,        BT_TRUE              );
 
     mpc.set( QP_SOLVER,                   QP_QPOASES      );
     mpc.set( GENERATE_TEST_FILE,          NO             );
@@ -90,7 +91,6 @@ int main() {
     mpc.set( GENERATE_MATLAB_INTERFACE,   NO             );
     mpc.set( GENERATE_SIMULINK_INTERFACE, NO             );
 
-//     mpc.set( USE_SINGLE_PRECISION,        YES             );
 
     if (mpc.exportCode( "../src/generated_code" ) != SUCCESSFUL_RETURN)
         exit( EXIT_FAILURE );

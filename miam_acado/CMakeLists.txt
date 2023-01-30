@@ -13,8 +13,8 @@ PROJECT( CODE_GENERATION_MPC CXX C)
 SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR} )
 message(${CMAKE_MODULE_PATH})
 # Ignore ignored-attributes (ACADO warnings) & deprecated-declarations (Eigen warnings)
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wno-ignored-attributes -Wno-deprecated-declarations")
-set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-psabi -fdiagnostics-color")
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -Wno-ignored-attributes -Wno-deprecated-declarations")
+set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wall -Wno-psabi -fdiagnostics-color")
 
 # #
 # # Include directories
