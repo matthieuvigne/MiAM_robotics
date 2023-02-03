@@ -25,7 +25,7 @@ MotionController::MotionController(RobotParameters const &robotParameters) : cur
     PIDAngular_ = miam::PID(motioncontroller::rotationKp, motioncontroller::rotationKd, motioncontroller::rotationKi, 0.15);
 }
 
-void MotionController::init(RobotPosition const &startPosition)
+void MotionController::init(RobotPosition const& startPosition, std::string const& teleplotPrefix)
 {
     currentPosition_.set(startPosition);
 
@@ -34,7 +34,7 @@ void MotionController::init(RobotPosition const &startPosition)
     char timestamp[100];
     std::strftime(timestamp, sizeof(timestamp), "%Y%m%dT%H%M%SZ", std::localtime(&t));
     std::string filename = "logs/log" + std::string(timestamp) + "_" + robotParams_.name + ".hdf5";
-    logger_.start(filename);
+    logger_.start(filename, teleplotPrefix);
     currentTime_ = 0.0;
 }
 
@@ -87,24 +87,24 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 {
     // Log input
     currentTime_ += dt;
-    logger_.log("timeIncrement", currentTime_, dt);
-    logger_.log("encoderRight", currentTime_, measurements.encoderPosition[side::RIGHT]);
-    logger_.log("encoderLeft", currentTime_, measurements.encoderPosition[side::LEFT]);
+    log("timeIncrement",dt);
+    log("encoderRight",measurements.encoderPosition[side::RIGHT]);
+    log("encoderLeft",measurements.encoderPosition[side::LEFT]);
 
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderSpeed);
-    logger_.log("currentPositionX", currentTime_, currentPosition.x);
-    logger_.log("currentPositionY", currentTime_, currentPosition.y);
-    logger_.log("currentPositionTheta", currentTime_, currentPosition.theta);
+    log("currentPositionX",currentPosition.x);
+    log("currentPositionY",currentPosition.y);
+    log("currentPositionTheta",currentPosition.theta);
 
     BaseSpeed baseSpeed = kinematics_.forwardKinematics(measurements.encoderSpeed, true);
-    logger_.log("currentVelocityLinear", currentTime_, baseSpeed.linear);
-    logger_.log("currentVelocityAngular", currentTime_, baseSpeed.angular);
+    log("currentVelocityLinear",baseSpeed.linear);
+    log("currentVelocityAngular",baseSpeed.angular);
 
     DrivetrainTarget target;
 
     double slowDownCoeff = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
-    logger_.log("detectionCoeff", currentTime_, slowDownCoeff);
+    log("detectionCoeff",slowDownCoeff);
 
     // Load new trajectory, if needed.
     newTrajectoryMutex_.lock();
@@ -179,8 +179,8 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         PIDAngular_.resetIntegral(0.0);
     }
 
-    logger_.log("commandVelocityRight", currentTime_, target.motorSpeed[side::RIGHT]);
-    logger_.log("commandVelocityLeft", currentTime_, target.motorSpeed[side::LEFT]);
+    log("commandVelocityRight",target.motorSpeed[side::RIGHT]);
+    log("commandVelocityLeft",target.motorSpeed[side::LEFT]);
 
     return target;
 }
@@ -199,11 +199,11 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     targetPoint.linearVelocity *= slowDownRatio;
     targetPoint.angularVelocity *= slowDownRatio;
 
-    logger_.log("targetPositionX", currentTime_, targetPoint.position.x);
-    logger_.log("targetPositionY", currentTime_, targetPoint.position.y);
-    logger_.log("targetPositionTheta", currentTime_, targetPoint.position.theta);
-    logger_.log("targetLinearVelocity", currentTime_, targetPoint.linearVelocity);
-    logger_.log("targetAngularVelocity", currentTime_, targetPoint.angularVelocity);
+    log("targetPositionX",targetPoint.position.x);
+    log("targetPositionY",targetPoint.position.y);
+    log("targetPositionTheta",targetPoint.position.theta);
+    log("targetLinearVelocity",targetPoint.linearVelocity);
+    log("targetAngularVelocity",targetPoint.angularVelocity);
 
     // Compute targets for rotation and translation motors.
     BaseSpeed targetSpeed;
@@ -227,9 +227,9 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
         trackingTransverseError = -trackingTransverseError;
     double trackingAngleError = miam::trajectory::moduloTwoPi(currentPosition.theta - targetPoint.position.theta);
 
-    logger_.log("trackingLongitudinalError", currentTime_, trackingLongitudinalError);
-    logger_.log("trackingTransverseError", currentTime_, trackingTransverseError);
-    logger_.log("trackingAngleError", currentTime_, trackingAngleError);
+    log("trackingLongitudinalError",trackingLongitudinalError);
+    log("trackingTransverseError",trackingTransverseError);
+    log("trackingAngleError",trackingAngleError);
 
     // If we are beyon trajector end, look to see if we are close enough to the target point to stop.
     if (traj->getDuration() <= curvilinearAbscissa_)
@@ -274,8 +274,8 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     target.motorSpeed[side::LEFT] = wheelSpeed.left;
 
 
-    logger_.log("linearPIDCorrection", currentTime_, PIDLinear_.getCorrection());
-    logger_.log("angularPIDCorrection", currentTime_, PIDAngular_.getCorrection());
+    log("linearPIDCorrection",PIDLinear_.getCorrection());
+    log("angularPIDCorrection",PIDAngular_.getCorrection());
 
     return false;
 }

@@ -7,7 +7,8 @@
 ViewerRobot::ViewerRobot(RobotParameters const& robotParameters,
                          std::string const& imageFileName,
                          AbstractStrategy *strategy,
-                         double const& r, double const& g, double const& b):
+                         double const& r, double const& g, double const& b,
+                         std::string const& teleplotPrefix):
     handler_(&servoMock_),
     RobotInterface(robotParameters, &handler_),
     strategy_(strategy),
@@ -15,6 +16,7 @@ ViewerRobot::ViewerRobot(RobotParameters const& robotParameters,
     g_(g),
     b_(b),
     score_(0),
+    teleplotPrefix_(teleplotPrefix),
     isPlayingRightSide_(false)
 {
     image_ = Gdk::Pixbuf::create_from_file(imageFileName, -1, -1);
@@ -144,7 +146,7 @@ void ViewerRobot::reset(bool const& isPlayingRightSide)
     strategy_->createdThreads_.clear();
     strategy_->setup(this);
     simulationPosition_ = motionController_.getCurrentPosition();
-    motionController_.init(simulationPosition_);
+    motionController_.init(simulationPosition_, teleplotPrefix_);
 
     std::thread tr = std::thread(&AbstractStrategy::match, strategy_);
     runningThread_ = tr.native_handle();

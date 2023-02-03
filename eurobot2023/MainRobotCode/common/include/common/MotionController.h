@@ -95,7 +95,10 @@
             MotionController(RobotParameters const& robotParameters);
 
             /// \brief Initialize the system - this also starts the logger.
-            void init(RobotPosition const& startPosition);
+            /// \param[in] RobotPosition Starting position
+            /// \param[in] teleplotPrefix Optional prefix for variables in teleplot: used in simulation
+            ///                           where several robots are logging.
+            void init(RobotPosition const& startPosition, std::string const& teleplotPrefix = "");
 
             /// \brief Get current robot position.
             /// \return Current robot position.
@@ -146,6 +149,14 @@
             DrivetrainKinematics getKinematics()
             {
                 return kinematics_;
+            }
+
+            /// \brief Helper to log a variable at the current (match) time.
+            /// \param[in] variableName Name of the variable
+            /// \param[in] variableValue Value of the variable at the current time
+            void log(std::string const& variableName, double const& variableValue)
+            {
+                logger_.log(variableName, currentTime_, variableValue);
             }
 
             RobotParameters robotParams_;

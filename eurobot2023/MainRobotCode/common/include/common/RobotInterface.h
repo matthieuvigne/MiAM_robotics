@@ -72,6 +72,15 @@
             /// \brief Stop the wheel motors.
             virtual void stopMotors() = 0;
 
+
+            /// \brief Helper to log a variable at the current (match) time.
+            /// \param[in] variableName Name of the variable
+            /// \param[in] variableValue Value of the variable at the current time
+            void log(std::string const& variableName, double const& variableValue)
+            {
+                motionController_.log(variableName, variableValue);
+            }
+
             MotionController* getMotionController() { return &motionController_;}
             ServoHandler* getServos() { return servos_;}
 

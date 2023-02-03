@@ -9,6 +9,7 @@
 
 Logger::Logger():
     teleplot_(Teleplot::localhost()),
+    teleplotPrefix_(),
     datasets_(),
     names_(),
     queuedDatapoints_(),
@@ -16,8 +17,9 @@ Logger::Logger():
 {
 }
 
-void Logger::start(std::string const& filename)
+void Logger::start(std::string const& filename, std::string const& teleplotPrefix)
 {
+    teleplotPrefix_ = teleplotPrefix;
     std::thread th = std::thread(&Logger::loggerThread, this, filename);
     th.detach();
 }
@@ -52,7 +54,7 @@ void Logger::loggerThread(std::string const& filename)
                 id = itr - names_.begin();
 
             hasFlush |= datasets_.at(id).addPoint(p.timestamp, p.value);
-            teleplot_.update(p.name, p.value);
+            teleplot_.update(teleplotPrefix_ + p.name, p.value);
         }
         // Flush everything if at least one buffer was full
         if (hasFlush)

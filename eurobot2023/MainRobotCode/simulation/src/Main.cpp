@@ -47,12 +47,16 @@ int main (int argc, char *argv[])
     Viewer *viewer = nullptr;
     refBuilder->get_widget_derived("mainWindow", viewer, "./config/tableCherryOnTheCake.png");
     main_robot::Strategy mainStrategy;
-    ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobotAgeOfBots.png", &mainStrategy);
+    ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobotAgeOfBots.png", &mainStrategy, 1.0, 0.0, 0.0, "mainRobot.");
     viewer->addRobot(mainRobot);
 
-    // secondary_robot::Strategy secondaryStrategy;
-    // ViewerRobot secondaryRobot(secondary_robot::generateParams(), "./config/secondaryRobot.png", &secondaryStrategy, 0.0, 0.0, 1.0);
-    // viewer->addRobot(secondaryRobot);
+    secondary_robot::Strategy secondaryStrategy;
+    ViewerRobot secondaryRobot(secondary_robot::generateParams(), "./config/secondaryRobot.png", &secondaryStrategy, 0.0, 0.0, 1.0, "secondaryRobot.");
+    viewer->addRobot(secondaryRobot);
+
+    // Start telemetry for both robots.
+    system("/miam_workspace/src/MiAM_robotics/teleplot_binaries/teleplot-linux > /dev/null 2> /dev/null&");
+    std::cout << "Teleplot server started, open your browser at 127.0.0.1:8080" << std::endl;
 
     viewer->resetClicked();
 

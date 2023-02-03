@@ -52,7 +52,8 @@
             ViewerRobot(RobotParameters const& robotParameters,
                         std::string const& imageFileName,
                         AbstractStrategy *strategy,
-                        double const& r = 1.0, double const& g = 0.0, double const& b = 0.0);
+                        double const& r = 1.0, double const& g = 0.0, double const& b = 0.0,
+                        std::string const& teleplotPrefix_ = "");
 
 
             bool isPlayingRightSide() const override
@@ -118,6 +119,7 @@
             double g_;  ///< Trajectory color.
             double b_;  ///< Trajectory color.
             int score_; ///< Current robot score.
+            std::string teleplotPrefix_;
 
             bool isPlayingRightSide_ = false;
 
