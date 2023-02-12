@@ -450,5 +450,32 @@ DHTransformVector::Matrix6Xd DHTransformVector::get_free_jacobian_matrix() const
 }
 
 //--------------------------------------------------------------------------------------------------
+// Other functions
+//--------------------------------------------------------------------------------------------------
+
+DHTransformVector create_main_robot_arm()
+{
+  // Robotical arm configuration
+  double constexpr d01x = 70.6e-3;
+  double constexpr d12x = 76.5e-3;
+  double constexpr a12x = M_PI_2;
+  double constexpr d23x = 70.6e-3;
+  double constexpr d34x = 90.6e-3;
+  double constexpr d45x = 29.1e-3;
+  double constexpr a45x = M_PI_2;
+  double constexpr d45z = 45.8e-3;
+  
+  // Build the robotical arm
+  kinematics::DHTransform T01(d01x,0,0,0);
+  kinematics::DHTransform T12(d12x,a12x,0,0);
+  kinematics::DHTransform T23(d23x,0,0,0);
+  kinematics::DHTransform T34(d34x,0,0,0);
+  kinematics::DHTransform T45(d45x,a45x,d45z,0);
+  kinematics::DHTransformVector arm{T01,T12,T23,T34,T45};
+  
+  return arm;
+}
+
+//--------------------------------------------------------------------------------------------------
 
 } // namespace kinematics
