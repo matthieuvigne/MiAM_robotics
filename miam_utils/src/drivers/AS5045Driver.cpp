@@ -7,6 +7,13 @@
 #include <errno.h>
 #include <cstring>
 
+unsigned char reverse(unsigned char b) {
+   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+   b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+   return b;
+}
+
 // Utility function: check parity
 bool check_parity(uint32_t n)
 {
@@ -29,79 +36,65 @@ bool check_parity(uint32_t n)
 AS5045::AS5045():
     spiDriver_(nullptr),
     isInit_(false),
-    currentPosition_(0),
-    previousSingleTurnPos_(0)
+    currentPosition_(),
+    previousSingleTurnPos_()
 {
 
 }
 
-AS5045::AS5045(SPIWrapper *spiDriver):
+AS5045::AS5045(SPIWrapper *spiDriver, uint32_t const& nEncoders):
     spiDriver_(spiDriver),
-    isInit_(false),
-    currentPosition_(0),
-    previousSingleTurnPos_(0)
+    isInit_(false)
 {
-
+    for (uint32_t i = 0; i < nEncoders; i++)
+    {
+        currentPosition_.push_back(0);
+        previousSingleTurnPos_.push_back(0);
+    }
 }
 
 bool AS5045::init()
 {
-    currentPosition_ = 0.0;
-    uint16_t pos = 0;
+    std::fill(currentPosition_.begin(), currentPosition_.end(), 0);
     isInit_ = readSPI(previousSingleTurnPos_);
     return isInit_;
 }
 
-double AS5045::updatePosition()
+std::vector<double> AS5045::updatePosition()
 {
     if (isInit_)
     {
-        double newPos = 0;
+        std::vector<double> newPos;
+        for (uint32_t i = 0; i < currentPosition_.size(); i++)
+            newPos.push_back(0);
+
         if (readSPI(newPos))
         {
-            // Continuity at position jump.
-            double continuity = 0;
-            if (newPos < M_PI_2 && previousSingleTurnPos_ > 3 * M_PI_2)
-                continuity = 2 * M_PI;
-            else if (newPos > 3 * M_PI_2 && previousSingleTurnPos_ < M_PI_2)
-                continuity = -2 * M_PI;
-            currentPosition_ += (newPos - previousSingleTurnPos_) + continuity;
-            previousSingleTurnPos_ = newPos;
+            for (uint32_t i = 0; i < currentPosition_.size(); i++)
+            {
+                // Continuity at position jump.
+                double continuity = 0;
+                if (newPos.at(i) < M_PI_2 && previousSingleTurnPos_.at(i) > 3 * M_PI_2)
+                    continuity = 2 * M_PI;
+                else if (newPos.at(i) > 3 * M_PI_2 && previousSingleTurnPos_.at(i) < M_PI_2)
+                    continuity = -2 * M_PI;
+                currentPosition_.at(i) += (newPos.at(i) - previousSingleTurnPos_.at(i)) + continuity;
+                previousSingleTurnPos_.at(i) = newPos.at(i);
+            }
         }
     }
     return currentPosition_;
 }
 
 
-double AS5045::getPosition() const
+std::vector<double> AS5045::getPosition() const
 {
     return currentPosition_;
 }
 
-
-bool AS5045::readSPI(double & position) const
+// Decode encoder frame, return angle in rad, -1 on failure.
+double decodeFrame(uint32_t const& data)
 {
-    uint32_t data = 0;
-    static struct spi_ioc_transfer spiCtrl;
-    spiCtrl.tx_buf = (unsigned long)&data;
-    spiCtrl.rx_buf = (unsigned long)&data;
-    spiCtrl.len = 3;
-    spiCtrl.delay_usecs = 1;
-    spiCtrl.bits_per_word = 8;
-    spiCtrl.cs_change = true;
-    spiCtrl.pad = 0;
-    spiCtrl.tx_nbits = 0;
-    spiCtrl.rx_nbits = 0;
-
-    int result = spiDriver_->spiReadWrite(1, &spiCtrl);
-
-    if(result < 0)
-    {
-        #ifdef DEBUG
-                std::cout << "AS5045 SPI error: " << errno << " " << std::strerror(errno) << std::endl;
-        #endif
-    }
-    // First bit is invalid (probably due to SPI timing) so everything is shift by one.
     uint16_t const rawPos= ((data & 0xFF) << 5) + (((data >> 8) & 0xF8) >> 3);
 
     bool const ofc = data & (1 << 10);
@@ -132,9 +125,65 @@ bool AS5045::readSPI(double & position) const
     #endif
 
     if (isValid)
-        position = static_cast<double>(rawPos) / 2048.0 * M_PI;
-    else
-        position = previousSingleTurnPos_;
+        return static_cast<double>(rawPos) / 2048.0 * M_PI;
+    return -1;
+}
 
-    return result == 3 && isValid;
+
+bool AS5045::readSPI(std::vector<double> & position) const
+{
+    uint32_t const nEncoders = currentPosition_.size();
+    uint32_t const len = std::ceil((19.0 * nEncoders) / 8.0);
+
+    uint8_t data[len];
+    for (uint32_t i = 0; i < len; i++)
+        data[i] = 0;
+
+    static struct spi_ioc_transfer spiCtrl;
+    spiCtrl.tx_buf = (unsigned long)&data;
+    spiCtrl.rx_buf = (unsigned long)&data;
+    spiCtrl.len = len;
+    spiCtrl.delay_usecs = 0;
+    spiCtrl.bits_per_word = 8;
+    spiCtrl.cs_change = true;
+    spiCtrl.pad = 0;
+    spiCtrl.tx_nbits = 0;
+    spiCtrl.rx_nbits = 0;
+
+    int result = spiDriver_->spiReadWrite(1, &spiCtrl);
+
+    if(result < 0)
+    {
+        #ifdef DEBUG
+                std::cout << "AS5045 SPI error: " << errno << " " << std::strerror(errno) << std::endl;
+        #endif
+    }
+
+    // Decompose message into streams of 19 bits and decode them
+    for (uint32_t i = 0; i < nEncoders; i++)
+    {
+        // Find which bytes we need
+        uint8_t const startByte = std::floor(19 * i / 8);
+        uint32_t currentData = data[startByte] + (data[startByte + 1] << 8) + (data[startByte + 2] << 16);
+        // Offset to get the correct LSB.
+        uint8_t const lsbOffset = 19 * i - 8 * startByte;
+
+        // Reverse the bits in each byte
+        currentData = reverse(currentData & 0xFF) + (reverse((currentData >> 8) & 0xFF) << 8)+ (reverse((currentData >> 16) & 0xFF) << 16);
+
+        // Shift, and mask everything except the bits [1 - 18]
+        currentData = (currentData >> lsbOffset) & 0x0FFFFE;
+
+        // Reverse again
+        currentData = reverse(currentData & 0xFF) + (reverse((currentData >> 8) & 0xFF) << 8)+ (reverse((currentData >> 16) & 0xFF) << 16);
+
+        // Decode single encoder frame.
+        double pos = decodeFrame(currentData);
+        if (pos >= 0)
+            position.at(i) = pos;
+        else
+            position.at(i) = previousSingleTurnPos_.at(i);
+    }
+
+    return result == static_cast<int32_t>(len);
 }

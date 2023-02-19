@@ -14,8 +14,8 @@ int main (int argc, char *argv[])
 {
     RPi_enablePorts();
 
-    SPIWrapper spi(RPI_SPI_00, 1000000);
-    AS5045 encoder(&spi);
+    SPIWrapper spi(RPI_SPI_01, 1000000);
+    AS5045 encoder(&spi, 2);
 
     while (!encoder.init())
         usleep(50000);
@@ -25,21 +25,22 @@ int main (int argc, char *argv[])
     std::strftime(timestamp, sizeof(timestamp), "%Y%m%dT%H%M%SZ", std::localtime(&t));
     std::string filename = "log" + std::string(timestamp) + ".csv";
 
-    Logger logger = Logger(filename, "Encoder test", "Info", "time,position");
+    Logger logger;
+    logger.start(filename);
 
-    Metronome metronome(0.005 * 1e9);
+    Metronome metronome(0.010 * 1e9);
 
     while (true)
     {
         metronome.wait();
         double const currentTime = metronome.getElapsedTime();
-        double const pos = encoder.updatePosition();
+        std::vector<double> const pos = encoder.updatePosition();
 
-        std::cout << "\r" << std::setw(10) << std::setfill(' ') << std::setprecision(3) << pos << std::flush;
+        std::cout << "\r" << std::setw(10) << std::setfill(' ') << std::setprecision(3) << pos.at(0);
+        std::cout << " " << std::setw(10) << std::setfill(' ') << std::setprecision(3) << pos.at(1) << std::flush;
 
-        logger.setData(0, currentTime);
-        logger.setData(1, pos);
-        logger.writeLine();
+        logger.log("encoder0", currentTime, pos.at(0));
+        logger.log("encoder1", currentTime, pos.at(1));
     }
 
     return 0;
