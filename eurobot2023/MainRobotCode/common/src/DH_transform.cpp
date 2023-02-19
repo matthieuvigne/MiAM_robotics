@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 
 #include <kinematics/DH_transform.hpp>
 
@@ -115,7 +116,9 @@ Eigen::Matrix<double,6,1> log_map(Eigen::Affine3d const& T)
 //--------------------------------------------------------------------------------------------------
 
 DHTransform::DHTransform(double d1, double a1, double d2, double a2)
-: parameters_ {d1, a1, d2, a2}
+: parameters_ {d1, a1, d2, a2},
+  lower_bounds_ {-std::numeric_limits<double>::infinity()*Eigen::Vector4d::Ones()},
+  upper_bounds_ { std::numeric_limits<double>::infinity()*Eigen::Vector4d::Ones()}
 {
   this->compute_transform_and_jacobian();
 }
@@ -182,10 +185,13 @@ int DHTransform::get_num_free_parameters() const
 
 void DHTransform::update_parameters(double dd1, double da1, double dd2, double da2)
 {
+  // Update parameters (with modulo pi)
   this->parameters_[kd1] += dd1;
-  this->parameters_[ka1] += da1;
+  this->parameters_[ka1] = std::fmod(this->parameters_[ka1] + da1, M_PI);
   this->parameters_[kd2] += dd2;
-  this->parameters_[ka2] += da2;
+  this->parameters_[ka2] = std::fmod(this->parameters_[ka2] + da2, M_PI);
+  
+  // Compute the new global transformation
   this->compute_transform_and_jacobian();
 }
 
@@ -193,8 +199,11 @@ void DHTransform::update_parameters(double dd1, double da1, double dd2, double d
 
 void DHTransform::update_parameters(Eigen::Vector4d const& delta_params)
 {
-  this->parameters_ += delta_params;
-  this->compute_transform_and_jacobian();
+  return this->update_parameters(
+    delta_params(0),  // dd1
+    delta_params(1),  // da1
+    delta_params(2),  // dd2
+    delta_params(3)); // da2
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -208,24 +217,54 @@ Eigen::Matrix<double,6,4> const& DHTransform::get_full_jacobian_matrix() const
 
 void DHTransform::set_parameter(Parameter name, double value)
 {
+  // Update the parameter
+  int idx = this->get_parameter_index(name);
   switch(name)
   {
-    case Parameter::d1:
-      this->parameters_[kd1] = value;
-      break;
+    // If angle value, apply modulo pi
     case Parameter::a1:
-      this->parameters_[ka1] = value;
-      break;
-    case Parameter::d2:
-      this->parameters_[kd2] = value;
-      break;
     case Parameter::a2:
-      this->parameters_[ka2] = value;
+      this->parameters_[idx] = std::fmod(value, M_PI);
       break;
-    default:
-      throw std::runtime_error("Unknown parameter name");
+    // Otherwise, don't worry
+    case Parameter::d1:
+    case Parameter::d2:
+      this->parameters_[idx] = value;
+      break;
   }
+  
+  // Check the consistency with lower and upper bounds
+  bool ok = true;
+  ok &= (this->lower_bounds_[idx] > value);
+  ok &= (this->upper_bounds_[idx] < value);
+  if(!ok) throw std::runtime_error("Parameter value is inconsistent with its lower/upper bounds");
+  
+  // Recompute the global transform
   this->compute_transform_and_jacobian();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void DHTransform::set_parameter_lower_bound(Parameter name, double value)
+{
+  int const idx = this->get_parameter_index(name);
+  this->lower_bounds_[idx] = value;
+  if(this->lower_bounds_[idx] > this->upper_bounds_[idx])
+    throw std::runtime_error("Inconsistent lower and upper bound");
+  if(this->lower_bounds_[idx] > this->parameters_[idx])
+    throw std::runtime_error("Current parameter lower bound exceeds its value.");
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void DHTransform::set_parameter_upper_bound(Parameter name, double value)
+{
+  int const idx = this->get_parameter_index(name);
+  this->upper_bounds_[idx] = value;
+  if(this->lower_bounds_[idx] > this->upper_bounds_[idx])
+    throw std::runtime_error("Inconsistent lower and upper bound");
+  if(this->upper_bounds_[idx] < this->parameters_[idx])
+    throw std::runtime_error("Current parameter value exceeds its upper bound.");
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -240,23 +279,8 @@ void DHTransform::set_parameters(Eigen::Vector4d const& params)
 
 double DHTransform::get_parameter(Parameter name)
 {
-  switch(name)
-  {
-    case Parameter::d1:
-      return this->parameters_[kd1];
-      break;
-    case Parameter::a1:
-      return this->parameters_[ka1];
-      break;
-    case Parameter::d2:
-      return this->parameters_[kd2];
-      break;
-    case Parameter::a2:
-      return this->parameters_[ka2];
-      break;
-    default:
-      throw std::runtime_error("Unknown parameter name");
-  }
+  int const idx = this->get_parameter_index(name);
+  return this->parameters_[idx];
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -282,126 +306,80 @@ Eigen::Affine3d DHTransformVector::get_global_transform() const
 //--------------------------------------------------------------------------------------------------
 
 int DHTransformVector::optimize_parameters(
-  Eigen::Affine3d const& T_target)
+  ProblemType problem_type, double const* const* args,
+  bool use_contraints)
 {
-  /* Pseudo-inverse method
-   * ---------------------
-   * https://homes.cs.washington.edu/~todorov/courses/cseP590/06_JacobianMethods.pdf
-   */
-  // Optimization parameters
-  int constexpr max_iters = 10;
-  double constexpr max_tolerance = 1e-5;
-  
-  // Run algorithm
-  int iter_idx = 1;
-  for(; iter_idx<max_iters; iter_idx+=1)
+  // Set the problem
+  int num_iters = 0;
+  switch(problem_type)
   {
-    std::cout << "Iteration " << iter_idx << std::endl;
-    
-    // Get the global transform and check
-    Eigen::Affine3d const T = this->get_global_transform();
-    Vector6d const dT = log_map(T_target * T.inverse());
-    if(dT.norm() < max_tolerance) break;
-    
-    // Get the pose jacobian wrt optimized parameters
-    Matrix6Xd const J = this->get_free_jacobian_matrix();
-    std::cout << "- J = \n" << J << std::endl;
-    Eigen::MatrixXd const Jp = J.completeOrthogonalDecomposition().pseudoInverse();
-    std::cout << "- Jp = \n" << Jp << std::endl;
-    Eigen::VectorXd const dp = Jp*dT;
-        
-    // Update each pose individually
-    int col_idx=0;
-    int const num_poses = static_cast<int>(this->size());
-    for(int pose_idx=0; pose_idx<num_poses; pose_idx+=1)
+
+    case ProblemType::FullPose:
     {
-      Eigen::Vector4d delta_params = Eigen::Vector4d::Zero();
-      DHTransform::Parameters const& pose_free_params = (*this)[pose_idx].get_free_parameters();
-      for(DHTransform::Parameter const& param : pose_free_params)
-      {
-        delta_params(static_cast<int>(param)) = dp(col_idx);
-        col_idx += 1;
-      }
-      (*this)[pose_idx].update_parameters(delta_params);
-      std::cout << "- dp = " << delta_params.transpose() << std::endl;
+      // Initialize default problem functions
+      std::function<Vector6d(Eigen::Affine3d const&)> get_residual_vector;
+      std::function<Matrix6Xd(Eigen::Affine3d const&, Matrix6Xd const&)> get_residual_jacobian;
+      
+      // Get the problem parameters
+      if(args[0] == nullptr) throw std::runtime_error("Missing data");
+      Eigen::Map<Eigen::Matrix4d const> T_matrix(args[0]);
+      Eigen::Affine3d const T_target(T_matrix);
+      
+      // Build the problem functions
+      get_residual_vector = [&](Eigen::Affine3d const& T){
+          return log_map(T_target * T.inverse());};
+      get_residual_jacobian = [&](Eigen::Affine3d const&, Matrix6Xd const& J_T_p){
+          return J_T_p;};
+          
+      // Solve the problem (without inequality constraints for now)
+      num_iters = this->optimize_parameters(get_residual_vector, get_residual_jacobian);
+      break;
     }
+    
+    case ProblemType::PositionDirection:
+    {
+      // Initialize default problem functions
+      std::function<Vector4d(Eigen::Affine3d const&)> get_residual_vector;
+      std::function<Matrix4Xd(Eigen::Affine3d const&, Matrix6Xd const&)> get_residual_jacobian;
+      
+      // Get the problem parameters
+      if(args[0]==nullptr || args[1]==nullptr)
+        throw std::runtime_error("Missing data");
+      Eigen::Map<Eigen::Vector3d const> t_target(args[0]);
+      Eigen::Map<Eigen::Vector3d const> ux_target(args[1]);
+      
+      // Build the problem functions
+      
+      get_residual_vector = [&](Eigen::Affine3d const& T){
+        Eigen::Vector4d residual = Eigen::Vector4d::Zero();
+        Eigen::Vector3d const t = T.translation();
+        residual.head<3>() = t - t_target;
+        Eigen::Vector3d const ux = T.rotation().col(0);
+        residual(3) = ux.dot(ux_target) - 1.0;
+        return residual;
+      };
+      
+      get_residual_jacobian = [&](Eigen::Affine3d const& T, Matrix6Xd const& J_T_p){
+        int const num_free_parameters = J_T_p.cols();
+        Eigen::Vector3d const ux = T.rotation().col(0);
+        Matrix4Xd J_g_p = Matrix4Xd::Zero(4,num_free_parameters);
+        J_g_p.block(0,0,3,num_free_parameters) = J_T_p.block(3,0,3,num_free_parameters);
+        J_g_p.block(3,0,1,num_free_parameters) = 
+          - ux_target.transpose() 
+          * get_skew_symmetric_matrix(ux) 
+          * J_T_p.block(0,0,3,num_free_parameters);
+         return J_g_p;
+      };
+      
+      // Solve the problem (without inequality constraints for now)
+      num_iters = this->optimize_parameters(get_residual_vector, get_residual_jacobian);
+      break;
+    }
+    default:
+      std::runtime_error("Unknown problem type.");
   }
   
-  return iter_idx;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-int DHTransformVector::optimize_parameters(
-  Eigen::Vector3d const& t_target,
-  Eigen::Vector3d const& ux_target)
-{
-  /* Pseudo-inverse method
-   * ---------------------
-   * https://homes.cs.washington.edu/~todorov/courses/cseP590/06_JacobianMethods.pdf
-   * The target equality function is:
-   * g(p) = [t(p)-tx ; u(p).ux-1] where:
-   * - t(p) is the final translation vector in the global frame
-   * - u(p) is the direction of the final x vector in the global frame
-   * The associated Jacobian matrix has the form:
-   * - J = [[0,I];[-transpose(tf)*skew(R(p).ex),0]]*J_T_p;
-   * Note: recall that on SO3*R3, we have:
-   * - J_R_T = [I3,03]
-   * - J_t_T = [03,I3]
-   */
-  
-  // Optimization parameters
-  int constexpr max_iters = 10;
-  double constexpr max_tolerance = 1e-5;
-  if(std::fabs(ux_target.norm()-1.0) > max_tolerance)
-    throw std::runtime_error("Unnormalized target direction vector");
-  
-  // Run algorithm
-  int iter_idx = 1;
-  for(; iter_idx<max_iters; iter_idx+=1)
-  {
-    std::cout << "Iteration " << iter_idx << std::endl;
-    
-    // Get the global transform and check
-    Eigen::Affine3d const T = this->get_global_transform();
-    Eigen::Vector4d dT = Eigen::Vector4d::Zero();
-    Eigen::Vector3d const t = T.translation();
-    dT.head<3>() = t - t_target;
-    Eigen::Vector3d const ux = T.rotation().col(0);
-    dT(3) = ux.dot(ux_target) - 1.0;
-    if(dT.norm() < max_tolerance) break;
-    
-    // Get the pose jacobian wrt optimized parameters
-    Matrix6Xd const J_T_p = this->get_free_jacobian_matrix();
-    int const num_free_parameters = J_T_p.cols();
-    Matrix4Xd J_g_p = Matrix4Xd::Zero(4,num_free_parameters);
-    J_g_p.block(0,0,3,num_free_parameters) = J_T_p.block(3,0,3,num_free_parameters);
-    J_g_p.block(3,0,1,num_free_parameters) = - ux_target.transpose() 
-      * get_skew_symmetric_matrix(ux) 
-      * J_T_p.block(0,0,3,num_free_parameters); 
-    std::cout << "- J = \n" << J_g_p << std::endl;
-    Eigen::MatrixXd const Jp = J_g_p.completeOrthogonalDecomposition().pseudoInverse();
-    std::cout << "- Jp = \n" << Jp << std::endl;
-    Eigen::VectorXd const dp = Jp*dT;
-        
-    // Update each pose individually
-    int col_idx=0;
-    int const num_poses = static_cast<int>(this->size());
-    for(int pose_idx=0; pose_idx<num_poses; pose_idx+=1)
-    {
-      Eigen::Vector4d delta_params = Eigen::Vector4d::Zero();
-      DHTransform::Parameters const& pose_free_params = (*this)[pose_idx].get_free_parameters();
-      for(DHTransform::Parameter const& param : pose_free_params)
-      {
-        delta_params(static_cast<int>(param)) = dp(col_idx);
-        col_idx += 1;
-      }
-      (*this)[pose_idx].update_parameters(delta_params);
-      std::cout << "- dp = " << delta_params.transpose() << std::endl;
-    }
-  }
-  
-  return iter_idx;
+  return num_iters;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -437,6 +415,32 @@ std::string DHTransformVector::print() const
 
 //--------------------------------------------------------------------------------------------------
 // Private functions
+//--------------------------------------------------------------------------------------------------
+
+int DHTransform::get_parameter_index(Parameter name) const
+{
+  int idx = -1;
+  switch(name)
+  {
+    case Parameter::d1:
+      idx = kd1;
+      break;
+    case Parameter::a1:
+      idx = ka1;
+      break;
+    case Parameter::d2:
+      idx = kd2;
+      break;
+    case Parameter::a2:
+      idx = ka2;
+      break;
+    default:
+      throw std::runtime_error("Unknown parameter name");
+  }
+  if(idx<0) throw std::runtime_error("Invalid index");
+  return idx;
+}
+
 //--------------------------------------------------------------------------------------------------
 
 void DHTransform::compute_transform_and_jacobian()
