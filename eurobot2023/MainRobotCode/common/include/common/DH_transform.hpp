@@ -83,6 +83,9 @@ public:
 
   Eigen::Affine3d get_global_transform() const;
   int optimize_parameters(Eigen::Affine3d const& T_target);
+  int optimize_parameters(
+    Eigen::Vector3d const& t_target,
+    Eigen::Vector3d const& ux_target);
   std::string print() const;
   
 private:
@@ -91,6 +94,8 @@ private:
   typedef Eigen::Matrix<double,6,4> Matrix64d;
   typedef Eigen::Matrix<double,6,Eigen::Dynamic> Matrix6Xd;
   typedef Eigen::Matrix<double,Eigen::Dynamic,6> MatrixX6d;
+  typedef Eigen::Matrix<double,4,Eigen::Dynamic> Matrix4Xd;
+  typedef Eigen::Matrix<double,Eigen::Dynamic,4> MatrixX4d;
   
 private:
   

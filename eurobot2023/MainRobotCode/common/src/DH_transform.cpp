@@ -82,19 +82,30 @@ Eigen::Affine3d exp_map(Eigen::Matrix<double,6,1> const& tau)
 
 //--------------------------------------------------------------------------------------------------
 
-Eigen::Matrix<double,6,1> log_map(Eigen::Affine3d const& T)
+Eigen::Vector3d log_map(Eigen::Quaterniond const& q)
 {
-  // Get the translational part
-  Eigen::Matrix<double,6,1> tau = Eigen::Matrix<double,6,1>::Zero();
-  tau.tail<3>() = T.translation();
-
-  // Get the quaternion and check it
-  Eigen::Quaterniond q(T.rotation());
   double q_norm = q.norm();
   if( q_norm < 1-1e-3 || q_norm > 1+1e-3)
     throw("Unormalized quaternion");
   Eigen::AngleAxisd angle_axis(q);
-  tau.head<3>() = angle_axis.angle() * angle_axis.axis();
+  return angle_axis.angle() * angle_axis.axis();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Vector3d log_map(Eigen::Matrix3d const& R)
+{
+  Eigen::Quaterniond const q(R);
+  return log_map(q);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Eigen::Matrix<double,6,1> log_map(Eigen::Affine3d const& T)
+{
+  Eigen::Matrix<double,6,1> tau = Eigen::Matrix<double,6,1>::Zero();
+  tau.tail<3>() = T.translation();
+  tau.head<3>() = log_map(T.rotation());
 
   return tau;
 }
@@ -270,18 +281,19 @@ Eigen::Affine3d DHTransformVector::get_global_transform() const
 
 //--------------------------------------------------------------------------------------------------
 
-int DHTransformVector::optimize_parameters(Eigen::Affine3d const& T_target)
+int DHTransformVector::optimize_parameters(
+  Eigen::Affine3d const& T_target)
 {
-  // Pseudo-inverse method
-  // ---------------------
-  // https://homes.cs.washington.edu/~todorov/courses/cseP590/06_JacobianMethods.pdf
-  
+  /* Pseudo-inverse method
+   * ---------------------
+   * https://homes.cs.washington.edu/~todorov/courses/cseP590/06_JacobianMethods.pdf
+   */
   // Optimization parameters
   int constexpr max_iters = 10;
   double constexpr max_tolerance = 1e-5;
   
   // Run algorithm
-  int iter_idx = 0;
+  int iter_idx = 1;
   for(; iter_idx<max_iters; iter_idx+=1)
   {
     std::cout << "Iteration " << iter_idx << std::endl;
@@ -295,6 +307,80 @@ int DHTransformVector::optimize_parameters(Eigen::Affine3d const& T_target)
     Matrix6Xd const J = this->get_free_jacobian_matrix();
     std::cout << "- J = \n" << J << std::endl;
     Eigen::MatrixXd const Jp = J.completeOrthogonalDecomposition().pseudoInverse();
+    std::cout << "- Jp = \n" << Jp << std::endl;
+    Eigen::VectorXd const dp = Jp*dT;
+        
+    // Update each pose individually
+    int col_idx=0;
+    int const num_poses = static_cast<int>(this->size());
+    for(int pose_idx=0; pose_idx<num_poses; pose_idx+=1)
+    {
+      Eigen::Vector4d delta_params = Eigen::Vector4d::Zero();
+      DHTransform::Parameters const& pose_free_params = (*this)[pose_idx].get_free_parameters();
+      for(DHTransform::Parameter const& param : pose_free_params)
+      {
+        delta_params(static_cast<int>(param)) = dp(col_idx);
+        col_idx += 1;
+      }
+      (*this)[pose_idx].update_parameters(delta_params);
+      std::cout << "- dp = " << delta_params.transpose() << std::endl;
+    }
+  }
+  
+  return iter_idx;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+int DHTransformVector::optimize_parameters(
+  Eigen::Vector3d const& t_target,
+  Eigen::Vector3d const& ux_target)
+{
+  /* Pseudo-inverse method
+   * ---------------------
+   * https://homes.cs.washington.edu/~todorov/courses/cseP590/06_JacobianMethods.pdf
+   * The target equality function is:
+   * g(p) = [t(p)-tx ; u(p).ux-1] where:
+   * - t(p) is the final translation vector in the global frame
+   * - u(p) is the direction of the final x vector in the global frame
+   * The associated Jacobian matrix has the form:
+   * - J = [[0,I];[-transpose(tf)*skew(R(p).ex),0]]*J_T_p;
+   * Note: recall that on SO3*R3, we have:
+   * - J_R_T = [I3,03]
+   * - J_t_T = [03,I3]
+   */
+  
+  // Optimization parameters
+  int constexpr max_iters = 10;
+  double constexpr max_tolerance = 1e-5;
+  if(std::fabs(ux_target.norm()-1.0) > max_tolerance)
+    throw std::runtime_error("Unnormalized target direction vector");
+  
+  // Run algorithm
+  int iter_idx = 1;
+  for(; iter_idx<max_iters; iter_idx+=1)
+  {
+    std::cout << "Iteration " << iter_idx << std::endl;
+    
+    // Get the global transform and check
+    Eigen::Affine3d const T = this->get_global_transform();
+    Eigen::Vector4d dT = Eigen::Vector4d::Zero();
+    Eigen::Vector3d const t = T.translation();
+    dT.head<3>() = t - t_target;
+    Eigen::Vector3d const ux = T.rotation().col(0);
+    dT(3) = ux.dot(ux_target) - 1.0;
+    if(dT.norm() < max_tolerance) break;
+    
+    // Get the pose jacobian wrt optimized parameters
+    Matrix6Xd const J_T_p = this->get_free_jacobian_matrix();
+    int const num_free_parameters = J_T_p.cols();
+    Matrix4Xd J_g_p = Matrix4Xd::Zero(4,num_free_parameters);
+    J_g_p.block(0,0,3,num_free_parameters) = J_T_p.block(3,0,3,num_free_parameters);
+    J_g_p.block(3,0,1,num_free_parameters) = - ux_target.transpose() 
+      * get_skew_symmetric_matrix(ux) 
+      * J_T_p.block(0,0,3,num_free_parameters); 
+    std::cout << "- J = \n" << J_g_p << std::endl;
+    Eigen::MatrixXd const Jp = J_g_p.completeOrthogonalDecomposition().pseudoInverse();
     std::cout << "- Jp = \n" << Jp << std::endl;
     Eigen::VectorXd const dp = Jp*dT;
         
@@ -438,7 +524,7 @@ DHTransformVector::Matrix6Xd DHTransformVector::get_free_jacobian_matrix() const
     {
       if(pose_jdx==pose_idx) J = J_T_Ti;
       int const num_params = (*this)[pose_jdx].get_num_free_parameters();
-      J_T_a.block(0,col_idx,6,num_params) = J_T_T0im1 * J_T_a.block(0,col_idx,6,num_params);
+      J_T_a.block(0,col_idx,6,num_params) = J * J_T_a.block(0,col_idx,6,num_params);
       col_idx += num_params;
     }
 
@@ -467,9 +553,13 @@ DHTransformVector create_main_robot_arm()
   
   // Build the robotical arm
   kinematics::DHTransform T01(d01x,0,0,0);
+  T01.free_parameter(kinematics::DHTransform::Parameter::a2,true);
   kinematics::DHTransform T12(d12x,a12x,0,0);
+  T12.free_parameter(kinematics::DHTransform::Parameter::a2,true);
   kinematics::DHTransform T23(d23x,0,0,0);
+  T23.free_parameter(kinematics::DHTransform::Parameter::a2,true);
   kinematics::DHTransform T34(d34x,0,0,0);
+  T34.free_parameter(kinematics::DHTransform::Parameter::a2,true);
   kinematics::DHTransform T45(d45x,a45x,d45z,0);
   kinematics::DHTransformVector arm{T01,T12,T23,T34,T45};
   
