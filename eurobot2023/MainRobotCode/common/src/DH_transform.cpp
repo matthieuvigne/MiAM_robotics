@@ -200,10 +200,10 @@ void DHTransform::update_parameters(double dd1, double da1, double dd2, double d
 void DHTransform::update_parameters(Eigen::Vector4d const& delta_params)
 {
   return this->update_parameters(
-    delta_params(0),  // dd1
-    delta_params(1),  // da1
-    delta_params(2),  // dd2
-    delta_params(3)); // da2
+    delta_params(kd1),
+    delta_params(ka1),
+    delta_params(kd2),
+    delta_params(ka2));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -218,7 +218,7 @@ Eigen::Matrix<double,6,4> const& DHTransform::get_full_jacobian_matrix() const
 void DHTransform::set_parameter(Parameter name, double value)
 {
   // Update the parameter
-  int idx = this->get_parameter_index(name);
+  int idx = this->get_index_from_parameter(name);
   switch(name)
   {
     // If angle value, apply modulo pi
@@ -233,12 +233,6 @@ void DHTransform::set_parameter(Parameter name, double value)
       break;
   }
   
-  // Check the consistency with lower and upper bounds
-  bool ok = true;
-  ok &= (this->lower_bounds_[idx] > value);
-  ok &= (this->upper_bounds_[idx] < value);
-  if(!ok) throw std::runtime_error("Parameter value is inconsistent with its lower/upper bounds");
-  
   // Recompute the global transform
   this->compute_transform_and_jacobian();
 }
@@ -247,24 +241,59 @@ void DHTransform::set_parameter(Parameter name, double value)
 
 void DHTransform::set_parameter_lower_bound(Parameter name, double value)
 {
-  int const idx = this->get_parameter_index(name);
+  int const idx = this->get_index_from_parameter(name);
   this->lower_bounds_[idx] = value;
   if(this->lower_bounds_[idx] > this->upper_bounds_[idx])
     throw std::runtime_error("Inconsistent lower and upper bound");
-  if(this->lower_bounds_[idx] > this->parameters_[idx])
-    throw std::runtime_error("Current parameter lower bound exceeds its value.");
 }
 
 //--------------------------------------------------------------------------------------------------
 
 void DHTransform::set_parameter_upper_bound(Parameter name, double value)
 {
-  int const idx = this->get_parameter_index(name);
+  int const idx = this->get_index_from_parameter(name);
   this->upper_bounds_[idx] = value;
   if(this->lower_bounds_[idx] > this->upper_bounds_[idx])
     throw std::runtime_error("Inconsistent lower and upper bound");
-  if(this->upper_bounds_[idx] < this->parameters_[idx])
-    throw std::runtime_error("Current parameter value exceeds its upper bound.");
+}
+
+//--------------------------------------------------------------------------------------------------
+
+bool DHTransform::get_parameters_back_within_bounds()
+{
+  bool all_parameters_are_within_bounds = true;
+  for(Parameter parameter_name : this->free_parameters_)
+  {
+    int const idx = this->get_index_from_parameter(parameter_name);
+    
+    // CHeck the lower bound
+    if(this->parameters_[idx] <= this->lower_bounds_[idx])
+    {
+      this->parameters_[idx] = this->lower_bounds_[idx];
+      this->set_parameter_free(parameter_name, false);
+      all_parameters_are_within_bounds = false;
+    }
+    
+    // Check the upper bound
+    else if(this->parameters_[idx] >= this->upper_bounds_[idx])
+    {
+      this->parameters_[idx] = this->upper_bounds_[idx];
+      this->set_parameter_free(parameter_name, false);
+      all_parameters_are_within_bounds = false;
+    }
+  }
+  
+  return all_parameters_are_within_bounds;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+bool DHTransformVector::get_parameters_back_within_bounds()
+{
+  bool all_parameters_are_within_bounds = true;
+  for(DHTransform& T : (*this))
+    all_parameters_are_within_bounds &= T.get_parameters_back_within_bounds();
+  return all_parameters_are_within_bounds;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -279,13 +308,13 @@ void DHTransform::set_parameters(Eigen::Vector4d const& params)
 
 double DHTransform::get_parameter(Parameter name)
 {
-  int const idx = this->get_parameter_index(name);
+  int const idx = this->get_index_from_parameter(name);
   return this->parameters_[idx];
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void DHTransform::free_parameter(Parameter name, bool is_free)
+void DHTransform::set_parameter_free(Parameter name, bool is_free)
 {
   if(is_free)
     this->free_parameters_.insert(name);
@@ -332,7 +361,12 @@ int DHTransformVector::optimize_parameters(
           return J_T_p;};
           
       // Solve the problem (without inequality constraints for now)
-      num_iters = this->optimize_parameters(get_residual_vector, get_residual_jacobian);
+      bool all_parameters_within_bounds = false;
+      while(!all_parameters_within_bounds)
+      {
+        num_iters += this->optimize_parameters(get_residual_vector, get_residual_jacobian);
+        all_parameters_within_bounds = this->get_parameters_back_within_bounds();
+      }
       break;
     }
     
@@ -372,9 +406,15 @@ int DHTransformVector::optimize_parameters(
       };
       
       // Solve the problem (without inequality constraints for now)
-      num_iters = this->optimize_parameters(get_residual_vector, get_residual_jacobian);
+      bool all_parameters_within_bounds = false;
+      while(!all_parameters_within_bounds)
+      {
+        num_iters += this->optimize_parameters(get_residual_vector, get_residual_jacobian);
+        all_parameters_within_bounds = this->get_parameters_back_within_bounds();
+      }
       break;
     }
+    
     default:
       std::runtime_error("Unknown problem type.");
   }
@@ -417,7 +457,7 @@ std::string DHTransformVector::print() const
 // Private functions
 //--------------------------------------------------------------------------------------------------
 
-int DHTransform::get_parameter_index(Parameter name) const
+int DHTransform::get_index_from_parameter(Parameter name) const
 {
   int idx = -1;
   switch(name)
@@ -439,6 +479,25 @@ int DHTransform::get_parameter_index(Parameter name) const
   }
   if(idx<0) throw std::runtime_error("Invalid index");
   return idx;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+DHTransform::Parameter DHTransform::get_parameter_from_idx(int idx) const
+{
+  switch(idx)
+  {
+    case 0:
+      return Parameter::d1;
+    case 1:
+      return Parameter::a1;
+    case 2:
+      return Parameter::d2;
+    case 3:
+      return Parameter::a2;
+    default:
+      throw std::runtime_error("Invalid parameter index");
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -557,13 +616,13 @@ DHTransformVector create_main_robot_arm()
   
   // Build the robotical arm
   kinematics::DHTransform T01(d01x,0,0,0);
-  T01.free_parameter(kinematics::DHTransform::Parameter::a2,true);
+  T01.set_parameter_free(kinematics::DHTransform::Parameter::a2,true);
   kinematics::DHTransform T12(d12x,a12x,0,0);
-  T12.free_parameter(kinematics::DHTransform::Parameter::a2,true);
+  T12.set_parameter_free(kinematics::DHTransform::Parameter::a2,true);
   kinematics::DHTransform T23(d23x,0,0,0);
-  T23.free_parameter(kinematics::DHTransform::Parameter::a2,true);
+  T23.set_parameter_free(kinematics::DHTransform::Parameter::a2,true);
   kinematics::DHTransform T34(d34x,0,0,0);
-  T34.free_parameter(kinematics::DHTransform::Parameter::a2,true);
+  T34.set_parameter_free(kinematics::DHTransform::Parameter::a2,true);
   kinematics::DHTransform T45(d45x,a45x,d45z,0);
   kinematics::DHTransformVector arm{T01,T12,T23,T34,T45};
   

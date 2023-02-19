@@ -43,18 +43,22 @@ public:
   double get_parameter(Parameter name);
   void set_parameter(Parameter name, double value);
   void set_parameters(Eigen::Vector4d const& params);
-  void free_parameter(Parameter name, bool is_free);
+  void set_parameter_free(Parameter name, bool is_free);
   void set_parameter_lower_bound(Parameter name, double value);
   void set_parameter_upper_bound(Parameter name, double value);
   void update_parameters(double d1, double a1, double d2, double a2);
   void update_parameters(Eigen::Vector4d const& delta_params);
+  
+  // Freeze parameters which violate constraints
+  bool get_parameters_back_within_bounds();
 
   // Display
   std::string print() const;
 
 private:
 
-  int get_parameter_index(Parameter name) const;
+  int get_index_from_parameter(Parameter name) const;
+  Parameter get_parameter_from_idx(int idx) const;
   void compute_transform_and_jacobian();
 
 private:
@@ -116,6 +120,9 @@ private:
   // Free parameters
   int get_num_free_parameters() const;
   Matrix6Xd get_free_jacobian_matrix() const;
+  
+  // Check that all parameters are within bounds
+  bool get_parameters_back_within_bounds();
   
   // Generic problem resolution function
   template <int Nr>
