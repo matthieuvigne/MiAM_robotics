@@ -23,6 +23,7 @@ int main (int argc, char *argv[])
     }
     // Start all servos in position mode.
     driver.setMode(0xFE, STS::Mode::POSITION);
+    usleep(10000);
 
     // Create GUI
     Glib::RefPtr<Gtk::Application> app = Gtk::Application::create();
