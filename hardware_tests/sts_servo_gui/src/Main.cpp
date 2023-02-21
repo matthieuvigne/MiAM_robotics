@@ -14,9 +14,10 @@ int main (int argc, char *argv[])
     // Try to communicate with servo.
 
     RPi_enablePorts();
+
     STSServoDriver driver;
 
-    if (!driver.init("/dev/ttyUSB0", 17))
+    if (!driver.init("/dev/ttyAMA0", 18))
     {
         std::cout << "Failed to init communication with servos." << std::endl;
         return 0;
