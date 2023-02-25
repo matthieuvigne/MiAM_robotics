@@ -8,16 +8,20 @@
 namespace kinematics {
 
 //--------------------------------------------------------------------------------------------------
+// Typedefs
+//--------------------------------------------------------------------------------------------------
+
+enum class Parameter {d1=0, a1=1, d2=2, a2=3};
+typedef std::set<Parameter> Parameters;
+typedef Eigen::Matrix<double,6,Eigen::Dynamic> Matrix6Xd;
+enum class ProblemType {FullPose, PositionDirection};
+struct OptimizationResult {bool success = false; int num_iters = 0;};
+  
+//--------------------------------------------------------------------------------------------------
 // Class declaration
 //--------------------------------------------------------------------------------------------------
 
 class DHTransform {
-
-public:
-
-  enum class Parameter {d1=0, a1=1, d2=2, a2=3};
-  typedef std::set<Parameter> Parameters;
-  typedef Eigen::Matrix<double,6,Eigen::Dynamic> Matrix6Xd;
 
 public:
 
@@ -89,12 +93,15 @@ class DHTransformVector : public std::vector<DHTransform> {
 public:
   DHTransformVector() = default;
   DHTransformVector(std::initializer_list<DHTransform> const& transforms);
+  DHTransformVector(DHTransformVector const& other) = default;
 
 public:
 
-  enum class ProblemType {FullPose, PositionDirection};
   Eigen::Affine3d get_global_transform() const;
-  int optimize_parameters(ProblemType type, double const* const* args, bool use_contraints = false);
+  OptimizationResult optimize_full_pose(Eigen::Affine3d const& T);
+  OptimizationResult optimize_position_x_direction(
+    Eigen::Vector3d const& target_position,
+    Eigen::Vector3d const& target_x);
   std::string print() const;
   
 private:
@@ -111,6 +118,11 @@ private:
   typedef Eigen::Matrix<double,4,1> Vector4d;
   typedef Eigen::Matrix<double,4,Eigen::Dynamic> Matrix4Xd;
   typedef Eigen::Matrix<double,Eigen::Dynamic,4> MatrixX4d;
+
+  // Position-direction problem (alt)
+  typedef Eigen::Matrix<double,5,1> Vector5d;
+  typedef Eigen::Matrix<double,5,Eigen::Dynamic> Matrix5Xd;
+  typedef Eigen::Matrix<double,Eigen::Dynamic,5> MatrixX5d;
   
   template <int Nr> using ResidualVector = Eigen::Matrix<double,Nr,1>;
   template<int Nr> using ResidualJacobian = Eigen::Matrix<double,Nr,Eigen::Dynamic>;
@@ -126,14 +138,18 @@ private:
   
   // Generic problem resolution function
   template <int Nr>
-  int optimize_parameters(
+  OptimizationResult optimize_parameters(
     std::function<ResidualVector<Nr>(Eigen::Affine3d const&)> const& get_residual,
     std::function<ResidualJacobian<Nr>(Eigen::Affine3d const&, Matrix6Xd const&)> const& get_jacobian);
+  OptimizationResult optimize_parameters(ProblemType type, double const* const* args);
   
 }; // class DHTransformVector
 
 //--------------------------------------------------------------------------------------------------
+// Static functios
+//--------------------------------------------------------------------------------------------------
 
+std::string get_parameter_name(Parameter parameter);
 DHTransformVector create_main_robot_arm();
 
 //--------------------------------------------------------------------------------------------------
@@ -141,7 +157,7 @@ DHTransformVector create_main_robot_arm();
 //--------------------------------------------------------------------------------------------------
 
 template <int Nr>
-int DHTransformVector::optimize_parameters(
+OptimizationResult DHTransformVector::optimize_parameters(
   std::function<ResidualVector<Nr>(Eigen::Affine3d const&)> const& get_residual_vector,
   std::function<ResidualJacobian<Nr>(Eigen::Affine3d const&, Matrix6Xd const&)> const& get_residual_jacobian)
 {
@@ -151,7 +167,8 @@ int DHTransformVector::optimize_parameters(
   // -----------------------------------------------------------------------------------------------
    
   // Optimization parameters
-  int constexpr max_iters = 10;
+  int constexpr max_iters = 500;
+  OptimizationResult results{false,0};
   double constexpr max_tolerance = 1e-5;
   typedef Eigen::Matrix<double,Nr,1> ResidualVector;
   typedef Eigen::Matrix<double,Nr,Eigen::Dynamic> ResidualJacobian;
@@ -163,13 +180,17 @@ int DHTransformVector::optimize_parameters(
     // Get the global transform and check
     Eigen::Affine3d const T = this->get_global_transform();
     ResidualVector const dT = get_residual_vector(T);
-    if(dT.norm() < max_tolerance) break;
+    if(dT.norm() < max_tolerance)
+    {
+      results.success = true;
+      break;
+    }
     
     // Get the pose jacobian wrt optimized parameters
     Matrix6Xd const J_T_p = this->get_free_jacobian_matrix();
     ResidualJacobian J = get_residual_jacobian(T, J_T_p);
     Eigen::MatrixXd const Jp = J.completeOrthogonalDecomposition().pseudoInverse();
-    Eigen::VectorXd const dp = Jp*dT;
+    Eigen::VectorXd const dp = Jp * dT;
         
     // Update each pose individually
     int col_idx=0;
@@ -177,8 +198,8 @@ int DHTransformVector::optimize_parameters(
     for(int pose_idx=0; pose_idx<num_poses; pose_idx+=1)
     {
       Eigen::Vector4d delta_params = Eigen::Vector4d::Zero();
-      DHTransform::Parameters const& pose_free_params = (*this)[pose_idx].get_free_parameters();
-      for(DHTransform::Parameter const& param : pose_free_params)
+      Parameters const& pose_free_params = (*this)[pose_idx].get_free_parameters();
+      for(Parameter const& param : pose_free_params)
       {
         delta_params(static_cast<int>(param)) = dp(col_idx);
         col_idx += 1;
@@ -187,7 +208,9 @@ int DHTransformVector::optimize_parameters(
     }
   }
   
-  return iter_idx;
+  // Return the results
+  results.num_iters = iter_idx;
+  return results;
 }
 
 //--------------------------------------------------------------------------------------------------

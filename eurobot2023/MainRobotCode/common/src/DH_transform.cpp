@@ -159,7 +159,7 @@ Eigen::Vector4d const& DHTransform::get_parameters() const
 
 //--------------------------------------------------------------------------------------------------
 
-DHTransform::Parameters DHTransform::get_free_parameters() const
+Parameters DHTransform::get_free_parameters() const
 {
   return free_parameters_;
 }
@@ -187,9 +187,9 @@ void DHTransform::update_parameters(double dd1, double da1, double dd2, double d
 {
   // Update parameters (with modulo pi)
   this->parameters_[kd1] += dd1;
-  this->parameters_[ka1] = std::fmod(this->parameters_[ka1] + da1, M_PI);
+  this->parameters_[ka1] = std::fmod(this->parameters_[ka1] + da1, 2*M_PI);
   this->parameters_[kd2] += dd2;
-  this->parameters_[ka2] = std::fmod(this->parameters_[ka2] + da2, M_PI);
+  this->parameters_[ka2] = std::fmod(this->parameters_[ka2] + da2, 2*M_PI);
   
   // Compute the new global transformation
   this->compute_transform_and_jacobian();
@@ -224,7 +224,7 @@ void DHTransform::set_parameter(Parameter name, double value)
     // If angle value, apply modulo pi
     case Parameter::a1:
     case Parameter::a2:
-      this->parameters_[idx] = std::fmod(value, M_PI);
+      this->parameters_[idx] = std::fmod(value, 2*M_PI);
       break;
     // Otherwise, don't worry
     case Parameter::d1:
@@ -266,20 +266,24 @@ bool DHTransform::get_parameters_back_within_bounds()
   {
     int const idx = this->get_index_from_parameter(parameter_name);
     
-    // CHeck the lower bound
-    if(this->parameters_[idx] <= this->lower_bounds_[idx])
+    // Check the lower bound
+    if(this->parameters_[idx] < this->lower_bounds_[idx])
     {
       this->parameters_[idx] = this->lower_bounds_[idx];
       this->set_parameter_free(parameter_name, false);
       all_parameters_are_within_bounds = false;
+      //~ std::cout << "-> Fixed parameter " << get_parameter_name(parameter_name)
+        //~ << " (reached lower bound)." << std::endl;
     }
     
     // Check the upper bound
-    else if(this->parameters_[idx] >= this->upper_bounds_[idx])
+    else if(this->parameters_[idx] > this->upper_bounds_[idx])
     {
       this->parameters_[idx] = this->upper_bounds_[idx];
       this->set_parameter_free(parameter_name, false);
       all_parameters_are_within_bounds = false;
+      //~ std::cout << "-> Fixed parameter " << get_parameter_name(parameter_name)
+        //~ << " (reached upper bound)." << std::endl;
     }
   }
   
@@ -334,12 +338,35 @@ Eigen::Affine3d DHTransformVector::get_global_transform() const
 
 //--------------------------------------------------------------------------------------------------
 
-int DHTransformVector::optimize_parameters(
-  ProblemType problem_type, double const* const* args,
-  bool use_contraints)
+OptimizationResult DHTransformVector::optimize_full_pose(Eigen::Affine3d const& T)
 {
+  std::vector<double const*> args{T.matrix().data()};
+  return this->optimize_parameters(ProblemType::FullPose, args.data());
+}
+
+//--------------------------------------------------------------------------------------------------
+
+OptimizationResult DHTransformVector::optimize_position_x_direction(
+  Eigen::Vector3d const& target_position,
+  Eigen::Vector3d const& target_x)
+{
+  // Note: x vector will be normalized within the optimize_parameters function.
+  std::vector<double const*> args{target_position.data(), target_x.data()};
+  return this->optimize_parameters(ProblemType::PositionDirection, args.data());
+}
+
+//--------------------------------------------------------------------------------------------------
+
+OptimizationResult DHTransformVector::optimize_parameters(
+  ProblemType problem_type, double const* const* args)
+{
+  // Save the free parameters
+  std::vector<Parameters> saved_free_parameters;
+  for(DHTransform const& T : *this)
+    saved_free_parameters.push_back(T.get_free_parameters());
+  
   // Set the problem
-  int num_iters = 0;
+  OptimizationResult results;
   switch(problem_type)
   {
 
@@ -360,11 +387,14 @@ int DHTransformVector::optimize_parameters(
       get_residual_jacobian = [&](Eigen::Affine3d const&, Matrix6Xd const& J_T_p){
           return J_T_p;};
           
-      // Solve the problem (without inequality constraints for now)
+      // Solve the problem
       bool all_parameters_within_bounds = false;
       while(!all_parameters_within_bounds)
       {
-        num_iters += this->optimize_parameters(get_residual_vector, get_residual_jacobian);
+        OptimizationResult tmp_results;
+        tmp_results = this->optimize_parameters(get_residual_vector, get_residual_jacobian);
+        results.success = tmp_results.success;
+        results.num_iters += tmp_results.num_iters;
         all_parameters_within_bounds = this->get_parameters_back_within_bounds();
       }
       break;
@@ -376,40 +406,41 @@ int DHTransformVector::optimize_parameters(
       std::function<Vector4d(Eigen::Affine3d const&)> get_residual_vector;
       std::function<Matrix4Xd(Eigen::Affine3d const&, Matrix6Xd const&)> get_residual_jacobian;
       
-      // Get the problem parameters
+      // Get the problem parameters and build a fictive target pose
       if(args[0]==nullptr || args[1]==nullptr)
         throw std::runtime_error("Missing data");
-      Eigen::Map<Eigen::Vector3d const> t_target(args[0]);
-      Eigen::Map<Eigen::Vector3d const> ux_target(args[1]);
+      Eigen::Map<Eigen::Vector3d const> tf(args[0]);
+      Eigen::Map<Eigen::Vector3d const> xf(args[1]);
+      Eigen::Vector3d const uxf = xf.normalized();
       
       // Build the problem functions
       
       get_residual_vector = [&](Eigen::Affine3d const& T){
-        Eigen::Vector4d residual = Eigen::Vector4d::Zero();
-        Eigen::Vector3d const t = T.translation();
-        residual.head<3>() = t - t_target;
-        Eigen::Vector3d const ux = T.rotation().col(0);
-        residual(3) = ux.dot(ux_target) - 1.0;
+        Vector4d residual = Vector4d::Zero();
+        residual.head<3>() = tf - T.translation();
+        Eigen::Matrix3d const& R = T.rotation();
+        residual(3) = 1 - uxf.dot(R.col(0));
         return residual;
       };
       
       get_residual_jacobian = [&](Eigen::Affine3d const& T, Matrix6Xd const& J_T_p){
         int const num_free_parameters = J_T_p.cols();
-        Eigen::Vector3d const ux = T.rotation().col(0);
-        Matrix4Xd J_g_p = Matrix4Xd::Zero(4,num_free_parameters);
+        Matrix4Xd J_g_p = Matrix4Xd(4,num_free_parameters);
         J_g_p.block(0,0,3,num_free_parameters) = J_T_p.block(3,0,3,num_free_parameters);
+        Eigen::Matrix3d const S = get_skew_symmetric_matrix(T.rotation().col(0));
         J_g_p.block(3,0,1,num_free_parameters) = 
-          - ux_target.transpose() 
-          * get_skew_symmetric_matrix(ux) 
-          * J_T_p.block(0,0,3,num_free_parameters);
-         return J_g_p;
+          - uxf.transpose() * S * J_T_p.block(0,0,3,num_free_parameters);
+        return J_g_p;
       };
       
-      // Solve the problem (without inequality constraints for now)
+      // Solve the problem
       bool all_parameters_within_bounds = false;
       while(!all_parameters_within_bounds)
       {
-        num_iters += this->optimize_parameters(get_residual_vector, get_residual_jacobian);
+        OptimizationResult tmp_results;
+        tmp_results = this->optimize_parameters(get_residual_vector, get_residual_jacobian);
+        results.success = tmp_results.success;
+        results.num_iters += tmp_results.num_iters;
         all_parameters_within_bounds = this->get_parameters_back_within_bounds();
       }
       break;
@@ -419,24 +450,50 @@ int DHTransformVector::optimize_parameters(
       std::runtime_error("Unknown problem type.");
   }
   
-  return num_iters;
+  // Restaure the free parameters
+  int const num_poses = static_cast<int>(this->size());
+  for(int pose_idx=0; pose_idx<num_poses; pose_idx += 1)
+  {
+    Parameters const& pose_free_parameters = saved_free_parameters[pose_idx];
+    for(Parameter parameter : pose_free_parameters)
+      this->at(pose_idx).set_parameter_free(parameter, true);
+  }
+  
+  return results;
 }
 
 //--------------------------------------------------------------------------------------------------
 
 std::string DHTransform::print() const
 {
+  // Define colors
+  std::string const free = "\033[32mfree\033[0m";
+  std::string const fixed = "\033[31mfixed\033[0m";
+  
+  // Print the message
   std::stringstream out;
-  out << "Parameters: ("
-      << "d1=" << this->parameters_[kd1] << " ("
-      << (this->free_parameters_.count(Parameter::d1)>0 ? "free" : "fixed") << "), "
-      << "a1=" << this->parameters_[ka1] << " ("
-      << (this->free_parameters_.count(Parameter::a1)>0 ? "free" : "fixed") << "), "
-      << "d2=" << this->parameters_[kd2] << " ("
-      << (this->free_parameters_.count(Parameter::d2)>0 ? "free" : "fixed") << "), "
-      << "a2=" << this->parameters_[ka2] << " ("
-      << (this->free_parameters_.count(Parameter::a2)>0 ? "free" : "fixed") << ")\n";
-  out << "Transform:\n" << this->transform_.matrix();
+  out << "Parameters:\n"
+      
+      << "-> d1=" << this->parameters_[kd1] << " ("
+      << (this->free_parameters_.count(Parameter::d1)>0 ? free : fixed) << ")"
+      << " with d1_min=" << this->lower_bounds_[kd1] 
+      << " and d1_max=" << this->upper_bounds_[kd1] << "\n"
+      
+      << "-> a1=" << this->parameters_[ka1] << " ("
+      << (this->free_parameters_.count(Parameter::a1)>0 ? free : fixed) << ")"
+      << " with d1_min=" << this->lower_bounds_[ka1] 
+      << " and d1_max=" << this->upper_bounds_[ka1] << "\n"
+      
+      << "-> d2=" << this->parameters_[kd2] << " ("
+      << (this->free_parameters_.count(Parameter::d2)>0 ? free : fixed) << ")"
+      << " with d1_min=" << this->lower_bounds_[kd2] 
+      << " and d1_max=" << this->upper_bounds_[kd2] << "\n"
+      
+      << "-> a2=" << this->parameters_[ka2] << " ("
+      << (this->free_parameters_.count(Parameter::a2)>0 ? free : fixed) << ")"
+      << " with d1_min=" << this->lower_bounds_[ka2] 
+      << " and d1_max=" << this->upper_bounds_[ka2];
+
   return out.str();
 }
 
@@ -446,10 +503,10 @@ std::string DHTransformVector::print() const
 {
   std::stringstream out;
   out << "Robotical arm:" << std::endl;
-  out << "Successive transforms:\n\n";
+  out << "Successive transforms:\n";
   for(DHTransform const& T : *this)
     out << std::endl << T.print() << std::endl;
-  out << "\n\nGlobal transform:\n" << this->get_global_transform().matrix() << std::endl;
+  out << "\nGlobal transform:\n" << this->get_global_transform().matrix() << std::endl;
   return out.str();
 }
 
@@ -483,7 +540,7 @@ int DHTransform::get_index_from_parameter(Parameter name) const
 
 //--------------------------------------------------------------------------------------------------
 
-DHTransform::Parameter DHTransform::get_parameter_from_idx(int idx) const
+Parameter DHTransform::get_parameter_from_idx(int idx) const
 {
   switch(idx)
   {
@@ -560,7 +617,7 @@ DHTransformVector::Matrix6Xd DHTransformVector::get_free_jacobian_matrix() const
   {
     DHTransform const& T = (*this)[pose_idx];
     Matrix64d const& J_T_p = T.get_full_jacobian_matrix();
-    for(DHTransform::Parameter parameter : T.get_free_parameters())
+    for(Parameter parameter : T.get_free_parameters())
     {
       J_T_a.col(col_idx) = J_T_p.col(static_cast<int>(parameter));
       col_idx += 1;
@@ -602,6 +659,29 @@ DHTransformVector::Matrix6Xd DHTransformVector::get_free_jacobian_matrix() const
 // Other functions
 //--------------------------------------------------------------------------------------------------
 
+std::string get_parameter_name(Parameter parameter)
+{
+  switch(parameter)
+  {
+    case Parameter::d1:
+      return std::string("d1");
+      break;
+    case Parameter::a1:
+      return std::string("a1");
+      break;
+    case Parameter::d2:
+      return std::string("d2");
+      break;
+    case Parameter::a2:
+      return std::string("a2");
+      break;
+    default:
+      throw std::runtime_error("Unknown parameter");
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+
 DHTransformVector create_main_robot_arm()
 {
   // Robotical arm configuration
@@ -611,20 +691,35 @@ DHTransformVector create_main_robot_arm()
   double constexpr d23x = 70.6e-3;
   double constexpr d34x = 90.6e-3;
   double constexpr d45x = 29.1e-3;
-  double constexpr a45x = M_PI_2;
+  double constexpr a45x = -M_PI_2;
   double constexpr d45z = 45.8e-3;
   
+  using namespace kinematics;
+  
   // Build the robotical arm
-  kinematics::DHTransform T01(d01x,0,0,0);
-  T01.set_parameter_free(kinematics::DHTransform::Parameter::a2,true);
-  kinematics::DHTransform T12(d12x,a12x,0,0);
-  T12.set_parameter_free(kinematics::DHTransform::Parameter::a2,true);
-  kinematics::DHTransform T23(d23x,0,0,0);
-  T23.set_parameter_free(kinematics::DHTransform::Parameter::a2,true);
-  kinematics::DHTransform T34(d34x,0,0,0);
-  T34.set_parameter_free(kinematics::DHTransform::Parameter::a2,true);
-  kinematics::DHTransform T45(d45x,a45x,d45z,0);
-  kinematics::DHTransformVector arm{T01,T12,T23,T34,T45};
+  DHTransform T01(d01x,0,0,0);
+  DHTransform T12(d12x,a12x,0,0);
+  DHTransform T23(d23x,0,0,0);
+  DHTransform T34(d34x,0,0,0);
+  DHTransform T45(d45x,a45x,d45z,0);
+
+  T01.set_parameter_free(Parameter::a2,true);
+  T01.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
+  T01.set_parameter_upper_bound(Parameter::a2,  M_PI_2);
+  
+  T12.set_parameter_free(Parameter::a2,true);
+  T12.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
+  T12.set_parameter_upper_bound(Parameter::a2,  M_PI_2);
+    
+  T23.set_parameter_free(Parameter::a2,true);
+  T23.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
+  T23.set_parameter_upper_bound(Parameter::a2,  0);
+  
+  T34.set_parameter_free(Parameter::a2,true);
+  T34.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
+  T34.set_parameter_upper_bound(Parameter::a2,  M_PI_2);
+  
+  DHTransformVector arm{T01,T12,T23,T34,T45};
   
   return arm;
 }
