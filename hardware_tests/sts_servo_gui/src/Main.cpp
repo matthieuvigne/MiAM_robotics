@@ -14,15 +14,17 @@ int main (int argc, char *argv[])
     // Try to communicate with servo.
 
     RPi_enablePorts();
+
     STSServoDriver driver;
 
-    if (!driver.init("/dev/ttyUSB0", 17))
+    if (!driver.init("/dev/ttyAMA0", 18))
     {
         std::cout << "Failed to init communication with servos." << std::endl;
         return 0;
     }
     // Start all servos in position mode.
     driver.setMode(0xFE, STS::Mode::POSITION);
+    usleep(10000);
 
     // Create GUI
     Glib::RefPtr<Gtk::Application> app = Gtk::Application::create();

@@ -230,12 +230,10 @@ int STSServoDriver::sendMessage(unsigned char const& servoId,
     message[5 + paramLength] = ~checksum;
 
     RPi_writeGPIO(dirPin_, false);
-    // std::cout << "Sending" << std::endl;
-    // for (int i = 0; i < 6 + paramLength; i++)
-    //     std::cout <<  std::hex << int(message[i]) << " ";
-    // std::cout << std::endl;
+    usleep(5);
     int ret = write(port_, message, 6 + paramLength);
-    RPi_writeGPIO(dirPin_, false);
+    usleep(5);
+    RPi_writeGPIO(dirPin_, true);
     return ret;
 }
 
@@ -327,9 +325,7 @@ int STSServoDriver::recieveMessage(unsigned char const& servoId,
                                    unsigned char const& readLength,
                                    unsigned char *outputBuffer)
 {
-    // std::cout << "trying to read a message:" << int(readLength) << std::endl;
-    RPi_writeGPIO(dirPin_, false);
-    usleep(300);
+    RPi_writeGPIO(dirPin_, true);
     unsigned char result[readLength + 5];
     int rd = read_timeout(port_, result, readLength + 5, readTimeout_);
     if (rd != readLength + 5)
