@@ -103,20 +103,17 @@ bool MCP2515::init()
 
     // 1-bit time = 1000ns
     // Clock bit time: BRP = 0
-    // TQ = 1 / 8MHz = 125ns
-    // So 1bit = 8TQ
-    // Setting Tdelay = 2TQ and considering 1TQ sync, we have 5TQ available
-    // We set PSI = 2, PS2 = 3 and SWJ = 1
+    // TQ = 1 / 16MHz = 62.5ns
+    // So 1bit = 16TQ
+    // Setting Tdelay = 2TQ and considering 1TQ sync, we have 13TQ available
+    // We set PSI = 10, PS2 = 3 and SWJ = 1
+
+    // Note: for 8MHz clock, at 500kbps, use PS1=2 instead (the rest can be left unchanged)
     unsigned char const BRP = 0;
     unsigned char const DELAY = 2;
-    unsigned char const PS1 = 2;
+    unsigned char const PS1 = 10;
     unsigned char const PS2 = 3;
     unsigned char const SWJ = 1;
-
-    // Config
-    writeRegister(CNF1_REGISTER, ((SWJ -1) << 6) + BRP);
-    writeRegister(CNF2_REGISTER, 0x80 + ((PS1 - 1) << 3) + (DELAY - 1));
-    writeRegister(CNF3_REGISTER, PS2 - 1);
 
     // Interrupts not used
     writeRegister(CANINTE_REGISTER, 0b11110000);
@@ -160,6 +157,7 @@ bool MCP2515::sendMessage(CANMessage const& message)
 
     data[0] = REQUEST_TO_SEND_COMMAND;
     res = spiDriver_->spiReadWriteSingle(data, 1);
+    std::cout << "Sending data" << std::endl;
 
     return res == 1;
 }
