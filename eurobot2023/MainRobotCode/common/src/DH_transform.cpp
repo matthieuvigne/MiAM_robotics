@@ -115,7 +115,7 @@ Eigen::Matrix<double,6,1> log_map(Eigen::Affine3d const& T)
 
 double modulo(double angle_rad)
 {
-  return M_PI + std::fmod(angle_rad - M_PI, 2*M_PI);
+  return std::fmod(angle_rad + M_PI, 2*M_PI) - M_PI;
 }
 
 //--------------------------------------------------------------------------------------------------
