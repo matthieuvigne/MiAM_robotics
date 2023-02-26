@@ -112,6 +112,20 @@ Eigen::Matrix<double,6,1> log_map(Eigen::Affine3d const& T)
 }
 
 //--------------------------------------------------------------------------------------------------
+
+double modulo(double angle_rad)
+{
+  return M_PI + std::fmod(angle_rad - M_PI, 2*M_PI);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+double convert_to_degree(double angle_rad)
+{
+  return 180.*(angle_rad/M_PI);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Constructors and destructor
 //--------------------------------------------------------------------------------------------------
 
@@ -187,9 +201,11 @@ void DHTransform::update_parameters(double dd1, double da1, double dd2, double d
 {
   // Update parameters (with modulo pi)
   this->parameters_[kd1] += dd1;
-  this->parameters_[ka1] = std::fmod(this->parameters_[ka1] + da1, 2*M_PI);
+  //~ this->parameters_[ka1] = std::fmod(this->parameters_[ka1] + da1, 2*M_PI);
+  this->parameters_[ka1] = modulo(this->parameters_[ka1] + da1);
   this->parameters_[kd2] += dd2;
-  this->parameters_[ka2] = std::fmod(this->parameters_[ka2] + da2, 2*M_PI);
+  //~ this->parameters_[ka2] = std::fmod(this->parameters_[ka2] + da2, 2*M_PI);
+  this->parameters_[ka2] = modulo(this->parameters_[ka2] + da2);
   
   // Compute the new global transformation
   this->compute_transform_and_jacobian();
@@ -224,7 +240,8 @@ void DHTransform::set_parameter(Parameter name, double value)
     // If angle value, apply modulo pi
     case Parameter::a1:
     case Parameter::a2:
-      this->parameters_[idx] = std::fmod(value, 2*M_PI);
+      //~ this->parameters_[idx] = std::fmod(value, 2*M_PI);
+      this->parameters_[idx] = modulo(value);
       break;
     // Otherwise, don't worry
     case Parameter::d1:
@@ -242,7 +259,18 @@ void DHTransform::set_parameter(Parameter name, double value)
 void DHTransform::set_parameter_lower_bound(Parameter name, double value)
 {
   int const idx = this->get_index_from_parameter(name);
-  this->lower_bounds_[idx] = value;
+  //~ this->lower_bounds_[idx] = value;
+  switch(name)
+  {
+    case Parameter::a1:
+    case Parameter::a2:
+      this->lower_bounds_[idx] = modulo(value);
+      break;
+    case Parameter::d1:
+    case Parameter::d2:
+      this->lower_bounds_[idx] = value;
+      break;
+  }
   if(this->lower_bounds_[idx] > this->upper_bounds_[idx])
     throw std::runtime_error("Inconsistent lower and upper bound");
 }
@@ -252,7 +280,18 @@ void DHTransform::set_parameter_lower_bound(Parameter name, double value)
 void DHTransform::set_parameter_upper_bound(Parameter name, double value)
 {
   int const idx = this->get_index_from_parameter(name);
-  this->upper_bounds_[idx] = value;
+  //~ this->upper_bounds_[idx] = value;
+  switch(name)
+  {
+    case Parameter::a1:
+    case Parameter::a2:
+      this->upper_bounds_[idx] = modulo(value);
+      break;
+    case Parameter::d1:
+    case Parameter::d2:
+      this->upper_bounds_[idx] = value;
+      break;
+  }
   if(this->lower_bounds_[idx] > this->upper_bounds_[idx])
     throw std::runtime_error("Inconsistent lower and upper bound");
 }
@@ -474,25 +513,25 @@ std::string DHTransform::print() const
   std::stringstream out;
   out << "Parameters:\n"
       
-      << "-> d1=" << this->parameters_[kd1] << " ("
+      << "-> d1=" << this->parameters_[kd1] << "m ("
       << (this->free_parameters_.count(Parameter::d1)>0 ? free : fixed) << ")"
-      << " with d1_min=" << this->lower_bounds_[kd1] 
-      << " and d1_max=" << this->upper_bounds_[kd1] << "\n"
+      << " with d1_min=" << this->lower_bounds_[kd1] << "m"
+      << " and d1_max=" << this->upper_bounds_[kd1] << "m\n"
       
-      << "-> a1=" << this->parameters_[ka1] << " ("
+      << "-> a1=" << convert_to_degree(this->parameters_[ka1]) << "° ("
       << (this->free_parameters_.count(Parameter::a1)>0 ? free : fixed) << ")"
-      << " with d1_min=" << this->lower_bounds_[ka1] 
-      << " and d1_max=" << this->upper_bounds_[ka1] << "\n"
+      << " with a1_min=" << convert_to_degree(this->lower_bounds_[ka1]) << "°"
+      << " and a1_max=" << convert_to_degree(this->upper_bounds_[ka1]) << "°\n"
       
-      << "-> d2=" << this->parameters_[kd2] << " ("
+      << "-> d2=" << this->parameters_[kd2] << "m ("
       << (this->free_parameters_.count(Parameter::d2)>0 ? free : fixed) << ")"
-      << " with d1_min=" << this->lower_bounds_[kd2] 
-      << " and d1_max=" << this->upper_bounds_[kd2] << "\n"
+      << " with d2_min=" << this->lower_bounds_[kd2] << "m"
+      << " and d2_max=" << this->upper_bounds_[kd2] << "m\n"
       
-      << "-> a2=" << this->parameters_[ka2] << " ("
+      << "-> a2=" << convert_to_degree(this->parameters_[ka2]) << "° ("
       << (this->free_parameters_.count(Parameter::a2)>0 ? free : fixed) << ")"
-      << " with d1_min=" << this->lower_bounds_[ka2] 
-      << " and d1_max=" << this->upper_bounds_[ka2];
+      << " with a2_min=" << convert_to_degree(this->lower_bounds_[ka2]) << "°" 
+      << " and a2_max=" << convert_to_degree(this->upper_bounds_[ka2]) << "°";
 
   return out.str();
 }
