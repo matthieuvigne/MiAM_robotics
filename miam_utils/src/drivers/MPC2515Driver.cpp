@@ -115,6 +115,11 @@ bool MCP2515::init()
     unsigned char const PS2 = 3;
     unsigned char const SWJ = 1;
 
+    // Config
+    writeRegister(CNF1_REGISTER, ((SWJ -1) << 6) + BRP);
+    writeRegister(CNF2_REGISTER, 0x80 + ((PS1 - 1) << 3) + (DELAY - 1));
+    writeRegister(CNF3_REGISTER, PS2 - 1);
+
     // Interrupts not used
     writeRegister(CANINTE_REGISTER, 0b11110000);
     writeRegister(CANINTF_REGISTER, 0x00);
@@ -157,7 +162,6 @@ bool MCP2515::sendMessage(CANMessage const& message)
 
     data[0] = REQUEST_TO_SEND_COMMAND;
     res = spiDriver_->spiReadWriteSingle(data, 1);
-    std::cout << "Sending data" << std::endl;
 
     return res == 1;
 }
