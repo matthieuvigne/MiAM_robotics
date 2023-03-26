@@ -16,6 +16,7 @@
     #include "common/RobotInterface.h"
     #include "common/ServoHandler.h"
     #include "common/AbstractStrategy.h"
+    #include "common/RobotGUI.h"
 
     #include "MaestroMock.h"
 
@@ -61,18 +62,8 @@
                 return isPlayingRightSide_;
             }
 
-            /// \brief Set a new target to the rail.
-            /// \param position Relative rail position, form 0 (down) to 1 (up).
-            void moveRail(double const& position) override;
-
             // Sleep a specified number of seconds.
             virtual void wait(double const& waitTimeS) override;
-
-            /// \brief The low-level thread of the robot.
-            /// \details This thread runs a periodic loop. At each iteration, it updates sensor values,
-            ///          estimates the position of the robot on the table, and performs motor servoing.
-            ///          It also logs everything in a log file.
-            void lowLevelLoop() override {}
 
             /// \brief Update the robot score.
             /// \details This function increments the score then updates the display accordingly.
@@ -126,6 +117,8 @@
             double simulationTime_ = 0.0;
 
             pthread_t runningThread_ = 0;
+
+            RobotGUI gui_;
     };
 
 #endif

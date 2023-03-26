@@ -70,11 +70,6 @@ double ViewerRobot::getMatchTime()
     return simulationTime_;
 }
 
-void ViewerRobot::moveRail(double const& position)
-{
-    handler_.moveRail(100 * position);
-}
-
 void ViewerRobot::wait(double const& waitTimeS)
 {
     if (simulationTime_ < 1e-3 && waitTimeS < 90)
@@ -129,6 +124,14 @@ void ViewerRobot::tick(double const& dt, double const& simulationTime, Vector2 c
         p.position.theta = M_PI - p.position.theta;
     }
     trajectory_.push_back(p);
+
+    // Update gui
+    RobotGUIData data;
+    data.batteryVoltage = 24.0;
+    data.currentMatchTime = simulationTime_;
+    data.state = robotstate::MATCH;
+    data.score = score_;
+    gui_.update(data);
 }
 
 void ViewerRobot::reset(bool const& isPlayingRightSide)
@@ -151,4 +154,6 @@ void ViewerRobot::reset(bool const& isPlayingRightSide)
     std::thread tr = std::thread(&AbstractStrategy::match, strategy_);
     runningThread_ = tr.native_handle();
     tr.detach();
+    gui_.unfullscreen();
+    gui_.show_all();
 }

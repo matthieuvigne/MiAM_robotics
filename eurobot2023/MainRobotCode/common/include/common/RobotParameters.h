@@ -38,6 +38,9 @@
 
                 return c;
             };
+
+            int rightMotorId;
+            int leftMotorId;
         };
 
  #endif

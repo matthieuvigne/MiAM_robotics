@@ -80,12 +80,11 @@ class RMDX{
             int16_t motorStatus = 0; ///< Motor status
         };
 
-        RMDX(MCP2515 *canDriver, double const& timeout = 0.020);
+        RMDX(MCP2515 *canDriver, double const& timeout = 0.005);
 
         /// \brief Reset a given motor
         /// \param[in] motorId Motor id
         void reset(unsigned char const& motorId);
-
 
         /// @brief  \brief Init communication with motor, checking that it is present
         /// @param motorId Motor id

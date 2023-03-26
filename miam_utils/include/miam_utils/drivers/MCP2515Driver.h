@@ -32,12 +32,7 @@
 
             /// \brief Try to init communication with the chip.
             ///
-            /// \details This function tries, for each device, to reset it, then set its speed and velocity
-            ///          profile, and its back-emf force. It then asks the device for a specific value, to
-            ///          check the connection.
-            ///
-            /// \param[in] maxSpeed Maximum motor speed, in steps/s (from 15.25 to 15610, resolution 15.25 step/s).
-            /// \return true is all devices responded, false otherwise.
+            /// \return true is correct response was obtained, false otherwise.
             bool init();
 
             /// \brief Set a parameter register.

@@ -39,7 +39,9 @@ class AS5045{
         ///
         /// \param[out] position Read position, in rad ; return previousSingleTurnPos_ on failure
         /// \return True if a valid position was read
-        bool readSPI(std::vector<double> & position) const;
+        bool readSPI(std::vector<double> & position);
+
+        bool wasLastFrameValid_;
 
 };
 

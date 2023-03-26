@@ -48,19 +48,19 @@ int main(int argc, char **argv)
             exit(0);
         }
     }
-    // Init raspberry serial ports and GPIO.
-    RPi_enablePorts();
+    // // Init raspberry serial ports and GPIO.
+    // RPi_enablePorts();
 
-    main_robot::Strategy strategy;
-    Robot robot(main_robot::generateParams(), &strategy, testMode, noLidar);
-    robotPtr = &robot;
+    // main_robot::Strategy strategy;
+    // Robot robot(main_robot::generateParams(), &strategy, testMode, noLidar);
+    // robotPtr = &robot;
 
-    // Wire signals.
-    signal(SIGINT, killCode);
-    signal(SIGTERM, killCode);
+    // // Wire signals.
+    // signal(SIGINT, killCode);
+    // signal(SIGTERM, killCode);
 
-    // Start low-level loop.
-    robot.lowLevelLoop();
-    return 0;
+    // // Start low-level loop.
+    // robot.lowLevelLoop();
+    // return 0;
 }
 

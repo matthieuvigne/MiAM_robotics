@@ -1,7 +1,7 @@
 #include <iostream>
 #include <limits>
 
-#include <kinematics/DH_transform.hpp>
+#include "common/DH_transform.hpp"
 
 namespace kinematics {
 
@@ -22,7 +22,7 @@ Eigen::Matrix3d get_skew_symmetric_matrix(
 //--------------------------------------------------------------------------------------------------
 
 Eigen::Matrix<double,6,6> get_left_SE3_product_jacobian(
-  Eigen::Affine3d const& T1, 
+  Eigen::Affine3d const& T1,
   Eigen::Affine3d const& T2)
 {
   Eigen::Matrix3d const& R1 = T1.rotation();
@@ -35,7 +35,7 @@ Eigen::Matrix<double,6,6> get_left_SE3_product_jacobian(
 //--------------------------------------------------------------------------------------------------
 
 Eigen::Matrix<double,6,6> get_right_SE3_product_jacobian(
-    Eigen::Affine3d const& T1, 
+    Eigen::Affine3d const& T1,
     Eigen::Affine3d const& T2)
 {
   Eigen::Matrix3d const& R1 = T1.rotation();
@@ -206,7 +206,7 @@ void DHTransform::update_parameters(double dd1, double da1, double dd2, double d
   this->parameters_[kd2] += dd2;
   //~ this->parameters_[ka2] = std::fmod(this->parameters_[ka2] + da2, 2*M_PI);
   this->parameters_[ka2] = modulo(this->parameters_[ka2] + da2);
-  
+
   // Compute the new global transformation
   this->compute_transform_and_jacobian();
 }
@@ -249,7 +249,7 @@ void DHTransform::set_parameter(Parameter name, double value)
       this->parameters_[idx] = value;
       break;
   }
-  
+
   // Recompute the global transform
   this->compute_transform_and_jacobian();
 }
@@ -304,7 +304,7 @@ bool DHTransform::get_parameters_back_within_bounds()
   for(Parameter parameter_name : this->free_parameters_)
   {
     int const idx = this->get_index_from_parameter(parameter_name);
-    
+
     // Check the lower bound
     if(this->parameters_[idx] < this->lower_bounds_[idx])
     {
@@ -314,7 +314,7 @@ bool DHTransform::get_parameters_back_within_bounds()
       //~ std::cout << "-> Fixed parameter " << get_parameter_name(parameter_name)
         //~ << " (reached lower bound)." << std::endl;
     }
-    
+
     // Check the upper bound
     else if(this->parameters_[idx] > this->upper_bounds_[idx])
     {
@@ -325,7 +325,7 @@ bool DHTransform::get_parameters_back_within_bounds()
         //~ << " (reached upper bound)." << std::endl;
     }
   }
-  
+
   return all_parameters_are_within_bounds;
 }
 
@@ -403,7 +403,7 @@ OptimizationResult DHTransformVector::optimize_parameters(
   std::vector<Parameters> saved_free_parameters;
   for(DHTransform const& T : *this)
     saved_free_parameters.push_back(T.get_free_parameters());
-  
+
   // Set the problem
   OptimizationResult results;
   switch(problem_type)
@@ -414,18 +414,18 @@ OptimizationResult DHTransformVector::optimize_parameters(
       // Initialize default problem functions
       std::function<Vector6d(Eigen::Affine3d const&)> get_residual_vector;
       std::function<Matrix6Xd(Eigen::Affine3d const&, Matrix6Xd const&)> get_residual_jacobian;
-      
+
       // Get the problem parameters
       if(args[0] == nullptr) throw std::runtime_error("Missing data");
       Eigen::Map<Eigen::Matrix4d const> T_matrix(args[0]);
       Eigen::Affine3d const T_target(T_matrix);
-      
+
       // Build the problem functions
       get_residual_vector = [&](Eigen::Affine3d const& T){
           return log_map(T_target * T.inverse());};
       get_residual_jacobian = [&](Eigen::Affine3d const&, Matrix6Xd const& J_T_p){
           return J_T_p;};
-          
+
       // Solve the problem
       bool all_parameters_within_bounds = false;
       while(!all_parameters_within_bounds)
@@ -438,22 +438,22 @@ OptimizationResult DHTransformVector::optimize_parameters(
       }
       break;
     }
-    
+
     case ProblemType::PositionDirection:
     {
       // Initialize default problem functions
       std::function<Vector4d(Eigen::Affine3d const&)> get_residual_vector;
       std::function<Matrix4Xd(Eigen::Affine3d const&, Matrix6Xd const&)> get_residual_jacobian;
-      
+
       // Get the problem parameters and build a fictive target pose
       if(args[0]==nullptr || args[1]==nullptr)
         throw std::runtime_error("Missing data");
       Eigen::Map<Eigen::Vector3d const> tf(args[0]);
       Eigen::Map<Eigen::Vector3d const> xf(args[1]);
       Eigen::Vector3d const uxf = xf.normalized();
-      
+
       // Build the problem functions
-      
+
       get_residual_vector = [&](Eigen::Affine3d const& T){
         Vector4d residual = Vector4d::Zero();
         residual.head<3>() = tf - T.translation();
@@ -461,17 +461,17 @@ OptimizationResult DHTransformVector::optimize_parameters(
         residual(3) = 1 - uxf.dot(R.col(0));
         return residual;
       };
-      
+
       get_residual_jacobian = [&](Eigen::Affine3d const& T, Matrix6Xd const& J_T_p){
         int const num_free_parameters = J_T_p.cols();
         Matrix4Xd J_g_p = Matrix4Xd(4,num_free_parameters);
         J_g_p.block(0,0,3,num_free_parameters) = J_T_p.block(3,0,3,num_free_parameters);
         Eigen::Matrix3d const S = get_skew_symmetric_matrix(T.rotation().col(0));
-        J_g_p.block(3,0,1,num_free_parameters) = 
+        J_g_p.block(3,0,1,num_free_parameters) =
           - uxf.transpose() * S * J_T_p.block(0,0,3,num_free_parameters);
         return J_g_p;
       };
-      
+
       // Solve the problem
       bool all_parameters_within_bounds = false;
       while(!all_parameters_within_bounds)
@@ -484,11 +484,11 @@ OptimizationResult DHTransformVector::optimize_parameters(
       }
       break;
     }
-    
+
     default:
       std::runtime_error("Unknown problem type.");
   }
-  
+
   // Restaure the free parameters
   int const num_poses = static_cast<int>(this->size());
   for(int pose_idx=0; pose_idx<num_poses; pose_idx += 1)
@@ -497,7 +497,7 @@ OptimizationResult DHTransformVector::optimize_parameters(
     for(Parameter parameter : pose_free_parameters)
       this->at(pose_idx).set_parameter_free(parameter, true);
   }
-  
+
   return results;
 }
 
@@ -508,29 +508,29 @@ std::string DHTransform::print() const
   // Define colors
   std::string const free = "\033[32mfree\033[0m";
   std::string const fixed = "\033[31mfixed\033[0m";
-  
+
   // Print the message
   std::stringstream out;
   out << "Parameters:\n"
-      
+
       << "-> d1=" << this->parameters_[kd1] << "m ("
       << (this->free_parameters_.count(Parameter::d1)>0 ? free : fixed) << ")"
       << " with d1_min=" << this->lower_bounds_[kd1] << "m"
       << " and d1_max=" << this->upper_bounds_[kd1] << "m\n"
-      
+
       << "-> a1=" << convert_to_degree(this->parameters_[ka1]) << "° ("
       << (this->free_parameters_.count(Parameter::a1)>0 ? free : fixed) << ")"
       << " with a1_min=" << convert_to_degree(this->lower_bounds_[ka1]) << "°"
       << " and a1_max=" << convert_to_degree(this->upper_bounds_[ka1]) << "°\n"
-      
+
       << "-> d2=" << this->parameters_[kd2] << "m ("
       << (this->free_parameters_.count(Parameter::d2)>0 ? free : fixed) << ")"
       << " with d2_min=" << this->lower_bounds_[kd2] << "m"
       << " and d2_max=" << this->upper_bounds_[kd2] << "m\n"
-      
+
       << "-> a2=" << convert_to_degree(this->parameters_[ka2]) << "° ("
       << (this->free_parameters_.count(Parameter::a2)>0 ? free : fixed) << ")"
-      << " with a2_min=" << convert_to_degree(this->lower_bounds_[ka2]) << "°" 
+      << " with a2_min=" << convert_to_degree(this->lower_bounds_[ka2]) << "°"
       << " and a2_max=" << convert_to_degree(this->upper_bounds_[ka2]) << "°";
 
   return out.str();
@@ -607,18 +607,18 @@ void DHTransform::compute_transform_and_jacobian()
   double const a2 = this->parameters_(ka2);
 
   // Compute the first transform
-  Eigen::Affine3d const T1 = 
-      Eigen::Translation3d(d1*Eigen::Vector3d::UnitX()) 
+  Eigen::Affine3d const T1 =
+      Eigen::Translation3d(d1*Eigen::Vector3d::UnitX())
     * Eigen::Quaterniond(Eigen::AngleAxisd(a1, Eigen::Vector3d::UnitX()));
-  
+
   // Compute the second transform
-  Eigen::Affine3d const T2 = 
+  Eigen::Affine3d const T2 =
       Eigen::Translation3d(d2*Eigen::Vector3d::UnitZ())
     * Eigen::Quaterniond(Eigen::AngleAxisd(a2, Eigen::Vector3d::UnitZ()));
-  
+
   // Compute the global transform
   this->transform_ = T1 * T2;
-    
+
   // Jacobian wrt. first set of params
   Eigen::Matrix<double,6,6> const J_T_T1 = get_left_SE3_product_jacobian(T1,T2);
   Eigen::Matrix<double,6,1> J_T1_a1 = Eigen::Matrix<double,6,1>::Zero();
@@ -629,7 +629,7 @@ void DHTransform::compute_transform_and_jacobian()
   // Jacobian wrt. second set of params
   Eigen::Matrix<double,6,6> const J_T_T2 = get_right_SE3_product_jacobian(T1,T2);
   Eigen::Matrix<double,6,1> J_T2_a2 = Eigen::Matrix<double,6,1>::Zero();
-  J_T2_a2.segment<3>(0) = get_left_SO3_jacobian(a2*Eigen::Vector3d::UnitZ()).col(kwz); 
+  J_T2_a2.segment<3>(0) = get_left_SO3_jacobian(a2*Eigen::Vector3d::UnitZ()).col(kwz);
   this->jacobian_.col(kd2) = J_T_T2.col(ktz);
   this->jacobian_.col(ka2) = J_T_T2 * J_T2_a2;
 }
@@ -648,7 +648,7 @@ DHTransformVector::Matrix6Xd DHTransformVector::get_free_jacobian_matrix() const
   // Get and check dimensions
   int const num_free_parameters = this->get_num_free_parameters();
   int const num_poses = static_cast<int>(this->size());
-  
+
   // Initialize jacobian matrices
   int col_idx=0;
   Matrix6Xd J_T_a = Matrix6Xd::Zero(6,num_free_parameters);
@@ -665,7 +665,7 @@ DHTransformVector::Matrix6Xd DHTransformVector::get_free_jacobian_matrix() const
   if(col_idx != num_free_parameters)
     throw std::runtime_error("1) Inconsistent indexes in building the free jacobian "
       + std::to_string(col_idx) + " != " + std::to_string(num_free_parameters));
-    
+
   // Make forward pass
 
   Eigen::Affine3d T0im1 = Eigen::Affine3d::Identity();
@@ -675,7 +675,7 @@ DHTransformVector::Matrix6Xd DHTransformVector::get_free_jacobian_matrix() const
     Eigen::Affine3d const& Ti = (*this)[pose_idx].get_transform();
     Eigen::Matrix<double,6,6> const J_T_T0im1 = get_left_SE3_product_jacobian(T0im1,Ti);
     Eigen::Matrix<double,6,6> const J_T_Ti = get_right_SE3_product_jacobian(T0im1,Ti);
-    
+
     // Update all the jacobians
     col_idx=0;
     Eigen::Matrix<double,6,6> J = J_T_T0im1;
@@ -732,9 +732,9 @@ DHTransformVector create_main_robot_arm()
   double constexpr d45x = 29.1e-3;
   double constexpr a45x = -M_PI_2;
   double constexpr d45z = 45.8e-3;
-  
+
   using namespace kinematics;
-  
+
   // Build the robotical arm
   DHTransform T01(d01x,0,0,0);
   DHTransform T12(d12x,a12x,0,0);
@@ -745,21 +745,21 @@ DHTransformVector create_main_robot_arm()
   T01.set_parameter_free(Parameter::a2,true);
   T01.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
   T01.set_parameter_upper_bound(Parameter::a2,  M_PI_2);
-  
+
   T12.set_parameter_free(Parameter::a2,true);
   T12.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
   T12.set_parameter_upper_bound(Parameter::a2,  M_PI_2);
-    
+
   T23.set_parameter_free(Parameter::a2,true);
   T23.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
   T23.set_parameter_upper_bound(Parameter::a2,  0);
-  
+
   T34.set_parameter_free(Parameter::a2,true);
   T34.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
   T34.set_parameter_upper_bound(Parameter::a2,  M_PI_2);
-  
+
   DHTransformVector arm{T01,T12,T23,T34,T45};
-  
+
   return arm;
 }
 

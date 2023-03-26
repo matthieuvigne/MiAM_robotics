@@ -13,6 +13,7 @@
     #include "common/RobotParameters.h"
     #include "common/MotionController.h"
     #include "common/ServoHandler.h"
+    #include "common/Types.h"
 
     class RobotInterface
     {
@@ -20,16 +21,13 @@
             RobotInterface(RobotParameters const& robotParameters, ServoHandler *servos):
                 motionController_(robotParameters),
                 servos_(servos)
-            { }
+            {
+            }
 
             RobotParameters getParameters()
             {
                 return motionController_.robotParams_;
             }
-
-            /// \brief Set a new target to the rail.
-            /// \param position Relative rail position, form 0 (down) to 1 (up).
-            virtual void moveRail(double const& position) = 0;
 
             // Sleep a specified number of seconds.
             virtual void wait(double const& waitTimeS)
@@ -52,12 +50,6 @@
             {
                 return 0;
             }
-
-            /// \brief The low-level thread of the robot.
-            /// \details This thread runs a periodic loop. At each iteration, it updates sensor values,
-            ///          estimates the position of the robot on the table, and performs motor servoing.
-            ///          It also logs everything in a log file.
-            virtual void lowLevelLoop() = 0;
 
             /// \brief Update the robot score.
             /// \details This function increments the score then updates the display accordingly.

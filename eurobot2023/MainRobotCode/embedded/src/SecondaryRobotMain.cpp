@@ -5,6 +5,7 @@
 /// \copyright GNU GPLv3
 
 #include "Robot.h"
+#include "common/RobotGUI.h"
 #include "secondary_robot/Parameters.h"
 #include "secondary_robot/Strategy.h"
 
@@ -51,16 +52,24 @@ int main(int argc, char **argv)
     // Init raspberry serial ports and GPIO.
     RPi_enablePorts();
 
-    secondary_robot::Strategy strategy;
-    Robot robot(secondary_robot::generateParams(), &strategy, testMode, noLidar);
-    robotPtr = &robot;
-
     // Wire signals.
     signal(SIGINT, killCode);
     signal(SIGTERM, killCode);
 
-    // Start low-level loop.
-    robot.lowLevelLoop();
+    // Create objects
+    Glib::RefPtr<Gtk::Application> app =  Gtk::Application::create();
+    RobotGUI gui;
+
+    secondary_robot::Strategy strategy;
+    Robot robot(secondary_robot::generateParams(), &strategy, &gui, testMode, noLidar);
+    robotPtr = &robot;
+
+    // Start low-level loop
+    std::thread loop(&Robot::lowLevelLoop, &robot);
+
+    // Start gui
+    gui.show_all();
+    app->run(gui);
     return 0;
 }
 

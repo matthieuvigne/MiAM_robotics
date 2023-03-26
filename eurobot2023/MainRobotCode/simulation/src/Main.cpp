@@ -12,7 +12,6 @@
 
 #include "main_robot/Parameters.h"
 #include "main_robot/Strategy.h"
-#include "main_robot/RobotGUI.h"
 
 #include "secondary_robot/Parameters.h"
 #include "secondary_robot/Strategy.h"
@@ -59,10 +58,6 @@ int main (int argc, char *argv[])
     std::cout << "Teleplot server started, open your browser at 127.0.0.1:8080" << std::endl;
 
     viewer->resetClicked();
-
-    // Create gui
-    std::thread t(main_robot::startRobotGUI, &mainRobot);
-    t.detach();
 
     return app->run(*viewer);
 }

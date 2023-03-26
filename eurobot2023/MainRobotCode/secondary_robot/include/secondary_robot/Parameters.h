@@ -32,6 +32,9 @@
                 param.CHASSIS_WIDTH = 150.0;
                 param.SUCTION_CENTER = 180.0;
 
+                param.rightMotorId = 2;
+                param.leftMotorId = 1;
+
                 return param;
             }
         }

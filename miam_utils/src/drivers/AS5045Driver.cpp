@@ -57,6 +57,7 @@ bool AS5045::init()
 {
     std::fill(currentPosition_.begin(), currentPosition_.end(), 0);
     isInit_ = readSPI(previousSingleTurnPos_);
+    isInit_ &= wasLastFrameValid_;
     return isInit_;
 }
 
@@ -130,7 +131,7 @@ double decodeFrame(uint32_t const& data)
 }
 
 
-bool AS5045::readSPI(std::vector<double> & position) const
+bool AS5045::readSPI(std::vector<double> & position)
 {
     uint32_t const nEncoders = currentPosition_.size();
     uint32_t const len = std::ceil((19.0 * nEncoders) / 8.0);
@@ -159,6 +160,7 @@ bool AS5045::readSPI(std::vector<double> & position) const
         #endif
     }
 
+    wasLastFrameValid_ = true;
     // Decompose message into streams of 19 bits and decode them
     for (uint32_t i = 0; i < nEncoders; i++)
     {
@@ -182,7 +184,10 @@ bool AS5045::readSPI(std::vector<double> & position) const
         if (pos >= 0)
             position.at(i) = pos;
         else
+        {
+            wasLastFrameValid_ = false;
             position.at(i) = previousSingleTurnPos_.at(i);
+        }
     }
 
     return result == static_cast<int32_t>(len);

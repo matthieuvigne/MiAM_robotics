@@ -54,9 +54,9 @@ void Strategy::setup(RobotInterface *robot)
 
     if (robot->getTestMode())
     {
-        robot->moveRail(0.5);
-        robot->wait(2.0);
-        robot->moveRail(0.65);
+        // robot->moveRail(0.5);
+        // robot->wait(2.0);
+        // robot->moveRail(0.65);
     }
     // Set initial position
     RobotPosition targetPosition;
@@ -125,13 +125,13 @@ void Strategy::match_impl()
     MotionPlanning motion_planner;
 
     Action action1(100,1, RobotPosition(2000, 1700, 0));
-    Action action2(500, 1, RobotPosition(2200, 500, 0));
-    Action action3(15, 1, RobotPosition(1500, 200, 0));
+    // Action action2(500, 1, RobotPosition(2200, 500, 0));
+    // Action action3(15, 1, RobotPosition(1500, 200, 0));
 
     std::vector<Action> actionVector;
     actionVector.push_back(action1);
-    actionVector.push_back(action2);
-    actionVector.push_back(action3);
+    // actionVector.push_back(action2);
+    // actionVector.push_back(action3);
 
 
 

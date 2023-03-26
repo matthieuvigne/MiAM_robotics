@@ -15,9 +15,10 @@
 
     ///< Global includes
     #include <miam_utils/miam_utils.h>
-    #include <miam_utils/drivers/USBLCDDriver.h>
     #include <miam_utils/raspberry_pi/RaspberryPi.h>
     #include <miam_utils/drivers/SPI-Wrapper.h>
+    #include <miam_utils/drivers/RMDX.h>
+    #include <miam_utils/drivers/AS5045Driver.h>
     #include <miam_utils/trajectory/PointTurn.h>
     #include <miam_utils/trajectory/Utilities.h>
     #include <miam_utils/trajectory/DrivetrainKinematics.h>
@@ -31,7 +32,6 @@
     #include <vector>
     #include <mutex>
 
-    #include "uCListener.h"
     #include "common/ServoHandler.h"
     #include "common/RobotInterface.h"
     #include "common/AbstractStrategy.h"
@@ -41,13 +41,7 @@
     using miam::ProtectedPosition;
     using miam::trajectory::Trajectory;
 
-    ///< The various steps of the startup process.
-    enum startupstatus{
-        INIT,
-        WAITING_FOR_CABLE,
-        WAITING_FOR_START
-    };
-
+    class RobotGUI;
 
     // Controller parameters
     namespace controller
@@ -62,19 +56,13 @@
         public:
 
             /// \brief Constructor: do nothing for now.
-            Robot(RobotParameters const& parameters, AbstractStrategy *strategy, bool const& testMode, bool const& disableLidar);
+            Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar);
 
             /// \brief The low-level thread of the robot.
             /// \details This thread runs a periodic loop. At each iteration, it updates sensor values,
             ///          estimates the position of the robot on the table, and performs motor servoing.
             ///          It also logs everything in a log file.
-            void lowLevelLoop() override;
-
-            /// \brief Set a new target to the rail.
-            ///
-            /// \param position Relative rail position, form 0 (down) to 1 (up).
-            /// \param wait If set, this function blocks until motion is complete.
-            void moveRail(double const& position) override;
+            void lowLevelLoop();
 
             /// \brief Get current rail position.
             ///
@@ -105,19 +93,19 @@
                 return testMode_;
             }
 
-            double getRangeSensorMeasurement(bool measureRightSide) const override
-            {
-                return rangeMeasurements_[measureRightSide ? side::RIGHT : side::LEFT];
-            }
-
             /// \brief Shut down the robot when Ctrl+X is pressed.
             void shutdown();
 
         private:
-            USBLCD screen_; ///< LCD screen and buttons.
+
+            RobotGUI *gui_;
             RPLidarHandler lidar_; ///< Lidar
+            bool isLidarInit_ = false; ///< Boolean representing the initialization of the lidar.
+
             MaestroDriver maestro_; ///< Servo driver
             ServoHandler handler_;
+
+            RobotGUIData guiState_;
 
             bool testMode_; // Test mode: no initial wait.
             bool disableLidar_; // Disable lidar (works only in test mode)
@@ -147,46 +135,27 @@
             void calibrateRail();
             int railHigh_;
 
-            miam::L6470 stepperMotors_; ///< Robot driving motors.
-            SPIWrapper motorSpi_;
+            SPIWrapper spiMotor_;
+            MCP2515 mcp_;
+            RMDX motors_;
+            SPIWrapper spiEncoder_;
+            AS5045 encoders_;
 
+            bool isMCPInit_ = false;
+            bool isMotorsInit_ = false;
+            bool isEncodersInit_ = false;
 
-            uCData microcontrollerData_; ///< Data structure containing informations from the arduino board.
-
-            // Rail PID
-            miam::PID PIDRail_; ///< PID for the rail.
-            int targetRailPosition_; ///< The desired rail position (in potentiometer unit). Should be -1 if not yet set during the match.
-
+            std::vector<double> lastEncoderPosition_;
 
             // Init variables.
-            bool isScreenInit_ = {false}; ///< Boolean representing the initialization of the screen motors.
-            bool isStepperInit_ = {false}; ///< Boolean representing the initialization of the stepper motors.
             bool isServosInit_ = {false}; ///< Boolean representing the initialization of the servo driving board.
-            bool isArduinoInit_ = {false}; ///< Boolean representing the initialization of the slave arduino board.
-            bool isLidarInit_ = {false}; ///< Boolean representing the initialization of the lidar.
-            bool isRangeSensorInit_[2] = {false, false}; ///< Initialization of range sensors.
-            int score_={0}; ///< Current robot score.
             std::mutex mutex_; ///< Mutex, for thread safety.
 
-            startupstatus startupStatus_; ///< Current startup status.
-            bool initMotorBlocked_; ///< State of the motors during init.
-            bool initStatueHigh_; ///< State of the motors during init.
-
-
-            VL53L0X rangeSensors_[2];
-
-            double rangeMeasurements_[2] = {0, 0};
-            void updateRangeMeasurement(); // Range measurement thread
-
             AbstractStrategy *strategy_;
-
-            double timeSinceLastCheckOnRailHeightDuringInit_;
 
             bool hasMatchStarted_{false};
             bool isPlayingRightSide_{false};
             double matchStartTime_{0.0};
             double currentTime_{0.0};
     };
-
-    extern Robot robot;    ///< The robot instance, representing the current robot.
  #endif
