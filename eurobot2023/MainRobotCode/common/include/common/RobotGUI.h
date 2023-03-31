@@ -17,9 +17,12 @@
 
                 bool getIsPlayingRightSide();
 
+            protected:
+                void sideButtonClicked();
+
             private:
                 bool doUpdate();
-                // void buttonClicked();
+
 
                 Gtk::Box box_;
                 Gtk::Box topBox_;
@@ -31,8 +34,10 @@
                 Gtk::Label debugLabel_;
                 Gtk::Label scoreLabel_;
 
+                Gtk::Button sideButton_;
+
                 RobotGUIData robotData_;
-                bool isPlayingRightSide_;
+                bool isPlayingRightSide_ = false;
 
                 robotstate lastState_ = robotstate::MATCH_DONE;
                 std::mutex mutex_;

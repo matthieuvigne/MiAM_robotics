@@ -12,12 +12,13 @@ RobotGUI::RobotGUI()
     set_size_request(300, 300);
     fullscreen();
 
-    // Font size
+    // Styling
     auto provider = Gtk::CssProvider::create();
-    provider->load_from_data("label {"
-            "font-size:22px;"
-        "}");
-    // get_style_context()->add_provider(TextViewStyle,1);
+    provider->load_from_data("label {font-size:22px;}"
+            "#blue {background:#005B8C;}"
+            "#green {background:#007749;}"
+            "#button_text {color:#FFFFFF;}"
+            "#score {font-size:40; color:#0000FF;}");
     Gtk::StyleContext::add_provider_for_screen(get_screen(), provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     box_ = Gtk::Box(Gtk::Orientation::ORIENTATION_VERTICAL);
@@ -44,18 +45,12 @@ RobotGUI::RobotGUI()
     topBox_.set_valign(Gtk::Align::ALIGN_START);
     box_.pack_start(topBox_);
 
+    sideButton_ = Gtk::Button("Bleu");
+    sideButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::sideButtonClicked));
 
-    // TODO bottom widgets
+    scoreLabel_.set_name("score");
     add(box_);
-    // add(box_);
 
-    // // Get the button, and connect it to the callback "buttonClicked"
-    // Gtk::Button *button;
-    // refGlade->get_widget("button", button);
-    // button->signal_clicked().connect(sigc::mem_fun(this, &RobotGUI::buttonClicked));
-
-    // // Get the label, to change its text
-    // refGlade->get_widget("clickLabel", clickLabel);
     // Refresh at 20Hz.
     Glib::signal_timeout().connect(sigc::mem_fun(*this, &RobotGUI::doUpdate), 50);
 }
@@ -87,9 +82,19 @@ bool RobotGUI::doUpdate()
 
     // Update bottom part, if needed
     debugLabel_.set_text(robotData.debugStatus);
-    std::string const markup = "<span foreground=\"blue\" size=\"x-large\">Score: " +
-                            std::to_string(robotData.score) + "</span>";
-    scoreLabel_.set_markup(markup);
+    scoreLabel_.set_text("Score: " + std::to_string(robotData.score));
+    if (isPlayingRightSide_)
+    {
+        sideButton_.set_label("Bleu");
+        sideButton_.set_name("blue");
+        sideButton_.get_child()->set_name("button_text");
+    }
+    else
+    {
+        sideButton_.set_label("Vert");
+        sideButton_.set_name("green");
+        sideButton_.get_child()->set_name("button_text");
+    }
 
     if (robotData.state != lastState_)
     {
@@ -100,6 +105,10 @@ bool RobotGUI::doUpdate()
         if (robotData.state == robotstate::INIT)
         {
             box_.pack_start(debugLabel_);
+        }
+        if (robotData.state == robotstate::WAITING_FOR_START)
+        {
+            box_.pack_start(sideButton_);
         }
         if (robotData.state == robotstate::MATCH)
         {
@@ -119,10 +128,9 @@ void RobotGUI::update(RobotGUIData const& robotData)
     mutex_.unlock();
 }
 
-// void RobotGUI::buttonClicked()
-// {
-//     static int nClick = 0;
-//     nClick++;
-//     clickLabel->set_text("Number of clicks: " + std::to_string(nClick));
-// }
+void RobotGUI::sideButtonClicked()
+{
+    isPlayingRightSide_ = !isPlayingRightSide_;
+    doUpdate();
+}
 

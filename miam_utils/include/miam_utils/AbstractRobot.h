@@ -61,12 +61,6 @@
             /// \brief Stop the wheel motors.
             virtual void stopMotors() = 0;
 
-            /// \brief The low-level thread of the robot.
-            /// \details This thread runs a periodic loop. At each iteration, it updates sensor values,
-            ///          estimates the position of the robot on the table, and performs motor servoing.
-            ///          It also logs everything in a log file.
-            virtual void lowLevelLoop() = 0;
-
             /// \brief Get status of last trajectory following.
             bool wasTrajectoryFollowingSuccessful();
 

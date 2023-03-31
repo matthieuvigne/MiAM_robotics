@@ -171,6 +171,7 @@ void Robot::lowLevelLoop()
             if (hasMatchStarted_)
             {
                 matchStartTime_ = currentTime_;
+                isPlayingRightSide_ = guiState_.getIsPlayingRightSide();
                 guiState_.state = robotstate::MATCH;
                 metronome.resetLag();
                 // Start strategy thread.
@@ -181,10 +182,10 @@ void Robot::lowLevelLoop()
 
         // Update measurements data.
         std::vector<double> const encoderPosition = encoders_.updatePosition();
-        measurements.encoderPosition[0] = encoderPosition[0];
-        measurements.encoderPosition[1] = encoderPosition[1];
-        measurements.encoderSpeed.right = encoderPosition[side::RIGHT] - lastEncoderPosition_[side::RIGHT];
-        measurements.encoderSpeed.left = encoderPosition[side::LEFT] - lastEncoderPosition_[side::LEFT];
+        measurements.encoderPosition[side::RIGHT] = encoderPosition[1];
+        measurements.encoderPosition[side::LEFT] = encoderPosition[0];
+        measurements.encoderSpeed.right = encoderPosition[1] - lastEncoderPosition_[1];
+        measurements.encoderSpeed.left = encoderPosition[0] - lastEncoderPosition_[0];
         lastEncoderPosition_ = encoderPosition;
 
         // If playing side::RIGHT side: invert side::RIGHT/side::LEFT encoders.
