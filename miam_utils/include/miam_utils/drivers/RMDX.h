@@ -104,7 +104,7 @@ class RMDX{
         ///       by hidden acceleration limit parameter, only accessible through the debugging
         ///       software (not CAN).
         /// \return Current speed, in rad/s. 0 on failure.
-        double setSpeed(unsigned char const& motorId, double const& targetSpeed, double const& reductionRatio = 6);
+        double setSpeed(unsigned char const& motorId, double const& targetSpeed, double const& reductionRatio = 1.0);
 
         /// \brief Set target speed, joint side.
         /// \param[in] motorId Motor id

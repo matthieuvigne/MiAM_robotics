@@ -123,7 +123,8 @@ namespace miam{
                 output.position = accelerationDistance_ + maxVelocity_ * (currentTime - timeToStopAccelerating_);
             }
             else
-            {    output.velocity = maxVelocity_ - maxAcceleration_ * (currentTime - timeToStartDecelerating_);
+            {
+                output.velocity = maxVelocity_ - maxAcceleration_ * (currentTime - timeToStartDecelerating_);
                 output.position = accelerationDistance_ +
                                            maxVelocity_ * (timeToStartDecelerating_ - timeToStopAccelerating_)
                                            + maxVelocity_* (currentTime - timeToStartDecelerating_)

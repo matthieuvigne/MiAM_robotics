@@ -64,6 +64,7 @@
         double const rotationKi = 0.0;
     }
 
+
     // Detection parameters
     namespace detection {
 
@@ -207,7 +208,7 @@
             const int minStopIters_ = 12; // Minimum number of iterations to stop, i.e 10ms.
             const int minRestartIters_ = 20; // Minimum number of iterations to restart, i.e 10ms.
             int const maxStopIters_ = 50; // Maximum number of iterations until attempting something
-            
+
             int avoidanceCount_;
             const int maxAvoidanceAttempts_ = 2;
     };

@@ -114,22 +114,30 @@ bool Robot::setupBeforeMatchStart()
             lastEncoderPosition_ = encoders_.updatePosition();
             if (testMode_)
             {
-                usleep(1000000);
+                matchStartTime_ = currentTime_;
                 isPlayingRightSide_ = true;
-                return true;
             }
             guiState_.state = robotstate::WAITING_FOR_CABLE;
         }
     }
     else if (guiState_.state == robotstate::WAITING_FOR_CABLE)
     {
-        // Wait for cable to be plugged in.
-        if (RPi_readGPIO(START_SWITCH) == 0)
+        if (testMode_)
         {
-            // Store plug time in matchStartTime_ to prevent false start due to switch bounce.
-            matchStartTime_ = currentTime_;
-            isPlayingRightSide_ = false;
-            guiState_.state = robotstate::WAITING_FOR_START;
+            // Wait for motor to boot
+            if (currentTime_ - matchStartTime_ > 3.5)
+                return true;
+        }
+        else
+        {
+            // Wait for cable to be plugged in.
+            if (RPi_readGPIO(START_SWITCH) == 0)
+            {
+                // Store plug time in matchStartTime_ to prevent false start due to switch bounce.
+                matchStartTime_ = currentTime_;
+                isPlayingRightSide_ = false;
+                guiState_.state = robotstate::WAITING_FOR_START;
+            }
         }
     }
     else if (guiState_.state == robotstate::WAITING_FOR_START)

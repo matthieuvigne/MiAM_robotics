@@ -90,6 +90,8 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     log("timeIncrement",dt);
     log("encoderRight",measurements.encoderPosition[side::RIGHT]);
     log("encoderLeft",measurements.encoderPosition[side::LEFT]);
+    log("motorVelocityRight", measurements.motorSpeed[side::RIGHT]);
+    log("motorVelocityLeft", measurements.motorSpeed[side::LEFT]);
 
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderSpeed);
@@ -133,7 +135,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
             // If we still have a trajectory after that, immediately switch to the next trajectory.
             if (currentTrajectories_.size() > 1)
             {
-                // Not obtimal, could be improved.
+                // Not optimal, could be improved.
                 currentTrajectories_.erase(currentTrajectories_.begin());
                 traj = currentTrajectories_.at(0).get();
                 curvilinearAbscissa_ = 0.0;
@@ -274,7 +276,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     target.motorSpeed[side::LEFT] = wheelSpeed.left;
 
     // Clamp to maximum speed
-    double const maxAngularVelocity = robotParams_.maxWheelSpeed / 2 / M_PI / robotParams_.wheelRadius;
+    double const maxAngularVelocity = robotParams_.maxWheelSpeed / robotParams_.wheelRadius;
     for (int i = 0; i < 2; i++)
     {
         if (target.motorSpeed[i] > maxAngularVelocity)

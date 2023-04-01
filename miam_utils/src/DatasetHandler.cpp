@@ -18,6 +18,12 @@ DatasetHandler::DatasetHandler(H5File &file, std::string const& datasetName)
     cparms.setChunk(2, chunk_dims);
 
     dataset_ = file.createDataSet(datasetName, PredType::NATIVE_DOUBLE, mspace1, cparms);
+
+    for (int i = 0; i < BUFFER_SIZE; i++)
+    {
+        data_[0][i] = 0;
+        data_[1][i] = 0;
+    }
 }
 
 bool DatasetHandler::addPoint(double const& time, double const& value)
