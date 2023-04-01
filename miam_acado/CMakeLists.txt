@@ -58,6 +58,7 @@ include_directories(
 	src/generated_code
 	include/
 	src/AStar
+	src/mpc_solver_lib
 )
 link_directories(
 	${RPLIDAR_LIBRARY_DIRS} 
@@ -87,6 +88,12 @@ ADD_LIBRARY( CustomSolver ${LIB_SOURCES} ${LIB_HEADERS} )
 FILE( GLOB LIB_SOURCES src/AStar/*.cpp )
 FILE( GLOB LIB_HEADERS src/AStar/*.hpp )
 ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
+
+FILE( GLOB LIB_SOURCES src/mpc_solver_lib/*.cpp )
+FILE( GLOB LIB_HEADERS src/mpc_solver_lib/*.hpp src/generated_code/*.hpp src/generated_code/*.h)
+ADD_LIBRARY( mpc_solver_lib ${LIB_SOURCES} ${LIB_HEADERS} )
+TARGET_LINK_LIBRARIES (mpc_solver_lib CustomSolver ${MIAM_UTILS_LIBRARIES} QPoases)
+
 #
 # Build executables
 #
@@ -105,6 +112,7 @@ FOREACH( TEST_SOURCE_FILE ${TEST_SOURCES} )
 		CustomSolver 
 		QPoases
 		AStar 
+		mpc_solver_lib
 	)
 
 ENDFOREACH( TEST_SOURCE_FILE ${TEST_SOURCES} )
