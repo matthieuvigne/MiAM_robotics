@@ -41,6 +41,13 @@
 
             int rightMotorId;
             int leftMotorId;
+            int rightMotorDirection = 1; // Invert motor if needed: positive is moving forward.
+            int leftMotorDirection = -1; // Invert motor if needed: positive is moving forward.
+
+            int rightEncoderId;
+            int leftEncoderId;
+            int rightEncoderDirection = 1; // Invert encoder if needed: positive is moving forward.
+            int leftEncoderDirection = -1; // Invert encoder if needed: positive is moving forward.
         };
 
  #endif

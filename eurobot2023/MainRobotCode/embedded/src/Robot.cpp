@@ -15,6 +15,8 @@ const double LOOP_PERIOD = 0.005;
 const int START_SWITCH = 20;
 const int RAIL_SWITCH = 13;
 
+double const UNDERVOLTAGE_LEVEL = 19.5;
+
 
 Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar):
     handler_(&maestro_),
@@ -45,7 +47,6 @@ bool Robot::initSystem()
     RPi_setupGPIO(START_SWITCH, PI_GPIO_INPUT_PULLUP); // Starting cable.
     RPi_setupGPIO(RAIL_SWITCH, PI_GPIO_INPUT_PULLUP); // Rail limit cable.
     guiState_.debugStatus = "";
-
 
     // Motor init
     if (!isMCPInit_)
@@ -97,8 +98,16 @@ bool Robot::setupBeforeMatchStart()
     {
         // Try to initialize system.
         bool isInit = initSystem();
-        if (isInit)
+        if (isInit && guiState_.state != robotstate::UNDERVOLTAGE)
         {
+            // Check voltage
+            double const batteryVoltage = motors_.getStatus(motionController_.robotParams_.rightMotorId).batteryVoltage;
+            // if (batteryVoltage < UNDERVOLTAGE_LEVEL)
+            // {
+            //     guiState_.state = robotstate::UNDERVOLTAGE;
+            //     return false;
+            // }
+
             strategy_->setup(this);
 
             // Set status.
@@ -161,7 +170,13 @@ void Robot::lowLevelLoop()
         if (nIter % 50 == 0)
         {
             if (isMotorsInit_)
+            {
                 guiState_.batteryVoltage = motors_.getStatus(motionController_.robotParams_.rightMotorId).batteryVoltage;
+                if (guiState_.batteryVoltage < UNDERVOLTAGE_LEVEL + 0.5)
+                {
+                    std::cout << "Warning: low battery: " << guiState_.batteryVoltage << "V. Critical level: " << UNDERVOLTAGE_LEVEL << "V" << std::endl;
+                }
+            }
         }
 
         // If match hasn't started, look at switch value to see if it has.
@@ -171,7 +186,7 @@ void Robot::lowLevelLoop()
             if (hasMatchStarted_)
             {
                 matchStartTime_ = currentTime_;
-                isPlayingRightSide_ = guiState_.getIsPlayingRightSide();
+                isPlayingRightSide_ = gui_->getIsPlayingRightSide();
                 guiState_.state = robotstate::MATCH;
                 metronome.resetLag();
                 // Start strategy thread.
@@ -181,11 +196,15 @@ void Robot::lowLevelLoop()
         }
 
         // Update measurements data.
-        std::vector<double> const encoderPosition = encoders_.updatePosition();
-        measurements.encoderPosition[side::RIGHT] = encoderPosition[1];
-        measurements.encoderPosition[side::LEFT] = encoderPosition[0];
-        measurements.encoderSpeed.right = encoderPosition[1] - lastEncoderPosition_[1];
-        measurements.encoderSpeed.left = encoderPosition[0] - lastEncoderPosition_[0];
+        std::vector<double> encoderPosition = encoders_.updatePosition();
+        int const pR = motionController_.robotParams_.rightEncoderId;
+        int const pL = motionController_.robotParams_.leftEncoderId;
+        encoderPosition[pR] *= motionController_.robotParams_.rightEncoderDirection;
+        encoderPosition[pL] *= motionController_.robotParams_.leftEncoderDirection;
+        measurements.encoderPosition[side::RIGHT] = encoderPosition[pR];
+        measurements.encoderPosition[side::LEFT] = encoderPosition[pL];
+        measurements.encoderSpeed.right = encoderPosition[pR] - lastEncoderPosition_[pR];
+        measurements.encoderSpeed.left = encoderPosition[pL] - lastEncoderPosition_[pL];
         lastEncoderPosition_ = encoderPosition;
 
         // If playing side::RIGHT side: invert side::RIGHT/side::LEFT encoders.
@@ -219,8 +238,10 @@ void Robot::lowLevelLoop()
         DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
 
         // Apply target
-        measurements.motorSpeed(0) = motors_.setSpeed(motionController_.robotParams_.rightMotorId, target.motorSpeed[0]);
-        measurements.motorSpeed(1) = motors_.setSpeed(motionController_.robotParams_.leftMotorId, target.motorSpeed[1]);
+        int sign = motionController_.robotParams_.rightMotorDirection;
+        measurements.motorSpeed(0) = sign * motors_.setSpeed(motionController_.robotParams_.rightMotorId, sign * target.motorSpeed[0]);
+        sign = motionController_.robotParams_.leftMotorDirection;
+        measurements.motorSpeed(1) = sign * motors_.setSpeed(motionController_.robotParams_.leftMotorId, sign * target.motorSpeed[1]);
 
         // Update gui
         gui_->update(guiState_);

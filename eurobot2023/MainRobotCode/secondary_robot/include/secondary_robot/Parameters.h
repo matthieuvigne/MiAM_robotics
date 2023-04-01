@@ -35,6 +35,9 @@
                 param.rightMotorId = 2;
                 param.leftMotorId = 1;
 
+                param.rightEncoderId = 0;
+                param.leftEncoderId = 1;
+
                 return param;
             }
         }

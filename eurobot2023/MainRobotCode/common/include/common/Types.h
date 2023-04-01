@@ -9,9 +9,10 @@
         WAITING_FOR_CABLE   = 1,
         WAITING_FOR_START   = 2,
         MATCH               = 3,
-        MATCH_DONE          = 4
+        MATCH_DONE          = 4,
+        UNDERVOLTAGE        = 5
     };
-    std::string const robotStateNames[] = {"Initializing", "Waiting for cable", "Waiting for start", "Match", "Match done"};
+    std::string const robotStateNames[] = {"Initializing", "Waiting for cable", "Waiting for start", "Match", "Match done", "Undervoltage"};
 
 
     struct RobotGUIData {

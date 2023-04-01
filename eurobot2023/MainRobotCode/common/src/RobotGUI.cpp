@@ -81,7 +81,10 @@ bool RobotGUI::doUpdate()
     labelState_.set_text(robotStateNames[static_cast<int>(robotData.state)]);
 
     // Update bottom part, if needed
-    debugLabel_.set_text(robotData.debugStatus);
+    if (robotData.state == robotstate::UNDERVOLTAGE)
+        debugLabel_.set_text("Undervoltage, replace battery!");
+    else
+        debugLabel_.set_text(robotData.debugStatus);
     scoreLabel_.set_text("Score: " + std::to_string(robotData.score));
     if (isPlayingRightSide_)
     {
@@ -102,7 +105,7 @@ bool RobotGUI::doUpdate()
         auto childs = box_.get_children();
         if (childs.size() == 2)
             box_.remove(*childs.at(1));
-        if (robotData.state == robotstate::INIT)
+        if (robotData.state == robotstate::INIT || robotData.state == robotstate::UNDERVOLTAGE)
         {
             box_.pack_start(debugLabel_);
         }

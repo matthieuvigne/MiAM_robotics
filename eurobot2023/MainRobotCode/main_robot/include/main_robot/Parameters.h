@@ -20,11 +20,11 @@
                 param.encoderWheelRadius = 25.3; ///< Radius of encoder wheels, in mm.
                 param.encoderWheelSpacing = 139.0; ///< Encoder wheel spacing from robot center, in mm.
 
-                param.maxWheelSpeed = 800; ///< Maximum wheel speed, in mm/s.
-                param.maxWheelAcceleration = 1000; ///< Maximum wheel acceleration, in mm/s^2.
+                param.maxWheelSpeed = 400; ///< Maximum wheel speed, in mm/s.
+                param.maxWheelAcceleration = 800; ///< Maximum wheel acceleration, in mm/s^2.
 
-                param.maxWheelSpeedTrajectory = 500; ///< Maximum wheel speed, in mm/s, for trajectory generation.
-                param.maxWheelAccelerationTrajectory = 600; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
+                param.maxWheelSpeedTrajectory = 300; ///< Maximum wheel speed, in mm/s, for trajectory generation.
+                param.maxWheelAccelerationTrajectory = 300; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
                 // Chassis physical dimensions
                 param.CHASSIS_FRONT = 115.0;
@@ -32,8 +32,15 @@
                 param.CHASSIS_WIDTH = 150.0;
                 param.SUCTION_CENTER = 180.0;
 
-                param.rightMotorId = 3;
-                param.leftMotorId = 4;
+                param.rightMotorId = 4;
+                param.leftMotorId = 3;
+                param.rightMotorDirection = 1;
+                param.leftMotorDirection = -1;
+
+                param.rightEncoderId = 0;
+                param.leftEncoderId = 1;
+                param.rightEncoderDirection = 1;
+                param.leftEncoderDirection = -1;
 
                 return param;
             }

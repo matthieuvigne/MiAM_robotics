@@ -77,7 +77,6 @@
 
             void stopMotors() override;
 
-
             bool isPlayingRightSide() const override
             {
                 return isPlayingRightSide_;

@@ -273,6 +273,16 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     target.motorSpeed[side::RIGHT] = wheelSpeed.right;
     target.motorSpeed[side::LEFT] = wheelSpeed.left;
 
+    // Clamp to maximum speed
+    double const maxAngularVelocity = robotParams_.maxWheelSpeed / 2 / M_PI / robotParams_.wheelRadius;
+    for (int i = 0; i < 2; i++)
+    {
+        if (target.motorSpeed[i] > maxAngularVelocity)
+            target.motorSpeed[i] = maxAngularVelocity;
+        if (target.motorSpeed[i] < -maxAngularVelocity)
+            target.motorSpeed[i] = -maxAngularVelocity;
+    }
+
 
     log("linearPIDCorrection",PIDLinear_.getCorrection());
     log("angularPIDCorrection",PIDAngular_.getCorrection());
