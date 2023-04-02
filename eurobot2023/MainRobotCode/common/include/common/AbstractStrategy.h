@@ -13,6 +13,9 @@ class AbstractStrategy
         // Called before the start of the match, to setup the robot.
         virtual void setup(RobotInterface *robot) = 0;
 
+        // Code executed when shutting down the robot
+        virtual void shutdown() = 0;
+
         // The actual match code, which runs in its own thread.
         virtual void match() = 0;
 

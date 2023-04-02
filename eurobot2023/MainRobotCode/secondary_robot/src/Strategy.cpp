@@ -37,27 +37,6 @@ void Strategy::setup(RobotInterface *robot)
     this->servo = robot->getServos();
     this->motionController = robot->getMotionController();
 
-    servo->moveStatue(statue::FOLD);
-    servo->activateMagnet(false);
-
-
-    servo->moveArm(true, arm::FOLD);
-    servo->moveFinger(true, finger::FOLD);
-    servo->moveArm(false, arm::FOLD);
-    servo->moveFinger(false, finger::FOLD);
-    servo->moveClaw(claw::FOLD);
-
-    //init ventouse & rail
-    for (int i = 0; i < 3; i++)
-        servo->moveSuction(i, suction::FOLD);
-    servo->moveSuction(1, suction::FOLD);
-
-    if (robot->getTestMode())
-    {
-        // robot->moveRail(0.5);
-        // robot->wait(2.0);
-        // robot->moveRail(0.65);
-    }
     // Set initial position
     RobotPosition targetPosition;
     targetPosition.x = 0; //robot->getParameters().CHASSIS_BACK + 1000;
@@ -66,6 +45,9 @@ void Strategy::setup(RobotInterface *robot)
     motionController->resetPosition(targetPosition, true, true, true);
 }
 
+void Strategy::shutdown()
+{
+}
 
 Action* Strategy::chooseNextAction(
     std::vector<Action>& actions,
@@ -301,9 +283,6 @@ void Strategy::match()
     if (!MATCH_COMPLETED)
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
-
-        servo->activatePump(false);
-
     }
 }
 

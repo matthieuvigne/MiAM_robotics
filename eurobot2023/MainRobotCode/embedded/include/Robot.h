@@ -24,6 +24,7 @@
     #include <miam_utils/trajectory/DrivetrainKinematics.h>
     #include <miam_utils/RPLidarHandler.h>
 
+
     #include <math.h>
     #include <stdlib.h>
     #include <stdio.h>
@@ -32,7 +33,6 @@
     #include <vector>
     #include <mutex>
 
-    #include "common/ServoHandler.h"
     #include "common/RobotInterface.h"
     #include "common/AbstractStrategy.h"
 
@@ -101,8 +101,7 @@
             RPLidarHandler lidar_; ///< Lidar
             bool isLidarInit_ = false; ///< Boolean representing the initialization of the lidar.
 
-            MaestroDriver maestro_; ///< Servo driver
-            ServoHandler handler_;
+            bool isServoInit_ = false;
 
             RobotGUIData guiState_;
 

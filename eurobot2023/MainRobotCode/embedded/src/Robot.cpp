@@ -19,9 +19,8 @@ double const UNDERVOLTAGE_LEVEL = 19.5;
 
 
 Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar):
-    handler_(&maestro_),
     gui_(gui),
-    RobotInterface(parameters, &handler_),
+    RobotInterface(parameters),
     lidar_(-M_PI_4),
     testMode_(testMode),
     disableLidar_(disableLidar),
@@ -82,9 +81,14 @@ bool Robot::initSystem()
             guiState_.debugStatus += "Encoders init failed\n";
     }
 
-    // TODO servo
+    if (!isServoInit_)
+    {
+        isServoInit_ = servos_.init("/dev/ttyAMA0", 18);
+        if (!isServoInit_)
+            guiState_.debugStatus += "Servo init failed\n";
+    }
 
-    return isMCPInit_ & isMotorsInit_ & isEncodersInit_;
+    return isMCPInit_ & isMotorsInit_ & isEncodersInit_ & isServoInit_;
 }
 
 
@@ -290,8 +294,9 @@ void Robot::stopMotors()
 
 void Robot::shutdown()
 {
-    servos_->shutdownServos();
-    servos_->activatePump(false);
+    servos_.disable(0xFE);
+    strategy_->shutdown();
     stopMotors();
-    lidar_.stop();
+    if (isLidarInit_)
+        lidar_.stop();
 }

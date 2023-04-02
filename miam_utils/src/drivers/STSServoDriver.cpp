@@ -215,6 +215,8 @@ int STSServoDriver::sendMessage(unsigned char const& servoId,
                                 unsigned char const& paramLength,
                                 unsigned char *parameters)
 {
+    if (port_ < 0)
+        return 0;
     unsigned char message[6 + paramLength];
     unsigned char checksum = servoId + paramLength + 2 + commandID;
     message[0] = 0xFF;

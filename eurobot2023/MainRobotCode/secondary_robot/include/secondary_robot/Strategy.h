@@ -22,13 +22,16 @@
                 // Called before the start of the match, to setup the robot.
                 void setup(RobotInterface *robot);
 
+                // Code executed when shutting down the robot
+                void shutdown() override;
+
                 // The actual match code, which runs in its own thread.
                 void match();
             private:
                 void match_impl(); /// Actual implementation of the match code.
                 RobotInterface *robot;
                 MotionController *motionController;
-                ServoHandler *servo;
+                STSServoDriver *servo;
 
                 Action* chooseNextAction(
                     std::vector<Action>& actions,

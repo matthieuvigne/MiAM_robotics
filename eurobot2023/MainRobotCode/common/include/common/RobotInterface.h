@@ -14,13 +14,14 @@
     #include "common/MotionController.h"
     #include "common/ServoHandler.h"
     #include "common/Types.h"
+    #include <miam_utils/drivers/STSServoDriver.h>
 
     class RobotInterface
     {
         public:
-            RobotInterface(RobotParameters const& robotParameters, ServoHandler *servos):
+            RobotInterface(RobotParameters const& robotParameters):
                 motionController_(robotParameters),
-                servos_(servos)
+                servos_()
             {
             }
 
@@ -74,10 +75,10 @@
             }
 
             MotionController* getMotionController() { return &motionController_;}
-            ServoHandler* getServos() { return servos_;}
+            STSServoDriver* getServos() { return &servos_;}
 
         protected:
             MotionController motionController_;
-            ServoHandler *servos_;
+            STSServoDriver servos_;
     };
  #endif

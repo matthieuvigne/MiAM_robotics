@@ -95,8 +95,6 @@
             void tick(double const& dt, double const& simulationTime, Vector2 const& obstaclePosition);
 
         private:
-            ServoHandler handler_;
-            MaestroMock servoMock_;
             AbstractStrategy *strategy_;
             std::vector<ViewerTrajectoryPoint> trajectory_;
             RobotPosition simulationPosition_;
