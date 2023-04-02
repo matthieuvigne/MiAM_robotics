@@ -34,14 +34,12 @@
         double time;
         RobotPosition position;
         int score; ///< Current robot score.
-        std::vector<double> servoState_;
         bool isPumpOn_;
 
         ViewerTrajectoryPoint():
             time(0.0),
             position(),
             score(0),
-            servoState_(std::vector<double>(18, 0.0)),
             isPumpOn_(false)
         {}
     };

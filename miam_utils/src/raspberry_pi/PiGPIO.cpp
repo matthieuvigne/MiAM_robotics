@@ -44,9 +44,9 @@ int const PWM_DATA[2] = {5, 9};
 #define PWM_CLK_DIV 41
 
 // Pointer to registers
-volatile unsigned int *gpio_register;
-volatile unsigned int *pwm_register;
-volatile unsigned int *clock_register;
+volatile unsigned int *gpio_register = (volatile unsigned int *)MAP_FAILED;
+volatile unsigned int *pwm_register = (volatile unsigned int *)MAP_FAILED;
+volatile unsigned int *clock_register = (volatile unsigned int *)MAP_FAILED;
 
 bool RPi_enableGPIO()
 {

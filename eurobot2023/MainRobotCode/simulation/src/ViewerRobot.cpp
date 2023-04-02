@@ -114,7 +114,6 @@ void ViewerRobot::tick(double const& dt, double const& simulationTime, Vector2 c
     p.time = simulationTime;
     p.position = simulationPosition_;
     p.score = score_;
-    p.servoState_ = servoMock_.getState();
 
     // Miror.
     if (isPlayingRightSide_)

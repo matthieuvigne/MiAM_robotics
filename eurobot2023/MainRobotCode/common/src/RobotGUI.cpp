@@ -88,14 +88,14 @@ bool RobotGUI::doUpdate()
     scoreLabel_.set_text("Score: " + std::to_string(robotData.score));
     if (isPlayingRightSide_)
     {
-        sideButton_.set_label("Bleu");
-        sideButton_.set_name("blue");
+        sideButton_.set_label("Vert");
+        sideButton_.set_name("green");
         sideButton_.get_child()->set_name("button_text");
     }
     else
     {
-        sideButton_.set_label("Vert");
-        sideButton_.set_name("green");
+        sideButton_.set_label("Bleu");
+        sideButton_.set_name("blue");
         sideButton_.get_child()->set_name("button_text");
     }
 
