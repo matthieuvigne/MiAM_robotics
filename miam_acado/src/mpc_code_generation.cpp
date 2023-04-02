@@ -95,6 +95,9 @@ int main() {
     if (mpc.exportCode( "../src/generated_code" ) != SUCCESSFUL_RETURN)
         exit( EXIT_FAILURE );
 
+    if (mpc.exportCode( "../../eurobot2023/MainRobotCode/common/acado_solver" ) != SUCCESSFUL_RETURN)
+        exit( EXIT_FAILURE );
+
     mpc.printDimensionsQP( );
 
     return EXIT_SUCCESS;
