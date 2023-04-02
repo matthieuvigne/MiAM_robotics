@@ -10,3 +10,6 @@
 [submodule "a-star"]
 	path = a-star
 	url = https://github.com/14chanwa/a-star.git
+[submodule "qpoases"]
+	path = qpoases
+	url = https://github.com/14chanwa/qpoases.git
