@@ -4,6 +4,7 @@
 #include <miam_utils/trajectory/Trajectory.h>
 #include <miam_utils/trajectory/ArcCircle.h>
 #include <miam_utils/trajectory/StraightLine.h>
+#include <miam_utils/trajectory/SampledTrajectory.h>
 #include <miam_utils/trajectory/PointTurn.h>
 #include <miam_utils/trajectory/Utilities.h>
 
@@ -93,4 +94,14 @@ int main()
             tp.linearVelocity << "\t" << 
             tp.angularVelocity << std::endl;
     }
+
+    // creer trajectoire
+    SampledTrajectory st(
+        TrajectoryConfig(),
+        solvedTraj,
+        MPC_N_TIME_INTERVALS * MPC_DELTA_T
+    );
+
+    std::cout << "SampledTrajectory duration: " << st.getDuration() << std::endl;
+    std::cout << "SampledTrajectory end point: " << st.getEndPoint().position << std::endl;
 }
