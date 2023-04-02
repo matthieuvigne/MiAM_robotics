@@ -1,5 +1,5 @@
 #include <iostream>
-#include "AStar/AStar.hpp"
+#include "AStar.hpp"
 
 int main()
 {

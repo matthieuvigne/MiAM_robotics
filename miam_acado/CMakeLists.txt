@@ -52,12 +52,12 @@ include_directories(
 	${MIAM_UTILS_INCLUDE_DIRS} 
 	${ACADO_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIR}
-	src/qpoases
-	src/qpoases/INCLUDE
-	src/qpoases/SRC
+	../qpoases
+	../qpoases/INCLUDE
+	../qpoases/SRC
 	src/generated_code
-	include/
-	src/AStar
+	../gnuplot-iostream
+	../a-star/source
 	src/mpc_solver_lib
 )
 link_directories(
@@ -76,8 +76,8 @@ link_directories(
 
 
 # QPoases
-FILE( GLOB LIB_SOURCES src/qpoases/SRC/*.cpp )
-FILE( GLOB LIB_HEADERS src/qpoases/INCLUDE/*.hpp )
+FILE( GLOB LIB_SOURCES ../qpoases/SRC/*.cpp )
+FILE( GLOB LIB_HEADERS ../qpoases/INCLUDE/*.hpp )
 ADD_LIBRARY( QPoases ${LIB_SOURCES} ${LIB_HEADERS} )
 
 # CustomSolver
@@ -85,8 +85,8 @@ FILE( GLOB LIB_SOURCES src/generated_code/*.cpp src/generated_code/*.c )
 FILE( GLOB LIB_HEADERS src/generated_code/*.hpp src/generated_code/*.h )
 ADD_LIBRARY( CustomSolver ${LIB_SOURCES} ${LIB_HEADERS} )
 
-FILE( GLOB LIB_SOURCES src/AStar/*.cpp )
-FILE( GLOB LIB_HEADERS src/AStar/*.hpp )
+FILE( GLOB LIB_SOURCES ../a-star/source/*.cpp )
+FILE( GLOB LIB_HEADERS ../a-star/source/*.hpp )
 ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
 
 FILE( GLOB LIB_SOURCES src/mpc_solver_lib/*.cpp )

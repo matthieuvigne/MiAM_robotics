@@ -1,5 +1,5 @@
 #include <iostream>
-#include "AStar/AStar.hpp"
+#include "AStar.hpp"
 
 #include <miam_utils/trajectory/Trajectory.h>
 #include <miam_utils/trajectory/ArcCircle.h>
