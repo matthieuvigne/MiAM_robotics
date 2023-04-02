@@ -51,7 +51,7 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
     {
         // Configure servos
         writeRegister(0xFE, STS::registers::WRITE_LOCK, 0);
-        // Set a return delay of 20ms.
+        // Set a return delay of 20us.
         writeRegister(0xFE, STS::registers::RESPONSE_DELAY, 10);
         // Set a return status level of 0.
         writeRegister(0xFE, STS::registers::RESPONSE_STATUS_LEVEL, 0);
@@ -77,6 +77,7 @@ bool STSServoDriver::ping(unsigned char const& servoId)
     tcflush(port_, TCIOFLUSH);
     usleep(100);
     tcflush(port_, TCIOFLUSH);
+
     unsigned char response[1] = {0xFF};
     int send = sendMessage(servoId,
                            instruction::PING,
@@ -179,6 +180,13 @@ bool STSServoDriver::isMoving(unsigned char const& servoId)
 {
     unsigned char const result = readRegister(servoId, STS::registers::MOVING_STATUS);
     return result > 0;
+}
+
+void STSServoDriver::setPGain(unsigned char const& servoId, unsigned char const& Kp)
+{
+    writeRegister(servoId, STS::registers::WRITE_LOCK, 0);
+    unsigned char const result = writeRegister(servoId, STS::registers::POS_PROPORTIONAL_GAIN, Kp);
+    writeRegister(servoId, STS::registers::WRITE_LOCK, 1);
 }
 
 

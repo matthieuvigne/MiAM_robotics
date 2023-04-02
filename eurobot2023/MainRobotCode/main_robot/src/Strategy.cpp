@@ -60,14 +60,30 @@ void Strategy::setup(RobotInterface *robot)
         servo->setTargetPosition(20 + i, 2048);
     }
 
+    // Change P gain of the first servos of each arm to prevent vibrations
+    servo->setPGain(10, 20);
+    servo->setPGain(20, 20);
+    servo->setPGain(11, 20);
+    servo->setPGain(21, 20);
+
+    // Fold arm
+    // FIXME: why do I need to send it many times ?
+    servo->setTargetPosition(11, 3000);
+    servo->setTargetPosition(11, 3000);
+    servo->setTargetPosition(11, 3000);
+    servo->setTargetPosition(21, 1000);
+    servo->setTargetPosition(21, 1000);
+    servo->setTargetPosition(21, 1000);
+
     // Setup pumps and valves
     RPi_setupGPIO(PUMP_RIGHT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(PUMP_RIGHT, true);
+    RPi_writeGPIO(PUMP_RIGHT, false);
     RPi_setupGPIO(PUMP_LEFT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(PUMP_LEFT, true);
+    RPi_writeGPIO(PUMP_LEFT, false);
     RPi_setupGPIO(VALVE_RIGHT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(VALVE_RIGHT, true);
+    RPi_writeGPIO(VALVE_RIGHT, false);
     RPi_setupGPIO(VALVE_LEFT, PiGPIOMode::PI_GPIO_OUTPUT);
+    RPi_writeGPIO(VALVE_LEFT, false);
 }
 
 void Strategy::shutdown()
