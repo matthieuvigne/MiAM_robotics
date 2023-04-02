@@ -23,8 +23,8 @@ using namespace std;
 
 RobotPosition astarWaypointToRobotPosition(AStar::Vec2i astarWaypoint) {
     return RobotPosition(
-        astarWaypoint.x * MIAM_ASTAR_RESOLUTION_MM, 
-        astarWaypoint.y * MIAM_ASTAR_RESOLUTION_MM,
+        astarWaypoint.x * MIAM_ASTAR_RESOLUTION_MM + MIAM_ASTAR_RESOLUTION_MM / 2, 
+        astarWaypoint.y * MIAM_ASTAR_RESOLUTION_MM + MIAM_ASTAR_RESOLUTION_MM / 2,
         0
         );
 };
