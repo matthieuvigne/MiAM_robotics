@@ -66,14 +66,14 @@ namespace miam{
                 return;
             }
 
-            int N = sampledTrajectory_.size() - 1;
-            double sampling_time = getDuration() / N;
+            int N = sampledTrajectory_.size();
+            double sampling_time = getDuration() / (N-1);
 
             double newDuration = getDuration() - replanificationTime;
             int newN = newDuration / sampling_time;
-            
+
             std::vector<TrajectoryPoint > newSampledTrajectory;
-            for (int i = 0; i < newN; i++) 
+            for (int i = 0; i <= newN; i++) 
             {
                 newSampledTrajectory.push_back(getCurrentPoint(replanificationTime + i * sampling_time));
             }

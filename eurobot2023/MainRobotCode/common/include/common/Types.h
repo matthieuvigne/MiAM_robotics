@@ -2,6 +2,7 @@
      #define TYPES_H
 
     #include <string>
+    #include <miam_utils/trajectory/RobotPosition.h>
 
     ///< The various states the robot can be in
     enum robotstate{
@@ -22,5 +23,10 @@
         int score = 0;
         double currentMatchTime = 0;
     }; ///< Data forwarded by the robot to the GUI
+
+    struct DetectedObstacle {
+        miam::RobotPosition position;
+        double diameter;
+    };
 
  #endif

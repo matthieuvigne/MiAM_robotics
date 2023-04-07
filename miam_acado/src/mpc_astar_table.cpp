@@ -103,5 +103,13 @@ int main()
     );
 
     std::cout << "SampledTrajectory duration: " << st.getDuration() << std::endl;
+    std::cout << "SampledTrajectory start point: " << st.getCurrentPoint(0.0).position << std::endl;
     std::cout << "SampledTrajectory end point: " << st.getEndPoint().position << std::endl;
+
+    st.replanify(1);
+
+    std::cout << "SampledTrajectory duration: " << st.getDuration() << std::endl;
+    std::cout << "SampledTrajectory start point: " << st.getCurrentPoint(0.0).position << std::endl;
+    std::cout << "SampledTrajectory end point: " << st.getEndPoint().position << std::endl;
+
 }
