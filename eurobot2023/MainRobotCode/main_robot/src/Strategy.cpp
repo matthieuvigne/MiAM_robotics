@@ -17,8 +17,16 @@ using miam::RobotPosition;
 
 #define USE_CAMERA 1
 
+#define TEST_SQUARE_MOVE 0 // make a square on the table to test motors
+#define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
+
 namespace main_robot
 {
+
+std::ostream& operator<<(std::ostream &s, const ArmPosition &armPosition) 
+{
+    return s << "[" << armPosition.x_ << ", " << armPosition.y_ << ", " << armPosition.z_ << "]";
+}
 
 // #define SKIP_TO_GRABBING_SAMPLES 1
 // #define SKIP_TO_PUSHING_SAMPLES 1
@@ -155,30 +163,9 @@ void Strategy::match_impl()
     std::vector<RobotPosition> positions;
 
 
-    while (true) ;;
+    // Faire un carré pour faire un test de déplacement
 
-    // for (int i = 0; i < 3; i++)
-    // {
-    //     targetPosition = motionController->getCurrentPosition();
-    //     endPosition = targetPosition;
-    //     endPosition.x += 500;
-    //     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-    //         targetPosition, endPosition);
-    //     traj.pop_back();
-    //     motionController->setTrajectoryToFollow(traj);
-    //     motionController->waitForTrajectoryFinished();
-
-
-    //     targetPosition = motionController->getCurrentPosition();
-    //     endPosition = targetPosition;
-    //     endPosition.x -= 500;
-    //     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-    //         targetPosition, endPosition);
-    //     traj.pop_back();
-    //     motionController->setTrajectoryToFollow(traj);
-    //     motionController->waitForTrajectoryFinished();
-    // }
-
+#if FAIRE_CARRE
 
     targetPosition = motionController->getCurrentPosition();
     endPosition = targetPosition;
@@ -228,7 +215,7 @@ void Strategy::match_impl()
     if (moveSuccess)
         robot->updateScore(20);
     return;
-
+#endif
 
     // Create brain
     MotionPlanning motion_planner;
@@ -250,6 +237,12 @@ void Strategy::match_impl()
     RobotPosition const cream_ganache_bottom_left(225,675,0);
     RobotPosition const cream_ganache_bottom_right(1775,675,0);
 
+    // Arm positions
+    ArmPosition left_arm_center_up(0, 0, 500);
+    ArmPosition left_arm_left_down(-500, -500, 0);
+    ArmPosition right_arm_center_up(0, 0, 500);
+    ArmPosition right_arm_right_down(500, -500, 0);
+
     // Get the initial position of the robot
     RobotPosition initial_position;
     initial_position.x = 2000 - robot->getParameters().CHASSIS_BACK;
@@ -257,7 +250,10 @@ void Strategy::match_impl()
     initial_position.theta = M_PI;
     RobotPosition current_position = motionController->getCurrentPosition();
 
-    // Get the top right genoese and get it
+
+#if ENABLE_DYNAMIC_ACTION_CHOOSING
+
+        // Get the top right genoese and get it
     double distance = (genoese_top_left-current_position).norm();
     double coeff = (distance-cake_radius-robot_chassis_front)/distance;
     RobotPosition target_position = current_position + coeff*(genoese_top_right-current_position);
@@ -505,8 +501,144 @@ void Strategy::match_impl()
         }
 
     }
+#else
 
+    // Get the top right genoese and get it
+    double distance = (genoese_top_left-current_position).norm();
+    double coeff = (distance-cake_radius-robot_chassis_front)/distance;
+    RobotPosition target_position = current_position + coeff*(genoese_top_right-current_position);
+    go_to_straight_line(target_position);
+    // set left arm to push genoese
+    set_left_arm_position(left_arm_left_down);
 
+    // Bring the first genoese to the top left cream and ganache
+    target_position = cream_ganache_top_left + RobotPosition(150,0,0);
+    go_to_straight_line(target_position);
+    // reset arm positions
+    set_left_arm_position(left_arm_center_up);
+    set_left_arm_position(left_arm_center_up);
+    target_position = cream_ganache_top_left + RobotPosition(robot_chassis_front,0,0);
+    go_to_straight_line(target_position);
+
+    // Build the cakes
+    double constexpr RAD = M_PI/180.;
+    target_position = target_position + 100*RobotPosition(-std::cos(45*RAD),std::sin(45*RAD),0);
+    go_to_straight_line(target_position);
+
+    // build cakes
+    build_cakes();
+    // set arms to push genoses
+    set_left_arm_position(left_arm_left_down);
+    set_right_arm_position(right_arm_right_down);
+
+    // and then push them into the blue tray zone
+    target_position = RobotPosition(target_position.x,2550-robot_chassis_front,0);
+    go_to_straight_line(target_position);
+
+    // reset arm positions
+    set_left_arm_position(left_arm_center_up);
+    set_right_arm_position(right_arm_center_up);
+
+    // Go back 
+    target_position = RobotPosition(target_position.x,target_position.y-300,M_PI);
+    go_to_straight_line(target_position, true); // backward to not destroy cakes
+
+    if(false)
+    {
+        // Option 1 -> bottom left genoese
+        // -------------------------------
+
+        // Reach the bottom left genoese (in a favorable position for the next action).
+        RobotPosition tmp_position = cream_ganache_bottom_left + RobotPosition(250,0,0);
+        distance = (genoese_bottom_left - tmp_position).norm();
+        target_position = tmp_position + (distance+250)*(genoese_bottom_left - tmp_position)/distance;
+        go_to_straight_line(target_position);
+
+        // Push the bottom left genoese up to the bottom left cream and ganache
+        // set left arm to push genoese
+        set_left_arm_position(left_arm_left_down);
+
+        target_position = tmp_position;
+        go_to_straight_line(target_position);
+        target_position = cream_ganache_bottom_left + RobotPosition(robot_chassis_front,0,0);
+        go_to_straight_line(target_position);
+
+        // reset arm positions
+        set_left_arm_position(left_arm_center_up);
+
+        // Build the cakes and push them into the closest blue plate zone
+        target_position = target_position + 100*RobotPosition(-std::cos(45*RAD),std::sin(45*RAD),0);
+        go_to_straight_line(target_position);
+
+        // build cakes
+        build_cakes();
+        // set arms to push genoses
+        set_left_arm_position(left_arm_left_down);
+        set_right_arm_position(right_arm_right_down);
+
+        target_position = RobotPosition(target_position.x,900-robot_chassis_front,0);
+        go_to_straight_line(target_position);
+
+        // Go to the final zone
+        target_position = target_position + RobotPosition(0,-150,M_PI);
+        go_to_straight_line(target_position, true); // backward to not destroy cakes
+        target_position = RobotPosition(725,450,0);
+        go_to_straight_line(target_position);
+        target_position = RobotPosition(725,robot_chassis_front,0);
+        go_to_straight_line(target_position);
+
+    } else {
+
+        // Option 2 -> bottom right genoese
+        // --------------------------------
+
+        // Reach the bottom left genoese (in a favorable position for the next action).
+        RobotPosition tmp_position = cream_ganache_bottom_right + RobotPosition(-250,0,0);
+        distance = (genoese_bottom_right - tmp_position).norm();
+        target_position = tmp_position + (distance+250)*(genoese_bottom_right - tmp_position)/distance;
+        go_to_straight_line(target_position);
+
+        // Push the bottom left genoese up to the bottom left cream and ganache
+        // set arms to push genoses
+        set_left_arm_position(left_arm_left_down);
+        target_position = tmp_position;
+        go_to_straight_line(target_position);
+
+        // left arm up and right arm down to push genose
+        set_left_arm_position(left_arm_center_up);
+        set_right_arm_position(right_arm_right_down);
+
+        target_position = cream_ganache_bottom_right + RobotPosition(-robot_chassis_front,0,0);
+        go_to_straight_line(target_position);
+
+        // left arm up and right arm down to push genose
+        set_left_arm_position(left_arm_left_down);
+        set_right_arm_position(right_arm_center_up);
+
+        // Build the cakes and push them into the closest blue plate zone
+        target_position = target_position + 100*RobotPosition(std::cos(45*RAD),-std::sin(45*RAD),0);
+        go_to_straight_line(target_position);
+
+        // build cakes
+        build_cakes();
+        // set arms to push genoses
+        set_left_arm_position(left_arm_left_down);
+        set_right_arm_position(right_arm_right_down);
+
+        target_position = RobotPosition(target_position.x,450+robot_chassis_front,0);
+        go_to_straight_line(target_position);
+
+        // Go to the final zone
+        target_position = target_position + RobotPosition(0,150,M_PI);
+        go_to_straight_line(target_position, true); // backward to not destroy cakes
+        target_position = RobotPosition(725,450,0);
+        go_to_straight_line(target_position);
+        target_position = RobotPosition(725,robot_chassis_front,0);
+        go_to_straight_line(target_position);
+
+    }
+
+#endif
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }
@@ -538,5 +670,41 @@ void Strategy::match()
     }
 }
 
+bool Strategy::go_to_straight_line(RobotPosition targetPosition, bool backward) 
+{
+    RobotPosition currentPosition = motionController->getCurrentPosition();
+    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
+        robot->getParameters().getTrajConf(),
+        currentPosition, // start
+        targetPosition, // end
+        0.0, // no velocity at end point
+        backward // or forward
+    );
+
+    motionController->setTrajectoryToFollow(traj);
+
+    return motionController->waitForTrajectoryFinished();
+}
+
+void Strategy::set_left_arm_position(ArmPosition armPosition)
+{
+    std::cout << "Moving left arm to: " << armPosition << std::endl;
+    // TODO wait to mimick arm movement
+    robot->wait(1);
+}
+
+void Strategy::set_right_arm_position(ArmPosition armPosition)
+{
+    std::cout << "Moving right arm to: " << armPosition << std::endl;
+    // TODO wait to mimick arm movement
+    robot->wait(1);
+}
+
+void Strategy::build_cakes()
+{
+    std::cout << "Building cakes" << std::endl;
+    // TODO wait to mimick arm movement
+    robot->wait(5);
+}
 
 }

@@ -13,6 +13,17 @@
     #include "common/MotionPlanning.h"
 
     namespace main_robot{
+
+        class ArmPosition 
+        {
+            public:
+                double x_;
+                double y_;
+                double z_;
+            
+                ArmPosition(double x, double y, double z): x_(x), y_(y), z_(z) {};
+        };
+
         class Strategy: public AbstractStrategy
         {
             public:
@@ -39,7 +50,12 @@
                     RobotPosition currentPosition,
                     MotionPlanning motionPlanner
                 );
-        };
-    }
+
+                bool go_to_straight_line(RobotPosition targetPosition, bool backward = false);
+                void set_left_arm_position(ArmPosition armPosition);
+                void set_right_arm_position(ArmPosition armPosition);
+                void build_cakes();
+    };
+}
 
  #endif
