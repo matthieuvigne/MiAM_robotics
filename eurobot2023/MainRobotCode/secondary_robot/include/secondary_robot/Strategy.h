@@ -13,6 +13,25 @@
     #include "common/MotionPlanning.h"
 
     namespace secondary_robot{
+
+        enum ReservoirTilt
+        {
+            UP, DOWN
+        };
+
+        enum BrushDirection
+        {
+            OFF, TOWARDS_FRONT, TOWARDS_BACK
+        };
+
+        enum RailHeight // from 0 to 1000
+        {
+            BOTTOM = 0,
+            TOP = 1000,
+            CHERRY_DISTRIBUTOR = 200,
+            CHERRY_BASKET = 800
+        };
+
         class Strategy: public AbstractStrategy
         {
             public:
@@ -38,6 +57,11 @@
                     RobotPosition currentPosition,
                     MotionPlanning motionPlanner
                 );
+
+                bool go_to_straight_line(RobotPosition targetPosition, bool backward = false);
+                void move_rail(RailHeight railHeight);
+                void set_brush_move(BrushDirection brushDirection);
+                void set_reservoir_tilt(ReservoirTilt reservoirTilt);
         };
     }
 

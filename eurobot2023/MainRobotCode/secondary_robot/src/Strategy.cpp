@@ -16,6 +16,9 @@ using miam::RobotPosition;
 
 #define USE_CAMERA 1
 
+#define TEST_SQUARE_MOVE 0 // make a square on the table to test motors
+#define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
+
 // #define SKIP_TO_GRABBING_SAMPLES 1
 // #define SKIP_TO_PUSHING_SAMPLES 1
 // #define SKIP_TO_GRABBING_SAMPLES_SIDE_DIST 1
@@ -39,8 +42,8 @@ void Strategy::setup(RobotInterface *robot)
 
     // Set initial position
     RobotPosition targetPosition;
-    targetPosition.x = 0; //robot->getParameters().CHASSIS_BACK + 1000;
-    targetPosition.y = 0; // 1700;
+    targetPosition.x = 500;
+    targetPosition.y = 200; ;
     targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
 }
@@ -93,18 +96,16 @@ void Strategy::match_impl()
     TrajectoryVector traj;
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
-    robot->updateScore(2);  //depose statuette
-    robot->updateScore(2);  //depose vitrine
-
-    // Set initial position
-    targetPosition.x = 0; //robot->getParameters().CHASSIS_BACK;
-    targetPosition.y = 0; // 1200;
-    targetPosition.theta = 0;
-    motionController->resetPosition(targetPosition, true, true, true);
-    robot->wait(0.05);
 
     // create brain
     MotionPlanning motion_planner;
+
+
+    RobotPosition const left_of_cherry_distributor_bottom(700,200,0);
+
+
+
+#if ENABLE_DYNAMIC_ACTION_CHOOSING
 
     Action action1(100,1, RobotPosition(2000, 1700, 0));
     // Action action2(500, 1, RobotPosition(2200, 500, 0));
@@ -262,6 +263,26 @@ void Strategy::match_impl()
 
 
     }
+#else
+
+    // grab cheries in front of robot
+    go_to_straight_line(left_of_cherry_distributor_bottom);
+
+    // set rail height and tilt
+    set_reservoir_tilt(ReservoirTilt::UP);
+    move_rail(RailHeight::CHERRY_DISTRIBUTOR);
+    set_brush_move(BrushDirection::TOWARDS_BACK);
+
+    // go front
+    go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(100, 0, 0));
+    // wait
+    robot->wait(3);
+    // go back
+    go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(-100, 0, 0), true); // backwards
+
+
+#endif
+
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }
 
@@ -283,6 +304,62 @@ void Strategy::match()
     if (!MATCH_COMPLETED)
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
+    }
+}
+
+bool Strategy::go_to_straight_line(RobotPosition targetPosition, bool backward) 
+{
+    RobotPosition currentPosition = motionController->getCurrentPosition();
+    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
+        robot->getParameters().getTrajConf(),
+        currentPosition, // start
+        targetPosition, // end
+        0.0, // no velocity at end point
+        backward // or forward
+    );
+
+    motionController->setTrajectoryToFollow(traj);
+
+    return motionController->waitForTrajectoryFinished();
+}
+
+void Strategy::move_rail(RailHeight railheight) 
+{
+    // move rail from height 0 to 1
+    // servo -> set position xxx
+    // TODO
+}
+
+void Strategy::set_brush_move(BrushDirection brushDirection)
+{
+    if (brushDirection == BrushDirection::OFF)
+    {
+        // set motor speed to 0
+        // TODO
+    }
+    else if (brushDirection == BrushDirection::TOWARDS_BACK) 
+    {
+        // set motor speed to +x
+        // TODO
+    }
+    else if (brushDirection == BrushDirection::TOWARDS_BACK) 
+    {
+        // set motor speed to +x
+        // TODO
+    }
+}
+
+void Strategy::set_reservoir_tilt(ReservoirTilt reservoirTilt)
+{
+    if (reservoirTilt == ReservoirTilt::DOWN)
+    {
+        // set servo 
+        // TODO
+    }
+    else if (reservoirTilt == ReservoirTilt::UP)
+    {
+        // set servo 
+        // TODO
     }
 }
 
