@@ -15,15 +15,15 @@
                 RobotParameters param;
                 param.name = "SecondaryRobot";
 
-                param.wheelRadius = 49.1; ///< Wheel radius, in mm - identified during open loop experiments.
-                param.wheelSpacing = 100.5; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.
-                param.encoderWheelRadius = 25.3; ///< Radius of encoder wheels, in mm.
-                param.encoderWheelSpacing = 139.0; ///< Encoder wheel spacing from robot center, in mm.
+                param.wheelRadius = 55.4; ///< Wheel radius, in mm - identified during open loop experiments.
+                param.wheelSpacing = 83.0; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.
+                param.encoderWheelRadius = 26.25; ///< Radius of encoder wheels, in mm.
+                param.encoderWheelSpacing = 115.5; ///< Encoder wheel spacing from robot center, in mm.
 
-                param.maxWheelSpeed = 500; ///< Maximum wheel speed, in mm/s.
-                param.maxWheelAcceleration = 1000; ///< Maximum wheel acceleration, in mm/s^2.
+                param.maxWheelSpeed = 600; ///< Maximum wheel speed, in mm/s.
+                param.maxWheelAcceleration = 1200; ///< Maximum wheel acceleration, in mm/s^2.
 
-                param.maxWheelSpeedTrajectory = 500; ///< Maximum wheel speed, in mm/s, for trajectory generation.
+                param.maxWheelSpeedTrajectory = 300; ///< Maximum wheel speed, in mm/s, for trajectory generation.
                 param.maxWheelAccelerationTrajectory = 600; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
                 // Chassis physical dimensions
@@ -34,9 +34,14 @@
 
                 param.rightMotorId = 2;
                 param.leftMotorId = 1;
+                param.rightMotorDirection = 1;
+                param.leftMotorDirection = -1;
 
-                param.rightEncoderId = 0;
-                param.leftEncoderId = 1;
+                param.rightEncoderId = 1;
+                param.leftEncoderId = 0;
+                param.rightEncoderDirection = 1;
+                param.leftEncoderDirection = 1;
+
 
                 return param;
             }

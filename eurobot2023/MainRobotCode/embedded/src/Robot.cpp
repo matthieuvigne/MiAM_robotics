@@ -79,6 +79,8 @@ bool Robot::initSystem()
         isEncodersInit_ = encoders_.init();
         if (!isEncodersInit_)
             guiState_.debugStatus += "Encoders init failed\n";
+        else
+            lastEncoderPosition_ = encoders_.updatePosition();
     }
 
     if (!isServoInit_)
@@ -88,7 +90,14 @@ bool Robot::initSystem()
             guiState_.debugStatus += "Servo init failed\n";
     }
 
-    return isMCPInit_ & isMotorsInit_ & isEncodersInit_ & isServoInit_;
+    if (!isLidarInit_ && !disableLidar_)
+    {
+        isLidarInit_ = lidar_.init("/dev/RPLIDAR");
+        if (!isLidarInit_)
+            guiState_.debugStatus += "Lidar init failed\n";
+    }
+
+    return isMCPInit_ & isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_);
 }
 
 
@@ -102,20 +111,28 @@ bool Robot::setupBeforeMatchStart()
     {
         // Try to initialize system.
         bool isInit = initSystem();
+
+        if (isInit)
+            guiState_.debugStatus = "";
         if (isInit && guiState_.state != robotstate::UNDERVOLTAGE)
         {
             // Check voltage
-            double const batteryVoltage = motors_.getStatus(motionController_.robotParams_.rightMotorId).batteryVoltage;
-            // if (batteryVoltage < UNDERVOLTAGE_LEVEL)
-            // {
-            //     guiState_.state = robotstate::UNDERVOLTAGE;
-            //     return false;
-            // }
+            double const batteryVoltageRight = motors_.getStatus(motionController_.robotParams_.rightMotorId).batteryVoltage;
+            double const batteryVoltageLeft = motors_.getStatus(motionController_.robotParams_.leftMotorId).batteryVoltage;
+            // Wait for valid signal
+            if (batteryVoltageRight < 5 || batteryVoltageLeft < 6 || std::abs(batteryVoltageLeft - batteryVoltageRight) > 2.0)
+            {
+                guiState_.debugStatus = "Waiting for battery voltage from motors";
+                return false;
+            }
+            if ((batteryVoltageRight + batteryVoltageLeft) / 2.0 < UNDERVOLTAGE_LEVEL)
+            {
+                guiState_.state = robotstate::UNDERVOLTAGE;
+                return false;
+            }
 
             strategy_->setup(this);
 
-            // Set status.
-            lastEncoderPosition_ = encoders_.updatePosition();
             if (testMode_)
             {
                 matchStartTime_ = currentTime_;
@@ -256,6 +273,7 @@ void Robot::lowLevelLoop()
         measurements.motorSpeed(1) = sign * motors_.setSpeed(motionController_.robotParams_.leftMotorId, sign * target.motorSpeed[1]);
 
         // Update gui
+        guiState_.currentMatchTime = currentTime_ - matchStartTime_;
         gui_->update(guiState_);
     }
     // End of the match.
@@ -294,9 +312,9 @@ void Robot::stopMotors()
 
 void Robot::shutdown()
 {
+    if (isLidarInit_)
+        lidar_.stop();
     servos_.disable(0xFE);
     strategy_->shutdown();
     stopMotors();
-    if (isLidarInit_)
-        lidar_.stop();
 }
