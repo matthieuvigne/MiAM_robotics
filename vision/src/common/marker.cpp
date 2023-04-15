@@ -108,22 +108,26 @@ Marker::Family Marker::getMarkerFamily(Id requested_marker_id)
   {
     // Markers appended to the robots
     for(Id marker_id=1u; marker_id<=5u; marker_id++)
-      marker_id_to_family[marker_id] = Family::PURPLE_TEAM_ROBOT;
+      marker_id_to_family[marker_id] = Family::BLUE_TEAM_ROBOT;
     for(Id marker_id=6u; marker_id<=10u; marker_id++)
-      marker_id_to_family[marker_id] = Family::YELLOW_TEAM_ROBOT;
+      marker_id_to_family[marker_id] = Family::GREEN_TEAM_ROBOT;
       
-    // Markers reserved for the board playing area
-    marker_id_to_family[13u] = Family::TREASURE_BLUE_SAMPLE;
-    marker_id_to_family[17u] = Family::ROCK_SAMPLE;
-    marker_id_to_family[36u] = Family::TREASURE_GREEN_SAMPLE;
-    marker_id_to_family[42u] = Family::CENTRAL_MARKER;
-    marker_id_to_family[47u] = Family::TREASURE_RED_SAMPLE;
+    // Markers reserved for the table
+    marker_id_to_family[20u] = Family::TABLE_TOP_LEFT;
+    marker_id_to_family[21u] = Family::TABLE_TOP_RIGHT;
+    marker_id_to_family[22u] = Family::TABLE_BOTTOM_LEFT;
+    marker_id_to_family[23u] = Family::TABLE_BOTTOM_RIGHT;
+    
+    // Markers reserved for the cakes
+    marker_id_to_family[13u] = Family::CREAM;
+    marker_id_to_family[36u] = Family::GENOESE;
+    marker_id_to_family[47u] = Family::ICING;
     
     // Markers reserved for the purple team
     for(Id marker_id=51u; marker_id<=70u; marker_id++)
-      marker_id_to_family[marker_id] = Family::PURPLE_TEAM_MARKER;
+      marker_id_to_family[marker_id] = Family::BLUE_TEAM_MARKER;
     for(Id marker_id=71u; marker_id<=90u; marker_id++)
-      marker_id_to_family[marker_id] = Family::YELLOW_TEAM_MARKER;
+      marker_id_to_family[marker_id] = Family::GREEN_TEAM_MARKER;
   }
   
   // Return the requested tag's family
@@ -257,35 +261,41 @@ std::string Marker::print() const
   out << "- family: ";
   switch(family_)
   {
-    case Family::CENTRAL_MARKER:
-      out << "CENTRAL_MARKER";
+    case Family::TABLE_TOP_LEFT:
+      out << "TABLE_TOP_LEFT";
       break;
-    case Family::PURPLE_TEAM_MARKER:
-      out << "PURPLE_TEAM_MARKER";
+    case Family::TABLE_TOP_RIGHT:
+      out << "TABLE_TOP_RIGHT";
       break;
-    case Family::PURPLE_TEAM_ROBOT:
-      out << "PURPLE_TEAM_ROBOT";
+    case Family::TABLE_BOTTOM_LEFT:
+      out << "TABLE_BOTTOM_LEFT";
       break;
-    case Family::ROCK_SAMPLE:
-      out << "ROCK_SAMPLE";
+    case Family::TABLE_BOTTOM_RIGHT:
+      out << "TABLE_BOTTOM_RIGHT";
       break;
-    case Family::TREASURE_BLUE_SAMPLE:
-      out << "TREASURE_BLUE_SAMPLE";
+    case Family::GENOESE:
+      out << "GENOESE";
       break;
-    case Family::TREASURE_GREEN_SAMPLE:
-      out << "TREASURE_GREEN_SAMPLE";
+    case Family::CREAM:
+      out << "CREAM";
       break;
-    case Family::TREASURE_RED_SAMPLE:
-      out << "TREASURE_RED_SAMPLE";
+    case Family::ICING:
+      out << "ICING";
+      break;
+    case Family::BLUE_TEAM_MARKER:
+      out << "BLUE_TEAM_MARKER";
+      break;
+    case Family::BLUE_TEAM_ROBOT:
+      out << "BLUE_TEAM_ROBOT";
+      break;
+    case Family::GREEN_TEAM_MARKER:
+      out << "GREEN_TEAM_MARKER";
+      break;
+    case Family::GREEN_TEAM_ROBOT:
+      out << "GREEN_TEAM_ROBOT";
       break;
     case Family::UNKNOWN:
       out << "UNKNOWN";
-      break;
-    case Family::YELLOW_TEAM_MARKER:
-      out << "YELLOW_TEAM_MARKER";
-      break;
-    case Family::YELLOW_TEAM_ROBOT:
-      out << "YELLOW_TEAM_ROBOT";
       break;
     default:
       out << "No tag";
@@ -306,35 +316,40 @@ Marker::Id Marker::sampleMarkerId(Family marker_family)
   Marker::Id marker_id;
   switch(marker_family)
   {
-    case Family::CENTRAL_MARKER:
-      marker_id = 42;
+    // Table markers
+    case Family::TABLE_TOP_LEFT:
+      marker_id = 20;
       break;
-    case Family::PURPLE_TEAM_MARKER:
-      // Marker ids from 51 to 70
-      marker_id = 51 + (std::rand()%20);
+    case Family::TABLE_TOP_RIGHT:
+      marker_id = 21;
       break;
-    case Family::PURPLE_TEAM_ROBOT:
-      // Marker ids from 1 to 5
-      marker_id = 1 + (std::rand()%5);
+    case Family::TABLE_BOTTOM_LEFT:
+      marker_id = 22;
       break;
-    case Family::ROCK_SAMPLE:
-      marker_id = 17;
+    case Family::TABLE_BOTTOM_RIGHT:
+      marker_id = 23;
       break;
-    case Family::TREASURE_BLUE_SAMPLE:
-      marker_id = 13;
-      break;
-    case Family::TREASURE_GREEN_SAMPLE:
+    // Cake markers
+    case Family::GENOESE:
       marker_id = 36;
       break;
-    case Family::TREASURE_RED_SAMPLE:
+    case Family::CREAM:
+      marker_id = 13;
+      break;
+    case Family::ICING:
       marker_id = 47;
       break;
-    case Family::YELLOW_TEAM_MARKER:
-      // Marker ids from 71 to 91
+    // Team markers
+    case Family::BLUE_TEAM_MARKER:
+      marker_id = 51 + (std::rand()%20);
+      break;
+    case Family::BLUE_TEAM_ROBOT:
+      marker_id = 1 + (std::rand()%5);
+      break;
+    case Family::GREEN_TEAM_MARKER:
       marker_id = 71 + (std::rand()%20);
       break;
-    case Family::YELLOW_TEAM_ROBOT:
-      // Marker ids from 6 to 10
+    case Family::GREEN_TEAM_ROBOT:
       marker_id = 6 + (std::rand()%5);
       break;
     case Family::UNKNOWN:
@@ -358,10 +373,9 @@ bool Marker::isUnique(Family const family)
   bool is_unique = true;
   switch(family)
   {
-    case Family::ROCK_SAMPLE:
-    case Family::TREASURE_RED_SAMPLE:
-    case Family::TREASURE_GREEN_SAMPLE:
-    case Family::TREASURE_BLUE_SAMPLE:
+    case Family::CREAM:
+    case Family::ICING:
+    case Family::GENOESE:
       is_unique = false;
       break;
     default:

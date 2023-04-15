@@ -21,16 +21,18 @@ class Marker {
     typedef uint8_t Id;
     enum class Status { INVALID, MEASURED, ESTIMATED };
     enum class Family {
-      UNKNOWN,
-      CENTRAL_MARKER,
-      ROCK_SAMPLE,
-      TREASURE_RED_SAMPLE,
-      TREASURE_GREEN_SAMPLE,
-      TREASURE_BLUE_SAMPLE,
-      PURPLE_TEAM_ROBOT,
-      YELLOW_TEAM_ROBOT,
-      PURPLE_TEAM_MARKER,
-      YELLOW_TEAM_MARKER
+      UNKNOWN,            // -> marker n°-1
+      TABLE_TOP_LEFT,     // -> marker n°20
+      TABLE_TOP_RIGHT,    // -> marker n°21
+      TABLE_BOTTOM_LEFT,  // -> marker n°22
+      TABLE_BOTTOM_RIGHT, // -> marker n°23
+      GENOESE,            // -> marker n°36
+      CREAM,              // -> marker n°13
+      ICING,              // -> marker n°47
+      BLUE_TEAM_ROBOT,    // -> markers n°1 to n°5
+      GREEN_TEAM_ROBOT,   // -> markers n°6 to n°10
+      BLUE_TEAM_MARKER,   // -> markers n°51 to n°70
+      GREEN_TEAM_MARKER   // -> markers n°71 to n°90
     }; // enum class Family
 
     typedef std::vector<Marker> MarkerList;
