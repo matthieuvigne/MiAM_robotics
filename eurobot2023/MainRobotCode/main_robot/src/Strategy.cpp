@@ -670,22 +670,6 @@ void Strategy::match()
     }
 }
 
-bool Strategy::go_to_straight_line(RobotPosition targetPosition, bool backward) 
-{
-    RobotPosition currentPosition = motionController->getCurrentPosition();
-    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
-        robot->getParameters().getTrajConf(),
-        currentPosition, // start
-        targetPosition, // end
-        0.0, // no velocity at end point
-        backward // or forward
-    );
-
-    motionController->setTrajectoryToFollow(traj);
-
-    return motionController->waitForTrajectoryFinished();
-}
-
 void Strategy::set_left_arm_position(ArmPosition armPosition)
 {
     std::cout << "Moving left arm to: " << armPosition << std::endl;

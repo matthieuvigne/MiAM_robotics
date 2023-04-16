@@ -49,8 +49,7 @@
                 void match();
             private:
                 void match_impl(); /// Actual implementation of the match code.
-                RobotInterface *robot;
-                MotionController *motionController;
+
                 STSServoDriver *servo;
 
                 Action* chooseNextAction(
@@ -59,9 +58,6 @@
                     MotionPlanning motionPlanner
                 );
 
-                bool go_to_straight_line(RobotPosition targetPosition, bool backward = false);
-                bool go_forward(double distance);
-                bool go_to_rounded_corner(std::vector<RobotPosition> targetPositions, bool backwards = false);
                 void move_rail(RailHeight railHeight);
                 void set_brush_move(BrushDirection brushDirection);
                 void set_reservoir_tilt(ReservoirTilt reservoirTilt);

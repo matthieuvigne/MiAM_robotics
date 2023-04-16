@@ -40,8 +40,7 @@
                 void match() override;
             private:
                 void match_impl(); /// Actual implementation of the match code.
-                RobotInterface *robot;
-                MotionController *motionController;
+ 
                 STSServoDriver *servo;
 
 
@@ -51,7 +50,6 @@
                     MotionPlanning motionPlanner
                 );
 
-                bool go_to_straight_line(RobotPosition targetPosition, bool backward = false);
                 void set_left_arm_position(ArmPosition armPosition);
                 void set_right_arm_position(ArmPosition armPosition);
                 void build_cakes();

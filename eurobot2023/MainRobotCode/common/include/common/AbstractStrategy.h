@@ -21,6 +21,13 @@ class AbstractStrategy
 
         network::CameraClient camera_;
         std::vector<pthread_t> createdThreads_;
+
+        RobotInterface *robot;
+        MotionController *motionController;
+
+        bool go_to_straight_line(RobotPosition targetPosition, bool backward = false);
+        bool go_forward(double distance);
+        bool go_to_rounded_corner(std::vector<RobotPosition> targetPositions, bool backwards = false);
 };
 
 #endif
