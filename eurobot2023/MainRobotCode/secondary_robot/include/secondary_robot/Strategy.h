@@ -61,7 +61,7 @@
 
                 bool go_to_straight_line(RobotPosition targetPosition, bool backward = false);
                 bool go_forward(double distance);
-                bool go_to_rounded_corner(std::vector<RobotPosition> targetPositions);
+                bool go_to_rounded_corner(std::vector<RobotPosition> targetPositions, bool backwards = false);
                 void move_rail(RailHeight railHeight);
                 void set_brush_move(BrushDirection brushDirection);
                 void set_reservoir_tilt(ReservoirTilt reservoirTilt);
