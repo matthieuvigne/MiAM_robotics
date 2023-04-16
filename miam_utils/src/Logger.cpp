@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <thread>
 
 
 Logger::Logger():
@@ -17,18 +16,31 @@ Logger::Logger():
 {
 }
 
+
+Logger::~Logger()
+{
+    askForTerminate_ = true;
+    // Wait for thread to finish
+    if (thread_.joinable())
+        thread_.join();
+}
+
 void Logger::start(std::string const& filename, std::string const& teleplotPrefix)
 {
     teleplotPrefix_ = teleplotPrefix;
-    std::thread th = std::thread(&Logger::loggerThread, this, filename);
-    th.detach();
+    askForTerminate_ = true;
+    // Wait for thread to finish
+    if (thread_.joinable())
+        thread_.join();
+    askForTerminate_ = true;
+    thread_ = std::thread(&Logger::loggerThread, this, filename);
 }
 
 void Logger::loggerThread(std::string const& filename)
 {
     H5::H5File file(filename, H5F_ACC_TRUNC);
 
-    while (true)
+    while (!askForTerminate_)
     {
         std::vector<Datapoint> newDataPoints;
 
@@ -64,6 +76,7 @@ void Logger::loggerThread(std::string const& filename)
         }
         usleep(1000);
     }
+    file.close();
 }
 
 

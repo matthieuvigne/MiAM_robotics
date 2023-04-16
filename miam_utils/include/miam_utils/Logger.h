@@ -6,6 +6,7 @@
 #define LOGGER
     #include <vector>
     #include <mutex>
+    #include <thread>
 
     #include "Teleplot.h"
 
@@ -26,6 +27,8 @@
             /// \details This function creates the log file, writes the header, and returns a logger struct, which can then
             ///          be used to add data to the log file.
             Logger();
+
+            ~Logger();
 
             /// \brief Start logging thread.
             /// \param[in] filename Output filename
@@ -52,6 +55,8 @@
             std::vector<Datapoint> queuedDatapoints_;
 
             std::mutex mutex_;
+            std::thread thread_;
+            bool askForTerminate_;
     };
 
 #endif
