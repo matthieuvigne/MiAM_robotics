@@ -189,6 +189,10 @@ OptimizationResult DHTransformVector::optimize_parameters(
 
     // Get the pose jacobian wrt optimized parameters
     Matrix6Xd const J_T_p = this->get_free_jacobian_matrix();
+
+    std::cout << "T: " << T.matrix() << std::endl;
+    std::cout << "J_T_p: " << J_T_p.matrix() << std::endl;
+
     ResidualJacobian J = get_residual_jacobian(T, J_T_p);
     Eigen::MatrixXd const Jp = J.completeOrthogonalDecomposition().pseudoInverse();
     Eigen::VectorXd const dp = Jp * dT;

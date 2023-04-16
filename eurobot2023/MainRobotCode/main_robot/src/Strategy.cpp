@@ -11,8 +11,12 @@
 #include "main_robot/Strategy.h"
 #include "miam_utils/raspberry_pi/RaspberryPi.h"
 
+#include <common/DH_transform.hpp>
+
+
 using namespace miam::trajectory;
 using miam::RobotPosition;
+using namespace kinematics;
 
 
 #define USE_CAMERA 1
@@ -25,7 +29,7 @@ namespace main_robot
 
 std::ostream& operator<<(std::ostream &s, const ArmPosition &armPosition) 
 {
-    return s << "[" << armPosition.x_ << ", " << armPosition.y_ << ", " << armPosition.z_ << "]";
+    return s << "[" << armPosition.r_ << ", " << armPosition.theta_ << ", " << armPosition.z_ << "]";
 }
 
 // #define SKIP_TO_GRABBING_SAMPLES 1
@@ -237,11 +241,11 @@ void Strategy::match_impl()
     RobotPosition const cream_ganache_bottom_left(225,675,0);
     RobotPosition const cream_ganache_bottom_right(1775,675,0);
 
-    // Arm positions
-    ArmPosition left_arm_center_up(0, 0, 500);
-    ArmPosition left_arm_left_down(-500, -500, 0);
-    ArmPosition right_arm_center_up(0, 0, 500);
-    ArmPosition right_arm_right_down(500, -500, 0);
+    // Arm positions ; r theta z
+    ArmPosition left_arm_center_up(100, 0, 250);
+    ArmPosition left_arm_left_down(100, M_PI_4, 10);
+    ArmPosition right_arm_center_up(100, 0, 250);
+    ArmPosition right_arm_right_down(100, -M_PI_4, 10);
 
     // Get the initial position of the robot
     RobotPosition initial_position;
@@ -670,9 +674,53 @@ void Strategy::match()
     }
 }
 
+
+std::vector<double> solve_arm_problem(ArmPosition armPosition)
+{
+
+    double r = armPosition.r_;
+    double theta_rad = armPosition.theta_;
+    double z = armPosition.z_;
+
+    std::cout << ">>> Solving arm problem" << std::endl;
+
+    // Initialize the robotical arm
+    DHTransformVector arm = create_main_robot_arm();
+
+    // Optimize the parameters to get the desired pose   
+    Eigen::Vector3d pf;
+    pf(0) = r * std::cos(theta_rad);
+    pf(1) = r * std::sin(theta_rad);
+    pf(2) = z;
+    Eigen::Vector3d uf = Eigen::Vector3d::UnitZ();
+    std::cout << "Desired coordinates (r, theta, z): " << armPosition << std::endl;
+    std::cout << "Target position (x, y, theta) is: " << pf.transpose() << std::endl;
+    std::cout << "Target x vector is: " << uf.transpose() << std::endl;
+    
+    // // Solve the optimization problem without constraints
+    // OptimizationResult results = arm.optimize_position_x_direction(pf, uf);
+    // if(!results.success) std::cout << "Problem failed... " << std::endl;
+    // std::cout << "Problem 1 was solved with " << results.num_iters << " iterations." << std::endl;
+    // std::cout << arm.print() << std::endl;
+    
+
+    std::vector<double> results_vector;
+    results_vector.push_back(arm[0].get_parameter(Parameter::a2));    
+    results_vector.push_back(arm[1].get_parameter(Parameter::a2));    
+    results_vector.push_back(arm[2].get_parameter(Parameter::a2));    
+    results_vector.push_back(arm[3].get_parameter(Parameter::a2));
+
+    return results_vector;
+}
+
+
 void Strategy::set_left_arm_position(ArmPosition armPosition)
 {
     std::cout << "Moving left arm to: " << armPosition << std::endl;
+
+    std::vector<double> results = solve_arm_problem(armPosition);
+    std::cout << results[0] << results[1] << results[2] << results[3] << std::endl;
+
     // TODO wait to mimick arm movement
     robot->wait(1);
 }
@@ -680,6 +728,9 @@ void Strategy::set_left_arm_position(ArmPosition armPosition)
 void Strategy::set_right_arm_position(ArmPosition armPosition)
 {
     std::cout << "Moving right arm to: " << armPosition << std::endl;
+    std::vector<double> results = solve_arm_problem(armPosition);
+    std::cout << results[0] << results[1] << results[2] << results[3] << std::endl;
+
     // TODO wait to mimick arm movement
     robot->wait(1);
 }
@@ -687,6 +738,7 @@ void Strategy::set_right_arm_position(ArmPosition armPosition)
 void Strategy::build_cakes()
 {
     std::cout << "Building cakes" << std::endl;
+
     // TODO wait to mimick arm movement
     robot->wait(5);
 }

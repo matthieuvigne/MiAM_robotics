@@ -17,11 +17,11 @@
         class ArmPosition 
         {
             public:
-                double x_;
-                double y_;
+                double r_;
+                double theta_;
                 double z_;
             
-                ArmPosition(double x, double y, double z): x_(x), y_(y), z_(z) {};
+                ArmPosition(double r, double theta, double z): r_(r), theta_(theta), z_(z) {};
         };
 
         class Strategy: public AbstractStrategy
