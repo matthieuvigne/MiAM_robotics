@@ -105,7 +105,10 @@ if(BUILD_TESTS)
   endforeach()
 endif()
 
+# Create package config file from template.
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/miam_visionTemplate.pc" "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}.pc")
+
 # Set install rules: copy library and headers.
-#~ install(TARGETS ${LIBRARY_NAME} DESTINATION "lib")
-#~ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION "include")
-#~ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}.pc" DESTINATION "lib/pkgconfig/")
+install(TARGETS ${LIBRARY_NAME} DESTINATION "lib")
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION "include")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}.pc" DESTINATION "lib/pkgconfig/")

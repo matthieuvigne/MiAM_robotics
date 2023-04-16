@@ -46,11 +46,11 @@ int main (int argc, char *argv[])
     Viewer *viewer = nullptr;
     refBuilder->get_widget_derived("mainWindow", viewer, "./config/tableCherryOnTheCake.png");
     main_robot::Strategy mainStrategy;
-    ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobotAgeOfBots.png", &mainStrategy, 1.0, 0.0, 0.0, "mainRobot.");
+    ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobot2023.png", &mainStrategy, 1.0, 0.0, 0.0, "mainRobot.");
     viewer->addRobot(mainRobot);
 
     secondary_robot::Strategy secondaryStrategy;
-    ViewerRobot secondaryRobot(secondary_robot::generateParams(), "./config/secondaryRobot.png", &secondaryStrategy, 0.0, 0.0, 1.0, "secondaryRobot.");
+    ViewerRobot secondaryRobot(secondary_robot::generateParams(), "./config/secondaryRobot2023.png", &secondaryStrategy, 0.0, 0.0, 1.0, "secondaryRobot.");
     viewer->addRobot(secondaryRobot);
 
     // Start telemetry for both robots.

@@ -1,0 +1,9 @@
+libdir=${CMAKE_INSTALL_PREFIX}/lib
+includedir=${CMAKE_INSTALL_PREFIX}/include
+
+Name: ${LIBRARY_NAME}.
+Description: Vision-related code for MiAM robots
+Version: ${PROJECT_VERSION}
+Requires.private:
+Libs: -L${CMAKE_INSTALL_PREFIX}/lib -l${LIBRARY_NAME}
+Cflags: -I${CMAKE_INSTALL_PREFIX}/include/
