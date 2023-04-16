@@ -33,7 +33,7 @@ using namespace kinematics;
 namespace main_robot
 {
 
-std::ostream& operator<<(std::ostream &s, const ArmPosition &armPosition) 
+std::ostream& operator<<(std::ostream &s, const ArmPosition &armPosition)
 {
     return s << "[" << armPosition.r_ << ", " << armPosition.theta_ << ", " << armPosition.z_ << "]";
 }
@@ -587,7 +587,7 @@ void Strategy::match_impl()
     set_left_arm_position(left_arm_center_up);
     set_right_arm_position(right_arm_center_up);
 
-    // Go back 
+    // Go back
     target_position = RobotPosition(target_position.x,target_position.y-300,M_PI);
     go_to_straight_line(target_position, true); // backward to not destroy cakes
 
@@ -705,6 +705,7 @@ void Strategy::match()
     robot->wait(FALLBACK_TIME);
     if (!MATCH_COMPLETED)
         pthread_cancel(handle);
+    createdThreads_.clear();
     usleep(50000);
     if (!MATCH_COMPLETED)
     {
@@ -731,7 +732,7 @@ std::vector<double> solve_arm_problem(ArmPosition armPosition)
     // Initialize the robotical arm
     DHTransformVector arm = create_main_robot_arm();
 
-    // Optimize the parameters to get the desired pose   
+    // Optimize the parameters to get the desired pose
     Eigen::Vector3d pf;
     pf(0) = r * std::cos(theta_rad);
     pf(1) = r * std::sin(theta_rad);
@@ -740,18 +741,18 @@ std::vector<double> solve_arm_problem(ArmPosition armPosition)
     std::cout << "Desired coordinates (r, theta, z): " << armPosition << std::endl;
     std::cout << "Target position (x, y, theta) is: " << pf.transpose() << std::endl;
     std::cout << "Target x vector is: " << uf.transpose() << std::endl;
-    
+
     // // Solve the optimization problem without constraints
     // OptimizationResult results = arm.optimize_position_x_direction(pf, uf);
     // if(!results.success) std::cout << "Problem failed... " << std::endl;
     // std::cout << "Problem 1 was solved with " << results.num_iters << " iterations." << std::endl;
     // std::cout << arm.print() << std::endl;
-    
+
 
     std::vector<double> results_vector;
-    results_vector.push_back(arm[0].get_parameter(Parameter::a2));    
-    results_vector.push_back(arm[1].get_parameter(Parameter::a2));    
-    results_vector.push_back(arm[2].get_parameter(Parameter::a2));    
+    results_vector.push_back(arm[0].get_parameter(Parameter::a2));
+    results_vector.push_back(arm[1].get_parameter(Parameter::a2));
+    results_vector.push_back(arm[2].get_parameter(Parameter::a2));
     results_vector.push_back(arm[3].get_parameter(Parameter::a2));
 
     std::cout << results_vector[0] << " " << results_vector[1] << " " << results_vector[2] << " " << results_vector[3] << std::endl;

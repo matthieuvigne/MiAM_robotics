@@ -323,7 +323,7 @@ void Strategy::match_impl()
     grab_cherries();
 
 
-    // avoid the line 
+    // avoid the line
     targetPositions.clear();
     targetPositions.push_back(motionController->getCurrentPosition());
     targetPositions.push_back(RobotPosition(500, 3000-600,0));
@@ -337,7 +337,7 @@ void Strategy::match_impl()
     go_to_rounded_corner(targetPositions);
 
     grab_cherries();
-      
+
     // Go to put the cherries in the basket
     targetPositions.clear();
     targetPositions.push_back(motionController->getCurrentPosition());
@@ -372,6 +372,7 @@ void Strategy::match()
     robot->wait(FALLBACK_TIME);
     if (!MATCH_COMPLETED)
         pthread_cancel(handle);
+    createdThreads_.clear();
     usleep(50000);
     if (!MATCH_COMPLETED)
     {
@@ -386,12 +387,12 @@ void Strategy::set_brush_move(BrushDirection brushDirection)
         // set motor speed to 0
         // TODO
     }
-    else if (brushDirection == BrushDirection::TOWARDS_BACK) 
+    else if (brushDirection == BrushDirection::TOWARDS_BACK)
     {
         // set motor speed to +x
         // TODO
     }
-    else if (brushDirection == BrushDirection::TOWARDS_BACK) 
+    else if (brushDirection == BrushDirection::TOWARDS_BACK)
     {
         // set motor speed to +x
         // TODO
@@ -402,12 +403,12 @@ void Strategy::set_reservoir_tilt(ReservoirTilt reservoirTilt)
 {
     if (reservoirTilt == ReservoirTilt::DOWN)
     {
-        // set servo 
+        // set servo
         // TODO
     }
     else if (reservoirTilt == ReservoirTilt::UP)
     {
-        // set servo 
+        // set servo
         // TODO
     }
 }
