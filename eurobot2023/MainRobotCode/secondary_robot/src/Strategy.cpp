@@ -101,7 +101,15 @@ void Strategy::match_impl()
     MotionPlanning motion_planner;
 
 
+    double const robot_chassis_front = robot->getParameters().CHASSIS_FRONT;
+    double const robot_chassis_back = robot->getParameters().CHASSIS_BACK;
+    double const robot_half_chassis_width = robot->getParameters().CHASSIS_WIDTH/2.0;
+
     RobotPosition const left_of_cherry_distributor_bottom(700,200,0);
+    RobotPosition const center_of_cherry_distributor_left(0,1500,0);
+    RobotPosition const center_of_cherry_distributor_right(2000,1500,0);
+    RobotPosition const center_of_cherry_distributor_bottom(1000,150,0);
+    RobotPosition const center_of_cherry_distributor_top(1000,2850,0);
 
 
 
@@ -265,20 +273,48 @@ void Strategy::match_impl()
     }
 #else
 
-    // grab cheries in front of robot
-    go_to_straight_line(left_of_cherry_distributor_bottom);
+    // // grab cheries in front of robot
+    // go_to_straight_line(left_of_cherry_distributor_bottom);
 
-    // set rail height and tilt
-    set_reservoir_tilt(ReservoirTilt::UP);
-    move_rail(RailHeight::CHERRY_DISTRIBUTOR);
-    set_brush_move(BrushDirection::TOWARDS_BACK);
+    // // set rail height and tilt
+    // set_reservoir_tilt(ReservoirTilt::UP);
+    // move_rail(RailHeight::CHERRY_DISTRIBUTOR);
+    // set_brush_move(BrushDirection::TOWARDS_BACK);
 
-    // go front
-    go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(100, 0, 0));
-    // wait
-    robot->wait(3);
-    // go back
-    go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(-100, 0, 0), true); // backwards
+    // // go front
+    // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(100, 0, 0));
+    // // wait
+    // robot->wait(3);
+    // // go back
+    // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(-100, 0, 0), true); // backwards
+
+
+    // code de sophie
+
+    // Option 1 -> Bottom, right & top cherries
+    // -------------------------------
+
+    // Get the  bottom cheeries
+    go_to_straight_line(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 15,0,0));
+    go_to_straight_line(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 150,0,-M_PI));
+
+    // Go to get right cherries then get the top cherries
+    go_to_straight_line(center_of_cherry_distributor_right - RobotPosition(robot_half_chassis_width + 700,0,0));
+    go_to_straight_line(center_of_cherry_distributor_right - RobotPosition(robot_half_chassis_width + 30,0,0));
+    go_to_straight_line(center_of_cherry_distributor_right -RobotPosition(robot_chassis_front + 100, 0,-M_PI));
+    go_to_straight_line(center_of_cherry_distributor_right -RobotPosition(robot_chassis_front + 800, -600,0));
+    go_to_straight_line(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front + 150, 0,0));
+    go_to_straight_line(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front + 15, 0,0));
+      
+    // Go to put the cherries in the basket
+    go_to_straight_line(RobotPosition(225,3000 - robot_chassis_front - 60,M_PI));
+    go_to_straight_line(RobotPosition(225,3000 - robot_chassis_front,0));
+    go_to_straight_line(RobotPosition(225,3000 - robot_chassis_front - 80,M_PI));
+    go_to_straight_line(RobotPosition(500,3000 - robot_half_chassis_width - 90,0));
+
+      // Go to the final zone
+    go_to_straight_line(RobotPosition(725,425,0));
+
 
 
 #endif
