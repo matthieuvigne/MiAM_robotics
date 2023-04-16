@@ -29,7 +29,8 @@
             BOTTOM = 0,
             TOP = 1000,
             CHERRY_DISTRIBUTOR = 200,
-            CHERRY_BASKET = 800
+            CHERRY_BASKET = 800,
+            MIDDLE = 500
         };
 
         class Strategy: public AbstractStrategy
@@ -59,9 +60,13 @@
                 );
 
                 bool go_to_straight_line(RobotPosition targetPosition, bool backward = false);
+                bool go_forward(double distance);
                 void move_rail(RailHeight railHeight);
                 void set_brush_move(BrushDirection brushDirection);
                 void set_reservoir_tilt(ReservoirTilt reservoirTilt);
+
+                void grab_cherries();
+                void put_cherries_in_the_basket();
         };
     }
 
