@@ -33,7 +33,7 @@ class Viewer : public Gtk::Window
         Vector2 obstaclePosition_ = Vector2::Constant(-300);  // Obstacle position
 
         // Move the obstacle.
-        bool moveObstacle(GdkEventMotion* motion_event);
+        bool mouseMove(GdkEventMotion* motion_event);
         bool clickObstacle(GdkEventButton* motion_event);
 
         // Recompute trajectories, based on obstacle positon.
@@ -49,6 +49,7 @@ class Viewer : public Gtk::Window
         double simulationTimeRatio_ = 1.0;
         bool isRunning_ = false;
 
+        Gtk::Label *mousePositionLabel;
         Gtk::Label *timeLabel;
         Gtk::Label *scoreLabel;
         Gtk::CheckButton *sideButton;

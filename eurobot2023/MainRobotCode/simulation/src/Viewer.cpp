@@ -20,6 +20,7 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     refGlade->get_widget("mainWindow", window);
 
     // Associate widgets.
+    refGlade->get_widget("mousePositionLabel", mousePositionLabel);
     refGlade->get_widget("timeLabel", timeLabel);
     refGlade->get_widget("scoreLabel", scoreLabel);
     refGlade->get_widget("progressBar", progressBar);
@@ -29,10 +30,9 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     refGlade->get_widget("drawingArea", drawingArea);
     drawingArea->signal_draw().connect(sigc::mem_fun(this, &Viewer::redraw));
 
-    set_events(Gdk::BUTTON_PRESS_MASK  | Gdk::BUTTON_RELEASE_MASK | Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK | Gdk::ENTER_NOTIFY_MASK);
-    drawingArea->set_events(Gdk::BUTTON_PRESS_MASK  | Gdk::BUTTON_RELEASE_MASK | Gdk::BUTTON_MOTION_MASK | Gdk::SCROLL_MASK);
+    drawingArea->set_events(Gdk::POINTER_MOTION_MASK | Gdk::BUTTON_PRESS_MASK  | Gdk::BUTTON_RELEASE_MASK | Gdk::BUTTON_MOTION_MASK | Gdk::SCROLL_MASK);
 
-    drawingArea->signal_motion_notify_event().connect(sigc::mem_fun(this, &Viewer::moveObstacle));
+    drawingArea->signal_motion_notify_event().connect(sigc::mem_fun(this, &Viewer::mouseMove));
     drawingArea->signal_button_press_event().connect(sigc::mem_fun(this, &Viewer::clickObstacle));
     drawingArea->signal_button_release_event().connect(sigc::mem_fun(this, &Viewer::clickObstacle));
 
@@ -144,13 +144,18 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
 }
 
 
-bool Viewer::moveObstacle(GdkEventMotion* motion_event)
+bool Viewer::mouseMove(GdkEventMotion* motion_event)
 {
-    obstaclePosition_(0) = motion_event->x;
-    obstaclePosition_(1) = motion_event->y;
-    // Convert coordinates to table coordinates
-    obstaclePosition_(0) = (obstaclePosition_(0) - originX_) / mmToCairo_;
-    obstaclePosition_(1) = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
+    double posX, posY;
+    posX = (motion_event->x - originX_) / mmToCairo_;
+    posY = TABLE_HEIGHT_MM - (motion_event->y - originY_) / mmToCairo_;
+
+    if (motion_event->state & Gdk::BUTTON1_MASK)
+    {
+        obstaclePosition_(0) = posX;
+        obstaclePosition_(1) = posY;
+    }
+    mousePositionLabel->set_text("(" + std::to_string(static_cast<int>(posX)) + ", " + std::to_string(static_cast<int>(posY)) + ")");
     drawingArea->queue_draw();
     return true;
 }
