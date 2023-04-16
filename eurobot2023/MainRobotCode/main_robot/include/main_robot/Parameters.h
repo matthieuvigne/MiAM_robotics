@@ -27,10 +27,10 @@
                 param.maxWheelAccelerationTrajectory = 600; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
                 // Chassis physical dimensions
-                param.CHASSIS_FRONT = 115.0;
-                param.CHASSIS_BACK = 121.0;
-                param.CHASSIS_WIDTH = 150.0;
-                param.SUCTION_CENTER = 180.0;
+                param.CHASSIS_FRONT = 90.0;
+                param.CHASSIS_BACK = 130.0;
+                param.CHASSIS_WIDTH = 125.0;
+                // param.SUCTION_CENTER = 180.0;
 
                 param.rightMotorId = 4;
                 param.leftMotorId = 3;

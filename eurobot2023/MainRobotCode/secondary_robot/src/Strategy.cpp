@@ -106,10 +106,12 @@ void Strategy::match_impl()
     double const robot_half_chassis_width = robot->getParameters().CHASSIS_WIDTH/2.0;
 
     RobotPosition const left_of_cherry_distributor_bottom(700,200,0);
-    RobotPosition const center_of_cherry_distributor_left(0,1500,0);
-    RobotPosition const center_of_cherry_distributor_right(2000,1500,0);
+    RobotPosition const center_of_cherry_distributor_left(15,1500,0);
+    RobotPosition const center_of_cherry_distributor_right(2000 - 15,1500,0);
     RobotPosition const center_of_cherry_distributor_bottom(1000,150,0);
     RobotPosition const center_of_cherry_distributor_top(1000,2850,0);
+
+    double const distributor_width = 30;
 
 
 
@@ -294,9 +296,17 @@ void Strategy::match_impl()
     // Option 1 -> Bottom, right & top cherries
     // -------------------------------
 
+    std::vector<RobotPosition> targetPositions;
+
     // Get the  bottom cheeries
-    go_to_straight_line(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 160,0,0));
-    go_to_straight_line(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 150,0,0));
+    targetPositions.clear();
+    targetPositions.push_back(motionController->getCurrentPosition());
+    targetPositions.push_back(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 160 + distributor_width / 2,0,0));
+    targetPositions.push_back(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 150 + distributor_width / 2,0,0));
+    go_to_rounded_corner(targetPositions);
+
+    // go_to_straight_line(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 160 + distributor_width / 2,0,0));
+    // go_to_straight_line(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 150 + distributor_width / 2,0,0));
 
     // grab cherries
     grab_cherries();
@@ -304,23 +314,42 @@ void Strategy::match_impl()
     // go_to_straight_line(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 150,0,-M_PI), true);
 
     // Go to get right cherries then get the top cherries
-    go_to_straight_line(center_of_cherry_distributor_right - RobotPosition(robot_half_chassis_width + 700,0,0));
-    go_to_straight_line(center_of_cherry_distributor_right - RobotPosition(robot_half_chassis_width + 160,0,0));
-    go_to_straight_line(center_of_cherry_distributor_right - RobotPosition(robot_half_chassis_width + 150,0,0));
+    targetPositions.clear();
+    targetPositions.push_back(motionController->getCurrentPosition());
+    targetPositions.push_back(center_of_cherry_distributor_right - RobotPosition(robot_chassis_front + 700,0,0));
+    targetPositions.push_back(center_of_cherry_distributor_right - RobotPosition(robot_chassis_front + 160 + distributor_width / 2,0,0));
+    targetPositions.push_back(center_of_cherry_distributor_right - RobotPosition(robot_chassis_front + 150 + distributor_width / 2,0,0));
+    go_to_rounded_corner(targetPositions);
+    // go_to_straight_line(center_of_cherry_distributor_right - RobotPosition(robot_chassis_front + 700,0,0));
+    // go_to_straight_line(center_of_cherry_distributor_right - RobotPosition(robot_chassis_front + 160 + distributor_width / 2,0,0));
+    // go_to_straight_line(center_of_cherry_distributor_right - RobotPosition(robot_chassis_front + 150 + distributor_width / 2,0,0));
+
     grab_cherries();
 
 
     // avoid the line 
-    go_to_straight_line(center_of_cherry_distributor_right -RobotPosition(robot_chassis_front + 700, -600,0));
-    go_to_straight_line(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front + 160, 0,0));
-    go_to_straight_line(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front + 150, 0,0));
+    targetPositions.clear();
+    targetPositions.push_back(motionController->getCurrentPosition());
+    targetPositions.push_back(center_of_cherry_distributor_right -RobotPosition(robot_chassis_front + 700, -600,0));
+    targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front + 160 + distributor_width / 2, 0,0));
+    targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front + 150 + distributor_width / 2, 0,0));
+    go_to_rounded_corner(targetPositions);
+    // go_to_straight_line(center_of_cherry_distributor_right -RobotPosition(robot_chassis_front + 700, -600,0));
+    // go_to_straight_line(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front + 160 + distributor_width / 2, 0,0));
+    // go_to_straight_line(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front + 150 + distributor_width / 2, 0,0));
 
     grab_cherries();
       
     // Go to put the cherries in the basket
-    go_to_straight_line(RobotPosition(225,3000 - robot_chassis_front - 160, 0), true);
-    go_to_straight_line(RobotPosition(225,3000 - robot_chassis_front - 160,M_PI_2));
-    go_to_straight_line(RobotPosition(225,3000 - robot_chassis_front - 150,M_PI_2));
+    targetPositions.clear();
+    targetPositions.push_back(motionController->getCurrentPosition());
+    targetPositions.push_back(RobotPosition(225,3000 - robot_chassis_front - 160, 0));
+    targetPositions.push_back(RobotPosition(225,3000 - robot_chassis_front - 160,M_PI_2));
+    targetPositions.push_back(RobotPosition(225,3000 - robot_chassis_front - 150,M_PI_2));
+    go_to_rounded_corner(targetPositions);
+    // go_to_straight_line(RobotPosition(225,3000 - robot_chassis_front - 160, 0), true);
+    // go_to_straight_line(RobotPosition(225,3000 - robot_chassis_front - 160,M_PI_2));
+    // go_to_straight_line(RobotPosition(225,3000 - robot_chassis_front - 150,M_PI_2));
 
     // go_to_straight_line(RobotPosition(225,3000 - robot_chassis_front, -150));
 
@@ -370,6 +399,20 @@ bool Strategy::go_to_straight_line(RobotPosition targetPosition, bool backward)
         targetPosition, // end
         0.0, // no velocity at end point
         backward // or forward
+    );
+
+    motionController->setTrajectoryToFollow(traj);
+
+    return motionController->waitForTrajectoryFinished();
+}
+
+bool Strategy::go_to_rounded_corner(std::vector<RobotPosition> targetPositions) 
+{
+    RobotPosition currentPosition = motionController->getCurrentPosition();
+    TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
+        robot->getParameters().getTrajConf(),
+        targetPositions, // end
+        200
     );
 
     motionController->setTrajectoryToFollow(traj);
