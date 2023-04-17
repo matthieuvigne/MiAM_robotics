@@ -130,7 +130,10 @@
             /// \param[in] dt Time since last servoing call, for PID controller.
             void updateMoveRail(double const& dt);
 
+            miam::PID PIDRail_;
             void calibrateRail();
+            int getRailHeight();
+            void moveRail(int railHeight);
             int railHigh_;
 
             SPIWrapper spiMotor_;

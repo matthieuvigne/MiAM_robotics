@@ -17,6 +17,22 @@ const int RAIL_SWITCH = 13;
 
 double const UNDERVOLTAGE_LEVEL = 19.5;
 
+// Rail
+#define RAIL_SERVO_ID 99
+#define RAIL_SWITCH_GPIO_ID 97
+
+// Rail PID
+#define RAIL_KP 20.0
+#define RAIL_KD 0.0
+#define RAIL_KI 0.0
+
+// Potentiometer
+#define MIAM_POTENTIOMETER_RANGE 0.290
+#define MIAM_RAIL_TOLERANCE 10
+#define MIAM_RAIL_SERVO_ZERO_VELOCITY 1450
+#define MIAM_RAIL_SERVO_MAX_UP_VELOCITY 2000
+#define MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY 1000
+
 
 Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar):
     gui_(gui),
@@ -38,6 +54,8 @@ Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, Robo
 
     lastEncoderPosition_.push_back(0);
     lastEncoderPosition_.push_back(0);
+
+    PIDRail_ = miam::PID(RAIL_KP, RAIL_KD, RAIL_KI, 0.1);
 }
 
 
@@ -317,4 +335,49 @@ void Robot::shutdown()
     servos_.disable(0xFE);
     strategy_->shutdown();
     stopMotors();
+}
+
+
+void Robot::calibrateRail()
+{
+    // TODO
+}
+
+
+int Robot::getRailHeight()
+{
+    // TODO
+    return 0;
+}
+
+void Robot::moveRail(int railHeight)
+{
+
+    // Compute target potentiometer value.
+    // RailHeight ranges between 0 and 1000
+    int targetValue = railHigh_ + MIAM_POTENTIOMETER_RANGE * (railHeight - 1000);
+
+    // Compute error
+    int error = getRailHeight() - targetValue;
+    int nIter = 0;
+
+    while (std::abs(error) > MIAM_RAIL_TOLERANCE && nIter < 120)
+    {
+        int targetVelocity = -PIDRail_.computeValue(error, 0.020);
+        targetVelocity = std::max(
+            std::min(
+                MIAM_RAIL_SERVO_ZERO_VELOCITY + targetVelocity,
+                MIAM_RAIL_SERVO_MAX_UP_VELOCITY
+                ),
+            MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
+        );
+        // Send target to servo
+        servos_.setTargetVelocity(RAIL_SERVO_ID, targetVelocity);
+
+        usleep(20000);
+
+        error = getRailHeight() - targetValue;
+        nIter++;
+    }
+    servos_.setTargetVelocity(RAIL_SERVO_ID, MIAM_RAIL_SERVO_ZERO_VELOCITY);
 }

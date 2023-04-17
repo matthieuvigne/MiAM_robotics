@@ -79,6 +79,20 @@
 
             double railHigh_;
 
+            /// @brief Gets the rail height
+            /// @return int from 0 (bottom) to 1000 (top)
+            virtual int getRailHeight()
+            {
+                return 0;
+            }
+            
+            /// @brief Moves the rail to a position
+            /// @param railHeight int from 0 (bottom) to 1000 (top)
+            virtual void moveRail(int railHeight)
+            {
+                return;
+            }
+
         protected:
             MotionController motionController_;
             STSServoDriver servos_;
