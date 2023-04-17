@@ -1,6 +1,6 @@
 # CMake params
 cmake_minimum_required(VERSION 3.0)
-project(vision)
+project(miam_vision_arm)
 set(PROJECT_DESCRIPTION "Code for the vision module")
 
 # Building options
