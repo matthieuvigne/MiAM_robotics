@@ -19,6 +19,21 @@ using miam::RobotPosition;
 #define TEST_SQUARE_MOVE 0 // make a square on the table to test motors
 #define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
 
+#define RAIL_SERVO_ID 99
+#define RAIL_SWITCH_GPIO_ID 97
+
+// Rail PID
+#define RAIL_KP 20.0
+#define RAIL_KD 0.0
+#define RAIL_KI 0.0
+
+// Potentiometer
+#define MIAM_POTENTIOMETER_RANGE 0.290
+#define MIAM_RAIL_TOLERANCE 10
+#define MIAM_RAIL_SERVO_ZERO_VELOCITY 1450
+#define MIAM_RAIL_SERVO_MAX_UP_VELOCITY 2000
+#define MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY 1000
+
 // #define SKIP_TO_GRABBING_SAMPLES 1
 // #define SKIP_TO_PUSHING_SAMPLES 1
 // #define SKIP_TO_GRABBING_SAMPLES_SIDE_DIST 1
@@ -31,7 +46,7 @@ namespace secondary_robot {
 
 Strategy::Strategy()
 {
-
+    PIDRail_ = miam::PID(RAIL_KP, RAIL_KD, RAIL_KI, 0.1);
 }
 
 void Strategy::setup(RobotInterface *robot)
@@ -375,13 +390,6 @@ void Strategy::match()
     }
 }
 
-void Strategy::move_rail(RailHeight railheight) 
-{
-    // move rail from height 0 to 1
-    // servo -> set position xxx
-    // TODO
-}
-
 void Strategy::set_brush_move(BrushDirection brushDirection)
 {
     if (brushDirection == BrushDirection::OFF)
@@ -456,6 +464,43 @@ void Strategy::put_cherries_in_the_basket()
     go_forward(-150);
 
     move_rail(RailHeight::MIDDLE);
+}
+
+void Strategy::move_rail(RailHeight railHeight)
+{
+
+    std::cout << "Moving rail to: " << railHeight << std::endl;
+
+    // Compute target potentiometer value.
+    // RailHeight ranges between 0 and 1000
+    int targetValue = robot->railHigh_ + MIAM_POTENTIOMETER_RANGE * (railHeight - 1000);
+
+    // Compute error
+    // TOOD
+    int error = 0;
+    // int error = robot->getRail() - targetValue;
+    int nIter = 0;
+
+    while (std::abs(error) > MIAM_RAIL_TOLERANCE && nIter < 120)
+    {
+        int targetVelocity = -PIDRail_.computeValue(error, 0.020);
+        targetVelocity = std::max(
+            std::min(
+                MIAM_RAIL_SERVO_ZERO_VELOCITY + targetVelocity,
+                MIAM_RAIL_SERVO_MAX_UP_VELOCITY
+                ),
+            MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
+        );
+        // Send target to servo
+        servo->setTargetVelocity(RAIL_SERVO_ID, targetVelocity);
+
+        usleep(20000);
+        // TODO
+        error = 0;
+        // error = read_rail_potentiometer() - targetValue;
+        nIter++;
+    }
+    servo->setTargetVelocity(RAIL_SERVO_ID, MIAM_RAIL_SERVO_ZERO_VELOCITY);
 }
 
 }

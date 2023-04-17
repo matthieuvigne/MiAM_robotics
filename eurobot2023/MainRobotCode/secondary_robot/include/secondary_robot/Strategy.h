@@ -62,6 +62,8 @@ namespace secondary_robot
             RobotPosition currentPosition,
             MotionPlanning motionPlanner);
 
+        miam::PID PIDRail_;
+
         /// @brief Blocking function for moving the rail to a specified height
         /// @param railHeight the height of the rail, between 0 and 1000
         void move_rail(RailHeight railHeight);

@@ -77,6 +77,8 @@
             MotionController* getMotionController() { return &motionController_;}
             STSServoDriver* getServos() { return &servos_;}
 
+            double railHigh_;
+
         protected:
             MotionController motionController_;
             STSServoDriver servos_;
