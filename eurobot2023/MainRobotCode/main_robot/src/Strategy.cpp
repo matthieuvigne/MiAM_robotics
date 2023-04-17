@@ -18,6 +18,8 @@ using namespace miam::trajectory;
 using miam::RobotPosition;
 using namespace kinematics;
 
+#define LEFT_ARM_FIRST_SERVO_ID 10
+#define RIGHT_ARM_FIRST_SERVO_ID 20
 
 #define USE_CAMERA 1
 
@@ -710,18 +712,29 @@ std::vector<double> solve_arm_problem(ArmPosition armPosition)
     results_vector.push_back(arm[2].get_parameter(Parameter::a2));    
     results_vector.push_back(arm[3].get_parameter(Parameter::a2));
 
+    std::cout << results_vector[0] << " " << results_vector[1] << " " << results_vector[2] << " " << results_vector[3] << std::endl;
+
     return results_vector;
 }
 
+int16_t radToServoValue(double const& rad)
+{
+    return static_cast<int16_t>(2048 + 2048 * rad / M_PI);
+}
 
 void Strategy::set_left_arm_position(ArmPosition armPosition)
 {
     std::cout << "Moving left arm to: " << armPosition << std::endl;
-
     std::vector<double> results = solve_arm_problem(armPosition);
-    std::cout << results[0] << results[1] << results[2] << results[3] << std::endl;
 
-    // TODO wait to mimick arm movement
+    // move servo
+    for (int i = 0; i < 4; i++)
+    {
+        double angle = modulo(results[i]);
+        servo->setTargetPosition(LEFT_ARM_FIRST_SERVO_ID + i, radToServoValue(angle));
+    }
+
+    // TODO wait for servo movement
     robot->wait(1);
 }
 
@@ -729,9 +742,15 @@ void Strategy::set_right_arm_position(ArmPosition armPosition)
 {
     std::cout << "Moving right arm to: " << armPosition << std::endl;
     std::vector<double> results = solve_arm_problem(armPosition);
-    std::cout << results[0] << results[1] << results[2] << results[3] << std::endl;
 
-    // TODO wait to mimick arm movement
+    // move servo
+    for (int i = 0; i < 4; i++)
+    {
+        double angle = modulo(results[i]);
+        servo->setTargetPosition(RIGHT_ARM_FIRST_SERVO_ID + i, radToServoValue(angle));
+    }
+
+    // TODO wait for servo movement
     robot->wait(1);
 }
 
