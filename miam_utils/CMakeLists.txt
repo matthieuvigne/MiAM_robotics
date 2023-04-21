@@ -65,10 +65,15 @@ pkg_search_module(HDF5LIB REQUIRED hdf5)
 message(STATUS "Found rplidar v." ${RPLIDARLIB_VERSION})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
+FILE( GLOB LIB_SOURCES ../a-star/source/*.cpp )
+FILE( GLOB LIB_HEADERS ../a-star/source/*.hpp )
+include_directories(../a-star/source)
+ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
+
 include_directories(${RPLIDARLIB_INCLUDE_DIRS} ${HDF5LIB_INCLUDE_DIRS})
 link_directories(${RPLIDARLIB_LIBRARY_DIRS} ${HDF5LIB_LIBRARY_DIRS})
 
-target_link_libraries(${LIBRARY_NAME} ${RPLIDARLIB_LIBRARIES} ${HDF5LIB_LIBRARIES})
+target_link_libraries(${LIBRARY_NAME} ${RPLIDARLIB_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar)
 
 # Create package config file from template.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/miam_utilsTemplate.pc" "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}.pc")

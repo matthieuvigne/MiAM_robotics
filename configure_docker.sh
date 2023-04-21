@@ -38,7 +38,7 @@ make -j8 install
 # Compile and install miam_vision_arm
 cd /miam_workspace/build/vision
 
-cmake /miam_workspace/src/MiAM_robotics/vision -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
+cmake /miam_workspace/src/MiAM_robotics/vision -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release
 make -j8 install
 
 # Setup python environment
