@@ -200,14 +200,22 @@ OptimizationResult DHTransformVector::optimize_parameters(
     int const num_poses = static_cast<int>(this->size());
     for(int pose_idx=0; pose_idx<num_poses; pose_idx+=1)
     {
+      // Update the free parameters
       Eigen::Vector4d delta_params = Eigen::Vector4d::Zero();
-      Parameters const& pose_free_params = (*this)[pose_idx].get_free_parameters();
+      Parameters const& pose_free_params = (*this)[pose_idx].get_free_parameters();      
       for(Parameter const& param : pose_free_params)
       {
         delta_params(static_cast<int>(param)) = dp(col_idx);
         col_idx += 1;
       }
       (*this)[pose_idx].update_parameters(delta_params);
+      
+      // If no free parameter left, give up
+      if(pose_free_params.empty())
+      {
+        results.success = false;
+        break;
+      }
     }
   }
 
