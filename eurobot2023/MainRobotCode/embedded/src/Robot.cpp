@@ -37,7 +37,7 @@ double const UNDERVOLTAGE_LEVEL = 19.5;
 #define MIAM_RAIL_SERVO_MAX_UP_VELOCITY MIAM_RAIL_TURN_CONVENTION_ADJUSTMENT * 4096 // in coder unit
 #define MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY -MIAM_RAIL_TURN_CONVENTION_ADJUSTMENT * 4096 // in coder unit
 
-#define MIAM_RAIL_TOTAL_NUMBER_OF_TURNS 10.0 // the number of turns from top to bottom
+#define MIAM_RAIL_TOTAL_NUMBER_OF_TURNS 12.0 // the number of turns from top to bottom
 
 
 RailMeasurements::RailMeasurements() :
@@ -397,7 +397,7 @@ void Robot::updateRailHeight()
     if (currentRailMeasurements.init)
     {
         int delta_encoder_measurement = encoder_count_read - currentRailMeasurements.encoder_counts;
-        
+
         // if servo goes up, measurement should increase
         if (direction > 0)
         {
@@ -448,13 +448,13 @@ void Robot::moveRail(int railHeight)
         servos_.setTargetVelocity(RAIL_SERVO_ID, MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY);
     }
 
-    int error = getRailHeight() - targetValue;
+    int error = currentRailMeasurements.getTurnCounts() - targetValue;
     int nIter = 0;
 
     while (std::abs(error) > MIAM_RAIL_TOLERANCE && nIter < 120)
     {
         updateRailHeight();
-        error = getRailHeight() - targetValue;
+        error = currentRailMeasurements.getTurnCounts() - targetValue;
         usleep(20000);
         nIter++;
     }
