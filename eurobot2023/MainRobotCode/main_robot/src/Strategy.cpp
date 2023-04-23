@@ -717,11 +717,6 @@ std::vector<double> solve_arm_problem(ArmPosition armPosition)
     return results_vector;
 }
 
-int16_t radToServoValue(double const& rad)
-{
-    return static_cast<int16_t>(2048 + 2048 * rad / M_PI);
-}
-
 void Strategy::set_left_arm_position(ArmPosition armPosition)
 {
     std::cout << "Moving left arm to: " << armPosition << std::endl;
@@ -731,7 +726,7 @@ void Strategy::set_left_arm_position(ArmPosition armPosition)
     for (int i = 0; i < 4; i++)
     {
         double angle = modulo(results[i]);
-        servo->setTargetPosition(LEFT_ARM_FIRST_SERVO_ID + i, radToServoValue(angle));
+        servo->setTargetPosition(LEFT_ARM_FIRST_SERVO_ID + i, STS::radToServoValue(angle));
     }
 
     // TODO wait for servo movement
@@ -747,7 +742,7 @@ void Strategy::set_right_arm_position(ArmPosition armPosition)
     for (int i = 0; i < 4; i++)
     {
         double angle = modulo(results[i]);
-        servo->setTargetPosition(RIGHT_ARM_FIRST_SERVO_ID + i, radToServoValue(angle));
+        servo->setTargetPosition(RIGHT_ARM_FIRST_SERVO_ID + i, STS::radToServoValue(angle));
     }
 
     // TODO wait for servo movement

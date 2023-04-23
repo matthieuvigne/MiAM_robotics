@@ -51,6 +51,17 @@
         double const railKi = 0.0;
     }
 
+    class RailMeasurements
+    {
+        public:
+            RailMeasurements();
+            int turn_counts;
+            int encoder_counts;
+            bool init; // was the rail read once?
+
+            double getTurnCounts();
+    };
+
     class Robot : public RobotInterface
     {
         public:
@@ -130,11 +141,13 @@
             /// \param[in] dt Time since last servoing call, for PID controller.
             void updateMoveRail(double const& dt);
 
-            miam::PID PIDRail_;
+            // miam::PID PIDRail_;
             void calibrateRail();
-            int getRailHeight();
+            void updateRailHeight();
             void moveRail(int railHeight);
-            int railHigh_;
+            RailMeasurements currentRailMeasurements;
+            double highTurnCount;
+            double lowTurnCount;
 
             SPIWrapper spiMotor_;
             MCP2515 mcp_;

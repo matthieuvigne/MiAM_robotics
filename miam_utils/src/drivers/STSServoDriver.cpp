@@ -20,6 +20,16 @@ namespace instruction
     unsigned char const RESET     = 0x06;
 };
 
+int16_t STS::radToServoValue(double const& rad)
+{
+    return static_cast<int16_t>(2048 + 2048 * rad / M_PI);
+}
+
+double STS::servoToRadValue(int16_t const& ticks)
+{
+    return static_cast<double>(M_PI * (ticks - 2048) / 2048);
+}
+
 
 STSServoDriver::STSServoDriver(double const& readTimeout):
     port_(-1),

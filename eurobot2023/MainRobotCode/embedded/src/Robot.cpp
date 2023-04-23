@@ -21,18 +21,35 @@ double const UNDERVOLTAGE_LEVEL = 19.5;
 #define RAIL_SERVO_ID 99
 #define RAIL_SWITCH_GPIO_ID 97
 
-// Rail PID
-#define RAIL_KP 20.0
-#define RAIL_KD 0.0
-#define RAIL_KI 0.0
+// // PID
+// #define RAIL_KP 20.0
+// #define RAIL_KD 0.0
+// #define RAIL_KI 0.0
 
-// Potentiometer
-#define MIAM_POTENTIOMETER_RANGE 0.290
-#define MIAM_RAIL_TOLERANCE 10
-#define MIAM_RAIL_SERVO_ZERO_VELOCITY 1450
-#define MIAM_RAIL_SERVO_MAX_UP_VELOCITY 2000
-#define MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY 1000
+#define MIAM_RAIL_TOLERANCE 0.2 // in turns
+#define MIAM_RAIL_SERVO_ZERO_VELOCITY 0 // in coder unit
 
+// By convention, 1 POSITIVE turn will INCREASE the altitude
+// In order to ensure this convention, this variable can be switched: 
+#define MIAM_RAIL_TURN_CONVENTION_ADJUSTMENT 1 // either 1 or -1 depending on the direction of the servo
+
+// velocity
+#define MIAM_RAIL_SERVO_MAX_UP_VELOCITY MIAM_RAIL_TURN_CONVENTION_ADJUSTMENT * 4096 // in coder unit
+#define MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY -MIAM_RAIL_TURN_CONVENTION_ADJUSTMENT * 4096 // in coder unit
+
+#define MIAM_RAIL_TOTAL_NUMBER_OF_TURNS 10.0 // the number of turns from top to bottom
+
+
+RailMeasurements::RailMeasurements() :
+    turn_counts(0), encoder_counts(0), init(false)
+{
+
+}
+
+double RailMeasurements::getTurnCounts()
+{
+    return turn_counts + MIAM_RAIL_TURN_CONVENTION_ADJUSTMENT * encoder_counts / 2048;
+}
 
 Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar):
     gui_(gui),
@@ -55,7 +72,7 @@ Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, Robo
     lastEncoderPosition_.push_back(0);
     lastEncoderPosition_.push_back(0);
 
-    PIDRail_ = miam::PID(RAIL_KP, RAIL_KD, RAIL_KI, 0.1);
+    // PIDRail_ = miam::PID(RAIL_KP, RAIL_KD, RAIL_KI, 0.1);
 }
 
 
@@ -340,43 +357,105 @@ void Robot::shutdown()
 
 void Robot::calibrateRail()
 {
-    // TODO
+    // the switch is up
+    servos_.setTargetVelocity(RAIL_SERVO_ID, MIAM_RAIL_SERVO_MAX_UP_VELOCITY);
+    while (RPi_readGPIO(RAIL_SWITCH) == 1)
+    {
+        usleep(20000);
+    }
+    servos_.setTargetVelocity(RAIL_SERVO_ID, MIAM_RAIL_SERVO_ZERO_VELOCITY);
+
+    // remember the number of counts
+    currentRailMeasurements.init = false;
+    updateRailHeight();
+    highTurnCount = currentRailMeasurements.getTurnCounts();
+    lowTurnCount = highTurnCount - MIAM_RAIL_TOTAL_NUMBER_OF_TURNS; // one positive turn will INCREASE the altitude
 }
 
-
-int Robot::getRailHeight()
+// get the sign of servo measurement i depending on the convention
+int servo_sign(int i) 
 {
-    // TODO
-    return 0;
+    if (i < 0) {
+        return -MIAM_RAIL_TURN_CONVENTION_ADJUSTMENT;
+    }
+    else
+    {
+        return MIAM_RAIL_TURN_CONVENTION_ADJUSTMENT;
+    }
+}
+
+void Robot::updateRailHeight()
+{
+    // by convention, retain value between -2048 and 2048
+    int encoder_count_read = servos_.getCurrentPosition(RAIL_SERVO_ID) - 2048;
+
+    // check the direction of the rail
+    // 1 is positive
+    int direction = servo_sign(servos_.getCurrentSpeed(RAIL_SERVO_ID));
+
+    // if the measurement was inited, then check counts
+    if (currentRailMeasurements.init)
+    {
+        int delta_encoder_measurement = encoder_count_read - currentRailMeasurements.encoder_counts;
+        
+        // if servo goes up, measurement should increase
+        if (direction > 0)
+        {
+            // if the measurement is suddently lower than the old one, then add a tuen
+            if (servo_sign(delta_encoder_measurement) < 0)
+            {
+                // then add a turn
+                currentRailMeasurements.turn_counts += 1;
+            }
+        }
+        else
+        // if servo goes down, measurent should decrease
+        {
+            // if the measurement is suddently higher than the old one (by at least 2000), then add a tuen
+            if (servo_sign(delta_encoder_measurement) > 0)
+            {
+                // then add minus a turn
+                currentRailMeasurements.turn_counts -= 1;
+            }
+        }
+    }
+    else
+    {
+        // if the measurement was not inited, init
+        currentRailMeasurements.init = true;
+    }
+
+    // finally set new encoder measurement
+    currentRailMeasurements.encoder_counts = encoder_count_read;
 }
 
 void Robot::moveRail(int railHeight)
 {
-
     // Compute target potentiometer value.
     // RailHeight ranges between 0 and 1000
-    int targetValue = railHigh_ + MIAM_POTENTIOMETER_RANGE * (railHeight - 1000);
+    double targetValue = lowTurnCount + railHeight * highTurnCount / 1000;
 
     // Compute error
+    double delta_tours = targetValue - currentRailMeasurements.getTurnCounts();
+    
+    // if delta tours > 0 send rail up, else down
+    if (delta_tours > 0)
+    {
+        servos_.setTargetVelocity(RAIL_SERVO_ID, MIAM_RAIL_SERVO_MAX_UP_VELOCITY);
+    }
+    else
+    {
+        servos_.setTargetVelocity(RAIL_SERVO_ID, MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY);
+    }
+
     int error = getRailHeight() - targetValue;
     int nIter = 0;
 
     while (std::abs(error) > MIAM_RAIL_TOLERANCE && nIter < 120)
     {
-        int targetVelocity = -PIDRail_.computeValue(error, 0.020);
-        targetVelocity = std::max(
-            std::min(
-                MIAM_RAIL_SERVO_ZERO_VELOCITY + targetVelocity,
-                MIAM_RAIL_SERVO_MAX_UP_VELOCITY
-                ),
-            MIAM_RAIL_SERVO_MAX_DOWN_VELOCITY
-        );
-        // Send target to servo
-        servos_.setTargetVelocity(RAIL_SERVO_ID, targetVelocity);
-
-        usleep(20000);
-
+        updateRailHeight();
         error = getRailHeight() - targetValue;
+        usleep(20000);
         nIter++;
     }
     servos_.setTargetVelocity(RAIL_SERVO_ID, MIAM_RAIL_SERVO_ZERO_VELOCITY);

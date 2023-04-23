@@ -9,6 +9,7 @@
     #include <string>
     #include <vector>
     #include <termios.h>
+    #include <cmath>
 
     namespace STS
     {
@@ -69,6 +70,10 @@
             VELOCITY = 1,
             STEP = 3
         };
+
+
+        int16_t radToServoValue(double const& rad);
+        double servoToRadValue(int16_t const& ticks);
     };
 
 
