@@ -3,6 +3,7 @@
 #include "miam_utils/trajectory/PathPlanner.h"
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 namespace miam{
     namespace trajectory{
@@ -32,7 +33,7 @@ namespace miam{
                     generator_.addCollision({9, j});
                     generator_.addCollision({10, j});
                 }
-                for (int j = config_.astar_grid_size_y-1-4; j < config_.astar_grid_size_x; j++) 
+                for (int j = config_.astar_grid_size_y-1-4; j < config_.astar_grid_size_y; j++) 
                 {
                     generator_.addCollision({9, j});
                     generator_.addCollision({10, j});
@@ -44,10 +45,84 @@ namespace miam{
             AStar::Vec2i worldSize = generator_.getWorldSize();
             
             std::cout << "World size: " << worldSize.x << ", " << worldSize.y << std::endl;
-            std::cout << "Collisions: " << std::endl;
-            for (auto collision : generator_.getCollisions())
+            // std::cout << "Collisions: " << std::endl;
+            // for (auto collision : generator_.getCollisions())
+            // {
+            //     std::cout << collision.x << ", " << collision.y << std::endl;
+            // }
+
+            std::vector<AStar::Vec2i > collisions = generator_.getCollisions();
+
+            for (int j = 0; j < generator_.getWorldSize().y; j++)
             {
-                std::cout << collision.x << ", " << collision.y << std::endl;
+                for (int i = 0; i < generator_.getWorldSize().x; i++)
+                {
+                    AStar::Vec2i target({i, j});
+                    if (std::find(
+                        collisions.begin(),
+                        collisions.end(),
+                        target) != collisions.end())
+                        {
+                            std::cout << "X ";
+                        }
+                        else
+                        {
+                            std::cout << "  ";
+                        }
+                }
+                std::cout << std::endl;
+            }
+        }
+
+        void PathPlanner::printMap(std::vector<RobotPosition> path)
+        {
+            AStar::Vec2i worldSize = generator_.getWorldSize();
+            std::vector<AStar::Vec2i > pathInVec2i;
+            for (auto& position : path)
+            {
+                pathInVec2i.push_back(robotPositionToVec2i(position));
+            }
+            std::cout << "Path: " << std::endl;
+            for (auto& position : pathInVec2i)
+            {
+                std::cout << position.x << " " << position.y << std::endl;
+            }
+
+            
+            std::cout << "World size: " << worldSize.x << ", " << worldSize.y << std::endl;
+            // std::cout << "Collisions: " << std::endl;
+            // for (auto collision : generator_.getCollisions())
+            // {
+            //     std::cout << collision.x << ", " << collision.y << std::endl;
+            // }
+
+            std::vector<AStar::Vec2i > collisions = generator_.getCollisions();
+
+            for (int j = generator_.getWorldSize().y - 1; j >= 0; j--)
+            {
+                for (int i = 0; i < generator_.getWorldSize().x; i++)
+                {
+                    AStar::Vec2i target({i, j});
+                    if (std::find(
+                        collisions.begin(),
+                        collisions.end(),
+                        target) != collisions.end())
+                    {
+                        std::cout << "X ";
+                    }
+                    else if (std::find(
+                        pathInVec2i.begin(),
+                        pathInVec2i.end(),
+                        target) != pathInVec2i.end())
+                    {
+                        std::cout << "o ";
+                    }
+                    else
+                    {
+                        std::cout << "  ";
+                    }
+                }
+                std::cout << std::endl;
             }
         }
 

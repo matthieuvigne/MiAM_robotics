@@ -8,6 +8,7 @@
 #include <miam_utils/trajectory/StraightLine.h>
 #include <miam_utils/trajectory/PointTurn.h>
 #include <miam_utils/trajectory/Utilities.h>
+#include <miam_utils/trajectory/PathPlanner.h>
 #include "main_robot/Strategy.h"
 #include "miam_utils/raspberry_pi/RaspberryPi.h"
 
@@ -255,6 +256,25 @@ void Strategy::match_impl()
     initial_position.y = 1725 + robot->getParameters().CHASSIS_WIDTH/2.0;
     initial_position.theta = M_PI;
     RobotPosition current_position = motionController->getCurrentPosition();
+
+    // // Test pathplanner
+    // PathPlannerConfig config;
+    // PathPlanner path_planner(config);
+    // path_planner.printMap();
+    // RobotPosition start;
+    // start.x = 1309;
+    // start.y = 2843;
+    // start.theta = 0;
+    // RobotPosition end;
+    // end.x = 744;
+    // end.y = 2843;
+    // end.theta = 0;
+    // std::vector<RobotPosition > planned_path = path_planner.planPath(start, end);
+    // path_planner.printMap(planned_path);
+
+    // go_to_straight_line(start);
+    // go_to_rounded_corner(planned_path);
+
 
 
 #if ENABLE_DYNAMIC_ACTION_CHOOSING

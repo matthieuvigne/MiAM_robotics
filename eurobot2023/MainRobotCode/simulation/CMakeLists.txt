@@ -49,10 +49,16 @@ link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS} ${HDF5LIB_LI
 include_directories(${GTK3_INCLUDE_DIRS})
 link_directories(${GTK3_LIBRARY_DIRS})
 add_definitions(${GTK3_CFLAGS_OTHER})
+include_directories(../../../a-star/source)
+
+FILE( GLOB LIB_SOURCES ../../../a-star/source/*.cpp )
+FILE( GLOB LIB_HEADERS ../../../a-star/source/*.hpp )
+include_directories(../../../a-star/source)
+ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
 
 # Copy config.
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Build executables
 add_executable(strategyViewer ${SOURCES})
-target_link_libraries(strategyViewer ${GTK3_LIBRARIES} ${RPLIDAR_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")
+target_link_libraries(strategyViewer ${GTK3_LIBRARIES} ${RPLIDAR_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar "-lhdf5_cpp")

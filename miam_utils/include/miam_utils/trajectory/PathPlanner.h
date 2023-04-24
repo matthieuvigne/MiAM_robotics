@@ -7,7 +7,7 @@
     #include "miam_utils/trajectory/Trajectory.h"
     #include "RobotPosition.h"
     #include <vector>
-    #include "AStar.hpp"
+    #include <AStar.hpp>
 
     namespace miam{
         namespace trajectory{
@@ -29,6 +29,7 @@
                     void addCollision(RobotPosition const& position, double radius);
                     void clearCollisions();
                     void printMap();
+                    void printMap(std::vector<RobotPosition> path);
 
                     std::vector<RobotPosition> planPath(
                         RobotPosition const& start, RobotPosition const& end);

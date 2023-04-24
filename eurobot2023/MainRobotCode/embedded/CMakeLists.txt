@@ -57,15 +57,21 @@ include_directories(../common/include)
 include_directories(../main_robot/include)
 include_directories(../secondary_robot/include)
 include_directories(./include)
+include_directories(../../../a-star/source)
+
+FILE( GLOB LIB_SOURCES ../../../a-star/source/*.cpp )
+FILE( GLOB LIB_HEADERS ../../../a-star/source/*.hpp )
+include_directories(../../../a-star/source)
+ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
 
 message(${RPLIDAR_INCLUDE_DIRS})
 
 # Set executable target and link libraries.
 add_executable(mainRobotCode ${MAIN_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(mainRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")
+target_link_libraries(mainRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar "-lhdf5_cpp")
 
 
 add_executable(secondaryRobotCode ${SECONDARY_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(secondaryRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")
+target_link_libraries(secondaryRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar "-lhdf5_cpp")
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")
