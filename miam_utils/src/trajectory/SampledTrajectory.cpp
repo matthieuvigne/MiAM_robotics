@@ -70,10 +70,10 @@ namespace miam{
             double sampling_time = getDuration() / (N-1);
 
             double newDuration = getDuration() - replanificationTime;
-            int newN = newDuration / sampling_time;
+            int newN = newDuration / sampling_time + 1;
 
             std::vector<TrajectoryPoint > newSampledTrajectory;
-            for (int i = 0; i <= newN; i++) 
+            for (int i = 0; i < newN; i++) 
             {
                 newSampledTrajectory.push_back(getCurrentPoint(replanificationTime + i * sampling_time));
             }
