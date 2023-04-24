@@ -22,6 +22,8 @@
                     /// \return The concatenated vector.
                     TrajectoryVector operator+(const TrajectoryVector b) const;
 
+                    TrajectoryPoint getCurrentPoint(double const& currentTime) const;
+
                     /// \brief Get the last point of the last trajectory.
                     /// \return The last point of the last trajectory.
                     TrajectoryPoint getEndPoint() const;

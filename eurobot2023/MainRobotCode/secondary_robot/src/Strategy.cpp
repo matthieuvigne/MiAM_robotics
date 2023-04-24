@@ -10,6 +10,8 @@
 #include <miam_utils/trajectory/Utilities.h>
 #include "secondary_robot/Strategy.h"
 
+#include <common/MotionPlanner.h>
+
 using namespace miam::trajectory;
 using miam::RobotPosition;
 
@@ -55,7 +57,7 @@ void Strategy::shutdown()
 Action* Strategy::chooseNextAction(
     std::vector<Action>& actions,
     RobotPosition currentPosition,
-    MotionPlanning motionPlanner
+    MotionPlanner motionPlanner
 )
 {
 
@@ -98,7 +100,7 @@ void Strategy::match_impl()
     std::vector<RobotPosition> positions;
 
     // create brain
-    MotionPlanning motion_planner;
+    MotionPlanner motion_planner;
 
 
     double const robot_chassis_front = robot->getParameters().CHASSIS_FRONT;

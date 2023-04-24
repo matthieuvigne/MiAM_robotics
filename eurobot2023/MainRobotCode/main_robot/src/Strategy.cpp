@@ -13,6 +13,7 @@
 #include "miam_utils/raspberry_pi/RaspberryPi.h"
 
 #include <common/DH_transform.hpp>
+#include <common/MotionPlanner.h>
 
 
 using namespace miam::trajectory;
@@ -26,6 +27,8 @@ using namespace kinematics;
 
 #define TEST_SQUARE_MOVE 0 // make a square on the table to test motors
 #define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
+
+#define TEST_MPC_PLANNER 0
 
 namespace main_robot
 {
@@ -114,7 +117,7 @@ void Strategy::shutdown()
 Action* Strategy::chooseNextAction(
     std::vector<Action>& actions,
     RobotPosition currentPosition,
-    MotionPlanning motionPlanner
+    MotionPlanner motionPlanner
 )
 {
 
@@ -225,7 +228,7 @@ void Strategy::match_impl()
 #endif
 
     // Create brain
-    MotionPlanning motion_planner;
+    MotionPlanner motion_planner;
     std::vector<Action> actionVector;
 
     // Common cake dimensions
@@ -257,24 +260,35 @@ void Strategy::match_impl()
     initial_position.theta = M_PI;
     RobotPosition current_position = motionController->getCurrentPosition();
 
-    // // Test pathplanner
-    // PathPlannerConfig config;
-    // PathPlanner path_planner(config);
-    // path_planner.printMap();
-    // RobotPosition start;
-    // start.x = 1309;
-    // start.y = 2843;
-    // start.theta = 0;
-    // RobotPosition end;
-    // end.x = 744;
-    // end.y = 2843;
-    // end.theta = 0;
-    // std::vector<RobotPosition > planned_path = path_planner.planPath(start, end);
-    // path_planner.printMap(planned_path);
+#if TEST_MPC_PLANNER
+    // Test pathplanner
+    PathPlannerConfig config;
+    PathPlanner path_planner(config);
+    path_planner.printMap();
+    RobotPosition start;
+    start.x = 1309;
+    start.y = 2843;
+    start.theta = 0;
+    RobotPosition end;
+    end.x = 744;
+    end.y = 2843;
+    end.theta = 0;
+    std::vector<RobotPosition > planned_path = path_planner.planPath(start, end);
+    path_planner.printMap(planned_path);
 
-    // go_to_straight_line(start);
+    go_to_straight_line(start);
     // go_to_rounded_corner(planned_path);
-
+    TrajectoryVector st = solveTrajectoryFromWaypoints(planned_path);
+    // perform a point turn to get the right angle
+    TrajectoryVector pt;
+    std::shared_ptr<PointTurn > pt_sub(new PointTurn(robot->getParameters().getTrajConf(), motionController->getCurrentPosition(), st.front().get()->getCurrentPoint(0.0).position.theta));
+    pt.push_back(pt_sub);
+    motionController->setTrajectoryToFollow(pt);
+    motionController->waitForTrajectoryFinished();
+    // follow the new trajectory
+    motionController->setTrajectoryToFollow(st);
+    motionController->waitForTrajectoryFinished();
+#endif
 
 
 #if ENABLE_DYNAMIC_ACTION_CHOOSING

@@ -142,7 +142,14 @@ std::vector<TrajectoryPoint> solveTrajectoryFromWaypoints(
             t = getDurationBasicPath(traj);
         }
 
-        tp = getCurrentPointBasicPath(traj, t);
+        // tp = getCurrentPointBasicPath(traj, t);
+
+        tp.position.x      = acadoVariables.x[ indice * NX ] * 1000;
+        tp.position.y      = acadoVariables.x[ indice * NX + 1] * 1000;
+        tp.position.theta  = acadoVariables.x[ indice * NX + 2];
+        tp.linearVelocity  = acadoVariables.x[ indice * NX + 3] * 1000;
+        tp.angularVelocity = acadoVariables.x[ indice * NX + 4];
+
         std::cout << "solved: " << "t=" << t << " --- " << 
             tp.position.x << "\t" << 
             tp.position.y << "\t" << 
