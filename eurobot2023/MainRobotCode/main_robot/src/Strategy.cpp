@@ -279,6 +279,10 @@ void Strategy::match_impl()
     go_to_straight_line(start);
     // go_to_rounded_corner(planned_path);
     TrajectoryVector st = solveTrajectoryFromWaypoints(planned_path);
+    std::cout << "Solved trajectory: " << std::endl;
+    for (double t = 0; t <=st.getDuration(); t += 0.1) {
+        std::cout << st.getCurrentPoint(t) << std::endl;
+    }
     // perform a point turn to get the right angle
     TrajectoryVector pt;
     std::shared_ptr<PointTurn > pt_sub(new PointTurn(robot->getParameters().getTrajConf(), motionController->getCurrentPosition(), st.front().get()->getCurrentPoint(0.0).position.theta));

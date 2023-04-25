@@ -19,6 +19,17 @@ namespace miam{
             return v;
         }
 
+        double TrajectoryVector::getDuration() const
+        {
+            double duration = 0;
+
+            for (auto traj : *this)
+            {
+                duration += traj->getDuration();
+            }
+
+            return duration;
+        }
 
         TrajectoryPoint TrajectoryVector::getCurrentPoint(double const& currentTime) const
         {

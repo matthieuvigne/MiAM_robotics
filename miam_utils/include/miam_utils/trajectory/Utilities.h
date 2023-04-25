@@ -22,6 +22,14 @@
                     /// \return The concatenated vector.
                     TrajectoryVector operator+(const TrajectoryVector b) const;
 
+                    /// \brief Get trajectory duration, in seconds.
+                    /// \return Trajectory duration.
+                    double getDuration() const;
+
+                    /// \brief Get trajectory point at current time.
+                    ///
+                    /// \param[in] currentTime Time relative to trajectory start, in seconds.
+                    /// \return The current trajectory point.
                     TrajectoryPoint getCurrentPoint(double const& currentTime) const;
 
                     /// \brief Get the last point of the last trajectory.

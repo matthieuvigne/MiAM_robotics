@@ -22,5 +22,13 @@ namespace miam{
         {
             return getCurrentPoint(getDuration());
         }
+
+        std::ostream& operator<<(std::ostream& os, const TrajectoryPoint& p)
+        {
+            os << p.position;
+            os << " v: " << p.linearVelocity;
+            os << " w: " << p.angularVelocity;
+            return os;
+        }
     }
 }

@@ -101,8 +101,8 @@ std::shared_ptr<SampledTrajectory > solveMPCIteration(
 {
     cout << "----------------------------" << endl;
     cout << "Solving starting time: " <<  start_time << endl;
-    cout << "Start position: " << start_position.position << " v: " << start_position.linearVelocity << " w: " << start_position.angularVelocity << endl;
-    cout << "Target position: " << target_position.position << " v: " << target_position.linearVelocity << " w: " << target_position.angularVelocity << endl;
+    cout << "Start position: " << start_position << endl;
+    cout << "Target position: " << target_position << endl;
 
     if (!is_acado_inited)
     {
@@ -221,20 +221,6 @@ std::shared_ptr<SampledTrajectory > solveMPCIteration(
 
         real_t t = indice * DELTA_T + start_time;
 
-        if (t > getDurationBasicPath(reference_trajectory)) {
-            t = getDurationBasicPath(reference_trajectory);
-        }
-
-
-        // acadoVariables.x[ indice * NX ] = tp.position.x / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-        // acadoVariables.x[ indice * NX + 1] = tp.position.y / 1000.0  + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-        // acadoVariables.x[ indice * NX + 2] = tp.position.theta + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
-    
-        // /* Initialize the controls. */
-        // acadoVariables.x[ indice * NX + 3] = tp.linearVelocity / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-        // acadoVariables.x[ indice * NX + 4] = tp.angularVelocity + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
-
-
         tp.position.x      = acadoVariables.x[ indice * NX ] * 1000;
         tp.position.y      = acadoVariables.x[ indice * NX + 1] * 1000;
         tp.position.theta  = acadoVariables.x[ indice * NX + 2];
@@ -287,7 +273,7 @@ TrajectoryVector solveTrajectoryFromWaypoints(
 
     // parameterize solver
     miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
-    cplan.maxWheelVelocity *= 0.7; // give 20% overhead to the controller
+    cplan.maxWheelVelocity *= 0.8; // give 20% overhead to the controller
 
     // create trajectory interpolating waypoints
     traj = computeTrajectoryBasicPath(cplan, waypoints, 0);
@@ -297,18 +283,20 @@ TrajectoryVector solveTrajectoryFromWaypoints(
     TrajectoryPoint target_position = traj.getCurrentPoint(getDurationBasicPath(traj));
     TrajectoryVector res;
     
-    int nIterMax = ceil(getDurationBasicPath(traj) / HORIZON_T); // enable that many iterations
+    int nIterMax = ceil(getDurationBasicPath(traj) / (HORIZON_T - 2 * DELTA_T)) + 1; // enable that many iterations
     int nIter = 0;
 
     cout << "Duration of the reference path: " << getDurationBasicPath(traj) << endl;
 
+    // proceed by increments of HORIZON_T - 2 * DELTA_T (not taking the last point since the final
+    // constraint might make the solver brutally go towards the final point
     while (nIter < nIterMax)
     {
         std::shared_ptr<SampledTrajectory > st = solveMPCIteration(
             traj,
             start_position,
             target_position,
-            nIter * HORIZON_T
+            nIter * (HORIZON_T - 2 * DELTA_T)
         );
         res.push_back(st);
 
@@ -316,7 +304,7 @@ TrajectoryVector solveTrajectoryFromWaypoints(
         {
             break;
         }
-        start_position = st->getEndPoint();
+        start_position = st->getCurrentPoint(HORIZON_T - 2 * DELTA_T);
         nIter++;
     }
     return res;

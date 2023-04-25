@@ -36,6 +36,8 @@
                 {}
             };
 
+            std::ostream& operator<<(std::ostream& os, const TrajectoryPoint& p);
+
             class Trajectory
             {
                 public:
