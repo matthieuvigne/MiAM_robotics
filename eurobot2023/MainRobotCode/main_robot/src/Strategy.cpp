@@ -228,7 +228,7 @@ void Strategy::match_impl()
 #endif
 
     // Create brain
-    MotionPlanner motion_planner;
+    MotionPlanner motionPlanner(robot);
     std::vector<Action> actionVector;
 
     // Common cake dimensions
@@ -261,10 +261,6 @@ void Strategy::match_impl()
     RobotPosition current_position = motionController->getCurrentPosition();
 
 #if TEST_MPC_PLANNER
-    // Test pathplanner
-    PathPlannerConfig config;
-    PathPlanner path_planner(config);
-    path_planner.printMap();
     RobotPosition start;
     start.x = 1309;
     start.y = 2843;
@@ -272,26 +268,25 @@ void Strategy::match_impl()
     RobotPosition end;
     end.x = 744;
     end.y = 2843;
-    end.theta = 0;
-    std::vector<RobotPosition > planned_path = path_planner.planPath(start, end);
-    path_planner.printMap(planned_path);
+    end.theta = M_PI;
 
     go_to_straight_line(start);
-    // go_to_rounded_corner(planned_path);
-    TrajectoryVector st = solveTrajectoryFromWaypoints(planned_path);
-    std::cout << "Solved trajectory: " << std::endl;
-    for (double t = 0; t <=st.getDuration(); t += 0.1) {
-        std::cout << st.getCurrentPoint(t) << std::endl;
+
+    TrajectoryVector st = motionPlanner.planMotion(
+        motionController->getCurrentPosition(),
+        end
+    );
+
+    if (st.getDuration() > 0)
+    {
+        motionController->setTrajectoryToFollow(st);
+        motionController->waitForTrajectoryFinished();
     }
-    // perform a point turn to get the right angle
-    TrajectoryVector pt;
-    std::shared_ptr<PointTurn > pt_sub(new PointTurn(robot->getParameters().getTrajConf(), motionController->getCurrentPosition(), st.front().get()->getCurrentPoint(0.0).position.theta));
-    pt.push_back(pt_sub);
-    motionController->setTrajectoryToFollow(pt);
-    motionController->waitForTrajectoryFinished();
-    // follow the new trajectory
-    motionController->setTrajectoryToFollow(st);
-    motionController->waitForTrajectoryFinished();
+    else
+    {
+        std::cout << "Motion planning failed" << std::endl;
+    }
+
 #endif
 
 
@@ -395,11 +390,11 @@ void Strategy::match_impl()
             std::cout << v << std::endl;
         }
 
-        Action* nextAction = chooseNextAction(actionVector, motionController->getCurrentPosition(), motion_planner);
+        Action* nextAction = chooseNextAction(actionVector, motionController->getCurrentPosition(), motionPlanner);
         std::cout << "nextAction : " << *nextAction << std::endl;
 
         targetPosition = motionController->getCurrentPosition();
-        //~ traj = motion_planner.computeTraj(robot->getParameters().getTrajConf(), targetPosition, nextAction->startPosition_);
+        //~ traj = motionPlanner.computeTraj(robot->getParameters().getTrajConf(), targetPosition, nextAction->startPosition_);
         // Petite couille qu'il faudra enlever (ici pour gerer le mouvement arriere).
         traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
           targetPosition, nextAction->startPosition_,0.0,nextAction->startPosition_.theta==M_PI);
@@ -460,7 +455,7 @@ void Strategy::match_impl()
                     std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
 
                     // targetPosition = motionController->getCurrentPosition();
-                    // traj = motion_planner.computeTraj(targetPosition, nextAction->startPosition_);
+                    // traj = motionPlanner.computeTraj(targetPosition, nextAction->startPosition_);
                     // motionController->setTrajectoryToFollow(traj);
                     // moveSuccess = motionController->waitForTrajectoryFinished();
                 } else
@@ -514,7 +509,7 @@ void Strategy::match_impl()
                         std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
 
                         // targetPosition = motionController->getCurrentPosition();
-                        // traj = motion_planner.computeTraj(targetPosition, nextAction->startPosition_);
+                        // traj = motionPlanner.computeTraj(targetPosition, nextAction->startPosition_);
                         // motionController->setTrajectoryToFollow(traj);
                         // moveSuccess = motionController->waitForTrajectoryFinished();
                     } else

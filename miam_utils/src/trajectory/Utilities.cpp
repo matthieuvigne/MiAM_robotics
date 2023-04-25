@@ -22,12 +22,10 @@ namespace miam{
         double TrajectoryVector::getDuration() const
         {
             double duration = 0;
-
             for (auto traj : *this)
             {
                 duration += traj->getDuration();
             }
-
             return duration;
         }
 

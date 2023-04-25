@@ -6,6 +6,7 @@
 #include <miam_utils/trajectory/StraightLine.h>
 #include <miam_utils/trajectory/PointTurn.h>
 #include <miam_utils/trajectory/Utilities.h>
+#include <miam_utils/trajectory/PathPlanner.h>
 
 #include <iostream>
 #include <cmath>
@@ -42,7 +43,20 @@ ACADOworkspace acadoWorkspace;
 using namespace miam;
 using namespace std;
 
+// The parameters used to generate the MPC code
+#define MPC_DELTA_T 0.1// 100 ms
+#define MPC_N_TIME_INTERVALS 20 // 20 discrete time intervals
+
+#define MPC_MU_TRAJ 100 // weight of the trajectory (x, y) in the optimization algorithm
+#define MPC_MU_THETA 10 // weight of the trajectory (theta) in the optimization algorithm
+#define MPC_MU_VLIN 0.01 // weight of the trajectory (v) in the optimization algorithm
+#define MPC_MU_VANG 0.01 // weight of the trajectory (w) in the optimization algorithm
+
+#define MPC_PONDERATION_FINAL_STATE 10 // scaling factor to account more for the final state
+
+// ACADO should be inited only once
 bool is_acado_inited = false;
+
 
 TrajectoryConfig getMPCTrajectoryConfig() {
     TrajectoryConfig c;
@@ -51,6 +65,102 @@ TrajectoryConfig getMPCTrajectoryConfig() {
     c.robotWheelSpacing = 100.5;
     return c;
 };
+
+MotionPlanner::MotionPlanner(RobotInterface* robot) : robot_(robot)
+{
+    
+}
+
+TrajectoryVector MotionPlanner::planMotion(
+            RobotPosition const& currentPosition,
+            RobotPosition const& targetPosition)
+{
+    PathPlannerConfig config;
+    PathPlanner path_planner(config);
+    // path_planner.printMap();
+    std::vector<RobotPosition > planned_path = path_planner.planPath(currentPosition, targetPosition);
+    path_planner.printMap(planned_path);
+
+    // If path planning failed, return empty traj
+    if (planned_path.size() == 0)
+    {
+        return TrajectoryVector();
+    }
+
+    // compute the trajectory from the waypoints
+    TrajectoryVector st = solveTrajectoryFromWaypoints(planned_path);
+    std::cout << "Solved trajectory: " << std::endl;
+    for (double t = 0; t <=st.getDuration(); t += 0.1) {
+        std::cout << st.getCurrentPoint(t) << std::endl;
+    }
+
+    TrajectoryVector res;
+
+    // at start, perform a point turn to get the right angle
+    std::shared_ptr<PointTurn > pt_sub_start(
+        new PointTurn(robot_->getParameters().getTrajConf(), 
+        currentPosition, st.getCurrentPoint(0.0).position.theta));
+    res.push_back(pt_sub_start);
+
+    // insert solved trajectory
+    res.insert( res.end(), st.begin(), st.end() );
+
+    // at end, perform a point turn to get the right angle
+    std::shared_ptr<PointTurn > pt_sub_end(
+        new PointTurn(robot_->getParameters().getTrajConf(), 
+        res.getEndPoint().position, targetPosition.theta)
+    );
+    res.push_back(pt_sub_end);
+
+    return res;
+}
+
+
+TrajectoryVector solveTrajectoryFromWaypoints(
+    std::vector<RobotPosition> waypoints
+) 
+{
+    trajectory::TrajectoryVector traj;
+
+    // parameterize solver
+    miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
+    cplan.maxWheelVelocity *= 0.8; // give 20% overhead to the controller
+
+    // create trajectory interpolating waypoints
+    traj = computeTrajectoryBasicPath(cplan, waypoints, 0);
+
+    // start of the entire trajectory
+    TrajectoryPoint start_position = traj.getCurrentPoint(0.0);
+    TrajectoryPoint target_position = traj.getCurrentPoint(traj.getDuration());
+    TrajectoryVector res;    
+
+    int nIterMax = ceil(traj.getDuration() / (HORIZON_T - 2 * DELTA_T)) + 1; // enable that many iterations
+    int nIter = 0;
+
+    cout << "Duration of the reference path: " << traj.getDuration() << endl;
+
+    // proceed by increments of HORIZON_T - 2 * DELTA_T (not taking the last point since the final
+    // constraint might make the solver brutally go towards the final point
+    while (nIter < nIterMax)
+    {
+        std::shared_ptr<SampledTrajectory > st = solveMPCIteration(
+            traj,
+            start_position,
+            target_position,
+            nIter * (HORIZON_T - 2 * DELTA_T)
+        );
+        res.push_back(st);
+
+        if (st->getDuration() < HORIZON_T)
+        {
+            break;
+        }
+        start_position = st->getCurrentPoint(HORIZON_T - 2 * DELTA_T);
+        nIter++;
+    }
+    return res;
+}
+
 
 TrajectoryVector computeTrajectoryBasicPath(
     TrajectoryConfig const& config,
@@ -84,14 +194,6 @@ TrajectoryVector computeTrajectoryBasicPath(
     return vector;
 };
 
-double getDurationBasicPath(TrajectoryVector bp) {
-    double sum_time = 0;
-    for (long unsigned int i = 0; i < bp.size(); i++) {
-        sum_time += bp.at(i)->getDuration();
-    }
-    return sum_time;
-}
-
 std::shared_ptr<SampledTrajectory > solveMPCIteration(
     TrajectoryVector reference_trajectory,
     TrajectoryPoint start_position,
@@ -113,8 +215,8 @@ std::shared_ptr<SampledTrajectory > solveMPCIteration(
     }
 
     cout << "N: " << N << endl;
-    cout << "ACADO_N: " << ACADO_N << endl;
-    cout << "MPC_N_TIME_INTERVALS: " << MPC_N_TIME_INTERVALS << endl;
+    // cout << "ACADO_N: " << ACADO_N << endl;
+    // cout << "MPC_N_TIME_INTERVALS: " << MPC_N_TIME_INTERVALS << endl;
 
 
     // use this to mitigate the theta modulo two pi instability
@@ -140,9 +242,9 @@ std::shared_ptr<SampledTrajectory > solveMPCIteration(
         // start at start_time and iterate over N
         real_t t = indice * DELTA_T + start_time; 
 
-        if (t > getDurationBasicPath(reference_trajectory)) {
-            t = getDurationBasicPath(reference_trajectory);
-        }
+        // if (t > getDuration(reference_trajectory)) {
+        //     t = getDuration(reference_trajectory);
+        // }
 
         tp = reference_trajectory.getCurrentPoint(t);
 
@@ -265,47 +367,3 @@ std::shared_ptr<SampledTrajectory > solveMPCIteration(
 }
 
 
-TrajectoryVector solveTrajectoryFromWaypoints(
-    std::vector<RobotPosition> waypoints
-) 
-{
-    trajectory::TrajectoryVector traj;
-
-    // parameterize solver
-    miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
-    cplan.maxWheelVelocity *= 0.8; // give 20% overhead to the controller
-
-    // create trajectory interpolating waypoints
-    traj = computeTrajectoryBasicPath(cplan, waypoints, 0);
-
-    // start of the entire trajectory
-    TrajectoryPoint start_position = traj.getCurrentPoint(0.0);
-    TrajectoryPoint target_position = traj.getCurrentPoint(getDurationBasicPath(traj));
-    TrajectoryVector res;
-    
-    int nIterMax = ceil(getDurationBasicPath(traj) / (HORIZON_T - 2 * DELTA_T)) + 1; // enable that many iterations
-    int nIter = 0;
-
-    cout << "Duration of the reference path: " << getDurationBasicPath(traj) << endl;
-
-    // proceed by increments of HORIZON_T - 2 * DELTA_T (not taking the last point since the final
-    // constraint might make the solver brutally go towards the final point
-    while (nIter < nIterMax)
-    {
-        std::shared_ptr<SampledTrajectory > st = solveMPCIteration(
-            traj,
-            start_position,
-            target_position,
-            nIter * (HORIZON_T - 2 * DELTA_T)
-        );
-        res.push_back(st);
-
-        if (st->getDuration() < HORIZON_T)
-        {
-            break;
-        }
-        start_position = st->getCurrentPoint(HORIZON_T - 2 * DELTA_T);
-        nIter++;
-    }
-    return res;
-}

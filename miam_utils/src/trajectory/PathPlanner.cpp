@@ -86,11 +86,11 @@ namespace miam{
             {
                 pathInVec2i.push_back(robotPositionToVec2i(position));
             }
-            std::cout << "Path: " << std::endl;
-            for (auto& position : pathInVec2i)
-            {
-                std::cout << position.x << " " << position.y << std::endl;
-            }
+            // std::cout << "Path: " << std::endl;
+            // for (auto& position : pathInVec2i)
+            // {
+            //     std::cout << position.x << " " << position.y << std::endl;
+            // }
 
             
             std::cout << "World size: " << worldSize.x << ", " << worldSize.y << std::endl;
@@ -166,6 +166,10 @@ namespace miam{
                 positions.front() = start;
                 positions.back() = end;
             } 
+            else
+            {
+                std::cout << "Path planning failed" << std::endl;
+            }
 
             return positions;
         }
