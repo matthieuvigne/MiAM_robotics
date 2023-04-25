@@ -30,13 +30,17 @@ namespace miam{
                 // distributeurs de cerises
                 for (int j = 0; j < 4; j++) 
                 {
+                    generator_.addCollision({8, j});
                     generator_.addCollision({9, j});
                     generator_.addCollision({10, j});
+                    generator_.addCollision({11, j});
                 }
                 for (int j = config_.astar_grid_size_y-1-4; j < config_.astar_grid_size_y; j++) 
                 {
+                    generator_.addCollision({8, j});
                     generator_.addCollision({9, j});
                     generator_.addCollision({10, j});
+                    generator_.addCollision({11, j});
                 }
         }
 
@@ -147,11 +151,22 @@ namespace miam{
 
             std::vector<RobotPosition> positions;
             RobotPosition targetPosition;
-            for(auto coordinate = path.rbegin(); coordinate != path.rend(); ++coordinate) 
+
+
+            if (robotPositionToVec2i(start) == path.back())
             {
-                targetPosition = vec2iToRobotPosition(*coordinate);
-                positions.push_back(targetPosition);
-            }
+                for (auto coordinate = path.rbegin(); coordinate != path.rend(); ++coordinate) 
+                {
+                    targetPosition = vec2iToRobotPosition(*coordinate);
+                    positions.push_back(targetPosition);
+                }
+
+
+                // remplacer extremites par start et end
+                positions.front() = start;
+                positions.back() = end;
+            } 
+
             return positions;
         }
 
