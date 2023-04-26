@@ -268,7 +268,16 @@ void Strategy::match_impl()
     RobotPosition end;
     end.x = 744;
     end.y = 2843;
-    end.theta = M_PI;
+    end.theta = 0;
+
+    // Add obstacle with big radius for tests
+    RobotPosition obspos;
+    obspos.x = 935;
+    obspos.y = 1275;
+    motionPlanner.pathPlanner_->addCollision(obspos, 300);
+    obspos.x = 1026;
+    obspos.y = 2504;
+    motionPlanner.pathPlanner_->addCollision(obspos, 300);
 
     go_to_straight_line(start);
 

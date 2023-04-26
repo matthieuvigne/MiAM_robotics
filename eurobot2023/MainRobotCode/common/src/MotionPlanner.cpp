@@ -6,7 +6,6 @@
 #include <miam_utils/trajectory/StraightLine.h>
 #include <miam_utils/trajectory/PointTurn.h>
 #include <miam_utils/trajectory/Utilities.h>
-#include <miam_utils/trajectory/PathPlanner.h>
 
 #include <iostream>
 #include <cmath>
@@ -68,18 +67,17 @@ TrajectoryConfig getMPCTrajectoryConfig() {
 
 MotionPlanner::MotionPlanner(RobotInterface* robot) : robot_(robot)
 {
-    
+    PathPlannerConfig config;
+    pathPlanner_ = new PathPlanner(config);
 }
 
 TrajectoryVector MotionPlanner::planMotion(
             RobotPosition const& currentPosition,
             RobotPosition const& targetPosition)
 {
-    PathPlannerConfig config;
-    PathPlanner path_planner(config);
-    // path_planner.printMap();
-    std::vector<RobotPosition > planned_path = path_planner.planPath(currentPosition, targetPosition);
-    path_planner.printMap(planned_path);
+    // pathPlanner_.printMap();
+    std::vector<RobotPosition > planned_path = pathPlanner_->planPath(currentPosition, targetPosition);
+    pathPlanner_->printMap(planned_path);
 
     // If path planning failed, return empty traj
     if (planned_path.size() == 0)
@@ -149,12 +147,17 @@ TrajectoryVector solveTrajectoryFromWaypoints(
             target_position,
             nIter * (HORIZON_T - 2 * DELTA_T)
         );
-        res.push_back(st);
-
+        
         if (st->getDuration() < HORIZON_T)
         {
+            res.push_back(st);
             break;
         }
+
+        // remove last 2 points
+        st->removePoints(2);
+        res.push_back(st);
+
         start_position = st->getCurrentPoint(HORIZON_T - 2 * DELTA_T);
         nIter++;
     }

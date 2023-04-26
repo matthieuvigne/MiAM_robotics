@@ -1,5 +1,6 @@
 #include <miam_utils/trajectory/Utilities.h>
 #include <miam_utils/trajectory/SampledTrajectory.h>
+#include <miam_utils/trajectory/PathPlanner.h>
 
 #include <common/RobotInterface.h>
 
@@ -34,6 +35,8 @@ class MotionPlanner{
             }
             return duration;
         }
+    
+        PathPlanner* pathPlanner_;
 
 };
 

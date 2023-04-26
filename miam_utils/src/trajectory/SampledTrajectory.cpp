@@ -82,5 +82,26 @@ namespace miam{
             duration_ = newDuration;
             sampledTrajectory_ = newSampledTrajectory;
         }
+
+        void SampledTrajectory::removePoints(int n)
+        {
+            if (n <= 0)
+            {
+                return;
+            }
+            if (sampledTrajectory_.size() - n <= 0) 
+            {
+                std::cout << "Clearing sampledTrajectory" << std::endl;
+                sampledTrajectory_.clear();
+                duration_ = 0.0;
+            }
+            std::cout << "Reducing sampledTrajectory size by " << n << std::endl;
+            double dt = duration_ / (sampledTrajectory_.size() - 1);
+            for (int i = 0; i < n; i++)
+            {
+                sampledTrajectory_.pop_back();
+            }
+            duration_ = std::max(0.0, duration_ - n * dt);
+        }
     }
 }

@@ -14,34 +14,7 @@ namespace miam{
             generator_.setHeuristic(AStar::Heuristic::euclidean);
             generator_.setDiagonalMovement(true);
 
-                // obstacles table
-                // bordure exterieure
-                for (int i = 0; i < config_.astar_grid_size_x; i++) 
-                {
-                    generator_.addCollision({i, 0});
-                    generator_.addCollision({i, config_.astar_grid_size_y-1});
-                }
-                for (int j = 0; j < config_.astar_grid_size_y; j++) 
-                {
-                    generator_.addCollision({0, j});
-                    generator_.addCollision({config_.astar_grid_size_x-1, j});
-                }
-
-                // distributeurs de cerises
-                for (int j = 0; j < 4; j++) 
-                {
-                    generator_.addCollision({8, j});
-                    generator_.addCollision({9, j});
-                    generator_.addCollision({10, j});
-                    generator_.addCollision({11, j});
-                }
-                for (int j = config_.astar_grid_size_y-1-4; j < config_.astar_grid_size_y; j++) 
-                {
-                    generator_.addCollision({8, j});
-                    generator_.addCollision({9, j});
-                    generator_.addCollision({10, j});
-                    generator_.addCollision({11, j});
-                }
+            resetCollisions();
         }
 
         void PathPlanner::printMap() 
@@ -132,13 +105,60 @@ namespace miam{
 
         void PathPlanner::addCollision(RobotPosition const& position, double radius)
         {
-            // TODO take radius into account
-            generator_.addCollision(robotPositionToVec2i(position));
+            // number of grid units to be taken into account
+            int grid_distance = ceil(radius / config_.astar_resolution_mm);  
+            AStar::Vec2i center_position = robotPositionToVec2i(position);
+
+            // in a big square around the center position, draw obstacle
+            for (int i = std::max(0, center_position.x - grid_distance);
+                i < std::min(config_.astar_grid_size_x, center_position.x + grid_distance + 1);
+                i++)
+            {
+                for (int j = std::max(0, center_position.y - grid_distance);
+                    j < std::min(config_.astar_grid_size_y, center_position.y + grid_distance + 1);
+                    j++)
+                {
+                    RobotPosition obsPosition = vec2iToRobotPosition({i, j});
+                    if ((position - obsPosition).norm() < radius)
+                    {
+                        generator_.addCollision({i, j});
+                    }
+                }
+            }
         }
                 
-        void PathPlanner::clearCollisions()
+        void PathPlanner::resetCollisions()
         {
             generator_.clearCollisions();
+
+            // obstacles table
+            // bordure exterieure
+            for (int i = 0; i < config_.astar_grid_size_x; i++) 
+            {
+                generator_.addCollision({i, 0});
+                generator_.addCollision({i, config_.astar_grid_size_y-1});
+            }
+            for (int j = 0; j < config_.astar_grid_size_y; j++) 
+            {
+                generator_.addCollision({0, j});
+                generator_.addCollision({config_.astar_grid_size_x-1, j});
+            }
+
+            // distributeurs de cerises
+            for (int j = 0; j < 4; j++) 
+            {
+                generator_.addCollision({8, j});
+                generator_.addCollision({9, j});
+                generator_.addCollision({10, j});
+                generator_.addCollision({11, j});
+            }
+            for (int j = config_.astar_grid_size_y-1-4; j < config_.astar_grid_size_y; j++) 
+            {
+                generator_.addCollision({8, j});
+                generator_.addCollision({9, j});
+                generator_.addCollision({10, j});
+                generator_.addCollision({11, j});
+            }
         }
 
         std::vector<RobotPosition> PathPlanner::planPath(RobotPosition const& start, RobotPosition const& end)
