@@ -78,9 +78,14 @@ void ViewerRobot::wait(double const& waitTimeS)
         usleep(1000);
 }
 
+RobotPosition ViewerRobot::getPosition()
+{
+    return simulationPosition_;
+}
+
 // Simulation function
 
-void ViewerRobot::tick(double const& dt, double const& simulationTime, Vector2 const& obstaclePosition)
+void ViewerRobot::tick(double const& dt, double const& simulationTime, std::vector<Vector2 > const& obstaclesPosition)
 {
     simulationTime_ = simulationTime;
     // Integrate previous command, and compute sensor data.
@@ -93,18 +98,20 @@ void ViewerRobot::tick(double const& dt, double const& simulationTime, Vector2 c
     measurements_.motorSpeed = motionTarget_.motorSpeed;
 
     // Create lidar measurements.
-    Vector2 relativePosition;
-    relativePosition << simulationPosition_.x, simulationPosition_.y;
-    relativePosition = obstaclePosition - relativePosition;
-    Vector2 rotatedPosition;
-    rotatedPosition(0) = std::cos(simulationPosition_.theta) * relativePosition(0) + std::sin(simulationPosition_.theta) * relativePosition(1);
-    rotatedPosition(1) = -std::sin(simulationPosition_.theta) * relativePosition(0) + std::cos(simulationPosition_.theta) * relativePosition(1);
-
-    DetectedRobot robot;
-    robot.point = LidarPoint(relativePosition.norm(), std::atan2(rotatedPosition(1), rotatedPosition(0)));
     measurements_.lidarDetection.clear();
-    measurements_.lidarDetection.push_back(robot);
+    for (auto& obstaclePosition : obstaclesPosition) 
+    {
+        Vector2 relativePosition;
+        relativePosition << simulationPosition_.x, simulationPosition_.y;
+        relativePosition = obstaclePosition - relativePosition;
+        Vector2 rotatedPosition;
+        rotatedPosition(0) = std::cos(simulationPosition_.theta) * relativePosition(0) + std::sin(simulationPosition_.theta) * relativePosition(1);
+        rotatedPosition(1) = -std::sin(simulationPosition_.theta) * relativePosition(0) + std::cos(simulationPosition_.theta) * relativePosition(1);
 
+        DetectedRobot robot;
+        robot.point = LidarPoint(relativePosition.norm(), std::atan2(rotatedPosition(1), rotatedPosition(0)));
+        measurements_.lidarDetection.push_back(robot);
+    }
 
     // Run iteration of controller
     motionTarget_ = motionController_.computeDrivetrainMotion(measurements_, dt, true);

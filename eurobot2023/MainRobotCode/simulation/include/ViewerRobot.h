@@ -90,7 +90,9 @@
             // Functions specific to the simulation.
             void reset(bool const& isPlayingRightSide);
 
-            void tick(double const& dt, double const& simulationTime, Vector2 const& obstaclePosition);
+            void tick(double const& dt, double const& simulationTime, std::vector<Vector2 > const& obstaclesPosition);
+
+            RobotPosition getPosition();
 
         private:
             AbstractStrategy *strategy_;
