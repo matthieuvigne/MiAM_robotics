@@ -51,7 +51,7 @@ namespace miam{
             }
         }
 
-        void PathPlanner::printMap(std::vector<RobotPosition> path)
+        void PathPlanner::printMap(std::vector<RobotPosition> path, RobotPosition currentPosition)
         {
             AStar::Vec2i worldSize = generator_.getWorldSize();
             std::vector<AStar::Vec2i > pathInVec2i;
@@ -80,7 +80,11 @@ namespace miam{
                 for (int i = 0; i < generator_.getWorldSize().x; i++)
                 {
                     AStar::Vec2i target({i, j});
-                    if (std::find(
+                    if (target == robotPositionToVec2i(currentPosition))
+                    {
+                        std::cout << "O ";
+                    }
+                    else if (std::find(
                         collisions.begin(),
                         collisions.end(),
                         target) != collisions.end())

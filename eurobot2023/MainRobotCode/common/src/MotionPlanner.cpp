@@ -78,7 +78,7 @@ TrajectoryVector MotionPlanner::planMotion(
 {
     // pathPlanner_.printMap();
     std::vector<RobotPosition > planned_path = pathPlanner_->planPath(currentPosition, targetPosition);
-    pathPlanner_->printMap(planned_path);
+    pathPlanner_->printMap(planned_path, currentPosition);
 
     // If path planning failed, return empty traj
     if (planned_path.size() == 0)
@@ -216,162 +216,171 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
     cout << "Start position: " << start_position << endl;
     cout << "Target position: " << target_position << endl;
 
-    if (!is_acado_inited)
-    {
-        /* Initialize the solver. */
-        cout << "Initializing solver" << endl;
-        acado_initializeSolver(); 
-        is_acado_inited = true;
-    }
-
-    cout << "N: " << N << endl;
-    // cout << "ACADO_N: " << ACADO_N << endl;
-    // cout << "MPC_N_TIME_INTERVALS: " << MPC_N_TIME_INTERVALS << endl;
-
-
-    // use this to mitigate the theta modulo two pi instability
-    TrajectoryPoint oldtp = start_position;
-
-    acadoVariables.x0[0] = start_position.position.x / 1000.0;
-    acadoVariables.x0[1] = start_position.position.y / 1000.0;
-    acadoVariables.x0[2] = start_position.position.theta;
-    acadoVariables.x0[3] = start_position.linearVelocity / 1000;
-    acadoVariables.x0[4] = start_position.angularVelocity;
-
-    // perturbation
-    float perturbation_scale = 0.0 / 1000.0;
-    float perturbation_scale_angle = 0.0;
-
-    TrajectoryPoint tp;
-
-
-    for (int indice = 0; indice < N+1; indice++) {
-
-        // cout << indice << endl;
-
-        // start at start_time and iterate over N
-        real_t t = indice * DELTA_T + start_time; 
-
-        // if (t > getDuration(reference_trajectory)) {
-        //     t = getDuration(reference_trajectory);
-        // }
-
-        tp = reference_trajectory.getCurrentPoint(t);
-
-        // oldtp was inited at start_position
-        if (abs(tp.position.theta - oldtp.position.theta) > M_PI)
-        {
-            // cout << "Smoothing angle" << endl;
-        }
-
-        // if the gap is > M_PI, then subtract 2 pi 
-        if ( tp.position.theta - oldtp.position.theta > M_PI)
-        {
-            // cout << "Subracting 2pi " << endl;
-            tp.position.theta =  tp.position.theta - 2 * M_PI;
-            // cout << "New angle: " << tp.position.theta << endl;
-        }
-        // if the gap is < -M_PI, then add 2 pi 
-        if ( tp.position.theta - oldtp.position.theta < -M_PI)
-        {
-            tp.position.theta = tp.position.theta + 2 * M_PI;
-        }
-        oldtp = tp;
-
-        // if (VERBOSE)
-        // {
-        //     std::cout << "true: " << "t=" << t << " --- " << tp.position.x << "\t" << tp.position.y << "\t" << tp.position.theta << "\t" << tp.linearVelocity << "\t" << tp.angularVelocity << std::endl;
-        // }
-        
-        /* Initialize the states. */        
-        acadoVariables.x[ indice * NX ] = tp.position.x / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-        acadoVariables.x[ indice * NX + 1] = tp.position.y / 1000.0  + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-        acadoVariables.x[ indice * NX + 2] = tp.position.theta + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
-    
-        /* Initialize the controls. */
-        acadoVariables.x[ indice * NX + 3] = tp.linearVelocity / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-        acadoVariables.x[ indice * NX + 4] = tp.angularVelocity + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
-
-        if (indice < N) {
-            acadoVariables.y[ indice * NY ] = tp.position.x / 1000.0;
-            acadoVariables.y[ indice * NY + 1] = tp.position.y / 1000.0;
-            acadoVariables.y[ indice * NY + 2] = tp.position.theta;
-            acadoVariables.y[ indice * NY + 3] = tp.linearVelocity / 1000.0;
-            acadoVariables.y[ indice * NY + 4] = tp.angularVelocity ;
-        }
-    }
-
-    acadoVariables.yN[0] = tp.position.x / 1000.0;
-    acadoVariables.yN[1] = tp.position.y / 1000.0;
-    acadoVariables.yN[2] = tp.position.theta;
-    acadoVariables.yN[3] = tp.linearVelocity / 1000.0;
-    acadoVariables.yN[4] = tp.angularVelocity;
-
-    /* Some temporary variables. */
-    acado_timer t;
-
-    /* Get the time before start of the loop. */
-    acado_tic( &t );
-
-    /* Prepare step */
-    acado_preparationStep();
-
-    /* Perform the feedback step. */
-    acado_feedbackStep( );
-
-    /* Apply the new control immediately to the process, first NU components. */
-
-    if( VERBOSE ) printf("\t KKT Tolerance = %.3e\n", acado_getKKT() );
-
-    /* Read the elapsed time. */
-    real_t te = acado_toc( &t );
-
-    if( VERBOSE ) printf("Average time of one real-time iteration:   %.3g microseconds\n", 1e6 * te);
-
     std::vector<TrajectoryPoint> outputPoints;
-    for (int indice = 0; indice < N+1; indice++) {
 
-        real_t t = indice * DELTA_T + start_time;
+    try {
 
-        tp.position.x      = acadoVariables.x[ indice * NX ] * 1000;
-        tp.position.y      = acadoVariables.x[ indice * NX + 1] * 1000;
-        tp.position.theta  = acadoVariables.x[ indice * NX + 2];
-        tp.linearVelocity  = acadoVariables.x[ indice * NX + 3] * 1000;
-        tp.angularVelocity = acadoVariables.x[ indice * NX + 4];
-
-        if (VERBOSE)
+        if (!is_acado_inited)
         {
-            std::cout << "solved: " << "t=" << t << " --- " << 
-                tp.position.x << "\t" << 
-                tp.position.y << "\t" << 
-                tp.position.theta << "\t" << 
-                tp.linearVelocity << "\t" << 
-                tp.angularVelocity << std::endl;
+            /* Initialize the solver. */
+            cout << "Initializing solver" << endl;
+            acado_initializeSolver(); 
+            is_acado_inited = true;
         }
 
-        // if distance to the final target is < tolerance 
-        // or the distance between two consecutive points is < tolerance, then stop
+        cout << "N: " << N << endl;
+        // cout << "ACADO_N: " << ACADO_N << endl;
+        // cout << "MPC_N_TIME_INTERVALS: " << MPC_N_TIME_INTERVALS << endl;
 
 
-        if (outputPoints.size() > 0)
-        {
-            if (
-                ((outputPoints.back().position - target_position.position).norm() < MPC_OBJECTIVE_TOLERANCE) |
-                ((outputPoints.back().position - tp.position).norm() < MPC_CONSECUTIVE_POINT_TOLERANCE)
-                )
+        // use this to mitigate the theta modulo two pi instability
+        TrajectoryPoint oldtp = start_position;
+
+        acadoVariables.x0[0] = start_position.position.x / 1000.0;
+        acadoVariables.x0[1] = start_position.position.y / 1000.0;
+        acadoVariables.x0[2] = start_position.position.theta;
+        acadoVariables.x0[3] = start_position.linearVelocity / 1000;
+        acadoVariables.x0[4] = start_position.angularVelocity;
+
+        // perturbation
+        float perturbation_scale = 0.0 / 1000.0;
+        float perturbation_scale_angle = 0.0;
+
+        TrajectoryPoint tp;
+
+
+        for (int indice = 0; indice < N+1; indice++) {
+
+            // cout << indice << endl;
+
+            // start at start_time and iterate over N
+            real_t t = indice * DELTA_T + start_time; 
+
+            // if (t > getDuration(reference_trajectory)) {
+            //     t = getDuration(reference_trajectory);
+            // }
+
+            tp = reference_trajectory.getCurrentPoint(t);
+
+            // oldtp was inited at start_position
+            if (abs(tp.position.theta - oldtp.position.theta) > M_PI)
             {
-                break;
+                // cout << "Smoothing angle" << endl;
+            }
+
+            // if the gap is > M_PI, then subtract 2 pi 
+            if ( tp.position.theta - oldtp.position.theta > M_PI)
+            {
+                // cout << "Subracting 2pi " << endl;
+                tp.position.theta =  tp.position.theta - 2 * M_PI;
+                // cout << "New angle: " << tp.position.theta << endl;
+            }
+            // if the gap is < -M_PI, then add 2 pi 
+            if ( tp.position.theta - oldtp.position.theta < -M_PI)
+            {
+                tp.position.theta = tp.position.theta + 2 * M_PI;
+            }
+            oldtp = tp;
+
+            // if (VERBOSE)
+            // {
+            //     std::cout << "true: " << "t=" << t << " --- " << tp.position.x << "\t" << tp.position.y << "\t" << tp.position.theta << "\t" << tp.linearVelocity << "\t" << tp.angularVelocity << std::endl;
+            // }
+            
+            /* Initialize the states. */        
+            acadoVariables.x[ indice * NX ] = tp.position.x / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
+            acadoVariables.x[ indice * NX + 1] = tp.position.y / 1000.0  + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
+            acadoVariables.x[ indice * NX + 2] = tp.position.theta + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
+        
+            /* Initialize the controls. */
+            acadoVariables.x[ indice * NX + 3] = tp.linearVelocity / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
+            acadoVariables.x[ indice * NX + 4] = tp.angularVelocity + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
+
+            if (indice < N) {
+                acadoVariables.y[ indice * NY ] = tp.position.x / 1000.0;
+                acadoVariables.y[ indice * NY + 1] = tp.position.y / 1000.0;
+                acadoVariables.y[ indice * NY + 2] = tp.position.theta;
+                acadoVariables.y[ indice * NY + 3] = tp.linearVelocity / 1000.0;
+                acadoVariables.y[ indice * NY + 4] = tp.angularVelocity ;
             }
         }
-        
-        outputPoints.push_back(tp);
 
-    }
+        acadoVariables.yN[0] = tp.position.x / 1000.0;
+        acadoVariables.yN[1] = tp.position.y / 1000.0;
+        acadoVariables.yN[2] = tp.position.theta;
+        acadoVariables.yN[3] = tp.linearVelocity / 1000.0;
+        acadoVariables.yN[4] = tp.angularVelocity;
+
+        /* Some temporary variables. */
+        acado_timer t;
+
+        /* Get the time before start of the loop. */
+        acado_tic( &t );
+
+        /* Prepare step */
+        acado_preparationStep();
+
+        /* Perform the feedback step. */
+        acado_feedbackStep( );
+
+        /* Apply the new control immediately to the process, first NU components. */
+
+        if( VERBOSE ) printf("\t KKT Tolerance = %.3e\n", acado_getKKT() );
+
+        /* Read the elapsed time. */
+        real_t te = acado_toc( &t );
+
+        if( VERBOSE ) printf("Average time of one real-time iteration:   %.3g microseconds\n", 1e6 * te);
+
+        for (int indice = 0; indice < N+1; indice++) {
+
+            real_t t = indice * DELTA_T + start_time;
+
+            tp.position.x      = acadoVariables.x[ indice * NX ] * 1000;
+            tp.position.y      = acadoVariables.x[ indice * NX + 1] * 1000;
+            tp.position.theta  = acadoVariables.x[ indice * NX + 2];
+            tp.linearVelocity  = acadoVariables.x[ indice * NX + 3] * 1000;
+            tp.angularVelocity = acadoVariables.x[ indice * NX + 4];
+
+            if (VERBOSE)
+            {
+                std::cout << "solved: " << "t=" << t << " --- " << 
+                    tp.position.x << "\t" << 
+                    tp.position.y << "\t" << 
+                    tp.position.theta << "\t" << 
+                    tp.linearVelocity << "\t" << 
+                    tp.angularVelocity << std::endl;
+            }
+
+            // if distance to the final target is < tolerance 
+            // or the distance between two consecutive points is < tolerance, then stop
+
+
+            if (outputPoints.size() > 0)
+            {
+                if (
+                    ((outputPoints.back().position - target_position.position).norm() < MPC_OBJECTIVE_TOLERANCE) |
+                    ((outputPoints.back().position - tp.position).norm() < MPC_CONSECUTIVE_POINT_TOLERANCE)
+                    )
+                {
+                    break;
+                }
+            }
+            
+            outputPoints.push_back(tp);
+
+        }
+    } catch( const exception & e ) {
+        cerr << "ACADO failed!" << endl;
+        cerr << e.what() << endl;
+    } 
 
     TrajectoryConfig config;
-    double duration = (outputPoints.size()-1) * DELTA_T;
+    double duration = std::max(0.0, (outputPoints.size()-1) * DELTA_T);
     cout << "Duration of SampledTrajectory generated: " << duration << endl;
     std::shared_ptr<SampledTrajectory > st(new SampledTrajectory(config, outputPoints, duration));
+
+    
 
     acado_mutex.unlock();
 

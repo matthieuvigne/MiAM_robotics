@@ -265,7 +265,7 @@ void Strategy::match_impl()
     start.x = 1309;
     start.y = 2843;
     start.theta = 0;
-    RobotPosition end;
+    RobotPosition end; 
     end.x = 744;
     end.y = 2843;
     end.theta = 0;

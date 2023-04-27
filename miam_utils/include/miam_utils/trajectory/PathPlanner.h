@@ -40,7 +40,7 @@
                     
                     /// @brief Prints a-star map along with a path
                     /// @param path path in robotposition
-                    void printMap(std::vector<RobotPosition> path);
+                    void printMap(std::vector<RobotPosition> path, RobotPosition currentPosition);
 
                     /// @brief Plans a path from a start to and end given collisions
                     /// @param start start robotposition
