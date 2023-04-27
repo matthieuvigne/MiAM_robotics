@@ -600,8 +600,14 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
     }
     else if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_MPC)
     {
+
+        std::cout << ">> MotionControllerAvoidance : planning MPC" << std::endl;
+        std::cout << ">> MotionControllerAvoidance : current position : " << getCurrentPosition() << std::endl;
+
         // reset obstacle map
         motionPlanner_->pathPlanner_->resetCollisions();
+
+        double minDistanceToObstacle = 10000;
 
         // update obstacle map
         for (const DetectedRobot &robot : detectedRobots)
@@ -616,26 +622,32 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
 
             RobotPosition obspos = lidarPointToRobotPosition(point);
             motionPlanner_->pathPlanner_->addCollision(obspos, detection::mpc_obstacle_size);
+            minDistanceToObstacle = std::min(minDistanceToObstacle, (obspos - currentPosition).norm());
         }
 
-        // // go 5 cm back from the obstacle
-        // TrajectoryVector traj1;
-        // if (forward)
-        // {
-        //     traj1 = miam::trajectory::computeTrajectoryStraightLine(
-        //         robotParams_.getTrajConf(),
-        //         currentPosition, // start
-        //         -50
-        //     );
-        // }
-        // else
-        // {
-        //     traj1 = miam::trajectory::computeTrajectoryStraightLine(
-        //         robotParams_.getTrajConf(),
-        //         currentPosition, // start
-        //         50
-        //     );
-        // }
+        std::cout << ">> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
+
+        double distanceToGoBack = std::max(0.0, 100 - minDistanceToObstacle);
+
+        // go 10 cm back from the obstacle
+        TrajectoryVector traj1;
+        if (forward & (distanceToGoBack > 0))
+        {
+            std::cout << ">> Needing to go back " << distanceToGoBack << " mm" << std::endl;
+            traj1 = miam::trajectory::computeTrajectoryStraightLine(
+                robotParams_.getTrajConf(),
+                currentPosition, // start
+                -distanceToGoBack
+            );
+        }
+        else
+        {
+            traj1 = miam::trajectory::computeTrajectoryStraightLine(
+                robotParams_.getTrajConf(),
+                currentPosition, // start
+                distanceToGoBack
+            );
+        }
 
         // plan motion
         // RobotPosition newStartPoint = traj1.getEndPoint().position;

@@ -38,25 +38,27 @@ class MotionPlanner{
     
         PathPlanner* pathPlanner_;
 
+        static TrajectoryVector solveTrajectoryFromWaypoints(
+            std::vector<RobotPosition> waypoints
+        );
+
+        static TrajectoryVector computeTrajectoryBasicPath(
+            TrajectoryConfig const& config,
+            std::vector<RobotPosition> p,
+            double initialSpeed);
+
+        static TrajectoryConfig getMPCTrajectoryConfig();
+
+        static std::shared_ptr<SampledTrajectory > solveMPCIteration(
+            TrajectoryVector reference_trajectory,
+            TrajectoryPoint start_position,
+            TrajectoryPoint target_position,
+            double start_time
+        );
+
 };
 
-TrajectoryVector solveTrajectoryFromWaypoints(
-    std::vector<RobotPosition> waypoints
-);
 
-TrajectoryVector computeTrajectoryBasicPath(
-    TrajectoryConfig const& config,
-    std::vector<RobotPosition> p,
-    double initialSpeed);
-
-TrajectoryConfig getMPCTrajectoryConfig();
-
-std::shared_ptr<SampledTrajectory > solveMPCIteration(
-    TrajectoryVector reference_trajectory,
-    TrajectoryPoint start_position,
-    TrajectoryPoint target_position,
-    double start_time
-);
 
 
 #endif

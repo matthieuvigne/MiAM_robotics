@@ -57,7 +57,7 @@ using namespace std;
 bool is_acado_inited = false;
 
 
-TrajectoryConfig getMPCTrajectoryConfig() {
+TrajectoryConfig MotionPlanner::getMPCTrajectoryConfig() {
     TrajectoryConfig c;
     c.maxWheelVelocity = 500;
     c.maxWheelAcceleration = 600;
@@ -88,9 +88,12 @@ TrajectoryVector MotionPlanner::planMotion(
     // compute the trajectory from the waypoints
     TrajectoryVector st = solveTrajectoryFromWaypoints(planned_path);
     std::cout << "Solved trajectory: " << std::endl;
-    for (double t = 0; t <=st.getDuration(); t += 0.1) {
-        std::cout << st.getCurrentPoint(t) << std::endl;
-    }
+    // for (double t = 0; t <=st.getDuration(); t += 0.1) {
+    //     std::cout << st.getCurrentPoint(t) << std::endl;
+    // }
+    std::cout << "Duration: " << st.getDuration() << std::endl;
+    std::cout << "Start: " << st.getCurrentPoint(0.0) << std::endl;
+    std::cout << "End: " << st.getEndPoint() << std::endl;
 
     TrajectoryVector res;
 
@@ -114,7 +117,7 @@ TrajectoryVector MotionPlanner::planMotion(
 }
 
 
-TrajectoryVector solveTrajectoryFromWaypoints(
+TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     std::vector<RobotPosition> waypoints
 ) 
 {
@@ -166,7 +169,7 @@ TrajectoryVector solveTrajectoryFromWaypoints(
 }
 
 
-TrajectoryVector computeTrajectoryBasicPath(
+TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
     TrajectoryConfig const& config,
     std::vector<RobotPosition> p,
     double initialSpeed)
@@ -198,7 +201,7 @@ TrajectoryVector computeTrajectoryBasicPath(
     return vector;
 };
 
-std::shared_ptr<SampledTrajectory > solveMPCIteration(
+std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
     TrajectoryVector reference_trajectory,
     TrajectoryPoint start_position,
     TrajectoryPoint target_position,

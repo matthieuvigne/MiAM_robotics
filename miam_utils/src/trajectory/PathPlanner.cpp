@@ -181,8 +181,19 @@ namespace miam{
             std::vector<RobotPosition> positions;
             RobotPosition targetPosition;
 
+            bool checkPath = true;
+            for (int i = 0; i < path.size() - 1; i++)
+            {
+                AStar::Vec2i p1 = path.at(i);
+                AStar::Vec2i p2 = path.at(i+1);
+                if (abs(p1.x - p2.x) > 1 | abs(p1.y - p2.y) > 1)
+                {
+                    checkPath = false;
+                    break;
+                }
+            }
 
-            if (robotPositionToVec2i(start) == path.back())
+            if (checkPath & robotPositionToVec2i(start) == path.back() & robotPositionToVec2i(end) == path.front())
             {
                 for (auto coordinate = path.rbegin(); coordinate != path.rend(); ++coordinate) 
                 {
