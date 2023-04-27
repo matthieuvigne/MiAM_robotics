@@ -55,6 +55,7 @@ using namespace std;
 
 // ACADO should be inited only once
 bool is_acado_inited = false;
+std::mutex acado_mutex;
 
 
 TrajectoryConfig MotionPlanner::getMPCTrajectoryConfig() {
@@ -208,6 +209,8 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
     double start_time
 )
 {
+    acado_mutex.lock();
+
     cout << "----------------------------" << endl;
     cout << "Solving starting time: " <<  start_time << endl;
     cout << "Start position: " << start_position << endl;
@@ -369,6 +372,8 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
     double duration = (outputPoints.size()-1) * DELTA_T;
     cout << "Duration of SampledTrajectory generated: " << duration << endl;
     std::shared_ptr<SampledTrajectory > st(new SampledTrajectory(config, outputPoints, duration));
+
+    acado_mutex.unlock();
 
     return st;
 }

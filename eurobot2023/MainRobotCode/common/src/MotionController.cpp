@@ -333,70 +333,75 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
         double x = point.r * std::cos(point.theta + (forward ? 0 : M_PI));
         double y = point.r * std::sin(point.theta + (forward ? 0 : M_PI));
 
-        if (avoidanceCount_ > 0) {
-            if (x > 0)
-            {
-                if (x < detection::x_max_avoidance)
-                {
-                    if (std::abs(y) < detection::y_max_avoidance)
-                    {
-                        // Stop robot
-                        coeff = 0.0;
-                        is_robot_stopped = true;
-                        detected_point = point;
-                    }
-                    else if (std::abs(y) < detection::y_max_avoidance)
-                    {
-                        // Stop robot
-                        coeff = 0.0;
-                        is_robot_stopped = true;
-                        detected_point = point;
-                    }
-                }
-                else if (x < detection::xfar_max_avoidance)
-                {
-                    double maximumY = detection::y_max_avoidance + (x - detection::x_max_avoidance) / (detection::xfar_max_avoidance - detection::x_max_avoidance) * (detection::yfar_max_avoidance - detection::y_max_avoidance);
-                    if (std::abs(y) < maximumY)
-                    {
-                        const double current_coeff = std::min(1.0, std::max(0.2, (point.r - detection::r1) / (detection::r2 - detection::r1)));
-                        if (current_coeff < coeff)
-                        {
-                            coeff = current_coeff;
-                            detected_point = point;
-                        }
-                    }
-                }
-            }
-        }
-        else
+        // If the current trajectory is a point turn, then do not slow down or stop
+        if (currentTrajectories_.size() > 0 && currentTrajectories_.front()->getCurrentPoint(curvilinearAbscissa_).linearVelocity != 0)
         {
-            if (x > 0)
-            {
-                if (x < detection::x_max)
+            // If currently avoiding, then use less strict thresholds
+            if (avoidanceCount_ > 0) {
+                if (x > 0)
                 {
-                    if (std::abs(y) < detection::y_max)
+                    if (x < detection::x_max_avoidance)
                     {
-                        // Stop robot
-                        coeff = 0.0;
-                        is_robot_stopped = true;
-                        detected_point = point;
-                    }
-                }
-                else if (x < detection::xfar_max)
-                {
-                    double maximumY = detection::y_max + (x - detection::x_max) / (detection::xfar_max - detection::x_max) * (detection::yfar_max - detection::y_max);
-                    if (std::abs(y) < maximumY)
-                    {
-                        const double current_coeff = std::min(1.0, std::max(0.2, (point.r - detection::r1) / (detection::r2 - detection::r1)));
-                        if (current_coeff < coeff)
+                        if (std::abs(y) < detection::y_max_avoidance)
                         {
-                            coeff = current_coeff;
+                            // Stop robot
+                            coeff = 0.0;
+                            is_robot_stopped = true;
                             detected_point = point;
+                        }
+                        else if (std::abs(y) < detection::y_max_avoidance)
+                        {
+                            // Stop robot
+                            coeff = 0.0;
+                            is_robot_stopped = true;
+                            detected_point = point;
+                        }
+                    }
+                    else if (x < detection::xfar_max_avoidance)
+                    {
+                        double maximumY = detection::y_max_avoidance + (x - detection::x_max_avoidance) / (detection::xfar_max_avoidance - detection::x_max_avoidance) * (detection::yfar_max_avoidance - detection::y_max_avoidance);
+                        if (std::abs(y) < maximumY)
+                        {
+                            const double current_coeff = std::min(1.0, std::max(0.2, (point.r - detection::r1) / (detection::r2 - detection::r1)));
+                            if (current_coeff < coeff)
+                            {
+                                coeff = current_coeff;
+                                detected_point = point;
+                            }
                         }
                     }
                 }
             }
-        }
+            else
+            {
+                if (x > 0)
+                {
+                    if (x < detection::x_max)
+                    {
+                        if (std::abs(y) < detection::y_max)
+                        {
+                            // Stop robot
+                            coeff = 0.0;
+                            is_robot_stopped = true;
+                            detected_point = point;
+                        }
+                    }
+                    else if (x < detection::xfar_max)
+                    {
+                        double maximumY = detection::y_max + (x - detection::x_max) / (detection::xfar_max - detection::x_max) * (detection::yfar_max - detection::y_max);
+                        if (std::abs(y) < maximumY)
+                        {
+                            const double current_coeff = std::min(1.0, std::max(0.2, (point.r - detection::r1) / (detection::r2 - detection::r1)));
+                            if (current_coeff < coeff)
+                            {
+                                coeff = current_coeff;
+                                detected_point = point;
+                            }
+                        }
+                    }
+                }
+            }
+        }   
     }
 
     // Before match: just return coeff, don't trigger memory.
@@ -450,7 +455,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
 
                 // try to compute a basic avoidance path and follow if succeeded
                 TrajectoryVector traj = computeAvoidanceTrajectory(detectedRobots, forward);
-                if (!traj.empty()) {
+                if (traj.getDuration() > 0) {
                     std::cout << "Setting avoidance trajectory" << std::endl;
                     currentTrajectories_.clear();
                     currentTrajectories_ = traj;    

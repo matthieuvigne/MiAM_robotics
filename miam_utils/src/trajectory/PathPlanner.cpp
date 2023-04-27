@@ -193,6 +193,9 @@ namespace miam{
                 }
             }
 
+            // remove start position from obstacles
+            generator_.removeCollision(robotPositionToVec2i(start));
+
             if (checkPath & robotPositionToVec2i(start) == path.back() & robotPositionToVec2i(end) == path.front())
             {
                 for (auto coordinate = path.rbegin(); coordinate != path.rend(); ++coordinate) 
