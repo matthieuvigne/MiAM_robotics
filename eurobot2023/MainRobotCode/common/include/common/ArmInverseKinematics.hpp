@@ -6,7 +6,7 @@
 namespace common {
   
 bool arm_inverse_kinematics(
-  double r, double theta, double z,
+  double r, double theta_rad, double z, double psi_rad,
   std::array<double,4>* angles_ptr);
 
 } // namespace common
