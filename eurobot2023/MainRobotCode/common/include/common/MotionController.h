@@ -25,15 +25,24 @@
     #include <vector>
     #include <mutex>
 
+    #include <common/MotionPlanner.h>
+
     using miam::RobotPosition;
     using miam::ProtectedPosition;
     using miam::trajectory::Trajectory;
     using miam::trajectory::TrajectoryPoint;
+    using miam::trajectory::TrajectoryVector;
 
     namespace side{
         int const RIGHT = 0;
         int const LEFT = 1;
     }
+
+    enum AvoidanceMode {
+        AVOIDANCE_BASIC,
+        AVOIDANCE_MPC,
+        AVOIDANCE_OFF
+    };
 
 
     typedef struct {
@@ -80,6 +89,14 @@
       double const y_max = 300;
       double const xfar_max = 700;
       double const yfar_max = 500;
+
+      // during avoidance...
+      double const x_max_avoidance = 300;
+      double const y_max_avoidance = 300;
+      double const xfar_max_avoidance = 300;
+      double const yfar_max_avoidance = 300;
+
+      double const mpc_obstacle_size = 400;
     }
 
     // Dimensions of the table
@@ -162,6 +179,9 @@
 
             RobotParameters robotParams_;
             Logger logger_; ///< Logger object.
+            MotionPlanner* motionPlanner_;
+
+            void setAvoidanceMode(AvoidanceMode avoidanceMode);
 
         private:
             ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
@@ -200,7 +220,12 @@
             /// \return coefficient for trajectory time increase
             double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
 
+            RobotPosition lidarPointToRobotPosition(LidarPoint const &point);
             bool isLidarPointWithinTable(LidarPoint const& point);
+            
+            // Avoidance functions
+
+            TrajectoryVector computeAvoidanceTrajectory(std::deque<DetectedRobot> const &detectedRobots, bool forward);
 
 
             // Handle robot stops
@@ -211,5 +236,9 @@
 
             int avoidanceCount_;
             const int maxAvoidanceAttempts_ = 2;
+
+            double trajectoryTimeout_ = 1.0; // Number of seconds after the end of trajectory after which timeout is raised
+
+            AvoidanceMode avoidanceMode_;
     };
  #endif

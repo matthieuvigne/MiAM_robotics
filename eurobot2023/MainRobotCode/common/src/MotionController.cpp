@@ -1,4 +1,4 @@
-#include "common/MotionController.h"
+#include <common/MotionController.h>
 #include <miam_utils/trajectory/Utilities.h>
 
 MotionController::MotionController(RobotParameters const &robotParameters) : currentPosition_(),
@@ -23,6 +23,14 @@ MotionController::MotionController(RobotParameters const &robotParameters) : cur
     // Set PIDs.
     PIDLinear_ = miam::PID(motioncontroller::linearKp, motioncontroller::linearKd, motioncontroller::linearKi, 0.2);
     PIDAngular_ = miam::PID(motioncontroller::rotationKp, motioncontroller::rotationKd, motioncontroller::rotationKi, 0.15);
+
+    // Set MotionPlanner
+    motionPlanner_ = new MotionPlanner(robotParameters);
+
+    // Default avoidance mode
+    // avoidanceMode_ = AvoidanceMode::AVOIDANCE_BASIC;
+    avoidanceMode_ = AvoidanceMode::AVOIDANCE_MPC;
+    avoidanceCount_ = 0;
 }
 
 void MotionController::init(RobotPosition const& startPosition, std::string const& teleplotPrefix)
@@ -145,7 +153,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
         // If we are more than a specified time  after the end of the trajectory, stop it anyway.
         // We hope to have servoed the robot is less than that anyway.
-        if (curvilinearAbscissa_ - 0.1 > traj->getDuration())
+        if (curvilinearAbscissa_ - trajectoryTimeout_ > traj->getDuration())
         {
             std::cout << "Timeout on trajectory following" << std::endl;
             currentTrajectories_.erase(currentTrajectories_.begin());
@@ -325,28 +333,66 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
         double x = point.r * std::cos(point.theta + (forward ? 0 : M_PI));
         double y = point.r * std::sin(point.theta + (forward ? 0 : M_PI));
 
-        if (x > 0)
-        {
-            if (x < detection::x_max)
+        if (avoidanceCount_ > 0) {
+            if (x > 0)
             {
-                if (std::abs(y) < detection::y_max)
+                if (x < detection::x_max_avoidance)
                 {
-                    // Stop robot.
-                    coeff = 0.0;
-                    is_robot_stopped = true;
-                    detected_point = point;
+                    if (std::abs(y) < detection::y_max_avoidance)
+                    {
+                        // Stop robot
+                        coeff = 0.0;
+                        is_robot_stopped = true;
+                        detected_point = point;
+                    }
+                    else if (std::abs(y) < detection::y_max_avoidance)
+                    {
+                        // Stop robot
+                        coeff = 0.0;
+                        is_robot_stopped = true;
+                        detected_point = point;
+                    }
+                }
+                else if (x < detection::xfar_max_avoidance)
+                {
+                    double maximumY = detection::y_max_avoidance + (x - detection::x_max_avoidance) / (detection::xfar_max_avoidance - detection::x_max_avoidance) * (detection::yfar_max_avoidance - detection::y_max_avoidance);
+                    if (std::abs(y) < maximumY)
+                    {
+                        const double current_coeff = std::min(1.0, std::max(0.2, (point.r - detection::r1) / (detection::r2 - detection::r1)));
+                        if (current_coeff < coeff)
+                        {
+                            coeff = current_coeff;
+                            detected_point = point;
+                        }
+                    }
                 }
             }
-            else if (x < detection::xfar_max)
+        }
+        else
+        {
+            if (x > 0)
             {
-                double maximumY = detection::y_max + (x - detection::x_max) / (detection::xfar_max - detection::x_max) * (detection::yfar_max - detection::y_max);
-                if (std::abs(y) < maximumY)
+                if (x < detection::x_max)
                 {
-                    const double current_coeff = std::min(1.0, std::max(0.2, (point.r - detection::r1) / (detection::r2 - detection::r1)));
-                    if (current_coeff < coeff)
+                    if (std::abs(y) < detection::y_max)
                     {
-                        coeff = current_coeff;
+                        // Stop robot
+                        coeff = 0.0;
+                        is_robot_stopped = true;
                         detected_point = point;
+                    }
+                }
+                else if (x < detection::xfar_max)
+                {
+                    double maximumY = detection::y_max + (x - detection::x_max) / (detection::xfar_max - detection::x_max) * (detection::yfar_max - detection::y_max);
+                    if (std::abs(y) < maximumY)
+                    {
+                        const double current_coeff = std::min(1.0, std::max(0.2, (point.r - detection::r1) / (detection::r2 - detection::r1)));
+                        if (current_coeff < coeff)
+                        {
+                            coeff = current_coeff;
+                            detected_point = point;
+                        }
                     }
                 }
             }
@@ -379,14 +425,17 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
         }
         else if (numStopIters_ > maxStopIters_)
         {
+            // if stopped for a long time, try to perform avoidance
             avoidanceCount_++;
             std::cout << "avoidanceCount_ " << avoidanceCount_ << std::endl;
 
+            // if many avoidance was tried before or the trajectory was tagged not to trigger avoidance
             if (avoidanceCount_ > maxAvoidanceAttempts_ || !currentTrajectories_.front()->isAvoidanceEnabled())
             {
+                // then declare trajectory failed
                 if (!currentTrajectories_.front()->isAvoidanceEnabled())
                 {
-                    std::cout << ">> MotionControllerAvoidance : Avoidance is disabled" << std::endl;
+                    std::cout << ">> MotionControllerAvoidance : Avoidance is disabled on this trajectory" << std::endl;
                 }
                 // Failed to perform avoidance.
                 // Raise flag and end trajectory following.
@@ -398,80 +447,17 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
             else
             {
                 // Proceed avoidance
-                // Search for the closest point along trajectory out of red zone
-                // and far enough from the other robots and ask the MPC to set a new
-                // trajectory to this point avoiding the fixed robot.
 
-                std::vector<std::shared_ptr<Trajectory>> traj;
-                RobotPosition targetPosition;
-                RobotPosition endPosition;
-                std::vector<RobotPosition> positions;
-                // Set the new trajectory
-                std::cout << ">> MotionControllerAvoidance : Triggering avoidance" << std::endl;
-                numStopIters_ = 0;
-
-                // Compute points to the left of the robot
-                RobotPosition left_point(getCurrentPosition());
-                // 40 cm to the left
-                left_point.x -= 400 * sin(left_point.theta);
-                left_point.y += 400 * cos(left_point.theta);
-                // further 40 cm
-                RobotPosition left_point_further(left_point);
-                left_point_further.x += 400 * cos(left_point.theta);
-                left_point_further.y += 400 * sin(left_point.theta);
-
-                // Compute points to the right of the robot
-                RobotPosition right_point(getCurrentPosition());
-                // 40 cm to the right
-                right_point.x += 400 * sin(right_point.theta);
-                right_point.y -= 400 * cos(right_point.theta);
-                // further 40 cm
-                RobotPosition right_point_further(right_point);
-                right_point_further.x += 400 * cos(right_point.theta);
-                right_point_further.y += 400 * sin(right_point.theta);
-
-                // Attempt left
-                if (left_point.x < table_dimensions::table_max_x and left_point.x > table_dimensions::table_min_x and left_point.y < table_dimensions::table_max_y and left_point.y > table_dimensions::table_min_y)
-                {
-
-                    std::cout << ">> MotionControllerAvoidance : trying to go left" << std::endl;
-                    std::cout << ">> MotionControllerAvoidance : current position : " << getCurrentPosition() << std::endl;
-                    std::cout << ">> MotionControllerAvoidance : waypoint : " << left_point << std::endl;
-
-                    targetPosition = getCurrentPosition();
-                    positions.clear();
-                    positions.push_back(targetPosition);
-                    positions.push_back(left_point);
-                    positions.push_back(left_point_further);
-                    positions.push_back(currentTrajectories_.back()->getEndPoint().position);
-                    traj = miam::trajectory::computeTrajectoryRoundedCorner(robotParams_.getTrajConf(), positions, 200.0, 0.3);
-
+                // try to compute a basic avoidance path and follow if succeeded
+                TrajectoryVector traj = computeAvoidanceTrajectory(detectedRobots, forward);
+                if (!traj.empty()) {
+                    std::cout << "Setting avoidance trajectory" << std::endl;
                     currentTrajectories_.clear();
-                    currentTrajectories_ = traj;
+                    currentTrajectories_ = traj;    
                 }
-                else
-                {
-                    // Attempt right
-                    if (right_point.x < table_dimensions::table_max_x and right_point.x > table_dimensions::table_min_x and right_point.y < table_dimensions::table_max_y and right_point.y > table_dimensions::table_min_y)
-                    {
 
-                        std::cout << ">> MotionControllerAvoidance : trying to go right" << std::endl;
-                        std::cout << ">> MotionControllerAvoidance : current position : " << getCurrentPosition() << std::endl;
-                        std::cout << ">> MotionControllerAvoidance : waypoint : " << right_point << std::endl;
-
-                        targetPosition = getCurrentPosition();
-                        positions.clear();
-                        positions.push_back(targetPosition);
-                        positions.push_back(right_point);
-                        positions.push_back(right_point_further);
-                        positions.push_back(currentTrajectories_.back()->getEndPoint().position);
-                        traj = miam::trajectory::computeTrajectoryRoundedCorner(robotParams_.getTrajConf(), positions, 200.0, 0.3);
-
-                        currentTrajectories_.clear();
-                        currentTrajectories_ = traj;
-                    }
-                }
             }
+                
         }
     }
     else
@@ -496,7 +482,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
     return coeff;
 }
 
-bool MotionController::isLidarPointWithinTable(LidarPoint const &point)
+RobotPosition MotionController::lidarPointToRobotPosition(LidarPoint const &point)
 {
     // 1 Get the robot current position
     miam::RobotPosition const robot_position = this->getCurrentPosition();
@@ -508,11 +494,167 @@ bool MotionController::isLidarPointWithinTable(LidarPoint const &point)
     double const T_x_fi = T_x_R + point.r * std::cos(theta_T_R + point.theta);
     double const T_y_fi = T_y_R + point.r * std::sin(theta_T_R + point.theta);
 
+    RobotPosition robotPosition;
+    robotPosition.x = T_x_fi;
+    robotPosition.y = T_y_fi;
+
+    return robotPosition;
+}
+
+bool MotionController::isLidarPointWithinTable(LidarPoint const &point)
+{
+    
+    RobotPosition robotPosition = lidarPointToRobotPosition(point);
+
     // 3. Check if the lidar point falls within the table
-    if (T_x_fi < table_dimensions::table_max_x and T_x_fi > table_dimensions::table_min_x and T_y_fi < table_dimensions::table_max_y and T_y_fi > table_dimensions::table_min_y)
+    if (robotPosition.x < table_dimensions::table_max_x and robotPosition.x > table_dimensions::table_min_x 
+        and robotPosition.y < table_dimensions::table_max_y and robotPosition.y > table_dimensions::table_min_y)
     {
         return true;
     }
 
     return false;
+}
+
+void MotionController::setAvoidanceMode(AvoidanceMode avoidanceMode)
+{
+    avoidanceMode_ = avoidanceMode;
+}
+
+TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<DetectedRobot> const &detectedRobots, bool forward)
+{
+    TrajectoryVector traj;
+    RobotPosition currentPosition = getCurrentPosition();
+    RobotPosition targetPosition = currentTrajectories_.back()->getEndPoint().position;
+
+    if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_BASIC)
+    {
+        RobotPosition endPosition;
+        std::vector<RobotPosition> positions;
+        // Set the new trajectory
+        std::cout << ">> MotionControllerAvoidance : Triggering avoidance" << std::endl;
+        numStopIters_ = 0;
+
+        RobotPosition currentPositionModified = currentPosition;
+
+        // if going backwards, left and right are inverted
+        if (!forward)
+        {
+            currentPositionModified.theta = moduloTwoPi(currentPositionModified.theta + M_PI);
+        }
+
+        // Compute points to the left of the robot
+        RobotPosition left_point(currentPositionModified);
+        // 40 cm to the left
+        left_point.x -= 400 * sin(left_point.theta);
+        left_point.y += 400 * cos(left_point.theta);
+        // further 40 cm
+        RobotPosition left_point_further(left_point);
+        left_point_further.x += 400 * cos(left_point.theta);
+        left_point_further.y += 400 * sin(left_point.theta);
+
+        // Compute points to the right of the robot
+        RobotPosition right_point(currentPositionModified);
+        // 40 cm to the right
+        right_point.x += 400 * sin(right_point.theta);
+        right_point.y -= 400 * cos(right_point.theta);
+        // further 40 cm
+        RobotPosition right_point_further(right_point);
+        right_point_further.x += 400 * cos(right_point.theta);
+        right_point_further.y += 400 * sin(right_point.theta);
+
+        // Attempt left
+        if (left_point.x < table_dimensions::table_max_x and left_point.x > table_dimensions::table_min_x and left_point.y < table_dimensions::table_max_y and left_point.y > table_dimensions::table_min_y)
+        {
+
+            std::cout << ">> MotionControllerAvoidance : trying to go left" << std::endl;
+            std::cout << ">> MotionControllerAvoidance : current position : " << getCurrentPosition() << std::endl;
+            std::cout << ">> MotionControllerAvoidance : waypoint : " << left_point << std::endl;
+
+            positions.clear();
+            positions.push_back(currentPosition);
+            positions.push_back(left_point);
+            positions.push_back(left_point_further);
+            positions.push_back(targetPosition);
+            traj = miam::trajectory::computeTrajectoryRoundedCorner(robotParams_.getTrajConf(), positions, 200.0, 0.3, !forward);
+        }
+        else
+        {
+            // Attempt right
+            if (right_point.x < table_dimensions::table_max_x and right_point.x > table_dimensions::table_min_x and right_point.y < table_dimensions::table_max_y and right_point.y > table_dimensions::table_min_y)
+            {
+
+                std::cout << ">> MotionControllerAvoidance : trying to go right" << std::endl;
+                std::cout << ">> MotionControllerAvoidance : current position : " << getCurrentPosition() << std::endl;
+                std::cout << ">> MotionControllerAvoidance : waypoint : " << right_point << std::endl;
+
+                positions.clear();
+                positions.push_back(currentPosition);
+                positions.push_back(right_point);
+                positions.push_back(right_point_further);
+                positions.push_back(targetPosition);
+                traj = miam::trajectory::computeTrajectoryRoundedCorner(robotParams_.getTrajConf(), positions, 200.0, 0.3);
+            }
+        }
+        // else do nothing
+    }
+    else if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_MPC)
+    {
+        // reset obstacle map
+        motionPlanner_->pathPlanner_->resetCollisions();
+
+        // update obstacle map
+        for (const DetectedRobot &robot : detectedRobots)
+        {
+            // Get the Lidar Point, symeterize it if needed and check its projection
+            LidarPoint const point = this->isPlayingRightSide_
+                                        ? LidarPoint(robot.point.r, -robot.point.theta)
+                                        : LidarPoint(robot.point.r, robot.point.theta);
+
+            if (!this->isLidarPointWithinTable(point))
+                continue;
+
+            RobotPosition obspos = lidarPointToRobotPosition(point);
+            motionPlanner_->pathPlanner_->addCollision(obspos, detection::mpc_obstacle_size);
+        }
+
+        // // go 5 cm back from the obstacle
+        // TrajectoryVector traj1;
+        // if (forward)
+        // {
+        //     traj1 = miam::trajectory::computeTrajectoryStraightLine(
+        //         robotParams_.getTrajConf(),
+        //         currentPosition, // start
+        //         -50
+        //     );
+        // }
+        // else
+        // {
+        //     traj1 = miam::trajectory::computeTrajectoryStraightLine(
+        //         robotParams_.getTrajConf(),
+        //         currentPosition, // start
+        //         50
+        //     );
+        // }
+
+        // plan motion
+        // RobotPosition newStartPoint = traj1.getEndPoint().position;
+        RobotPosition newStartPoint = currentPosition;
+        newStartPoint.theta = currentPosition.theta;
+        TrajectoryVector traj2 = motionPlanner_->planMotion(
+            newStartPoint,
+            targetPosition
+        );
+        
+        // if motion planning succeeded, proceed
+        if (traj2.getDuration() > 0)
+        {
+            // traj.insert( traj.end(), traj1.begin(), traj1.end() );
+            traj.insert( traj.end(), traj2.begin(), traj2.end() );
+        }
+
+
+    }
+
+    return traj;
 }

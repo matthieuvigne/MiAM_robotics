@@ -48,6 +48,7 @@ void Strategy::setup(RobotInterface *robot)
     targetPosition.y = 200; ;
     targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
+    motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_BASIC);
 }
 
 void Strategy::shutdown()
@@ -57,7 +58,7 @@ void Strategy::shutdown()
 Action* Strategy::chooseNextAction(
     std::vector<Action>& actions,
     RobotPosition currentPosition,
-    MotionPlanner motionPlanner
+    MotionPlanner& motionPlanner
 )
 {
 
@@ -100,7 +101,7 @@ void Strategy::match_impl()
     std::vector<RobotPosition> positions;
 
     // create brain
-    MotionPlanner motionPlanner(robot);
+    MotionPlanner* motionPlanner = motionController->motionPlanner_;
 
 
     double const robot_chassis_front = robot->getParameters().CHASSIS_FRONT;
@@ -145,7 +146,7 @@ void Strategy::match_impl()
         std::cout << "nextAction : " << *nextAction << std::endl;
 
         targetPosition = motionController->getCurrentPosition();
-        traj = motionPlanner.computeTraj(robot->getParameters().getTrajConf(), targetPosition, nextAction->startPosition_);
+        traj = motionPlanner->computeTraj(robot->getParameters().getTrajConf(), targetPosition, nextAction->startPosition_);
         motionController->setTrajectoryToFollow(traj);
         bool moveSuccess = motionController->waitForTrajectoryFinished();
 
@@ -189,7 +190,7 @@ void Strategy::match_impl()
                     std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
 
                     // targetPosition = motionController->getCurrentPosition();
-                    // traj = motionPlanner.computeTraj(targetPosition, nextAction->startPosition_);
+                    // traj = motionPlanner->computeTraj(targetPosition, nextAction->startPosition_);
                     // motionController->setTrajectoryToFollow(traj);
                     // moveSuccess = motionController->waitForTrajectoryFinished();
                 } else
@@ -241,7 +242,7 @@ void Strategy::match_impl()
                         std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
 
                         // targetPosition = motionController->getCurrentPosition();
-                        // traj = motionPlanner.computeTraj(targetPosition, nextAction->startPosition_);
+                        // traj = motionPlanner->computeTraj(targetPosition, nextAction->startPosition_);
                         // motionController->setTrajectoryToFollow(traj);
                         // moveSuccess = motionController->waitForTrajectoryFinished();
                     } else

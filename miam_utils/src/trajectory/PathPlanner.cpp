@@ -103,6 +103,15 @@ namespace miam{
             }
         }
 
+        void PathPlanner::addCollisionsNoDuplicate(AStar::Vec2i collision)
+        {
+            AStar::CoordinateList existingCollisions = generator_.getCollisions();
+            if (!(std::find(existingCollisions.begin(), existingCollisions.end(), collision) != existingCollisions.end())) 
+            {
+                generator_.addCollision(collision);
+            }
+        }
+
         void PathPlanner::addCollision(RobotPosition const& position, double radius)
         {
             // number of grid units to be taken into account
@@ -121,7 +130,7 @@ namespace miam{
                     RobotPosition obsPosition = vec2iToRobotPosition({i, j});
                     if ((position - obsPosition).norm() < radius)
                     {
-                        generator_.addCollision({i, j});
+                        addCollisionsNoDuplicate({i, j});
                     }
                 }
             }

@@ -63,6 +63,8 @@
                 protected:
                     PathPlannerConfig config_;
                     AStar::Generator generator_;
+
+                    void addCollisionsNoDuplicate(AStar::Vec2i collision);
             };
         }
     }

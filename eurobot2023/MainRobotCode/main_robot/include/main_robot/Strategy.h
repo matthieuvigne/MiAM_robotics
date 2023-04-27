@@ -48,7 +48,7 @@ namespace main_robot
         Action *chooseNextAction(
             std::vector<Action> &actions,
             RobotPosition currentPosition,
-            MotionPlanner motionPlanner);
+            MotionPlanner &motionPlanner);
 
         /// @brief Sets the left arm to a specific position
         /// @param armPosition the arm position

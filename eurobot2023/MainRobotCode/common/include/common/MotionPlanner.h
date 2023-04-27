@@ -1,8 +1,7 @@
 #include <miam_utils/trajectory/Utilities.h>
 #include <miam_utils/trajectory/SampledTrajectory.h>
 #include <miam_utils/trajectory/PathPlanner.h>
-
-#include <common/RobotInterface.h>
+#include "common/RobotParameters.h"
 
 #ifndef MOTION_PLANNING_H
 #define MOTION_PLANNING_H
@@ -13,8 +12,9 @@ class MotionPlanner{
 
     public:
 
-        MotionPlanner(RobotInterface* robot);
-        RobotInterface *robot_;
+        MotionPlanner(RobotParameters const& robotParameters);
+        
+        RobotParameters robotParams_;
 
         TrajectoryVector planMotion(
             RobotPosition const& currentPosition,

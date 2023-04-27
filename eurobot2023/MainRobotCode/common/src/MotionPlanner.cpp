@@ -24,7 +24,7 @@
 
 #define N           ACADO_N   /* Number of intervals in the horizon. */
 
-#define VERBOSE     1         /* Show iterations: 1, silent: 0.  */
+#define VERBOSE     0         /* Show iterations: 1, silent: 0.  */
 
 /*
  * Parameters with which the custom solver was compiled
@@ -65,7 +65,7 @@ TrajectoryConfig getMPCTrajectoryConfig() {
     return c;
 };
 
-MotionPlanner::MotionPlanner(RobotInterface* robot) : robot_(robot)
+MotionPlanner::MotionPlanner(RobotParameters const& robotParameters) : robotParams_(robotParameters)
 {
     PathPlannerConfig config;
     pathPlanner_ = new PathPlanner(config);
@@ -96,7 +96,7 @@ TrajectoryVector MotionPlanner::planMotion(
 
     // at start, perform a point turn to get the right angle
     std::shared_ptr<PointTurn > pt_sub_start(
-        new PointTurn(robot_->getParameters().getTrajConf(), 
+        new PointTurn(robotParams_.getTrajConf(), 
         currentPosition, st.getCurrentPoint(0.0).position.theta));
     res.push_back(pt_sub_start);
 
@@ -105,7 +105,7 @@ TrajectoryVector MotionPlanner::planMotion(
 
     // at end, perform a point turn to get the right angle
     std::shared_ptr<PointTurn > pt_sub_end(
-        new PointTurn(robot_->getParameters().getTrajConf(), 
+        new PointTurn(robotParams_.getTrajConf(), 
         res.getEndPoint().position, targetPosition.theta)
     );
     res.push_back(pt_sub_end);
@@ -136,6 +136,7 @@ TrajectoryVector solveTrajectoryFromWaypoints(
     int nIter = 0;
 
     cout << "Duration of the reference path: " << traj.getDuration() << endl;
+    cout << "nIterMax: " << nIterMax << endl;
 
     // proceed by increments of HORIZON_T - 2 * DELTA_T (not taking the last point since the final
     // constraint might make the solver brutally go towards the final point

@@ -117,7 +117,7 @@ void Strategy::shutdown()
 Action* Strategy::chooseNextAction(
     std::vector<Action>& actions,
     RobotPosition currentPosition,
-    MotionPlanner motionPlanner
+    MotionPlanner& motionPlanner
 )
 {
 
@@ -228,7 +228,7 @@ void Strategy::match_impl()
 #endif
 
     // Create brain
-    MotionPlanner motionPlanner(robot);
+    MotionPlanner* motionPlanner = motionController->motionPlanner_;
     std::vector<Action> actionVector;
 
     // Common cake dimensions
@@ -274,14 +274,14 @@ void Strategy::match_impl()
     RobotPosition obspos;
     obspos.x = 935;
     obspos.y = 1275;
-    motionPlanner.pathPlanner_->addCollision(obspos, 300);
+    motionPlanner->pathPlanner_->addCollision(obspos, 300);
     obspos.x = 1026;
     obspos.y = 2504;
-    motionPlanner.pathPlanner_->addCollision(obspos, 300);
+    motionPlanner->pathPlanner_->addCollision(obspos, 300);
 
     go_to_straight_line(start);
 
-    TrajectoryVector st = motionPlanner.planMotion(
+    TrajectoryVector st = motionPlanner->planMotion(
         motionController->getCurrentPosition(),
         end
     );
@@ -403,7 +403,7 @@ void Strategy::match_impl()
         std::cout << "nextAction : " << *nextAction << std::endl;
 
         targetPosition = motionController->getCurrentPosition();
-        //~ traj = motionPlanner.computeTraj(robot->getParameters().getTrajConf(), targetPosition, nextAction->startPosition_);
+        //~ traj = motionPlanner->computeTraj(robot->getParameters().getTrajConf(), targetPosition, nextAction->startPosition_);
         // Petite couille qu'il faudra enlever (ici pour gerer le mouvement arriere).
         traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
           targetPosition, nextAction->startPosition_,0.0,nextAction->startPosition_.theta==M_PI);
@@ -464,7 +464,7 @@ void Strategy::match_impl()
                     std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
 
                     // targetPosition = motionController->getCurrentPosition();
-                    // traj = motionPlanner.computeTraj(targetPosition, nextAction->startPosition_);
+                    // traj = motionPlanner->computeTraj(targetPosition, nextAction->startPosition_);
                     // motionController->setTrajectoryToFollow(traj);
                     // moveSuccess = motionController->waitForTrajectoryFinished();
                 } else
@@ -518,7 +518,7 @@ void Strategy::match_impl()
                         std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
 
                         // targetPosition = motionController->getCurrentPosition();
-                        // traj = motionPlanner.computeTraj(targetPosition, nextAction->startPosition_);
+                        // traj = motionPlanner->computeTraj(targetPosition, nextAction->startPosition_);
                         // motionController->setTrajectoryToFollow(traj);
                         // moveSuccess = motionController->waitForTrajectoryFinished();
                     } else
