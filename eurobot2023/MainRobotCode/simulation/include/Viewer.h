@@ -31,6 +31,7 @@ class Viewer : public Gtk::Window
         std::vector<ViewerRobot*> robots_;  ///< List of robots being displayed.
 
         Vector2 obstaclePosition_ = Vector2::Constant(-300);  // Obstacle position
+        Vector2 obstacle2Position_ = Vector2::Constant(-300);  // Obstacle position
 
         // Move the obstacle.
         bool mouseMove(GdkEventMotion* motion_event);
