@@ -31,6 +31,9 @@ namespace miam{
 
         TrajectoryPoint TrajectoryVector::getCurrentPoint(double const& currentTime) const
         {
+            if (MIAM_DEBUG_TRAJECTORY_TYPE)
+                std::cout << "TrajectoryVector::getCurrentPoint " << currentTime << std::endl;
+
             if (this->empty())
                 return TrajectoryPoint();
             

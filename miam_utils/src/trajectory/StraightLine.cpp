@@ -50,6 +50,8 @@ namespace miam{
 
         TrajectoryPoint StraightLine::getCurrentPoint(double const& currentTime)
         {
+            if (MIAM_DEBUG_TRAJECTORY_TYPE)
+                std::cout << "StraightLine::getCurrentPoint " << currentTime << std::endl;
             TrajectoryPoint output;
             output.position = startPoint_;
             TrapezoidState state = trapezoid_.getState(currentTime);

@@ -202,7 +202,7 @@ bool Viewer::clickObstacle(GdkEventButton* motion_event)
         obstaclePosition_(1) = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
 
     }
-    if (motion_event->button == 3)
+    else if (motion_event->button == 3)
     {
         obstacle2Position_(0) = motion_event->x;
         obstacle2Position_(1) = motion_event->y;

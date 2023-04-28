@@ -6,6 +6,13 @@
 
 namespace miam{
     namespace trajectory{
+
+        TrajectoryPoint::TrajectoryPoint():
+            position(),
+            linearVelocity(0.0),
+            angularVelocity(0.0)
+            {}
+
         Trajectory::Trajectory(TrajectoryConfig const& config):
             duration_(0.0),
             config_(config),

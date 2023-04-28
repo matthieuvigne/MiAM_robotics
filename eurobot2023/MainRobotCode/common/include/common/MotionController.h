@@ -96,7 +96,7 @@
       double const xfar_max_avoidance = 300;
       double const yfar_max_avoidance = 300;
 
-      double const mpc_obstacle_size = 300;
+      double const mpc_obstacle_size = 330;
     }
 
     // Dimensions of the table

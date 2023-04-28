@@ -48,7 +48,8 @@ void Strategy::setup(RobotInterface *robot)
     targetPosition.y = 200; ;
     targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
-    motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_BASIC);
+    // motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_BASIC);
+    motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 }
 
 void Strategy::shutdown()

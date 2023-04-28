@@ -113,6 +113,29 @@ namespace miam{
         return os;
     }
 
+    ProtectedPosition::ProtectedPosition() :
+                    position_(),
+                    mutex_()
+    {
+
+    }
+
+    RobotPosition ProtectedPosition::get()
+    {
+        RobotPosition p;
+        mutex_.lock();
+        p = position_;
+        mutex_.unlock();
+        return p;
+    }
+
+    void ProtectedPosition::set(RobotPosition const& p)
+    {
+        mutex_.lock();
+        position_ = p;
+        mutex_.unlock();
+    }
+
     RobotPosition ProtectedPosition::update(DrivetrainKinematics const & kinematics, WheelSpeed const& encoderIncrement)
     {
         RobotPosition output;

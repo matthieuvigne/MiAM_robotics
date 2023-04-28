@@ -86,33 +86,42 @@ TrajectoryVector MotionPlanner::planMotion(
         return TrajectoryVector();
     }
 
-    // compute the trajectory from the waypoints
-    TrajectoryVector st = solveTrajectoryFromWaypoints(planned_path);
-    std::cout << "Solved trajectory: " << std::endl;
-    // for (double t = 0; t <=st.getDuration(); t += 0.1) {
-    //     std::cout << st.getCurrentPoint(t) << std::endl;
-    // }
-    std::cout << "Duration: " << st.getDuration() << std::endl;
-    std::cout << "Start: " << st.getCurrentPoint(0.0) << std::endl;
-    std::cout << "End: " << st.getEndPoint() << std::endl;
-
     TrajectoryVector res;
 
-    // at start, perform a point turn to get the right angle
-    std::shared_ptr<PointTurn > pt_sub_start(
-        new PointTurn(robotParams_.getTrajConf(), 
-        currentPosition, st.getCurrentPoint(0.0).position.theta));
-    res.push_back(pt_sub_start);
+    // compute the trajectory from the waypoints
+    TrajectoryVector st = solveTrajectoryFromWaypoints(planned_path);
 
-    // insert solved trajectory
-    res.insert( res.end(), st.begin(), st.end() );
+    if (st.getDuration() > 0)
+    {
+        std::cout << "Solved trajectory: " << std::endl;
+        // for (double t = 0; t <=st.getDuration(); t += 0.1) {
+        //     std::cout << st.getCurrentPoint(t) << std::endl;
+        // }
+        std::cout << "Duration: " << st.getDuration() << std::endl;
+        std::cout << "Start: " << st.getCurrentPoint(0.0) << std::endl;
+        std::cout << "End: " << st.getEndPoint() << std::endl;
 
-    // at end, perform a point turn to get the right angle
-    std::shared_ptr<PointTurn > pt_sub_end(
-        new PointTurn(robotParams_.getTrajConf(), 
-        res.getEndPoint().position, targetPosition.theta)
-    );
-    res.push_back(pt_sub_end);
+
+        // at start, perform a point turn to get the right angle
+        std::shared_ptr<PointTurn > pt_sub_start(
+            new PointTurn(robotParams_.getTrajConf(), 
+            currentPosition, st.getCurrentPoint(0.0).position.theta));
+        res.push_back(pt_sub_start);
+
+        // insert solved trajectory
+        res.insert( res.end(), st.begin(), st.end() );
+
+        // at end, perform a point turn to get the right angle
+        std::shared_ptr<PointTurn > pt_sub_end(
+            new PointTurn(robotParams_.getTrajConf(), 
+            res.getEndPoint().position, targetPosition.theta)
+        );
+        res.push_back(pt_sub_end);
+    }
+    else
+    {
+        std::cout << "Solver failed" << std::endl;
+    }
 
     return res;
 }
@@ -211,10 +220,15 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
 {
     acado_mutex.lock();
 
-    cout << "----------------------------" << endl;
-    cout << "Solving starting time: " <<  start_time << endl;
-    cout << "Start position: " << start_position << endl;
-    cout << "Target position: " << target_position << endl;
+    if (VERBOSE)
+    {
+        cout << "----------------------------" << endl;
+        cout << "Solving starting time: " <<  start_time << endl;
+        cout << "Start position: " << start_position << endl;
+        cout << "Target position: " << target_position << endl;
+        cout << "N: " << N << endl;
+    }
+
 
     std::vector<TrajectoryPoint> outputPoints;
 
@@ -228,7 +242,6 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
             is_acado_inited = true;
         }
 
-        cout << "N: " << N << endl;
         // cout << "ACADO_N: " << ACADO_N << endl;
         // cout << "MPC_N_TIME_INTERVALS: " << MPC_N_TIME_INTERVALS << endl;
 
@@ -377,7 +390,8 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
 
     TrajectoryConfig config;
     double duration = std::max(0.0, (outputPoints.size()-1) * DELTA_T);
-    cout << "Duration of SampledTrajectory generated: " << duration << endl;
+    if (VERBOSE)
+        cout << "Duration of SampledTrajectory generated: " << duration << endl;
     std::shared_ptr<SampledTrajectory > st(new SampledTrajectory(config, outputPoints, duration));
 
     

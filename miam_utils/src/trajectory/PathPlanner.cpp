@@ -5,6 +5,8 @@
 #include <cmath>
 #include <algorithm>
 
+using AStar::Vec2i;
+
 namespace miam{
     namespace trajectory{
         PathPlanner::PathPlanner(PathPlannerConfig const& config):
@@ -208,10 +210,30 @@ namespace miam{
                     positions.push_back(targetPosition);
                 }
 
-
                 // remplacer extremites par start et end
                 positions.front() = start;
                 positions.back() = end;
+
+                // smooth out angles
+                for (int i = 1; i < positions.size(); i++)
+                {
+                    double theta;
+
+                    // compute angle
+                    double dx = positions.at(i).x - positions.at(i-1).x;
+                    double dy = positions.at(i).y - positions.at(i-1).y;
+                    
+                    if (dx == 0)
+                    {
+                        theta = (dy > 0 ? 1 : -1) * M_PI_2;
+                    }
+                    else
+                    {
+                        theta = atan(dy/dx);
+                    }
+                    positions.at(i-1).theta = theta;
+                    positions.at(i).theta = theta;
+                }
             } 
             else
             {

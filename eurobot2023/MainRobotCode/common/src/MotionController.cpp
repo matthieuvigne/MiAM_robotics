@@ -235,8 +235,13 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // Change sign if going backward.
     if (targetPoint.linearVelocity < 0)
         trackingTransverseError = -trackingTransverseError;
-    double trackingAngleError = miam::trajectory::moduloTwoPi(currentPosition.theta - targetPoint.position.theta);
 
+    // std::cout << "start trackingAngleError" << std::endl;
+    // std::cout << "currentPosition " << currentPosition << std::endl;
+    // std::cout << "targetPoint " << targetPoint << std::endl;
+    double trackingAngleError = miam::trajectory::moduloTwoPi(currentPosition.theta - targetPoint.position.theta);
+    // std::cout << "end trackingAngleError" << std::endl;
+    
     log("trackingLongitudinalError",trackingLongitudinalError);
     log("trackingTransverseError",trackingTransverseError);
     log("trackingAngleError",trackingAngleError);
@@ -632,7 +637,7 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
 
         std::cout << ">> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
 
-        double distanceToGoBack = std::max(0.0, 100 - minDistanceToObstacle);
+        double distanceToGoBack = std::max(0.0, detection::y_max_avoidance + 50 - minDistanceToObstacle);
 
         // go 10 cm back from the obstacle
         TrajectoryVector traj1;
@@ -651,7 +656,7 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
                 robotParams_.getTrajConf(),
                 currentPosition, // start
                 distanceToGoBack
-            );
+            ); 
         }
 
         // plan motion
