@@ -16,7 +16,8 @@ namespace miam{
         Trajectory::Trajectory(TrajectoryConfig const& config):
             duration_(0.0),
             config_(config),
-            avoidanceEnabled_(true)
+            avoidanceEnabled_(true),
+            isAvoidanceTrajectory_(false)
         {
         }
 

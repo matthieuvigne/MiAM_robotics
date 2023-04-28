@@ -53,7 +53,10 @@ namespace miam{
             }
         }
 
-        void PathPlanner::printMap(std::vector<RobotPosition> path, RobotPosition currentPosition)
+        void PathPlanner::printMap(
+            std::vector<RobotPosition> path, 
+            RobotPosition currentPosition,
+            RobotPosition targetPosition)
         {
             AStar::Vec2i worldSize = generator_.getWorldSize();
             std::vector<AStar::Vec2i > pathInVec2i;
@@ -77,14 +80,25 @@ namespace miam{
 
             std::vector<AStar::Vec2i > collisions = generator_.getCollisions();
 
+            Vec2i current_position = robotPositionToVec2i(currentPosition);
+            Vec2i target_position = robotPositionToVec2i(targetPosition);
+            std::cout << "Current position RobotPosition: " << currentPosition << std::endl;
+            std::cout << "Current position i, j: " << current_position.x << " " << current_position.y << std::endl;
+            std::cout << "Target position RobotPosition: " << targetPosition << std::endl;
+            std::cout << "Target position i, j: " << target_position.x << " " << target_position.y << std::endl;
+
             for (int j = generator_.getWorldSize().y - 1; j >= 0; j--)
             {
                 for (int i = 0; i < generator_.getWorldSize().x; i++)
                 {
                     AStar::Vec2i target({i, j});
-                    if (target == robotPositionToVec2i(currentPosition))
+                    if (target == current_position)
                     {
-                        std::cout << "O ";
+                        std::cout << "S ";
+                    }
+                    else if (target == target_position)
+                    {
+                        std::cout << "E ";
                     }
                     else if (std::find(
                         collisions.begin(),
@@ -160,32 +174,62 @@ namespace miam{
             }
 
             // distributeurs de cerises
-            for (int j = 0; j < 4; j++) 
-            {
-                generator_.addCollision({8, j});
-                generator_.addCollision({9, j});
-                generator_.addCollision({10, j});
-                generator_.addCollision({11, j});
-            }
-            for (int j = config_.astar_grid_size_y-1-4; j < config_.astar_grid_size_y; j++) 
-            {
-                generator_.addCollision({8, j});
-                generator_.addCollision({9, j});
-                generator_.addCollision({10, j});
-                generator_.addCollision({11, j});
-            }
+            // for (int j = 0; j < 4; j++) 
+            // {
+            //     generator_.addCollision({8, j});
+            //     generator_.addCollision({9, j});
+            //     generator_.addCollision({10, j});
+            //     generator_.addCollision({11, j});
+            // }
+            // for (int j = config_.astar_grid_size_y-1-4; j < config_.astar_grid_size_y; j++) 
+            // {
+            //     generator_.addCollision({8, j});
+            //     generator_.addCollision({9, j});
+            //     generator_.addCollision({10, j});
+            //     generator_.addCollision({11, j});
+            // }
+            RobotPosition p1;
+            p1.x = 1000;
+            p1.y = 3000;
+            addCollision(p1, 300);
+            p1.x = 1000;
+            p1.y = 2700;
+            addCollision(p1, 300);
+            p1.x = 1000;
+            p1.y = 0;
+            addCollision(p1, 300);
+            p1.x = 1000;
+            p1.y = 300;
+            addCollision(p1, 300);
         }
 
         std::vector<RobotPosition> PathPlanner::planPath(RobotPosition const& start, RobotPosition const& end)
         {
-            std::cout << "Generate path ... \n";
-            auto path = generator_.findPath(
-                robotPositionToVec2i(start),
-                robotPositionToVec2i(end)
-            );
 
             std::vector<RobotPosition> positions;
             RobotPosition targetPosition;
+
+            AStar::Vec2i startPoint = robotPositionToVec2i(start);
+            AStar::Vec2i endPoint = robotPositionToVec2i(end);
+
+            std::cout << "Planning from: " << startPoint.x << " " << startPoint.y << std::endl;
+            std::cout << "Planning to  : " << endPoint.x << " " << endPoint.y << std::endl;
+
+            // remove start position from obstacles
+            generator_.removeCollision(startPoint);
+
+            if (generator_.detectCollision(endPoint))
+            {
+                std::cout << "PathPlanning failed: end point is in obstacle!" << std::endl;
+                return positions;
+            }
+
+            std::cout << "Generate path ... \n";
+            auto path = generator_.findPath(
+                startPoint,
+                endPoint
+            );
+
 
             bool checkPath = true;
             for (int i = 0; i < path.size() - 1; i++)
@@ -199,8 +243,6 @@ namespace miam{
                 }
             }
 
-            // remove start position from obstacles
-            generator_.removeCollision(robotPositionToVec2i(start));
 
             if (checkPath & robotPositionToVec2i(start) == path.back() & robotPositionToVec2i(end) == path.front())
             {
@@ -218,10 +260,11 @@ namespace miam{
                 for (int i = 1; i < positions.size(); i++)
                 {
                     double theta;
+                    int forward_index = std::max((int)positions.size() - 1, i);
 
                     // compute angle
-                    double dx = positions.at(i).x - positions.at(i-1).x;
-                    double dy = positions.at(i).y - positions.at(i-1).y;
+                    double dx = positions.at(forward_index).x - positions.at(i-1).x;
+                    double dy = positions.at(forward_index).y - positions.at(i-1).y;
                     
                     if (dx == 0)
                     {

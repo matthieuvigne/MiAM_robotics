@@ -14,9 +14,9 @@
 
             struct PathPlannerConfig
             {
-                int astar_resolution_mm = 100;
-                int astar_grid_size_x = 20;
-                int astar_grid_size_y = 30;
+                int astar_resolution_mm = 50;
+                int astar_grid_size_x = 40;
+                int astar_grid_size_y = 60;
             };
 
             /// @brief The path planning grid depicts the map. Each tile is a region of the map.
@@ -40,7 +40,11 @@
                     
                     /// @brief Prints a-star map along with a path
                     /// @param path path in robotposition
-                    void printMap(std::vector<RobotPosition> path, RobotPosition currentPosition);
+                    void printMap(
+                        std::vector<RobotPosition> path, 
+                        RobotPosition currentPosition, 
+                        RobotPosition targetPosition
+                    );
 
                     /// @brief Plans a path from a start to and end given collisions
                     /// @param start start robotposition

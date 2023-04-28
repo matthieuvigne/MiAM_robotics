@@ -78,7 +78,7 @@ TrajectoryVector MotionPlanner::planMotion(
 {
     // pathPlanner_.printMap();
     std::vector<RobotPosition > planned_path = pathPlanner_->planPath(currentPosition, targetPosition);
-    pathPlanner_->printMap(planned_path, currentPosition);
+    pathPlanner_->printMap(planned_path, currentPosition, targetPosition);
 
     // If path planning failed, return empty traj
     if (planned_path.size() == 0)
@@ -145,7 +145,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     TrajectoryPoint target_position = traj.getCurrentPoint(traj.getDuration());
     TrajectoryVector res;    
 
-    int nIterMax = ceil(traj.getDuration() / (HORIZON_T - 2 * DELTA_T)) + 1; // enable that many iterations
+    int nIterMax = ceil(traj.getDuration() / (HORIZON_T - 2 * DELTA_T)) + 2; // enable that many iterations
     int nIter = 0;
 
     cout << "Duration of the reference path: " << traj.getDuration() << endl;

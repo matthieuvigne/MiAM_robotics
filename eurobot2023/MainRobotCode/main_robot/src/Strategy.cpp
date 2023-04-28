@@ -28,7 +28,7 @@ using namespace kinematics;
 #define TEST_SQUARE_MOVE 0 // make a square on the table to test motors
 #define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
 
-#define TEST_MPC_PLANNER 1
+#define TEST_MPC_PLANNER 0
 
 namespace main_robot
 {

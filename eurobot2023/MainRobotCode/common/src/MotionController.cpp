@@ -342,7 +342,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
         if (currentTrajectories_.size() > 0 && currentTrajectories_.front()->getCurrentPoint(curvilinearAbscissa_).linearVelocity != 0)
         {
             // If currently avoiding, then use less strict thresholds
-            if (avoidanceCount_ > 0) {
+            if (currentTrajectories_.front()->isAvoidanceTrajectory()) {
                 if (x > 0)
                 {
                     if (x < detection::x_max_avoidance)
@@ -537,6 +537,9 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
     RobotPosition currentPosition = getCurrentPosition();
     RobotPosition targetPosition = currentTrajectories_.back()->getEndPoint().position;
 
+    std::cout << ">> MotionControllerAvoidance : current position : " << currentPosition << std::endl;
+    std::cout << ">> MotionControllerAvoidance : target position : " << targetPosition << std::endl;
+
     if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_BASIC)
     {
         RobotPosition endPosition;
@@ -578,7 +581,6 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
         {
 
             std::cout << ">> MotionControllerAvoidance : trying to go left" << std::endl;
-            std::cout << ">> MotionControllerAvoidance : current position : " << getCurrentPosition() << std::endl;
             std::cout << ">> MotionControllerAvoidance : waypoint : " << left_point << std::endl;
 
             positions.clear();
@@ -595,7 +597,6 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
             {
 
                 std::cout << ">> MotionControllerAvoidance : trying to go right" << std::endl;
-                std::cout << ">> MotionControllerAvoidance : current position : " << getCurrentPosition() << std::endl;
                 std::cout << ">> MotionControllerAvoidance : waypoint : " << right_point << std::endl;
 
                 positions.clear();
@@ -612,7 +613,6 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
     {
 
         std::cout << ">> MotionControllerAvoidance : planning MPC" << std::endl;
-        std::cout << ">> MotionControllerAvoidance : current position : " << getCurrentPosition() << std::endl;
 
         // reset obstacle map
         motionPlanner_->pathPlanner_->resetCollisions();
@@ -637,43 +637,87 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
 
         std::cout << ">> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
 
-        double distanceToGoBack = std::max(0.0, detection::y_max_avoidance + 50 - minDistanceToObstacle);
+        // go back from the obstacle (the more counts the more margin)
+        double margin = std::min(avoidanceCount_ * 75, 150);
+        double distanceToGoBack = std::max(0.0, detection::x_max_avoidance + margin - minDistanceToObstacle);
 
-        // go 10 cm back from the obstacle
         TrajectoryVector traj1;
-        if (forward & (distanceToGoBack > 0))
+        RobotPosition newStartPoint = currentPosition;
+
+        if ((distanceToGoBack > 0))
         {
-            std::cout << ">> Needing to go back " << distanceToGoBack << " mm" << std::endl;
-            traj1 = miam::trajectory::computeTrajectoryStraightLine(
-                robotParams_.getTrajConf(),
-                currentPosition, // start
-                -distanceToGoBack
-            );
-        }
-        else
-        {
-            traj1 = miam::trajectory::computeTrajectoryStraightLine(
-                robotParams_.getTrajConf(),
-                currentPosition, // start
-                distanceToGoBack
-            ); 
-        }
+            if (forward)
+            {
+                std::cout << ">> Needing to go back " << distanceToGoBack << " mm" << std::endl;
+                traj1 = miam::trajectory::computeTrajectoryStraightLine(
+                    robotParams_.getTrajConf(),
+                    currentPosition, // start
+                    -distanceToGoBack
+                );
+            }
+            else
+            {
+                std::cout << ">> Needing to go forward " << distanceToGoBack << " mm" << std::endl;
+                traj1 = miam::trajectory::computeTrajectoryStraightLine(
+                    robotParams_.getTrajConf(),
+                    currentPosition, // start
+                    distanceToGoBack
+                ); 
+            }
+            
+
+            newStartPoint = traj1.getEndPoint().position;
+
+            // this is an avoidance traj
+            for (auto& subtraj : traj1)
+            {
+                subtraj->setAvoidanceTrajectory(true);
+            }
+
+        }    
+
+        std::cout << "currentPosition: " << currentPosition << std::endl;
+        std::cout << "newStartPoint: " << newStartPoint << std::endl;
 
         // plan motion
-        // RobotPosition newStartPoint = traj1.getEndPoint().position;
-        RobotPosition newStartPoint = currentPosition;
         newStartPoint.theta = currentPosition.theta;
         TrajectoryVector traj2 = motionPlanner_->planMotion(
             newStartPoint,
             targetPosition
         );
         
-        // if motion planning succeeded, proceed
-        if (traj2.getDuration() > 0)
+        // if motion planning failed, plan a straight line in order to go back anyway
+        if (traj2.getDuration() == 0)
         {
-            // traj.insert( traj.end(), traj1.begin(), traj1.end() );
-            traj.insert( traj.end(), traj2.begin(), traj2.end() );
+            traj2 = computeTrajectoryStraightLineToPoint(
+                robotParams_.getTrajConf(),
+                currentPosition, // start
+                targetPosition,
+                !forward
+            );
+
+            // add a point turn to keep the end angle info
+            std::shared_ptr<PointTurn > pt_sub_end(
+                new PointTurn(robotParams_.getTrajConf(), 
+                traj2.getEndPoint().position, targetPosition.theta)
+            );
+            traj2.push_back(pt_sub_end);
         }
+        else
+        {
+            // traj is an avoidance traj
+            for (auto& subtraj : traj2)
+            {
+                subtraj->setAvoidanceTrajectory(true);
+            }
+        }
+
+        // if motion planning succeeded, proceed
+        if (traj1.getDuration() > 0)
+        {
+            traj.insert( traj.end(), traj1.begin(), traj1.end() );
+        }
+        traj.insert( traj.end(), traj2.begin(), traj2.end() );
 
 
     }
