@@ -17,7 +17,8 @@ namespace miam{
             duration_(0.0),
             config_(config),
             avoidanceEnabled_(true),
-            isAvoidanceTrajectory_(false)
+            isAvoidanceTrajectory_(false),
+            needReplanning_(false)
         {
         }
 

@@ -34,6 +34,7 @@
 
 #define MPC_OBJECTIVE_TOLERANCE 10 // mm
 #define MPC_CONSECUTIVE_POINT_TOLERANCE 1 // mm
+#define MPC_VELOCITY_OVERHEAD_PCT 0.9
 
 /* Global variables used by the solver. */
 ACADOvariables acadoVariables;
@@ -135,7 +136,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
 
     // parameterize solver
     miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
-    cplan.maxWheelVelocity *= 0.8; // give 20% overhead to the controller
+    cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
 
     // create trajectory interpolating waypoints
     traj = computeTrajectoryBasicPath(cplan, waypoints, 0);
@@ -186,6 +187,22 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
 {
     TrajectoryVector vector;
 
+    // get total distance
+    double distance = 0;
+    for (long unsigned int i = 0; i < p.size() - 1; i++)
+    {
+        distance += (p.at(i+1) - p.at(i)).norm();
+    }
+
+    // make a trapezoid of velocity
+    Trapezoid tp = Trapezoid(
+        distance,
+        initialSpeed,
+        0.0,
+        config.maxWheelVelocity, 
+        config.maxWheelAcceleration
+    );
+
     for (long unsigned int i = 0; i < p.size() - 1; i++) {
         RobotPosition p1 = p.at(i);
         RobotPosition p2 = p.at(i+1);
@@ -199,15 +216,31 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
             starting_speed = vector.back()->getCurrentPoint(vector.back()->getDuration() - 0.001).linearVelocity;
         }
 
+        // approximate the velocity curve to be a trapezoid
+        // could refine that taking distance into account
+        double maxSpeed = (
+            tp.getState(tp.getDuration() * i / (p.size()-1)).velocity +
+            tp.getState(tp.getDuration() * (i+1) / (p.size()-1)).velocity
+        ) / 2.0;
+        
         std::shared_ptr<StraightLine> line(new StraightLine(
             config, p1, p2, 
             starting_speed, 
-            config.maxWheelVelocity, false));
+            maxSpeed, false));
 
         // Go from point to point.
         vector.push_back(std::shared_ptr<Trajectory>(line));
     }
 
+    if (VERBOSE)
+    {
+        for (double t=0; t <= vector.getDuration(); t+=0.2)
+        {
+            std::cout << "t: " << t << " " << vector.getCurrentPoint(t) << std::endl;
+        }
+        std::cout << "t: " << vector.getDuration() << " " << vector.getEndPoint() << std::endl;
+    }
+    
     return vector;
 };
 

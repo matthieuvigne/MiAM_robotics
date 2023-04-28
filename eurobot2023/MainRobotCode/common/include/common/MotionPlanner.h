@@ -38,14 +38,14 @@ class MotionPlanner{
     
         PathPlanner* pathPlanner_;
 
-        static TrajectoryVector solveTrajectoryFromWaypoints(
-            std::vector<RobotPosition> waypoints
-        );
-
         static TrajectoryVector computeTrajectoryBasicPath(
             TrajectoryConfig const& config,
             std::vector<RobotPosition> p,
             double initialSpeed);
+
+        static TrajectoryVector solveTrajectoryFromWaypoints(
+            std::vector<RobotPosition> waypoints
+        );
 
         static TrajectoryConfig getMPCTrajectoryConfig();
 

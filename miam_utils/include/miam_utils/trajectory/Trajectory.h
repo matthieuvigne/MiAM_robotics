@@ -71,19 +71,12 @@
                         return(avoidanceEnabled_);
                     };
 
-                    /// \brief Set trajectory avoidance trajectory flag
-                    void setAvoidanceTrajectory(bool isAvoidanceTrajectory) {
-                        isAvoidanceTrajectory_ = isAvoidanceTrajectory;
-                    };
-
-                    bool isAvoidanceTrajectory() {
-                        return(isAvoidanceTrajectory_);
-                    };
+                    bool isAvoidanceTrajectory_;
+                    bool needReplanning_;
                 protected:
                     double duration_; ///< Trajectory duration.
                     TrajectoryConfig config_;
                     bool avoidanceEnabled_;
-                    bool isAvoidanceTrajectory_;
             };
         }
     }
