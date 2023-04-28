@@ -15,13 +15,13 @@ def count_cherries(img,iter_idx):
 
   # Threshold the red channel
   img = cv2.blur(img, (15,15));
-  cv2.imwrite("image{}_blurred.jpg".format(iter_idx), img);
+  # ~ cv2.imwrite("image{}_blurred.jpg".format(iter_idx), img);
   mask_red = cv2.inRange(img[:,:,2], 150, 255);
   mask_green = cv2.inRange(img[:,:,1],0,110);
   mask_blue = cv2.inRange(img[:,:,0],0,110);
   mask = mask_red*mask_green*mask_blue;
   img = cv2.bitwise_and(img,img, mask=mask);
-  cv2.imwrite("image{}_filtered.jpg".format(iter_idx), img);
+  # ~ cv2.imwrite("image{}_filtered.jpg".format(iter_idx), img);
 
   # Detect the blobs and count them
   img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -69,16 +69,16 @@ if __name__ == "__main__":
     # Method with picamera
     img = np.empty((1952, 2592, 3), dtype=np.uint8)
     camera.capture(img, "bgr");
-    image_name = "image{}_raw.jpg".format(iter_idx);
-    cv2.imwrite(image_name, img);
+    # ~ image_name = "image{}_raw.jpg".format(iter_idx);
+    # ~ cv2.imwrite(image_name, img);
     
     # Common processing
-    cv2.imwrite("image"+str(iter_idx)+"_raw.jpg", img);
-    cv2.imwrite("image"+str(iter_idx)+"_raw_red.jpg", img[:,:,2]);
-    cv2.imwrite("image"+str(iter_idx)+"_raw_green.jpg", img[:,:,1]);
-    cv2.imwrite("image"+str(iter_idx)+"_raw_blue.jpg", img[:,:,0]);
-    cv2.imwrite("image"+str(iter_idx)+"_raw.jpg", img);
-    cv2.imwrite("image"+str(iter_idx)+"_raw.jpg", img);
+    # ~ cv2.imwrite("image"+str(iter_idx)+"_raw.jpg", img);
+    # ~ cv2.imwrite("image"+str(iter_idx)+"_raw_red.jpg", img[:,:,2]);
+    # ~ cv2.imwrite("image"+str(iter_idx)+"_raw_green.jpg", img[:,:,1]);
+    # ~ cv2.imwrite("image"+str(iter_idx)+"_raw_blue.jpg", img[:,:,0]);
+    # ~ cv2.imwrite("image"+str(iter_idx)+"_raw.jpg", img);
+    # ~ cv2.imwrite("image"+str(iter_idx)+"_raw.jpg", img);
     num_cherries = count_cherries(img,iter_idx);
     print("Found ",num_cherries," cherries.");
     iter_idx += 1;
