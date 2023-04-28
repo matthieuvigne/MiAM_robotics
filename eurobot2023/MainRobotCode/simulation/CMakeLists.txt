@@ -11,7 +11,11 @@ include_directories(
   ../main_robot/include
   ../secondary_robot/include
   ../embedded/include
-  ../../../vision/include)
+  ../../../vision/include
+  ../../../qpoases
+  ../../../qpoases/INCLUDE
+  ../../../qpoases/SRC
+  ../common/acado_solver)
 
 # Add all source files.
 file(GLOB_RECURSE SOURCES ../common/src/*.cpp
@@ -56,9 +60,19 @@ FILE( GLOB LIB_HEADERS ../../../a-star/source/*.hpp )
 include_directories(../../../a-star/source)
 ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
 
+# qpoases
+FILE( GLOB LIB_SOURCES ../../../qpoases/SRC/*.cpp )
+FILE( GLOB LIB_HEADERS ../../../qpoases/INCLUDE/*.hpp )
+ADD_LIBRARY( qpoases ${LIB_SOURCES} ${LIB_HEADERS} )
+
+# acado_solver
+FILE( GLOB LIB_SOURCES ../common/acado_solver/*.cpp ../common/acado_solver/*.c )
+FILE( GLOB LIB_HEADERS ../common/acado_solver/*.hpp ../common/acado_solver/*.h )
+ADD_LIBRARY( acado_solver ${LIB_SOURCES} ${LIB_HEADERS} )
+
 # Copy config.
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Build executables
 add_executable(strategyViewer ${SOURCES})
-target_link_libraries(strategyViewer ${GTK3_LIBRARIES} ${RPLIDAR_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar "-lhdf5_cpp")
+target_link_libraries(strategyViewer ${GTK3_LIBRARIES} ${RPLIDAR_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar acado_solver qpoases "-lhdf5_cpp")

@@ -30,6 +30,8 @@ namespace miam{
 
         TrajectoryPoint ArcCircle::getCurrentPoint(double const& currentTime)
         {
+            if (MIAM_DEBUG_TRAJECTORY_TYPE)
+                std::cout << "ArcCircle::getCurrentPoint " << currentTime << std::endl;
             TrajectoryPoint output;
             output.position = circleCenter_;
             TrapezoidState state = trapezoid_.getState(currentTime);

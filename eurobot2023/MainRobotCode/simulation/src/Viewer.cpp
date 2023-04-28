@@ -79,7 +79,9 @@ bool Viewer::runSimulation()
                     obstaclesPosition.push_back(v);
                 }
             }
+            // obstacles
             obstaclesPosition.push_back(obstaclePosition_);
+            obstaclesPosition.push_back(obstacle2Position_);
 
             r->tick(ROBOT_DT, simulationTime_, obstaclesPosition);
         }
@@ -151,6 +153,11 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
     cr->arc(mmToCairo_ * obstaclePosition_(0), mmToCairo_ * (TABLE_HEIGHT_MM - obstaclePosition_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
     cr->fill();
 
+    // Draw obstacle2.
+    cr->set_source_rgb(0.0, 0.0, 1.0);
+    cr->arc(mmToCairo_ * obstacle2Position_(0), mmToCairo_ * (TABLE_HEIGHT_MM - obstacle2Position_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
+    cr->fill();
+
     // Update labels.
     std::stringstream stream;
     stream << std::fixed << std::setprecision(2) << simulationTime_;
@@ -172,6 +179,11 @@ bool Viewer::mouseMove(GdkEventMotion* motion_event)
         obstaclePosition_(0) = posX;
         obstaclePosition_(1) = posY;
     }
+    else if (motion_event->state & Gdk::BUTTON3_MASK)
+    {
+        obstacle2Position_(0) = posX;
+        obstacle2Position_(1) = posY;
+    }
     mousePositionLabel->set_text("(" + std::to_string(static_cast<int>(posX)) + ", " + std::to_string(static_cast<int>(posY)) + ")");
     drawingArea->queue_draw();
     return true;
@@ -180,11 +192,25 @@ bool Viewer::mouseMove(GdkEventMotion* motion_event)
 
 bool Viewer::clickObstacle(GdkEventButton* motion_event)
 {
-    obstaclePosition_(0) = motion_event->x;
-    obstaclePosition_(1) = motion_event->y;
-    // Convert coordinates to table coordinates
-    obstaclePosition_(0) = (obstaclePosition_(0) - originX_) / mmToCairo_;
-    obstaclePosition_(1) = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
+
+    if (motion_event->button == 1)
+    {
+        obstaclePosition_(0) = motion_event->x;
+        obstaclePosition_(1) = motion_event->y;
+        // Convert coordinates to table coordinates
+        obstaclePosition_(0) = (obstaclePosition_(0) - originX_) / mmToCairo_;
+        obstaclePosition_(1) = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
+
+    }
+    else if (motion_event->button == 3)
+    {
+        obstacle2Position_(0) = motion_event->x;
+        obstacle2Position_(1) = motion_event->y;
+        // Convert coordinates to table coordinates
+        obstacle2Position_(0) = (obstacle2Position_(0) - originX_) / mmToCairo_;
+        obstacle2Position_(1) = TABLE_HEIGHT_MM - (obstacle2Position_(1) - originY_) / mmToCairo_;
+    }
+
     drawingArea->queue_draw();
     return true;
 }

@@ -28,6 +28,8 @@
 
                     void replanify(double const& replanificationTime);
 
+                    void removePoints(int n);
+
                 private:
                     std::vector<TrajectoryPoint > sampledTrajectory_; ///< Vector of trajectory waypoints.
             };

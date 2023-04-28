@@ -10,7 +10,7 @@
 #include "common/ServoHandler.h"
 #include "common/AbstractAction.h"
 #include "common/AbstractStrategy.h"
-#include "common/MotionPlanning.h"
+#include "common/MotionPlanner.h"
 
 namespace main_robot
 {
@@ -48,7 +48,7 @@ namespace main_robot
         Action *chooseNextAction(
             std::vector<Action> &actions,
             RobotPosition currentPosition,
-            MotionPlanning motionPlanner);
+            MotionPlanner &motionPlanner);
 
         /// @brief Sets the left arm to a specific position
         /// @param armPosition the arm position

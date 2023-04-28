@@ -13,6 +13,7 @@
 #include "miam_utils/raspberry_pi/RaspberryPi.h"
 
 #include <common/DH_transform.hpp>
+#include <common/MotionPlanner.h>
 
 
 using namespace miam::trajectory;
@@ -26,6 +27,8 @@ using namespace kinematics;
 
 #define TEST_SQUARE_MOVE 0 // make a square on the table to test motors
 #define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
+
+#define TEST_MPC_PLANNER 1
 
 namespace main_robot
 {
@@ -114,7 +117,7 @@ void Strategy::shutdown()
 Action* Strategy::chooseNextAction(
     std::vector<Action>& actions,
     RobotPosition currentPosition,
-    MotionPlanning motionPlanner
+    MotionPlanner& motionPlanner
 )
 {
 
@@ -225,7 +228,7 @@ void Strategy::match_impl()
 #endif
 
     // Create brain
-    MotionPlanning motion_planner;
+    MotionPlanner* motionPlanner = motionController->motionPlanner_;
     std::vector<Action> actionVector;
 
     // Common cake dimensions
@@ -257,24 +260,43 @@ void Strategy::match_impl()
     initial_position.theta = M_PI;
     RobotPosition current_position = motionController->getCurrentPosition();
 
-    // // Test pathplanner
-    // PathPlannerConfig config;
-    // PathPlanner path_planner(config);
-    // path_planner.printMap();
-    // RobotPosition start;
-    // start.x = 1309;
-    // start.y = 2843;
-    // start.theta = 0;
-    // RobotPosition end;
-    // end.x = 744;
-    // end.y = 2843;
-    // end.theta = 0;
-    // std::vector<RobotPosition > planned_path = path_planner.planPath(start, end);
-    // path_planner.printMap(planned_path);
+#if TEST_MPC_PLANNER
+    RobotPosition start;
+    start.x = 1309;
+    start.y = 2843;
+    start.theta = 0;
+    RobotPosition end; 
+    end.x = 744;
+    end.y = 2843;
+    end.theta = 0;
 
-    // go_to_straight_line(start);
-    // go_to_rounded_corner(planned_path);
+    // Add obstacle with big radius for tests
+    RobotPosition obspos;
+    obspos.x = 935;
+    obspos.y = 1275;
+    motionPlanner->pathPlanner_->addCollision(obspos, 300);
+    obspos.x = 1026;
+    obspos.y = 2504;
+    motionPlanner->pathPlanner_->addCollision(obspos, 300);
 
+    go_to_straight_line(start);
+
+    TrajectoryVector st = motionPlanner->planMotion(
+        motionController->getCurrentPosition(),
+        end
+    );
+
+    if (st.getDuration() > 0)
+    {
+        motionController->setTrajectoryToFollow(st);
+        motionController->waitForTrajectoryFinished();
+    }
+    else
+    {
+        std::cout << "Motion planning failed" << std::endl;
+    }
+
+#endif
 
 
 #if ENABLE_DYNAMIC_ACTION_CHOOSING
@@ -377,11 +399,11 @@ void Strategy::match_impl()
             std::cout << v << std::endl;
         }
 
-        Action* nextAction = chooseNextAction(actionVector, motionController->getCurrentPosition(), motion_planner);
+        Action* nextAction = chooseNextAction(actionVector, motionController->getCurrentPosition(), motionPlanner);
         std::cout << "nextAction : " << *nextAction << std::endl;
 
         targetPosition = motionController->getCurrentPosition();
-        //~ traj = motion_planner.computeTraj(robot->getParameters().getTrajConf(), targetPosition, nextAction->startPosition_);
+        //~ traj = motionPlanner->computeTraj(robot->getParameters().getTrajConf(), targetPosition, nextAction->startPosition_);
         // Petite couille qu'il faudra enlever (ici pour gerer le mouvement arriere).
         traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
           targetPosition, nextAction->startPosition_,0.0,nextAction->startPosition_.theta==M_PI);
@@ -442,7 +464,7 @@ void Strategy::match_impl()
                     std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
 
                     // targetPosition = motionController->getCurrentPosition();
-                    // traj = motion_planner.computeTraj(targetPosition, nextAction->startPosition_);
+                    // traj = motionPlanner->computeTraj(targetPosition, nextAction->startPosition_);
                     // motionController->setTrajectoryToFollow(traj);
                     // moveSuccess = motionController->waitForTrajectoryFinished();
                 } else
@@ -496,7 +518,7 @@ void Strategy::match_impl()
                         std::cout << "waypoint reached :" << motionController->getCurrentPosition() <<  std::endl;
 
                         // targetPosition = motionController->getCurrentPosition();
-                        // traj = motion_planner.computeTraj(targetPosition, nextAction->startPosition_);
+                        // traj = motionPlanner->computeTraj(targetPosition, nextAction->startPosition_);
                         // motionController->setTrajectoryToFollow(traj);
                         // moveSuccess = motionController->waitForTrajectoryFinished();
                     } else

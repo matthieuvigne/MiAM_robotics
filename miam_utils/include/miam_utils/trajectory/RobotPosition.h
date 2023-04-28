@@ -100,27 +100,10 @@
         /// \brief Simple class to provide thread-safe access to a robot position.
         class ProtectedPosition{
             public:
-                ProtectedPosition():
-                    position_(),
-                    mutex_()
-                {
-                }
+                ProtectedPosition();
 
-                RobotPosition get()
-                {
-                    RobotPosition p;
-                    mutex_.lock();
-                    p = position_;
-                    mutex_.unlock();
-                    return p;
-                }
-
-                void set(RobotPosition const& p)
-                {
-                    mutex_.lock();
-                    position_ = p;
-                    mutex_.unlock();
-                }
+                RobotPosition get();
+                void set(RobotPosition const& p);
 
                 // Update the position by the given motion, return the updated position.
                 RobotPosition update(DrivetrainKinematics const & kinematics, WheelSpeed const& encoderIncrement);

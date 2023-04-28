@@ -19,6 +19,8 @@ namespace miam{
 
         TrajectoryPoint PointTurn::getCurrentPoint(double const& currentTime)
         {
+            if (MIAM_DEBUG_TRAJECTORY_TYPE)
+                std::cout << "PointTurn::getCurrentPoint " << currentTime << std::endl;
             TrajectoryPoint output;
             output.position = startPoint_;
 

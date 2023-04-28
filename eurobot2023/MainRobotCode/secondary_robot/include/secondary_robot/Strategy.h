@@ -10,7 +10,7 @@
 #include "common/ServoHandler.h"
 #include "common/AbstractAction.h"
 #include "common/AbstractStrategy.h"
-#include "common/MotionPlanning.h"
+#include "common/MotionPlanner.h"
 
 namespace secondary_robot
 {
@@ -60,7 +60,7 @@ namespace secondary_robot
         Action *chooseNextAction(
             std::vector<Action> &actions,
             RobotPosition currentPosition,
-            MotionPlanning motionPlanner);
+            MotionPlanner &motionPlanner);
 
         /// @brief Blocking function for moving the rail to a specified height
         /// @param railHeight the height of the rail, between 0 and 1000

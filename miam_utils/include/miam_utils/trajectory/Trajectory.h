@@ -11,6 +11,8 @@
 
     #include "RobotPosition.h"
 
+    #define MIAM_DEBUG_TRAJECTORY_TYPE false
+
     namespace miam{
         namespace trajectory{
 
@@ -29,12 +31,10 @@
                 double angularVelocity; ///< Angular velocity along the trajectory, at the current point.
 
                 /// \brief Default constructor.
-                TrajectoryPoint():
-                position(),
-                linearVelocity(0.0),
-                angularVelocity(0.0)
-                {}
+                TrajectoryPoint();
             };
+
+            std::ostream& operator<<(std::ostream& os, const TrajectoryPoint& p);
 
             class Trajectory
             {

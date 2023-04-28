@@ -19,6 +19,35 @@ namespace miam{
             return v;
         }
 
+        double TrajectoryVector::getDuration() const
+        {
+            double duration = 0;
+            for (auto traj : *this)
+            {
+                duration += traj->getDuration();
+            }
+            return duration;
+        }
+
+        TrajectoryPoint TrajectoryVector::getCurrentPoint(double const& currentTime) const
+        {
+            if (MIAM_DEBUG_TRAJECTORY_TYPE)
+                std::cout << "TrajectoryVector::getCurrentPoint " << currentTime << std::endl;
+
+            if (this->empty())
+                return TrajectoryPoint();
+            
+            double sum_time = 0;
+            for (long unsigned int i = 0; i < this->size(); i++) {
+                double traj_time = this->at(i)->getDuration();
+                if (sum_time + traj_time > currentTime) {
+                    return this->at(i)->getCurrentPoint(currentTime - sum_time);
+                }
+                sum_time += traj_time;
+            }
+            return this->back()->getEndPoint();
+        };
+
 
         TrajectoryPoint TrajectoryVector::getEndPoint() const
         {

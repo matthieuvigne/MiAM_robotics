@@ -18,8 +18,14 @@ namespace miam{
 
         TrajectoryPoint SampledTrajectory::getCurrentPoint(double const& currentTime)
         {
-
+            if (MIAM_DEBUG_TRAJECTORY_TYPE)
+                std::cout << "SampledTrajectory::getCurrentPoint " << currentTime << std::endl;
             int N = sampledTrajectory_.size();
+
+            if (N < 1)
+            {
+                return TrajectoryPoint();
+            }
 
             if (currentTime >= duration_)
             {
@@ -30,11 +36,11 @@ namespace miam{
                 return sampledTrajectory_.front();
             }
 
-            int indexLow = std::floor(N * currentTime / duration_);
-            int indexHigh = std::ceil(N * currentTime / duration_);
+            int indexLow = std::floor((N-1) * currentTime / duration_);
+            int indexHigh = std::ceil((N-1) * currentTime / duration_);
 
-            TrajectoryPoint tpLow = sampledTrajectory_[indexLow];
-            TrajectoryPoint tpHigh = sampledTrajectory_[indexHigh];
+            TrajectoryPoint tpLow = sampledTrajectory_.at(indexLow);
+            TrajectoryPoint tpHigh = sampledTrajectory_.at(indexHigh);
 
             double sampledTimestep = duration_ / (N-1);
 
@@ -45,7 +51,9 @@ namespace miam{
 
             // Linear interpolation
             TrajectoryPoint output;
-            output.position = ponderationLow * tpLow.position + ponderationHigh * tpHigh.position;
+            output.position.x = ponderationLow * tpLow.position.x + ponderationHigh * tpHigh.position.x;
+            output.position.y = ponderationLow * tpLow.position.y + ponderationHigh * tpHigh.position.y;
+            output.position.theta = ponderationLow * tpLow.position.theta + ponderationHigh * tpHigh.position.theta;
             output.linearVelocity = ponderationLow * tpLow.linearVelocity + ponderationHigh * tpHigh.linearVelocity;
             output.angularVelocity = ponderationLow * tpLow.angularVelocity + ponderationHigh * tpHigh.angularVelocity;
 
@@ -70,9 +78,10 @@ namespace miam{
             double sampling_time = getDuration() / (N-1);
 
             double newDuration = getDuration() - replanificationTime;
+            int newN = newDuration / sampling_time + 1;
 
             std::vector<TrajectoryPoint > newSampledTrajectory;
-            for (int i = 0; i < N + 1; i++) 
+            for (int i = 0; i < newN; i++) 
             {
                 newSampledTrajectory.push_back(getCurrentPoint(replanificationTime + i * sampling_time));
             }
@@ -80,6 +89,27 @@ namespace miam{
             // modify object
             duration_ = newDuration;
             sampledTrajectory_ = newSampledTrajectory;
+        }
+
+        void SampledTrajectory::removePoints(int n)
+        {
+            if (n <= 0)
+            {
+                return;
+            }
+            
+            if (sampledTrajectory_.size() - n <= 0) 
+            {
+                sampledTrajectory_.clear();
+                duration_ = 0.0;
+            }
+
+            double dt = duration_ / (sampledTrajectory_.size() - 1);
+            for (int i = 0; i < n; i++)
+            {
+                sampledTrajectory_.pop_back();
+            }
+            duration_ = std::max(0.0, duration_ - n * dt);
         }
     }
 }
