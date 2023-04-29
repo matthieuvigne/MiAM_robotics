@@ -140,7 +140,7 @@ def count_cherries(img,iter_idx):
     30,
     param1=50, #100,
     param2 =5, #15, 
-    minRadius=5, 
+    minRadius=15, 
     maxRadius=40
   )
 
@@ -154,7 +154,7 @@ def count_cherries(img,iter_idx):
     print("number detected circle = 0")
     return 0
 
-  print(detected_circles_raw.shape)
+  # print(detected_circles_raw.shape)
   
   detected_circles = []
   for pt in detected_circles_raw[0, :]:
@@ -210,6 +210,7 @@ if __name__ == "__main__":
   camera.awb_gains = (Fraction(125, 128), Fraction(579, 256))
   # camera.shutter_speed = 1000000 #54036
   camera.brightness = 60
+  # camera.contrast = 70
 
   print("Current a/d gains: {}, {}".format(camera.analog_gain, camera.digital_gain))
 
