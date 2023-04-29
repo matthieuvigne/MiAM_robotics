@@ -83,6 +83,8 @@ namespace main_robot
 
         double const LAYER_HEIGHT = 0.02;
         double const LAYER_MOVEMENT_CLEARANCE = 0.025;
+
+        ArmPosition servoAnglesToArmPosition(double thetaHorizontal, double theta12, double theta23, double theta34);
     }
 
     static int const RIGHT_ARM = 10;
@@ -126,9 +128,11 @@ namespace main_robot
             MotionPlanner &motionPlanner);
 
         /// @brief  \brief Blocks until arms have finished moving
+        ArmPosition getArmPosition(int const& armFirstServoId);
         void waitForArmMotion();
         void waitForArmMotionSequenced();
         void depileArm(std::queue<std::shared_ptr<ArmAction > >& actions, int armServoId);
+        std::vector<std::shared_ptr<ArmPosition > > computeSequenceToPosition(int const& armFirstServoId, ArmPosition& destination);
 
         /// @brief  Try to move an arm to a set position, returns false if could not be computed.
         /// @param[in] armPosition Target arm position

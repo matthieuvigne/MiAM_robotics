@@ -52,6 +52,8 @@ int main(int argc, char **argv)
     // Init raspberry serial ports and GPIO.
     RPi_enablePorts();
     // Turn left pump off - it is on by default.
+    RPi_setupGPIO(12, PiGPIOMode::PI_GPIO_OUTPUT);
+    RPi_writeGPIO(12, false);
     RPi_setupGPIO(13, PiGPIOMode::PI_GPIO_OUTPUT);
     RPi_writeGPIO(13, false);
 
