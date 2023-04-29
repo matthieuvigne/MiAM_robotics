@@ -42,6 +42,8 @@
                 param.rightEncoderDirection = 1;
                 param.leftEncoderDirection = -1;
 
+                param.lidarOffset = M_PI_4;
+
                 return param;
             }
         }

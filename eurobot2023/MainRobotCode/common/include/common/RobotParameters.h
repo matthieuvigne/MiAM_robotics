@@ -48,6 +48,8 @@
             int leftEncoderId;
             int rightEncoderDirection = 1; // Invert encoder if needed: positive is moving forward.
             int leftEncoderDirection = -1; // Invert encoder if needed: positive is moving forward.
+
+            double lidarOffset = M_PI / 4.0;
         };
 
  #endif

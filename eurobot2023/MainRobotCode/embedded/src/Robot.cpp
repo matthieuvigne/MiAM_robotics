@@ -54,7 +54,6 @@ double RailMeasurements::getTurnCounts()
 Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar):
     gui_(gui),
     RobotInterface(parameters),
-    lidar_(-M_PI_4),
     testMode_(testMode),
     disableLidar_(disableLidar),
     strategy_(strategy),
@@ -71,6 +70,8 @@ Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, Robo
 
     lastEncoderPosition_.push_back(0);
     lastEncoderPosition_.push_back(0);
+
+    lidar_ = parameters.lidarOffset;
 
     // PIDRail_ = miam::PID(RAIL_KP, RAIL_KD, RAIL_KI, 0.1);
 }
