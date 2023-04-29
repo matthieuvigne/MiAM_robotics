@@ -18,14 +18,14 @@
 
 using namespace main_robot::arm;
 
-std::ostream& operator<<(std::ostream& os, const main_robot::ArmPosition& p)
-{
-    os << "r: " << p.r_ << " theta(deg): " << 180 * p.theta_ / M_PI << " z: " << p.z_;
-    return os;
-}
-
 namespace main_robot
 {
+    std::ostream& operator<<(std::ostream& os, const ArmPosition& p)
+    {
+        os << "r: " << p.r_ << " theta(deg): " << 180 * p.theta_ / M_PI << " z: " << p.z_;
+        return os;
+    }
+
     ArmPosition arm::servoAnglesToArmPosition(double thetaHorizontal, double theta12, double theta23, double theta34)
     {
         // Arm parameters
@@ -70,53 +70,52 @@ namespace main_robot
     void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction > >& actions, int armServoId)
     {
 
-        std::cout << "Depiling " << (armServoId == RIGHT_ARM ? "right" : "left") <<  " arm " << std::endl;
+        // std::cout << "Depiling " << (armServoId == RIGHT_ARM ? "right" : "left") <<  " arm " << std::endl;
+
+        std::string armName((armServoId == RIGHT_ARM ? "right" : "left"));
+
         while(!actions.empty())
         {
-            std::cout << "Actions not empty: size " << actions.size() << std::endl;
+            // std::cout << "Actions not empty: size " << actions.size() << std::endl;
             switch(actions.front()->type_)
             {
                 // if sync, pop and end
                 case ActionType::SYNC :
                 {
-                    std::cout << "Sync" << std::endl;
+                    std::cout << "### Sync " << armName << std::endl;
                     actions.pop();
                     return;
                 }
                 case ActionType::WAIT :
                 {
-                    std::cout << "Wait" << std::endl;
 
                     ArmWait* action(dynamic_cast<ArmWait*>(actions.front().get()));
+
+                    std::cout << ">>> Wait " << armName << " t=" << action->time_ << std::endl;
                     usleep(uint(1e6 * action->time_));
                     actions.pop();
                     return;
                 }
                 case ActionType::PUMP :
                 {
-                    std::cout << "Pump" << std::endl;
                     ArmPump* action(dynamic_cast<ArmPump*>(actions.front().get()));
+                    std::cout << ">>> Pump " << armName << " " << action->activated_ << std::endl;
 
                     int pumpNumber  = (armServoId == RIGHT_ARM) ? PUMP_RIGHT : PUMP_LEFT;
                     int valveNumber = (armServoId == RIGHT_ARM) ? VALVE_RIGHT : VALVE_LEFT;
                     RPi_writeGPIO(pumpNumber, action->activated_);
                     RPi_writeGPIO(valveNumber, !action->activated_);
-                    std::cout << "End Pump" << std::endl;
                     actions.pop();
-                    std::cout << "Pop action" << std::endl;
                     break;
                 }
                 case ActionType::MOVE :
                 {
-
-                    std::cout << "Move" << std::endl;
                     ArmPosition* action = dynamic_cast<ArmPosition*>(actions.front().get());
+                    std::cout << ">>>> Move " << armName << " " << *action << std::endl;
 
                     if (action->z_ > 0)
                         std::cout << ">>>>> WARNING : z is positive <<<<<" << std::endl;
                     setArmPosition(armServoId, *action);
-
-                    std::cout << "I set the arm to move" << std::endl;
                     usleep(500000);
                     // return;
                     bool done = false;
@@ -129,18 +128,11 @@ namespace main_robot
                         }
                         usleep(20000);
                     }  
-
-                    std::cout << "Move finished" << std::endl;
-                    std::cout << "Action length: " << actions.size() << std::endl;
                     actions.pop();
                     break;
                 }
             }
-            std::cout << "end of while" << std::endl;
         }
-
-
-        std::cout << "end of depileArm" << std::endl;
     }
 
     void Strategy::waitForArmMotionSequenced()
@@ -160,16 +152,22 @@ namespace main_robot
             std::cout << "Threads joined" << std::endl;
 
         }
-
-
-        std::cout << "end of waitForArmMotionSequenced" << std::endl;
-
     }
 
     std::vector<std::shared_ptr<ArmPosition > > Strategy::computeSequenceToPosition(int const& armFirstServoId, ArmPosition& destination)
     {
         std::vector<std::shared_ptr<ArmPosition > > res;
-        ArmPosition currentArmPosition = getArmPosition(armFirstServoId);
+        ArmPosition currentArmPosition;
+        if (armFirstServoId == LEFT_ARM)
+        {
+            currentArmPosition = last_left_position;
+        }
+        else
+        {
+            currentArmPosition = last_right_position;
+        }
+        std::cout << "Current position: " << currentArmPosition << " - destination: " << destination << std::endl;
+
         // dans le cas ou on est sur la bonne pile, descendre directement
         if (abs(moduloTwoPi(currentArmPosition.theta_ - destination.theta_)) > 5.0 * M_PI / 180.0)
         {
@@ -186,6 +184,15 @@ namespace main_robot
         std::shared_ptr<ArmPosition > moveDown(new ArmPosition(destination));
         res.push_back(moveDown);
 
+        if (armFirstServoId == LEFT_ARM)
+        {
+            last_left_position = *moveDown;
+        }
+        else
+        {
+            last_right_position = *moveDown;
+        }
+
         return res;
     }
 
@@ -200,8 +207,10 @@ namespace main_robot
         double theta23 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 2));
         double theta34 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 3));
 
-        if (armFirstServoId == RIGHT_ARM)
-            thetaHorizontal = -thetaHorizontal;
+        std::cout << "Read servo " << armFirstServoId << " : " << thetaHorizontal << " " << theta12 << " " << theta23 << " " << theta34 << std::endl; 
+
+        // if (armFirstServoId == RIGHT_ARM)
+        //     thetaHorizontal = -thetaHorizontal;
         
         return servoAnglesToArmPosition(thetaHorizontal, theta12, theta23, theta34);
     }
@@ -217,19 +226,27 @@ namespace main_robot
         //     targetTheta = -targetTheta;
         // }
 
-        std::cout << "Target: " << armPosition << std::endl;
+        // std::cout << "Target: " << armPosition << std::endl;
         bool result = common::arm_inverse_kinematics(armPosition.r_, targetTheta, armPosition.z_, -M_PI_2, &armAngles);
 
         // TODO
         if(!result)
         {
             std::cout << "Inverse kinematics failed" << std::endl;
+            std::cout << "armAngles: ";
+            for (int i=0; i<4; i++)
+                std::cout << armAngles[i] << " ";
+            std::cout << std::endl;
             throw std::runtime_error("AAA");
         }
 
         // TODO
         if(armAngles[1] > 0)
         {
+            std::cout << "armAngles: ";
+            for (int i=0; i<4; i++)
+                std::cout << armAngles[i] << " ";
+            std::cout << std::endl;
             std::cout << "1st Angle is too high: " << armAngles[1] << std::endl;
             throw std::runtime_error("AAA");
         }
@@ -237,19 +254,19 @@ namespace main_robot
         if (result)
         {
             // move servo
-            std::cout << "angles: ";
+            // std::cout << "angles: ";
             for (int i = 0; i < 4; i++)
             {
                 double angle = armAngles[i];
-                std::cout << angle << " ";
+                // std::cout << angle << " ";
                 if (armFirstServoId == RIGHT_ARM)
                     angle = -angle;
                 servo->setTargetPosition(armFirstServoId + i, STS::radToServoValue(angle));
                 usleep(50);
             }
-            std::cout << std::endl;
+            // std::cout << std::endl;
             ArmPosition pos = servoAnglesToArmPosition(armAngles[0], armAngles[1], armAngles[2], armAngles[3]);
-            std::cout << "What i found: " <<  pos << std::endl;
+            // std::cout << "What i found: " <<  pos << std::endl;
 
             // // pump
             // if (armFirstServoId == RIGHT_ARM)
@@ -263,17 +280,17 @@ namespace main_robot
             //     RPi_writeGPIO(VALVE_LEFT, !armPosition_.pumpActivated_);
             // }
         }
-        else
-        {
-            std::cout << "failed computation" << std::endl;
-        }
-        std::cout << std::endl;
+        // else
+        // {
+        //     std::cout << "failed computation" << std::endl;
+        // }
+        // std::cout << std::endl;
         return result;
     }
 
     void Strategy::addPositionToQueue_Left(ArmPosition& target)
     {
-        std::cout << "Request position: " << std::endl;
+        // std::cout << "Request position: " << std::endl;
         std::vector<ArmPosition::Ptr > seq = computeSequenceToPosition(LEFT_ARM, target);
         for (auto& ap : seq)
         {
@@ -296,344 +313,5 @@ namespace main_robot
         left_arm_positions.push(target);
         ArmSync::Ptr target2(new ArmSync());
         right_arm_positions.push(target2);
-    }
-
-    void Strategy::changePileHeight(int pileIndex, int delta)
-    {
-        pileLock.lock();
-        pileHeight[pileIndex] += delta;
-        pileLock.unlock();
-
-        if (pileHeight[pileIndex] < 0)
-            std::cout << ">>>>> WARNING pileHeight[pileIndex] is <0 <<<<<" << std::endl;
-    }
-
-    int Strategy::getPileHeight(int pileIndex)
-    {
-        int height = pileHeight[pileIndex];
-        std::cout << "Pile state is " << pileHeight[0] << " " << pileHeight[1] << " " << pileHeight[2] << " " << pileHeight[3] << " " << pileHeight[4] << std::endl;
-        return height;
-    }
-
-    void Strategy::buildCakes()
-    {
-        std::cout << "Building cakes" << std::endl;
-        
-        // right arm has inverted angles!
-        ArmPosition leftPile(arm::CAKES_FRONT_DISTANCE, arm::FRONT_LEFT_ANGLE, arm::GROUND_HEIGHT + 0.060);
-        ArmPosition rightPile(arm::CAKES_FRONT_DISTANCE, arm::FRONT_RIGHT_ANGLE, arm::GROUND_HEIGHT + 0.060);
-        ArmPosition sidePile(arm::CAKES_SIDE_DISTANCE, arm::SIDE_ANGLE, arm::GROUND_HEIGHT + 0.020 + 0.020);
-
-        pileHeight[0] = 0;
-        pileHeight[1] = 3;
-        pileHeight[2] = 3;
-        pileHeight[3] = 3;
-        pileHeight[4] = 0;
-
-        int moveNumber = 0;
-
-        // bras gauche va au milieu 
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPosition target = rightPile;
-            target.z_ = arm::PILE_CLEAR_HEIGHT;
-            addPositionToQueue_Left(target);
-        }
-
-        // bras gauche allume sa pompe
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPump::Ptr target(new ArmPump(true));
-            left_arm_positions.push(target);
-        }
-
-        // bras gauche descend
-        // bras gauche prend une genoise
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPosition target = rightPile;
-            target.z_ = arm::GROUND_HEIGHT + getPileHeight(2) * arm::LAYER_HEIGHT;
-            addPositionToQueue_Left(target);
-            changePileHeight(3, -1);
-        }
-
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmWait::Ptr target(new ArmWait(0.5));
-            left_arm_positions.push(target);
-        }
-
-        // bras gauche remonte
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPosition target = rightPile;
-            target.z_ = arm::PILE_CLEAR_HEIGHT;
-            addPositionToQueue_Left(target);
-        }
-
-        // SYNC   
-        addSyncToQueue();
-
-
-        waitForArmMotionSequenced();
-        // while(true) ;;
-
-        // bras gauche va side pile et depose sa genoise
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            changePileHeight(0, 1);
-            ArmPosition target = sidePile;
-            target.z_ = arm::GROUND_HEIGHT + getPileHeight(0) * arm::LAYER_HEIGHT;
-            addPositionToQueue_Left(target);
-        }
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPump::Ptr target(new ArmPump(false));
-            left_arm_positions.push(target);
-        }
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmWait::Ptr target(new ArmWait(0.5));
-            left_arm_positions.push(target);
-        }
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPosition target = sidePile;
-            target.z_ = arm::PILE_CLEAR_HEIGHT;
-            addPositionToQueue_Left(target);
-        }
-
-        // bras droit va au cemtre et va prendre sa genoise
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPosition target = rightPile;
-            target.z_ = arm::PILE_CLEAR_HEIGHT;
-            addPositionToQueue_Right(target);
-        }
-        // bras droit allume sa pompe
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPump::Ptr target(new ArmPump(true));
-            right_arm_positions.push(target);
-        }
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPosition target = rightPile;
-            target.z_ = arm::GROUND_HEIGHT + getPileHeight(3) * arm::LAYER_HEIGHT;
-            addPositionToQueue_Right(target);
-            changePileHeight(3, -1);
-        }
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmWait::Ptr target(new ArmWait(0.5));
-            left_arm_positions.push(target);
-        }
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            changePileHeight(4, 1);
-            ArmPosition target = sidePile;
-            target.z_ = arm::GROUND_HEIGHT + getPileHeight(4) * arm::LAYER_HEIGHT;
-            addPositionToQueue_Right(target);
-        }
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPump::Ptr target(new ArmPump(false));
-            right_arm_positions.push(target);
-        }
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmWait::Ptr target(new ArmWait(0.5));
-            left_arm_positions.push(target);
-        }
-        {
-            moveNumber++;
-            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
-            ArmPosition target = sidePile;
-            target.z_ = arm::PILE_CLEAR_HEIGHT;
-            addPositionToQueue_Right(target);
-        }
-
-        // SYNC
-        addSyncToQueue();
-
-        waitForArmMotionSequenced();
-
-        while(true) ;;
-
-        // bras droit remonte et va side pile et depose
-        // bras gauche va pile du milieu et prend sa creme
-        // bras gauche remonte et pose la creme au milieu
-        // bras gauche remonte et va au dessus de la pile de gauche
-        // SYNC
-
-        // bras gauche descend et prend la creme
-        // bras gauche le pose sur side pile
-        // bras droit va au milieu et prend la creme
-        // bras droit le pose sur sa side pile
-        // SYNC
-
-        // bras gauche prend creme pile de gauche
-        // bras gauche l'emmene sur pile du centre
-        // bras droit va pile de droite
-        // bras droit prend la ganache
-        // bras droit l'emmene sur sa side pile
-        // SYNC
-
-        // bras gauche va a gauche
-        // bras droit va a droite
-        // bras droit prend la ganache et l'emmene au milieu
-        // bras droit retourne sur pile de droite
-        // SYNC
-
-        // bras gauche va chercher la ganache au milieu
-        // bras gauche l'emmene au dessus de sa side pile
-        // SYNC
-
-        // bras gauche la pose sur sa side pile
-        // bras droit prend la ganache sur la pile de droite
-        // bras droit la pose sur la pile du milieu
-        // END
-
-
-
-
-
-
-
-
-
-
-
-
-        // std::vector<std::shared_ptr<ArmPosition > > seq = computeSequenceToPosition(LEFT_ARM, sidePile);
-        // for (auto& ap : seq)
-        // {
-        //     left_arm_positions.push(ap);
-        // }
-
-        // waitForArmMotionSequenced();
-
-        // while(true) ;;
-
-
-
-        // std::cout << "leftPile: " << leftPile.r_ << " " << leftPile.theta_ << " " << leftPile.z_ << std::endl;
-
-
-        // std::array<double, 4 > destArray;
-        // common::arm_inverse_kinematics(leftPile.r_, leftPile.theta_, leftPile.z_, -M_PI_2, &destArray);
-        // ArmPosition leftPile2 = servoAnglesToArmPosition(destArray[0], destArray[1], destArray[2], destArray[3]);
-        // std::cout << "leftPile2: " << leftPile2.r_ << " " << leftPile2.theta_ << " " << leftPile2.z_ << std::endl;
-
-        // // left arm
-        // {
-        //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(leftPile));
-        //     left_arm_positions.push (targetPosition);
-        // }
-
-        // waitForArmMotionSequenced();
-
-        // ArmPosition leftArm = getArmPosition(LEFT_ARM);
-        // std::cout << "leftArm: " << leftArm.r_ << " " << leftArm.theta_ << " " << leftArm.z_ << std::endl;
-
-        // ArmPosition rightArm = getArmPosition(RIGHT_ARM);
-        // std::cout << "rightArm: " << rightArm.r_ << " " << rightArm.theta_ << " " << rightArm.z_ << std::endl;
-
-        // while(true) ;;
-
-        // Grab first item on right pile with left arm
-
-        // // left arm
-        // {
-        //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(rightPile));
-        //     targetPosition->z_ += LAYER_MOVEMENT_CLEARANCE;
-        //     left_arm_positions.push (targetPosition);
-        // }
-
-        // {
-        //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(rightPile));
-        //     left_arm_positions.push (targetPosition);
-        // }
-
-        // waitForArmMotionSequenced();
-
-        // std::cout << "Sequence finished" << std::endl;
-
-        return;
-
-
-
-
-
-        // go above right pile
-        ArmPosition targetPosition = rightPile;
-        targetPosition.z_ += LAYER_MOVEMENT_CLEARANCE;
-        setArmPosition(LEFT_ARM, targetPosition);
-        waitForArmMotion();
-
-        // grab
-        targetPosition.z_ -= LAYER_MOVEMENT_CLEARANCE;
-        setArmPosition(LEFT_ARM, targetPosition);
-        robot->wait(1.5);
-        targetPosition.z_ = arm::PILE_CLEAR_HEIGHT;
-        setArmPosition(LEFT_ARM, targetPosition);
-        waitForArmMotion();
-
-
-
-
-        targetPosition.theta_ = sidePile.theta_;
-        setArmPosition(LEFT_ARM, targetPosition);
-        waitForArmMotion();
-        targetPosition.z_ = arm::GROUND_HEIGHT + 0.035;
-        setArmPosition(LEFT_ARM, targetPosition);
-        waitForArmMotion();
-        RPi_writeGPIO(PUMP_LEFT, false);
-        RPi_writeGPIO(VALVE_LEFT, true);
-        robot->wait(0.1);
-        RPi_writeGPIO(VALVE_LEFT, false);
-
-
-
-        // // Grab first item on right pile with left arm
-        // ArmPosition targetPosition = rightPile;
-        // targetPosition.z_ += LAYER_MOVEMENT_CLEARANCE;
-        // setArmPosition(LEFT_ARM, targetPosition);
-        // waitForArmMotion();
-        // RPi_writeGPIO(PUMP_LEFT, true);
-        // RPi_writeGPIO(VALVE_LEFT, false);
-        // targetPosition.z_ -= 0.025;
-        // setArmPosition(LEFT_ARM, targetPosition);
-        // robot->wait(1.5);
-        // targetPosition.z_ = arm::PILE_CLEAR_HEIGHT;
-        // setArmPosition(LEFT_ARM, targetPosition);
-        // waitForArmMotion();
-        // targetPosition.theta_ = sidePile.theta_;
-        // setArmPosition(LEFT_ARM, targetPosition);
-        // waitForArmMotion();
-        // targetPosition.z_ = arm::GROUND_HEIGHT + 0.035;
-        // setArmPosition(LEFT_ARM, targetPosition);
-        // waitForArmMotion();
-        // RPi_writeGPIO(PUMP_LEFT, false);
-        // RPi_writeGPIO(VALVE_LEFT, true);
-        // robot->wait(0.1);
-        // RPi_writeGPIO(VALVE_LEFT, false);
-
     }
 }

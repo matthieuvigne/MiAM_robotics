@@ -11,6 +11,7 @@
 #include "common/AbstractAction.h"
 #include "common/AbstractStrategy.h"
 #include "common/MotionPlanner.h"
+#include "main_robot/ArmAction.h"
 
 #include <queue>
 #include <mutex>
@@ -18,73 +19,12 @@
 
 namespace main_robot
 {
+    
 
-    enum ActionType
-    {
-        SYNC = 0,
-        MOVE = 1,
-        PUMP = 2,
-        WAIT = 3
-    };
-
-    class ArmAction
-    {
-    public:
-        ArmAction() {}
-        virtual ~ArmAction() = default;
-        ActionType type_;
-    };
-
-    class ArmSync : public ArmAction
-    {
-        public:
-        typedef std::shared_ptr<ArmSync > Ptr;
-        ArmSync() : ArmAction() 
-        {
-            type_ = ActionType::SYNC;
-        };
-    };
-
-    class ArmWait : public ArmAction
-    {
-        public:
-        typedef std::shared_ptr<ArmWait > Ptr;
-        ArmWait(double time) : ArmAction(), time_(time)
-        {
-            type_ = ActionType::WAIT;
-        };
-        double time_;
-    };
-
-    class ArmPosition : public ArmAction
-    {
-    public:
-        typedef std::shared_ptr<ArmPosition > Ptr;
-        double r_;
-        double theta_;
-        double z_;
-
-        ArmPosition(double r, double theta, double z) : ArmAction(), r_(r), theta_(theta), z_(z)
-        {
-            type_ = ActionType::MOVE;
-        };
-    };
-
-    class ArmPump : public ArmAction
-    {
-    public:
-        typedef std::shared_ptr<ArmPump > Ptr;
-        bool activated_;
-
-        ArmPump(double activated) : ArmAction(), activated_(activated) {
-            type_ = ActionType::PUMP;
-        };
-    };
-
-    inline std::ostream& operator<<(std::ostream &s, const ArmPosition &armPosition)
-    {
-        return s << "[" << armPosition.r_ << ", " << armPosition.theta_ << ", " << armPosition.z_ << "]";
-    }
+    // inline std::ostream& operator<<(std::ostream &s, const ArmPosition &armPosition)
+    // {
+    //     return s << "[" << armPosition.r_ << ", " << armPosition.theta_ << ", " << armPosition.z_ << "]";
+    // }
 
     namespace arm{
         double const GROUND_HEIGHT = -0.195;
@@ -138,6 +78,9 @@ namespace main_robot
         std::mutex pileLock;
         std::array<int, 5> pileHeight;
 
+        ArmPosition last_left_position;
+        ArmPosition last_right_position;
+
         void addPositionToQueue_Right(ArmPosition& target);
         void addPositionToQueue_Left(ArmPosition& target);
         void addSyncToQueue();
@@ -169,9 +112,11 @@ namespace main_robot
         /// @brief Execute the cake building sequence
         void buildCakes();
     };
+
+
+    std::ostream& operator<<(std::ostream& os, const main_robot::ArmPosition& p);
 }
 
 
-std::ostream& operator<<(std::ostream& os, const main_robot::ArmPosition& p);
 
 #endif
