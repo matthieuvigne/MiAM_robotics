@@ -21,7 +21,8 @@ namespace main_robot
     {
         SYNC = 0,
         MOVE = 1,
-        PUMP = 2
+        PUMP = 2,
+        WAIT = 3
     };
 
     class ArmAction
@@ -38,6 +39,16 @@ namespace main_robot
         {
             type_ = ActionType::SYNC;
         };
+    };
+
+    class ArmWait : public ArmAction
+    {
+        ArmWait(double time) : ArmAction(), time_(time)
+        {
+            type_ = ActionType::WAIT;
+        };
+        public:
+            double time_;
     };
 
     class ArmPosition : public ArmAction

@@ -77,6 +77,15 @@ namespace main_robot
                     actions.pop();
                     return;
                 }
+                case ActionType::WAIT :
+                {
+                    std::cout << "Wait" << std::endl;
+
+                    std::shared_ptr<ArmWait> action(dynamic_cast<ArmWait*>(actions.front().get()));
+                    usleep(uint(1e6 * action->time_));
+                    actions.pop();
+                    return;
+                }
                 case ActionType::PUMP :
                 {
                     std::cout << "Pump" << std::endl;
@@ -150,18 +159,19 @@ namespace main_robot
     std::vector<std::shared_ptr<ArmPosition > > Strategy::computeSequenceToPosition(int const& armFirstServoId, ArmPosition& destination)
     {
         std::vector<std::shared_ptr<ArmPosition > > res;
-        // TODO dans le cas ou on est sur la bonne pile, descendre directement
-
-        // sinon
         ArmPosition currentArmPosition = getArmPosition(armFirstServoId);
-        currentArmPosition.z_ = PILE_CLEAR_HEIGHT;
+        // dans le cas ou on est sur la bonne pile, descendre directement
+        if (abs(moduloTwoPi(currentArmPosition.theta_ - destination.theta_)) > 5 * M_PI / 180)
+        {
+            currentArmPosition.z_ = PILE_CLEAR_HEIGHT;
 
-        std::shared_ptr<ArmPosition > moveUp(new ArmPosition(currentArmPosition));
-        res.push_back(moveUp);
+            std::shared_ptr<ArmPosition > moveUp(new ArmPosition(currentArmPosition));
+            res.push_back(moveUp);
 
-        currentArmPosition.theta_ = destination.theta_;
-        std::shared_ptr<ArmPosition > moveSide(new ArmPosition(currentArmPosition));
-        res.push_back(moveSide);
+            currentArmPosition.theta_ = destination.theta_;
+            std::shared_ptr<ArmPosition > moveSide(new ArmPosition(currentArmPosition));
+            res.push_back(moveSide);
+        }
 
         std::shared_ptr<ArmPosition > moveDown(new ArmPosition(destination));
         res.push_back(moveDown);
