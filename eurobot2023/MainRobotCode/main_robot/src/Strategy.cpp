@@ -9,19 +9,20 @@
 #include <miam_utils/trajectory/PointTurn.h>
 #include <miam_utils/trajectory/Utilities.h>
 #include <miam_utils/trajectory/PathPlanner.h>
-#include "main_robot/Strategy.h"
-#include "miam_utils/raspberry_pi/RaspberryPi.h"
+#include <miam_utils/raspberry_pi/RaspberryPi.h>
 
-#include <common/DH_transform.hpp>
-#include <common/MotionPlanner.h>
+#include "main_robot/Strategy.h"
+#include "common/DH_transform.hpp"
+#include "common/MotionPlanner.h"
+#include "common/ArmInverseKinematics.hpp"
 
 
 using namespace miam::trajectory;
 using miam::RobotPosition;
 using namespace kinematics;
 
-#define LEFT_ARM_FIRST_SERVO_ID 10
-#define RIGHT_ARM_FIRST_SERVO_ID 20
+#define RIGHT_ARM_FIRST_SERVO_ID 10
+#define LEFT_ARM_FIRST_SERVO_ID 20
 
 #define USE_CAMERA 1
 
@@ -33,10 +34,7 @@ using namespace kinematics;
 namespace main_robot
 {
 
-std::ostream& operator<<(std::ostream &s, const ArmPosition &armPosition)
-{
-    return s << "[" << armPosition.r_ << ", " << armPosition.theta_ << ", " << armPosition.z_ << "]";
-}
+
 
 // #define SKIP_TO_GRABBING_SAMPLES 1
 // #define SKIP_TO_PUSHING_SAMPLES 1
@@ -52,6 +50,9 @@ int const PUMP_LEFT = 13;
 int const VALVE_RIGHT = 24;
 int const VALVE_LEFT = 26;
 
+
+
+
 Strategy::Strategy()
 {
   // [TODO]
@@ -63,6 +64,17 @@ void Strategy::setup(RobotInterface *robot)
     this->robot = robot;
     this->servo = robot->getServos();
     this->motionController = robot->getMotionController();
+
+
+    // Setup pumps and valves
+    RPi_setupGPIO(PUMP_RIGHT, PiGPIOMode::PI_GPIO_OUTPUT);
+    RPi_writeGPIO(PUMP_RIGHT, false);
+    RPi_setupGPIO(PUMP_LEFT, PiGPIOMode::PI_GPIO_OUTPUT);
+    RPi_writeGPIO(PUMP_LEFT, false);
+    RPi_setupGPIO(VALVE_RIGHT, PiGPIOMode::PI_GPIO_OUTPUT);
+    RPi_writeGPIO(VALVE_RIGHT, false);
+    RPi_setupGPIO(VALVE_LEFT, PiGPIOMode::PI_GPIO_OUTPUT);
+    RPi_writeGPIO(VALVE_LEFT, false);
 
     // Set initial position
     RobotPosition targetPosition;
@@ -86,22 +98,19 @@ void Strategy::setup(RobotInterface *robot)
 
     // Fold arm
     // FIXME: why do I need to send it many times ?
-    servo->setTargetPosition(11, 3000);
-    servo->setTargetPosition(11, 3000);
-    servo->setTargetPosition(11, 3000);
-    servo->setTargetPosition(21, 1000);
-    servo->setTargetPosition(21, 1000);
-    servo->setTargetPosition(21, 1000);
+    // servo->setTargetPosition(11, 3000);
+    // servo->setTargetPosition(11, 3000);
+    // servo->setTargetPosition(11, 3000);
+    // servo->setTargetPosition(21, 1000);
+    // servo->setTargetPosition(21, 1000);
+    // servo->setTargetPosition(21, 1000);
 
-    // Setup pumps and valves
-    RPi_setupGPIO(PUMP_RIGHT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(PUMP_RIGHT, false);
-    RPi_setupGPIO(PUMP_LEFT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(PUMP_LEFT, false);
-    RPi_setupGPIO(VALVE_RIGHT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(VALVE_RIGHT, false);
-    RPi_setupGPIO(VALVE_LEFT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(VALVE_LEFT, false);
+
+
+    while(true) ;;
+
+
+
 }
 
 void Strategy::shutdown()
@@ -265,7 +274,7 @@ void Strategy::match_impl()
     start.x = 1309;
     start.y = 2843;
     start.theta = 0;
-    RobotPosition end; 
+    RobotPosition end;
     end.x = 744;
     end.y = 2843;
     end.theta = 0;
@@ -719,77 +728,50 @@ void Strategy::match()
     }
 }
 
-
-std::vector<double> solve_arm_problem(ArmPosition armPosition)
+bool Strategy::set_arm_position(ArmPosition const& armPosition, unsigned char servoID)
 {
-
-    double r = armPosition.r_;
-    double theta_rad = armPosition.theta_;
-    double z = armPosition.z_;
-
-    std::cout << ">>> Solving arm problem" << std::endl;
-
-    // Initialize the robotical arm
-    DHTransformVector arm = create_main_robot_arm();
-
-    // Optimize the parameters to get the desired pose
-    Eigen::Vector3d pf;
-    pf(0) = r * std::cos(theta_rad);
-    pf(1) = r * std::sin(theta_rad);
-    pf(2) = z;
-    Eigen::Vector3d uf = Eigen::Vector3d::UnitZ();
-    std::cout << "Desired coordinates (r, theta, z): " << armPosition << std::endl;
-    std::cout << "Target position (x, y, theta) is: " << pf.transpose() << std::endl;
-    std::cout << "Target x vector is: " << uf.transpose() << std::endl;
-
-    // // Solve the optimization problem without constraints
-    // OptimizationResult results = arm.optimize_position_x_direction(pf, uf);
-    // if(!results.success) std::cout << "Problem failed... " << std::endl;
-    // std::cout << "Problem 1 was solved with " << results.num_iters << " iterations." << std::endl;
-    // std::cout << arm.print() << std::endl;
-
-
-    std::vector<double> results_vector;
-    results_vector.push_back(arm[0].get_parameter(Parameter::a2));
-    results_vector.push_back(arm[1].get_parameter(Parameter::a2));
-    results_vector.push_back(arm[2].get_parameter(Parameter::a2));
-    results_vector.push_back(arm[3].get_parameter(Parameter::a2));
-
-    std::cout << results_vector[0] << " " << results_vector[1] << " " << results_vector[2] << " " << results_vector[3] << std::endl;
-
-    return results_vector;
+    std::array<double,4> armAngles;
+    bool result = common::arm_inverse_kinematics(armPosition.r_, armPosition.theta_, armPosition.z_, -M_PI_2, &armAngles);
+    if (result)
+    {
+        // move servo
+        for (int i = 0; i < 4; i++)
+        {
+            double angle = armAngles[i];
+            if (i == 0)
+                angle = -angle;
+            servo->setTargetPosition(LEFT_ARM_FIRST_SERVO_ID + i, STS::radToServoValue(angle));
+        }
+    }
+    return result;
 }
 
-void Strategy::set_left_arm_position(ArmPosition armPosition)
+
+bool Strategy::set_left_arm_position(ArmPosition const& armPosition)
 {
-    std::cout << "Moving left arm to: " << armPosition << std::endl;
-    std::vector<double> results = solve_arm_problem(armPosition);
-
-    // move servo
-    for (int i = 0; i < 4; i++)
-    {
-        double angle = modulo(results[i]);
-        servo->setTargetPosition(LEFT_ARM_FIRST_SERVO_ID + i, STS::radToServoValue(angle));
-    }
-
-    // TODO wait for servo movement
-    robot->wait(1);
+    return set_arm_position(armPosition, LEFT_ARM_FIRST_SERVO_ID);
 }
 
-void Strategy::set_right_arm_position(ArmPosition armPosition)
+
+bool Strategy::set_right_arm_position(ArmPosition const& armPosition)
 {
-    std::cout << "Moving right arm to: " << armPosition << std::endl;
-    std::vector<double> results = solve_arm_problem(armPosition);
+    return set_arm_position(armPosition, RIGHT_ARM_FIRST_SERVO_ID);
+}
 
-    // move servo
-    for (int i = 0; i < 4; i++)
+
+void Strategy::waitForArmMotion()
+{
+    bool done = false;
+    while (!done)
     {
-        double angle = modulo(results[i]);
-        servo->setTargetPosition(RIGHT_ARM_FIRST_SERVO_ID + i, STS::radToServoValue(angle));
+        done = true;
+        for (int i = 0; i < 4; i++)
+        {
+            done &= !servo->isMoving(LEFT_ARM_FIRST_SERVO_ID + i);
+            done &= !servo->isMoving(RIGHT_ARM_FIRST_SERVO_ID + i);
+        }
+        usleep(20000);
     }
-
-    // TODO wait for servo movement
-    robot->wait(1);
 }
 
 void Strategy::build_cakes()

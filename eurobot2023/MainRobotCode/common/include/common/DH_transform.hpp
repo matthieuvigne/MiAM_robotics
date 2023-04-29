@@ -170,9 +170,9 @@ OptimizationResult DHTransformVector::optimize_parameters(
   // -----------------------------------------------------------------------------------------------
 
   // Optimization parameters
-  int constexpr max_iters = 500;
+  int constexpr max_iters = 50;
   OptimizationResult results;
-  double constexpr max_tolerance = 1e-5;
+  double constexpr max_tolerance = 1e-4;
   typedef Eigen::Matrix<double,Nr,1> ResidualVector;
   typedef Eigen::Matrix<double,Nr,Eigen::Dynamic> ResidualJacobian;
 
@@ -182,10 +182,17 @@ OptimizationResult DHTransformVector::optimize_parameters(
   {
     // Get the global transform and check
     Eigen::Affine3d const T = this->get_global_transform();
-    ResidualVector const dT = get_residual_vector(T);
+    ResidualVector dT = get_residual_vector(T);
     if(dT.norm() < max_tolerance)
     {
       results.success = true;
+      break;
+    }
+
+    // If no free parameter left, give up
+    if(get_num_free_parameters() == 0)
+    {
+      results.success = false;
       break;
     }
 
@@ -202,20 +209,13 @@ OptimizationResult DHTransformVector::optimize_parameters(
     {
       // Update the free parameters
       Eigen::Vector4d delta_params = Eigen::Vector4d::Zero();
-      Parameters const& pose_free_params = (*this)[pose_idx].get_free_parameters();      
+      Parameters const& pose_free_params = (*this)[pose_idx].get_free_parameters();
       for(Parameter const& param : pose_free_params)
       {
         delta_params(static_cast<int>(param)) = dp(col_idx);
         col_idx += 1;
       }
       (*this)[pose_idx].update_parameters(delta_params);
-      
-      // If no free parameter left, give up
-      if(pose_free_params.empty())
-      {
-        results.success = false;
-        break;
-      }
     }
   }
 

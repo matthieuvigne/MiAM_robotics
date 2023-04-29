@@ -326,6 +326,8 @@ bool DHTransform::get_parameters_back_within_bounds()
     }
   }
 
+  compute_transform_and_jacobian();
+
   return all_parameters_are_within_bounds;
 }
 
@@ -724,7 +726,8 @@ std::string get_parameter_name(Parameter parameter)
 DHTransformVector create_main_robot_arm()
 {
   // Robotical arm configuration
-  double constexpr d01x = 70.6e-3;
+  double constexpr d01x = 0.0;
+  // double constexpr d01x = 70.6e-3;
   double constexpr d12x = 76.5e-3;
   double constexpr a12x = M_PI_2;
   double constexpr d23x = 70.6e-3;
@@ -737,9 +740,9 @@ DHTransformVector create_main_robot_arm()
 
   // Build the robotical arm
   DHTransform T01(d01x,0,0,0);
-  DHTransform T12(d12x,a12x,0,0);
-  DHTransform T23(d23x,0,0,0);
-  DHTransform T34(d34x,0,0,0);
+  DHTransform T12(d12x,a12x,0,-0.85);
+  DHTransform T23(d23x,0,0,-1.44);
+  DHTransform T34(d34x,0,0,0.72);
   DHTransform T45(d45x,a45x,d45z,0);
 
   T01.set_parameter_free(Parameter::a2,true);
@@ -747,16 +750,16 @@ DHTransformVector create_main_robot_arm()
   T01.set_parameter_upper_bound(Parameter::a2,  M_PI_2);
 
   T12.set_parameter_free(Parameter::a2,true);
-  T12.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
-  T12.set_parameter_upper_bound(Parameter::a2,  M_PI_2);
+  T12.set_parameter_lower_bound(Parameter::a2, - 1.75);
+  T12.set_parameter_upper_bound(Parameter::a2,  0.7);
 
   T23.set_parameter_free(Parameter::a2,true);
-  T23.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
+  T23.set_parameter_lower_bound(Parameter::a2, -2.5);
   T23.set_parameter_upper_bound(Parameter::a2,  0);
 
   T34.set_parameter_free(Parameter::a2,true);
-  T34.set_parameter_lower_bound(Parameter::a2, -M_PI_2);
-  T34.set_parameter_upper_bound(Parameter::a2,  M_PI_2);
+  T34.set_parameter_lower_bound(Parameter::a2, -2.2);
+  T34.set_parameter_upper_bound(Parameter::a2,  1.6);
 
   DHTransformVector arm{T01,T12,T23,T34,T45};
 
