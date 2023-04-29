@@ -8,6 +8,7 @@
 
     #include <string>
     #include <vector>
+    #include <unordered_map>
     #include <termios.h>
     #include <cmath>
 
@@ -117,6 +118,11 @@
             /// \param[in] servoId ID of the servo
             /// \return Position, in deg. 0 on failure.
             int16_t getCurrentPosition(unsigned char const& servoId);
+
+            /// \brief Get last command sent to servo
+            /// \param[in] servoId ID of the servo
+            /// \return Position, in deg. 0 on failure.
+            int16_t getLastCommand(unsigned char const& servoId);
 
             /// \brief Get current servo speed.
             /// \param[in] servoId ID of the servo
@@ -268,5 +274,7 @@
             int dirPin_;     ///< Direction pin number.
             double readTimeout_; ///< Read timeout, in ms.
             int returnCode_; ///< Last return code.
+
+            std::unordered_map<unsigned char, int16_t> lastCommands_;
     };
 #endif

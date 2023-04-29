@@ -36,6 +36,12 @@ STSServoDriver::STSServoDriver(double const& readTimeout):
     dirPin_(0),
     readTimeout_(readTimeout)
 {
+    std::cout << "STS constructor" << std::endl;
+    for (int i = 0; i < 256; i++)
+    {
+        lastCommands_[(unsigned char) i] = -1;
+    }
+    std::cout << "STS inited" << std::endl;
 }
 
 
@@ -168,6 +174,11 @@ int16_t STSServoDriver::getCurrentPosition(unsigned char const& servoId)
     return readTwoBytesRegister(servoId, STS::registers::CURRENT_POSITION);
 }
 
+int16_t STSServoDriver::getLastCommand(unsigned char const& servoId)
+{
+    return lastCommands_[servoId];
+}
+
 
 int16_t STSServoDriver::getCurrentSpeed(unsigned char const& servoId)
 {
@@ -213,6 +224,7 @@ void STSServoDriver::setPGain(unsigned char const& servoId, unsigned char const&
 
 bool STSServoDriver::setTargetPosition(unsigned char const& servoId, int16_t const& position, bool const& asynchronous)
 {
+    lastCommands_[servoId] = position;
     // Bit 15 is the sign bit: change convention accordingly.
     uint16_t pos = std::abs(position);
     if (position < 0)

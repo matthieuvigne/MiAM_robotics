@@ -18,6 +18,12 @@
 
 using namespace main_robot::arm;
 
+std::ostream& operator<<(std::ostream& os, const main_robot::ArmPosition& p)
+{
+    os << "r: " << p.r_ << " theta(deg): " << 180 * p.theta_ / M_PI << " z: " << p.z_;
+    return os;
+}
+
 namespace main_robot
 {
     ArmPosition arm::servoAnglesToArmPosition(double thetaHorizontal, double theta12, double theta23, double theta34)
@@ -81,7 +87,7 @@ namespace main_robot
                 {
                     std::cout << "Wait" << std::endl;
 
-                    std::shared_ptr<ArmWait> action(dynamic_cast<ArmWait*>(actions.front().get()));
+                    ArmWait* action(dynamic_cast<ArmWait*>(actions.front().get()));
                     usleep(uint(1e6 * action->time_));
                     actions.pop();
                     return;
@@ -89,13 +95,15 @@ namespace main_robot
                 case ActionType::PUMP :
                 {
                     std::cout << "Pump" << std::endl;
-                    std::shared_ptr<ArmPump> action(dynamic_cast<ArmPump*>(actions.front().get()));
+                    ArmPump* action(dynamic_cast<ArmPump*>(actions.front().get()));
 
                     int pumpNumber  = (armServoId == RIGHT_ARM) ? PUMP_RIGHT : PUMP_LEFT;
                     int valveNumber = (armServoId == RIGHT_ARM) ? VALVE_RIGHT : VALVE_LEFT;
                     RPi_writeGPIO(pumpNumber, action->activated_);
                     RPi_writeGPIO(valveNumber, !action->activated_);
+                    std::cout << "End Pump" << std::endl;
                     actions.pop();
+                    std::cout << "Pop action" << std::endl;
                     break;
                 }
                 case ActionType::MOVE :
@@ -104,6 +112,8 @@ namespace main_robot
                     std::cout << "Move" << std::endl;
                     ArmPosition* action = dynamic_cast<ArmPosition*>(actions.front().get());
 
+                    if (action->z_ > 0)
+                        std::cout << ">>>>> WARNING : z is positive <<<<<" << std::endl;
                     setArmPosition(armServoId, *action);
 
                     std::cout << "I set the arm to move" << std::endl;
@@ -161,7 +171,7 @@ namespace main_robot
         std::vector<std::shared_ptr<ArmPosition > > res;
         ArmPosition currentArmPosition = getArmPosition(armFirstServoId);
         // dans le cas ou on est sur la bonne pile, descendre directement
-        if (abs(moduloTwoPi(currentArmPosition.theta_ - destination.theta_)) > 5 * M_PI / 180)
+        if (abs(moduloTwoPi(currentArmPosition.theta_ - destination.theta_)) > 5.0 * M_PI / 180.0)
         {
             currentArmPosition.z_ = PILE_CLEAR_HEIGHT;
 
@@ -179,14 +189,16 @@ namespace main_robot
         return res;
     }
 
+
+
     ArmPosition Strategy::getArmPosition(int const& armFirstServoId)
     {
         
         // lire les 4 angles
-        double thetaHorizontal = STS::servoToRadValue(servo->getCurrentPosition(armFirstServoId + 0));
-        double theta12 = STS::servoToRadValue(servo->getCurrentPosition(armFirstServoId + 1));
-        double theta23 = STS::servoToRadValue(servo->getCurrentPosition(armFirstServoId + 2));
-        double theta34 = STS::servoToRadValue(servo->getCurrentPosition(armFirstServoId + 3));
+        double thetaHorizontal = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 0));
+        double theta12 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 1));
+        double theta23 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 2));
+        double theta34 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 3));
 
         if (armFirstServoId == RIGHT_ARM)
             thetaHorizontal = -thetaHorizontal;
@@ -200,24 +212,44 @@ namespace main_robot
 
         // invert theta if right arm
         double targetTheta = armPosition.theta_;
-        if (armFirstServoId == RIGHT_ARM)
+        // if (armFirstServoId == RIGHT_ARM)
+        // {
+        //     targetTheta = -targetTheta;
+        // }
+
+        std::cout << "Target: " << armPosition << std::endl;
+        bool result = common::arm_inverse_kinematics(armPosition.r_, targetTheta, armPosition.z_, -M_PI_2, &armAngles);
+
+        // TODO
+        if(!result)
         {
-            targetTheta = -targetTheta;
+            std::cout << "Inverse kinematics failed" << std::endl;
+            throw std::runtime_error("AAA");
         }
 
-        bool result = common::arm_inverse_kinematics(armPosition.r_, targetTheta, armPosition.z_, -M_PI_2, &armAngles);
+        // TODO
+        if(armAngles[1] > 0)
+        {
+            std::cout << "1st Angle is too high: " << armAngles[1] << std::endl;
+            throw std::runtime_error("AAA");
+        }
+
         if (result)
         {
             // move servo
+            std::cout << "angles: ";
             for (int i = 0; i < 4; i++)
             {
                 double angle = armAngles[i];
                 std::cout << angle << " ";
-                if (i == 0)
+                if (armFirstServoId == RIGHT_ARM)
                     angle = -angle;
                 servo->setTargetPosition(armFirstServoId + i, STS::radToServoValue(angle));
                 usleep(50);
             }
+            std::cout << std::endl;
+            ArmPosition pos = servoAnglesToArmPosition(armAngles[0], armAngles[1], armAngles[2], armAngles[3]);
+            std::cout << "What i found: " <<  pos << std::endl;
 
             // // pump
             // if (armFirstServoId == RIGHT_ARM)
@@ -239,6 +271,50 @@ namespace main_robot
         return result;
     }
 
+    void Strategy::addPositionToQueue_Left(ArmPosition& target)
+    {
+        std::cout << "Request position: " << std::endl;
+        std::vector<ArmPosition::Ptr > seq = computeSequenceToPosition(LEFT_ARM, target);
+        for (auto& ap : seq)
+        {
+            left_arm_positions.push(ap);
+        }
+    }
+
+    void Strategy::addPositionToQueue_Right(ArmPosition& target)
+    {
+        std::vector<ArmPosition::Ptr > seq = computeSequenceToPosition(RIGHT_ARM, target);
+        for (auto& ap : seq)
+        {
+            right_arm_positions.push(ap);
+        }
+    }
+
+    void Strategy::addSyncToQueue()
+    {
+        ArmSync::Ptr target(new ArmSync());
+        left_arm_positions.push(target);
+        ArmSync::Ptr target2(new ArmSync());
+        right_arm_positions.push(target2);
+    }
+
+    void Strategy::changePileHeight(int pileIndex, int delta)
+    {
+        pileLock.lock();
+        pileHeight[pileIndex] += delta;
+        pileLock.unlock();
+
+        if (pileHeight[pileIndex] < 0)
+            std::cout << ">>>>> WARNING pileHeight[pileIndex] is <0 <<<<<" << std::endl;
+    }
+
+    int Strategy::getPileHeight(int pileIndex)
+    {
+        int height = pileHeight[pileIndex];
+        std::cout << "Pile state is " << pileHeight[0] << " " << pileHeight[1] << " " << pileHeight[2] << " " << pileHeight[3] << " " << pileHeight[4] << std::endl;
+        return height;
+    }
+
     void Strategy::buildCakes()
     {
         std::cout << "Building cakes" << std::endl;
@@ -248,14 +324,157 @@ namespace main_robot
         ArmPosition rightPile(arm::CAKES_FRONT_DISTANCE, arm::FRONT_RIGHT_ANGLE, arm::GROUND_HEIGHT + 0.060);
         ArmPosition sidePile(arm::CAKES_SIDE_DISTANCE, arm::SIDE_ANGLE, arm::GROUND_HEIGHT + 0.020 + 0.020);
 
-        // bras gauche va au milieu et descend
+        pileHeight[0] = 0;
+        pileHeight[1] = 3;
+        pileHeight[2] = 3;
+        pileHeight[3] = 3;
+        pileHeight[4] = 0;
+
+        int moveNumber = 0;
+
+        // bras gauche va au milieu 
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPosition target = rightPile;
+            target.z_ = arm::PILE_CLEAR_HEIGHT;
+            addPositionToQueue_Left(target);
+        }
+
+        // bras gauche allume sa pompe
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPump::Ptr target(new ArmPump(true));
+            left_arm_positions.push(target);
+        }
+
+        // bras gauche descend
         // bras gauche prend une genoise
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPosition target = rightPile;
+            target.z_ = arm::GROUND_HEIGHT + getPileHeight(2) * arm::LAYER_HEIGHT;
+            addPositionToQueue_Left(target);
+            changePileHeight(3, -1);
+        }
+
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmWait::Ptr target(new ArmWait(0.5));
+            left_arm_positions.push(target);
+        }
+
         // bras gauche remonte
-        // SYNC
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPosition target = rightPile;
+            target.z_ = arm::PILE_CLEAR_HEIGHT;
+            addPositionToQueue_Left(target);
+        }
+
+        // SYNC   
+        addSyncToQueue();
+
+
+        waitForArmMotionSequenced();
+        // while(true) ;;
 
         // bras gauche va side pile et depose sa genoise
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            changePileHeight(0, 1);
+            ArmPosition target = sidePile;
+            target.z_ = arm::GROUND_HEIGHT + getPileHeight(0) * arm::LAYER_HEIGHT;
+            addPositionToQueue_Left(target);
+        }
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPump::Ptr target(new ArmPump(false));
+            left_arm_positions.push(target);
+        }
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmWait::Ptr target(new ArmWait(0.5));
+            left_arm_positions.push(target);
+        }
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPosition target = sidePile;
+            target.z_ = arm::PILE_CLEAR_HEIGHT;
+            addPositionToQueue_Left(target);
+        }
+
         // bras droit va au cemtre et va prendre sa genoise
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPosition target = rightPile;
+            target.z_ = arm::PILE_CLEAR_HEIGHT;
+            addPositionToQueue_Right(target);
+        }
+        // bras droit allume sa pompe
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPump::Ptr target(new ArmPump(true));
+            right_arm_positions.push(target);
+        }
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPosition target = rightPile;
+            target.z_ = arm::GROUND_HEIGHT + getPileHeight(3) * arm::LAYER_HEIGHT;
+            addPositionToQueue_Right(target);
+            changePileHeight(3, -1);
+        }
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmWait::Ptr target(new ArmWait(0.5));
+            left_arm_positions.push(target);
+        }
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            changePileHeight(4, 1);
+            ArmPosition target = sidePile;
+            target.z_ = arm::GROUND_HEIGHT + getPileHeight(4) * arm::LAYER_HEIGHT;
+            addPositionToQueue_Right(target);
+        }
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPump::Ptr target(new ArmPump(false));
+            right_arm_positions.push(target);
+        }
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmWait::Ptr target(new ArmWait(0.5));
+            left_arm_positions.push(target);
+        }
+        {
+            moveNumber++;
+            std::cout << "############ MOVE NUMBER: " << moveNumber << " ############" << std::endl;
+            ArmPosition target = sidePile;
+            target.z_ = arm::PILE_CLEAR_HEIGHT;
+            addPositionToQueue_Right(target);
+        }
+
         // SYNC
+        addSyncToQueue();
+
+        waitForArmMotionSequenced();
+
+        while(true) ;;
 
         // bras droit remonte et va side pile et depose
         // bras gauche va pile du milieu et prend sa creme

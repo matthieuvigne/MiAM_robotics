@@ -13,6 +13,8 @@
 #include "common/MotionPlanner.h"
 
 #include <queue>
+#include <mutex>
+#include <array>
 
 namespace main_robot
 {
@@ -35,6 +37,8 @@ namespace main_robot
 
     class ArmSync : public ArmAction
     {
+        public:
+        typedef std::shared_ptr<ArmSync > Ptr;
         ArmSync() : ArmAction() 
         {
             type_ = ActionType::SYNC;
@@ -43,17 +47,19 @@ namespace main_robot
 
     class ArmWait : public ArmAction
     {
+        public:
+        typedef std::shared_ptr<ArmWait > Ptr;
         ArmWait(double time) : ArmAction(), time_(time)
         {
             type_ = ActionType::WAIT;
         };
-        public:
-            double time_;
+        double time_;
     };
 
     class ArmPosition : public ArmAction
     {
     public:
+        typedef std::shared_ptr<ArmPosition > Ptr;
         double r_;
         double theta_;
         double z_;
@@ -67,6 +73,7 @@ namespace main_robot
     class ArmPump : public ArmAction
     {
     public:
+        typedef std::shared_ptr<ArmPump > Ptr;
         bool activated_;
 
         ArmPump(double activated) : ArmAction(), activated_(activated) {
@@ -128,6 +135,14 @@ namespace main_robot
 
         std::queue<std::shared_ptr<ArmAction > > left_arm_positions;
         std::queue<std::shared_ptr<ArmAction > > right_arm_positions;
+        std::mutex pileLock;
+        std::array<int, 5> pileHeight;
+
+        void addPositionToQueue_Right(ArmPosition& target);
+        void addPositionToQueue_Left(ArmPosition& target);
+        void addSyncToQueue();
+        void changePileHeight(int pileIndex, int delta);
+        int getPileHeight(int pileIndex);
 
         void match_impl(); /// Actual implementation of the match code.
 
@@ -155,5 +170,8 @@ namespace main_robot
         void buildCakes();
     };
 }
+
+
+std::ostream& operator<<(std::ostream& os, const main_robot::ArmPosition& p);
 
 #endif

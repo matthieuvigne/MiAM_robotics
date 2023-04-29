@@ -3,6 +3,8 @@
 
 #include <common/ArmInverseKinematics.hpp>
 
+#define ARM_INVERSE_KINEMATICS_TOLERANCE 1e-2
+
 namespace common {
 
 bool arm_inverse_kinematics(
@@ -28,7 +30,11 @@ bool arm_inverse_kinematics(
 
   // Check that the problem is consistent
   double constexpr r0max = d23 + d34;
-  if(r0>r0max) return false;
+  if(r0>r0max) 
+  {
+    std::cout << "Error ArmInverseKinematics : r0>r0max" << std::endl;
+    return false;
+  }
 
 
   // Solve the plane inverse kinematics problem
@@ -38,17 +44,20 @@ bool arm_inverse_kinematics(
   double cos_theta23 = (l2 - d23*d23 - d34*d34)/(2*d23*d34);
   cos_theta23 = std::max(-1., std::min(cos_theta23, 1.));
   double theta23 = - std::acos( cos_theta23 );
+
+  double r_error;
+  double z_error;
   for(int i=0; i<=1; i+=1)
   {
     // Compute angles and errors
     double theta12 = psi0_rad - std::asin( d34*std::sin(theta23)/std::sqrt(l2) );
-    double r_error = r0 - d23*std::cos(theta12) - d34*std::cos(theta12+theta23);
-    double z_error = z0 - d23*std::sin(theta12) - d34*std::sin(theta12+theta23);
+    r_error = r0 - d23*std::cos(theta12) - d34*std::cos(theta12+theta23);
+    z_error = z0 - d23*std::sin(theta12) - d34*std::sin(theta12+theta23);
 
     // Check success conditions are met
     double constexpr theta23_max = -0.05;
     double constexpr theta23_min = - 2.5;
-    bool const ok1 = std::max(std::fabs(r_error),std::fabs(z_error))<1e-4;
+    bool const ok1 = std::max(std::fabs(r_error),std::fabs(z_error))<ARM_INVERSE_KINEMATICS_TOLERANCE;
     bool const ok2 = theta23<=theta23_max && theta23>=theta23_min;
     if(ok1 && ok2) {
       angles[1] = theta12;
@@ -60,6 +69,13 @@ bool arm_inverse_kinematics(
       theta23 = - theta23;
       continue;
     }
+  }
+
+  if (!success)
+  {
+    std::cout << "Error ArmInverseKinematics : not success" << std::endl;
+    std::cout << "r_error " << r_error << std::endl;
+    std::cout << "z_error " << z_error << std::endl;
   }
 
   return success;
