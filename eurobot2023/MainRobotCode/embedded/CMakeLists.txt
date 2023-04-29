@@ -57,21 +57,40 @@ include_directories(../common/include)
 include_directories(../main_robot/include)
 include_directories(../secondary_robot/include)
 include_directories(./include)
-include_directories(../../../a-star/source)
+include_directories(../../../a-star/source
+    ../../../qpoases
+    ../../../qpoases/INCLUDE
+    ../../../qpoases/SRC
+    ../common/acado_solver)
 
 FILE( GLOB LIB_SOURCES ../../../a-star/source/*.cpp )
 FILE( GLOB LIB_HEADERS ../../../a-star/source/*.hpp )
-include_directories(../../../a-star/source)
+set_source_files_properties(${LIB_SOURCES} PROPERTIES LANGUAGE CXX )
 ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
+
+# qpoases
+FILE( GLOB LIB_SOURCES ../../../qpoases/SRC/*.cpp )
+FILE( GLOB LIB_HEADERS ../../../qpoases/INCLUDE/*.hpp )
+set_source_files_properties(${LIB_SOURCES1} PROPERTIES LANGUAGE CXX )
+ADD_LIBRARY( qpoases ${LIB_SOURCES} ${LIB_HEADERS} )
+
+# acado_solver
+FILE( GLOB LIB_SOURCES ../common/acado_solver/*.cpp ../common/acado_solver/*.c )
+FILE( GLOB LIB_HEADERS ../common/acado_solver/*.hpp ../common/acado_solver/*.h )
+set_source_files_properties(${LIB_SOURCES} PROPERTIES LANGUAGE CXX )
+ADD_LIBRARY( acado_solver ${LIB_SOURCES} ${LIB_HEADERS} )
+target_link_libraries( acado_solver qpoases )
 
 message(${RPLIDAR_INCLUDE_DIRS})
 
 # Set executable target and link libraries.
 add_executable(mainRobotCode ${MAIN_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(mainRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar "-lhdf5_cpp")
+target_link_libraries(mainRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} 
+AStar acado_solver "-lhdf5_cpp")
 
 
 add_executable(secondaryRobotCode ${SECONDARY_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(secondaryRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar "-lhdf5_cpp")
+target_link_libraries(secondaryRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} 
+AStar acado_solver "-lhdf5_cpp")
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")

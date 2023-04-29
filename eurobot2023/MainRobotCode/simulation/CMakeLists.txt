@@ -69,10 +69,11 @@ ADD_LIBRARY( qpoases ${LIB_SOURCES} ${LIB_HEADERS} )
 FILE( GLOB LIB_SOURCES ../common/acado_solver/*.cpp ../common/acado_solver/*.c )
 FILE( GLOB LIB_HEADERS ../common/acado_solver/*.hpp ../common/acado_solver/*.h )
 ADD_LIBRARY( acado_solver ${LIB_SOURCES} ${LIB_HEADERS} )
+target_link_libraries( acado_solver qpoases)
 
 # Copy config.
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Build executables
 add_executable(strategyViewer ${SOURCES})
-target_link_libraries(strategyViewer ${GTK3_LIBRARIES} ${RPLIDAR_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar acado_solver qpoases "-lhdf5_cpp")
+target_link_libraries(strategyViewer ${GTK3_LIBRARIES} ${RPLIDAR_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar acado_solver "-lhdf5_cpp")
