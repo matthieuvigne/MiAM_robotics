@@ -133,7 +133,7 @@ def count_cherries(img,iter_idx):
   # minRadius	Minimum circle radius.
   # maxRadius	Maximum circle radius. If <= 0, uses the maximum image dimension. If < 0, HOUGH_GRADIENT returns centers without finding the radius. HOUGH_GRADIENT_ALT always computes circle radiuses.
 
-  detected_circles=cv2.HoughCircles(
+  detected_circles_raw=cv2.HoughCircles(
     gimg, 
     cv2.HOUGH_GRADIENT, 
     1, 
@@ -150,18 +150,29 @@ def count_cherries(img,iter_idx):
 
 
   # Draw circles that are detected.  
-  if detected_circles is None:
+  if detected_circles_raw is None:
     print("number detected circle = 0")
     return 0
+
+  print(detected_circles_raw.shape)
+  
+  detected_circles = []
+  for pt in detected_circles_raw[0, :]:
+    value = gimg[int(pt[1]), int(pt[0])]
+    if value > 10:
+      # print("Detected new circle")
+      detected_circles.append(pt)
+  
+  # print(detected_circles)
   
   dimg = cv2.cvtColor(gimg,cv2.COLOR_GRAY2BGR)
 
   # print(detected_circles)
 
-  for pt in detected_circles[0, :]:
-    # pt = round(pt)
-    print(pt)
-    a, b, r = round(pt[0]), round(pt[1]), round(pt[2])
+  for pt in detected_circles:
+    pt = np.round(pt).astype(np.int32)
+    # print(pt)
+    a, b, r = pt[0], pt[1], pt[2]
     cv2.circle(dimg, (a, b), r, (0, 255, 0), 2)
     cv2.circle(dimg, (a, b), 1, (0, 0, 255), 3)
     #cv2.imshow("Detected Circle", frame) 
@@ -171,7 +182,7 @@ def count_cherries(img,iter_idx):
   # detected_circles= np.uint16(np.around(detected_circles))
   # print(detected_circles)
   # print (len(detected_circles[0, :]))
-  num_cherries = len(detected_circles[0, :])
+  num_cherries = len(detected_circles)
 
   return num_cherries;
   # ~ return retval-1;
