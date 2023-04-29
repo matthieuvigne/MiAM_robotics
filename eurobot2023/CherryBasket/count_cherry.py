@@ -16,11 +16,12 @@ from picamera.mmalobj import to_rational
 MMAL_PARAMETER_ANALOG_GAIN = mmal.MMAL_PARAMETER_GROUP_CAMERA + 0x59
 MMAL_PARAMETER_DIGITAL_GAIN = mmal.MMAL_PARAMETER_GROUP_CAMERA + 0x5A
 
+RESOLUTION_X = 800
+RESOLUTION_Y = 608
+RESOLUTION_CHANNELS = 3
 
-
-# Setup raspberry
-camera = picamera.PiCamera(resolution =(2592, 1952), framerate = 15)
-  
+RESOLUTION_PARAMETER = (RESOLUTION_X, RESOLUTION_Y)
+RESOLUTION_PARAMETER_WITH_CHANNELS = (RESOLUTION_Y, RESOLUTION_X, RESOLUTION_CHANNELS)
 
 
 def set_gain(camera, gain, value):
@@ -71,6 +72,9 @@ lcd.message = "Initializing..."
 
 os.system("rm raw/*.jpg")
 os.system("rm blurred/*.jpg")
+os.system("rm masked/*.jpg")
+os.system("rm grey/*.jpg")
+os.system("rm detected/*.jpg")
 os.system("rm filtered/*.jpg")
 
 def count_cherries(img,iter_idx):
@@ -78,20 +82,25 @@ def count_cherries(img,iter_idx):
   # Threshold the red channel
   # img = cv2.blur(img, (15,15));
   # cv2.imwrite("blurred/image{}_blurred.jpg".format(iter_idx), img);
-  mask_red = cv2.inRange(img[:,:,2], 150, 255);
-  mask_green = cv2.inRange(img[:,:,1],0,110);
-  mask_blue = cv2.inRange(img[:,:,0],0,110);
+  mask_red = cv2.inRange(img[:,:,2], 110, 255);
+  mask_green = cv2.inRange(img[:,:,1],0,90);
+  mask_blue = cv2.inRange(img[:,:,0],0,90);
   mask = mask_red*mask_green*mask_blue;
   img = cv2.bitwise_and(img,img, mask=mask);
+  cv2.imwrite("masked/image{}_masked.jpg".format(iter_idx), img);
 
   # greyscale
-  img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-  cv2.imwrite("grey/image{}_grey.jpg".format(iter_idx), img);
+  # img = img[:, :, 2] #cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  gimg = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+  cv2.imwrite("grey/image{}_grey.jpg".format(iter_idx), gimg);
 
-  kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))
-  # img = cv2.erode(img,kernel,iterations = 2)
-  img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
-  cv2.imwrite("filtered/image{}_filtered.jpg".format(iter_idx), img);
+  # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(8,8))
+  # # gimg = cv2.erode(gimg,kernel,iterations = 1)
+  # gimg = cv2.morphologyEx(gimg, cv2.MORPH_OPEN, kernel)
+  # gimg = cv2.morphologyEx(gimg, cv2.MORPH_CLOSE, kernel)
+  # # gimg = cv2.Canny(gimg,100,200)
+
+  cv2.imwrite("filtered/image{}_filtered.jpg".format(iter_idx), gimg);
 
   # Detect the blobs and count them
   # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -112,12 +121,52 @@ def count_cherries(img,iter_idx):
   #     num_cherries += 1;
 
   # Apply Hough transform on the blurred image (40, 30, 55) pour ligne cerise frontale
-  detected_circles=cv2.HoughCircles(img,cv2.HOUGH_GRADIENT,1,50,param1=100,param2 =100,minRadius=50,maxRadius=300)
+  # detected_circles=cv2.HoughCircles(gimg,cv2.HOUGH_GRADIENT,1,25,param1=50,param2 =30,minRadius=10,maxRadius=30)
+
+
+
+  # method	Detection method, see HoughModes. The available methods are HOUGH_GRADIENT and HOUGH_GRADIENT_ALT.
+  # dp	Inverse ratio of the accumulator resolution to the image resolution. For example, if dp=1 , the accumulator has the same resolution as the input image. If dp=2 , the accumulator has half as big width and height. For HOUGH_GRADIENT_ALT the recommended value is dp=1.5, unless some small very circles need to be detected.
+  # minDist	Minimum distance between the centers of the detected circles. If the parameter is too small, multiple neighbor circles may be falsely detected in addition to a true one. If it is too large, some circles may be missed.
+  # param1	First method-specific parameter. In case of HOUGH_GRADIENT and HOUGH_GRADIENT_ALT, it is the higher threshold of the two passed to the Canny edge detector (the lower one is twice smaller). Note that HOUGH_GRADIENT_ALT uses Scharr algorithm to compute image derivatives, so the threshold value shough normally be higher, such as 300 or normally exposed and contrasty images.
+  # param2	Second method-specific parameter. In case of HOUGH_GRADIENT, it is the accumulator threshold for the circle centers at the detection stage. The smaller it is, the more false circles may be detected. Circles, corresponding to the larger accumulator values, will be returned first. In the case of HOUGH_GRADIENT_ALT algorithm, this is the circle "perfectness" measure. The closer it to 1, the better shaped circles algorithm selects. In most cases 0.9 should be fine. If you want get better detection of small circles, you may decrease it to 0.85, 0.8 or even less. But then also try to limit the search range [minRadius, maxRadius] to avoid many false circles.
+  # minRadius	Minimum circle radius.
+  # maxRadius	Maximum circle radius. If <= 0, uses the maximum image dimension. If < 0, HOUGH_GRADIENT returns centers without finding the radius. HOUGH_GRADIENT_ALT always computes circle radiuses.
+
+  detected_circles=cv2.HoughCircles(
+    gimg, 
+    cv2.HOUGH_GRADIENT, 
+    1, 
+    30,
+    param1=50, #100,
+    param2 =5, #15, 
+    minRadius=5, 
+    maxRadius=40
+  )
+
+  # params = cv2.SimpleBlobDetector_Params()
+  # detector = cv2.SimpleBlobDetector_create(params)
+  # detected_circles = detector.detect(gimg)
+
+
   # Draw circles that are detected.  
   if detected_circles is None:
     print("number detected circle = 0")
     return 0
+  
+  dimg = cv2.cvtColor(gimg,cv2.COLOR_GRAY2BGR)
 
+  # print(detected_circles)
+
+  for pt in detected_circles[0, :]:
+    # pt = round(pt)
+    print(pt)
+    a, b, r = round(pt[0]), round(pt[1]), round(pt[2])
+    cv2.circle(dimg, (a, b), r, (0, 255, 0), 2)
+    cv2.circle(dimg, (a, b), 1, (0, 0, 255), 3)
+    #cv2.imshow("Detected Circle", frame) 
+
+  cv2.imwrite("detected/image{}_detected.jpg".format(iter_idx), dimg);
   # # Convert the circle parameters a, b and r to integers.
   # detected_circles= np.uint16(np.around(detected_circles))
   # print(detected_circles)
@@ -128,6 +177,11 @@ def count_cherries(img,iter_idx):
   # ~ return retval-1;
 
 if __name__ == "__main__":
+
+  # Setup raspberry
+  camera = picamera.PiCamera(resolution = RESOLUTION_PARAMETER)
+
+  sleep(2.0)
 
   iter_idx = 0;
   max_iters = 10;
@@ -140,7 +194,6 @@ if __name__ == "__main__":
   # Method with picamera
   camera.start_preview()
 
-  sleep(2.0)
 
   camera.awb_mode = "off"
   camera.awb_gains = (Fraction(125, 128), Fraction(579, 256))
@@ -177,7 +230,7 @@ if __name__ == "__main__":
     # ~ img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR);
     
     # Method with picamera
-    img = np.empty((1952, 2592, 3), dtype=np.uint8)
+    img = np.empty(RESOLUTION_PARAMETER_WITH_CHANNELS, dtype=np.uint8)
     camera.capture(img, "bgr");
     # ~ image_name = "image{}_raw.jpg".format(iter_idx);
     # ~ cv2.imwrite(image_name, img);
