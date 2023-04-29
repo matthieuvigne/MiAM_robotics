@@ -248,60 +248,113 @@ namespace main_robot
         ArmPosition rightPile(arm::CAKES_FRONT_DISTANCE, arm::FRONT_RIGHT_ANGLE, arm::GROUND_HEIGHT + 0.060);
         ArmPosition sidePile(arm::CAKES_SIDE_DISTANCE, arm::SIDE_ANGLE, arm::GROUND_HEIGHT + 0.020 + 0.020);
 
+        // bras gauche va au milieu et descend
+        // bras gauche prend une genoise
+        // bras gauche remonte
+        // SYNC
 
-        std::vector<std::shared_ptr<ArmPosition > > seq = computeSequenceToPosition(LEFT_ARM, sidePile);
-        for (auto& ap : seq)
-        {
-            left_arm_positions.push(ap);
-        }
+        // bras gauche va side pile et depose sa genoise
+        // bras droit va au cemtre et va prendre sa genoise
+        // SYNC
 
-        waitForArmMotionSequenced();
+        // bras droit remonte et va side pile et depose
+        // bras gauche va pile du milieu et prend sa creme
+        // bras gauche remonte et pose la creme au milieu
+        // bras gauche remonte et va au dessus de la pile de gauche
+        // SYNC
 
-        while(true) ;;
+        // bras gauche descend et prend la creme
+        // bras gauche le pose sur side pile
+        // bras droit va au milieu et prend la creme
+        // bras droit le pose sur sa side pile
+        // SYNC
+
+        // bras gauche prend creme pile de gauche
+        // bras gauche l'emmene sur pile du centre
+        // bras droit va pile de droite
+        // bras droit prend la ganache
+        // bras droit l'emmene sur sa side pile
+        // SYNC
+
+        // bras gauche va a gauche
+        // bras droit va a droite
+        // bras droit prend la ganache et l'emmene au milieu
+        // bras droit retourne sur pile de droite
+        // SYNC
+
+        // bras gauche va chercher la ganache au milieu
+        // bras gauche l'emmene au dessus de sa side pile
+        // SYNC
+
+        // bras gauche la pose sur sa side pile
+        // bras droit prend la ganache sur la pile de droite
+        // bras droit la pose sur la pile du milieu
+        // END
 
 
 
-        std::cout << "leftPile: " << leftPile.r_ << " " << leftPile.theta_ << " " << leftPile.z_ << std::endl;
 
 
-        std::array<double, 4 > destArray;
-        common::arm_inverse_kinematics(leftPile.r_, leftPile.theta_, leftPile.z_, -M_PI_2, &destArray);
-        ArmPosition leftPile2 = servoAnglesToArmPosition(destArray[0], destArray[1], destArray[2], destArray[3]);
-        std::cout << "leftPile2: " << leftPile2.r_ << " " << leftPile2.theta_ << " " << leftPile2.z_ << std::endl;
 
-        // left arm
-        {
-            std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(leftPile));
-            left_arm_positions.push (targetPosition);
-        }
 
-        waitForArmMotionSequenced();
 
-        ArmPosition leftArm = getArmPosition(LEFT_ARM);
-        std::cout << "leftArm: " << leftArm.r_ << " " << leftArm.theta_ << " " << leftArm.z_ << std::endl;
 
-        ArmPosition rightArm = getArmPosition(RIGHT_ARM);
-        std::cout << "rightArm: " << rightArm.r_ << " " << rightArm.theta_ << " " << rightArm.z_ << std::endl;
 
-        while(true) ;;
+
+
+        // std::vector<std::shared_ptr<ArmPosition > > seq = computeSequenceToPosition(LEFT_ARM, sidePile);
+        // for (auto& ap : seq)
+        // {
+        //     left_arm_positions.push(ap);
+        // }
+
+        // waitForArmMotionSequenced();
+
+        // while(true) ;;
+
+
+
+        // std::cout << "leftPile: " << leftPile.r_ << " " << leftPile.theta_ << " " << leftPile.z_ << std::endl;
+
+
+        // std::array<double, 4 > destArray;
+        // common::arm_inverse_kinematics(leftPile.r_, leftPile.theta_, leftPile.z_, -M_PI_2, &destArray);
+        // ArmPosition leftPile2 = servoAnglesToArmPosition(destArray[0], destArray[1], destArray[2], destArray[3]);
+        // std::cout << "leftPile2: " << leftPile2.r_ << " " << leftPile2.theta_ << " " << leftPile2.z_ << std::endl;
+
+        // // left arm
+        // {
+        //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(leftPile));
+        //     left_arm_positions.push (targetPosition);
+        // }
+
+        // waitForArmMotionSequenced();
+
+        // ArmPosition leftArm = getArmPosition(LEFT_ARM);
+        // std::cout << "leftArm: " << leftArm.r_ << " " << leftArm.theta_ << " " << leftArm.z_ << std::endl;
+
+        // ArmPosition rightArm = getArmPosition(RIGHT_ARM);
+        // std::cout << "rightArm: " << rightArm.r_ << " " << rightArm.theta_ << " " << rightArm.z_ << std::endl;
+
+        // while(true) ;;
 
         // Grab first item on right pile with left arm
 
-        // left arm
-        {
-            std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(rightPile));
-            targetPosition->z_ += LAYER_MOVEMENT_CLEARANCE;
-            left_arm_positions.push (targetPosition);
-        }
+        // // left arm
+        // {
+        //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(rightPile));
+        //     targetPosition->z_ += LAYER_MOVEMENT_CLEARANCE;
+        //     left_arm_positions.push (targetPosition);
+        // }
 
-        {
-            std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(rightPile));
-            left_arm_positions.push (targetPosition);
-        }
+        // {
+        //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(rightPile));
+        //     left_arm_positions.push (targetPosition);
+        // }
 
-        waitForArmMotionSequenced();
+        // waitForArmMotionSequenced();
 
-        std::cout << "Sequence finished" << std::endl;
+        // std::cout << "Sequence finished" << std::endl;
 
         return;
 
