@@ -44,12 +44,6 @@ namespace main_robot
 // at the end of the match.
 bool MATCH_COMPLETED = false;
 
-int const PUMP_RIGHT = 12;
-int const PUMP_LEFT = 13;
-
-int const VALVE_RIGHT = 24;
-int const VALVE_LEFT = 26;
-
 
 
 
@@ -86,30 +80,19 @@ void Strategy::setup(RobotInterface *robot)
     // Arms
     for (int i = 0; i < 4; i++)
     {
-        servo->setTargetPosition(10 + i, 2048);
-        servo->setTargetPosition(20 + i, 2048);
+        servo->setTargetPosition(RIGHT_ARM + i, 2048);
+        servo->setTargetPosition(LEFT_ARM + i, 2048);
     }
 
     // Change P gain of the first servos of each arm to prevent vibrations
-    servo->setPGain(10, 20);
-    servo->setPGain(20, 20);
-    servo->setPGain(11, 20);
-    servo->setPGain(21, 20);
+    servo->setPGain(RIGHT_ARM, 20);
+    servo->setPGain(LEFT_ARM, 20);
+    servo->setPGain(RIGHT_ARM + 1, 20);
+    servo->setPGain(LEFT_ARM + 1, 20);
 
     // Fold arm
-    // FIXME: why do I need to send it many times ?
-    // servo->setTargetPosition(11, 3000);
-    // servo->setTargetPosition(11, 3000);
-    // servo->setTargetPosition(11, 3000);
-    // servo->setTargetPosition(21, 1000);
-    // servo->setTargetPosition(21, 1000);
-    // servo->setTargetPosition(21, 1000);
-
-
-
-    while(true) ;;
-
-
+    servo->setTargetPosition(RIGHT_ARM + 1, 3000);
+    servo->setTargetPosition(LEFT_ARM + 1, 1000);
 
 }
 
@@ -182,6 +165,8 @@ void Strategy::match_impl()
     std::vector<RobotPosition> positions;
 
 
+    buildCakes();
+    while(true) ;;
     // Faire un carré pour faire un test de déplacement
 
 #if FAIRE_CARRE
@@ -566,14 +551,14 @@ void Strategy::match_impl()
     RobotPosition target_position = current_position + coeff*(genoese_top_right-current_position);
     go_to_straight_line(target_position);
     // set left arm to push genoese
-    set_left_arm_position(left_arm_left_down);
+    // set_left_arm_position(left_arm_left_down);
 
     // Bring the first genoese to the top left cream and ganache
     target_position = cream_ganache_top_left + RobotPosition(150,0,0);
     go_to_straight_line(target_position);
     // reset arm positions
-    set_left_arm_position(left_arm_center_up);
-    set_left_arm_position(left_arm_center_up);
+    // set_left_arm_position(left_arm_center_up);
+    // set_left_arm_position(left_arm_center_up);
     target_position = cream_ganache_top_left + RobotPosition(robot_chassis_front,0,0);
     go_to_straight_line(target_position);
 
@@ -583,18 +568,18 @@ void Strategy::match_impl()
     go_to_straight_line(target_position);
 
     // build cakes
-    build_cakes();
+    buildCakes();
     // set arms to push genoses
-    set_left_arm_position(left_arm_left_down);
-    set_right_arm_position(right_arm_right_down);
+    // set_left_arm_position(left_arm_left_down);
+    // set_right_arm_position(right_arm_right_down);
 
     // and then push them into the blue tray zone
     target_position = RobotPosition(target_position.x,2550-robot_chassis_front,0);
     go_to_straight_line(target_position);
 
     // reset arm positions
-    set_left_arm_position(left_arm_center_up);
-    set_right_arm_position(right_arm_center_up);
+    // set_left_arm_position(left_arm_center_up);
+    // set_right_arm_position(right_arm_center_up);
 
     // Go back
     target_position = RobotPosition(target_position.x,target_position.y-300,M_PI);
@@ -613,7 +598,7 @@ void Strategy::match_impl()
 
         // Push the bottom left genoese up to the bottom left cream and ganache
         // set left arm to push genoese
-        set_left_arm_position(left_arm_left_down);
+        // set_left_arm_position(left_arm_left_down);
 
         target_position = tmp_position;
         go_to_straight_line(target_position);
@@ -621,17 +606,17 @@ void Strategy::match_impl()
         go_to_straight_line(target_position);
 
         // reset arm positions
-        set_left_arm_position(left_arm_center_up);
+        // set_left_arm_position(left_arm_center_up);
 
         // Build the cakes and push them into the closest blue plate zone
         target_position = target_position + 100*RobotPosition(-std::cos(45*RAD),std::sin(45*RAD),0);
         go_to_straight_line(target_position);
 
         // build cakes
-        build_cakes();
+        // build_cakes();
         // set arms to push genoses
-        set_left_arm_position(left_arm_left_down);
-        set_right_arm_position(right_arm_right_down);
+        // set_left_arm_position(left_arm_left_down);
+        // set_right_arm_position(right_arm_right_down);
 
         target_position = RobotPosition(target_position.x,900-robot_chassis_front,0);
         go_to_straight_line(target_position);
@@ -657,30 +642,30 @@ void Strategy::match_impl()
 
         // Push the bottom left genoese up to the bottom left cream and ganache
         // set arms to push genoses
-        set_left_arm_position(left_arm_left_down);
+        // set_left_arm_position(left_arm_left_down);
         target_position = tmp_position;
         go_to_straight_line(target_position);
 
         // left arm up and right arm down to push genose
-        set_left_arm_position(left_arm_center_up);
-        set_right_arm_position(right_arm_right_down);
+        // set_left_arm_position(left_arm_center_up);
+        // set_right_arm_position(right_arm_right_down);
 
         target_position = cream_ganache_bottom_right + RobotPosition(-robot_chassis_front,0,0);
         go_to_straight_line(target_position);
 
         // left arm up and right arm down to push genose
-        set_left_arm_position(left_arm_left_down);
-        set_right_arm_position(right_arm_center_up);
+        // set_left_arm_position(left_arm_left_down);
+        // set_right_arm_position(right_arm_center_up);
 
         // Build the cakes and push them into the closest blue plate zone
         target_position = target_position + 100*RobotPosition(std::cos(45*RAD),-std::sin(45*RAD),0);
         go_to_straight_line(target_position);
 
         // build cakes
-        build_cakes();
+        // build_cakes();
         // set arms to push genoses
-        set_left_arm_position(left_arm_left_down);
-        set_right_arm_position(right_arm_right_down);
+        // set_left_arm_position(left_arm_left_down);
+        // set_right_arm_position(right_arm_right_down);
 
         target_position = RobotPosition(target_position.x,450+robot_chassis_front,0);
         go_to_straight_line(target_position);
@@ -727,59 +712,4 @@ void Strategy::match()
         //~ }
     }
 }
-
-bool Strategy::set_arm_position(ArmPosition const& armPosition, unsigned char servoID)
-{
-    std::array<double,4> armAngles;
-    bool result = common::arm_inverse_kinematics(armPosition.r_, armPosition.theta_, armPosition.z_, -M_PI_2, &armAngles);
-    if (result)
-    {
-        // move servo
-        for (int i = 0; i < 4; i++)
-        {
-            double angle = armAngles[i];
-            if (i == 0)
-                angle = -angle;
-            servo->setTargetPosition(LEFT_ARM_FIRST_SERVO_ID + i, STS::radToServoValue(angle));
-        }
-    }
-    return result;
-}
-
-
-bool Strategy::set_left_arm_position(ArmPosition const& armPosition)
-{
-    return set_arm_position(armPosition, LEFT_ARM_FIRST_SERVO_ID);
-}
-
-
-bool Strategy::set_right_arm_position(ArmPosition const& armPosition)
-{
-    return set_arm_position(armPosition, RIGHT_ARM_FIRST_SERVO_ID);
-}
-
-
-void Strategy::waitForArmMotion()
-{
-    bool done = false;
-    while (!done)
-    {
-        done = true;
-        for (int i = 0; i < 4; i++)
-        {
-            done &= !servo->isMoving(LEFT_ARM_FIRST_SERVO_ID + i);
-            done &= !servo->isMoving(RIGHT_ARM_FIRST_SERVO_ID + i);
-        }
-        usleep(20000);
-    }
-}
-
-void Strategy::build_cakes()
-{
-    std::cout << "Building cakes" << std::endl;
-
-    // TODO wait to mimick arm movement
-    robot->wait(5);
-}
-
 }

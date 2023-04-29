@@ -219,11 +219,13 @@
             /// \param[in] commandID Command id
             /// \param[in] paramLength length of the parameters
             /// \param[in] parameters parameters
+            /// \param[in] willRead Will this be followed by a read operation (closing is different)
             /// \return Result of write.
             int sendMessage(unsigned char const& servoId,
                             unsigned char const& commandID,
                             unsigned char const& paramLength,
-                            unsigned char *parameters);
+                            unsigned char *parameters,
+                            bool const& willRead = false);
 
             /// \brief Recieve a message from a given servo.
             /// \param[in] servoId ID of the servo
@@ -265,5 +267,6 @@
             int port_;        ///< Serial port file descriptor.
             int dirPin_;     ///< Direction pin number.
             double readTimeout_; ///< Read timeout, in ms.
+            int returnCode_; ///< Last return code.
     };
 #endif

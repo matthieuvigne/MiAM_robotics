@@ -42,6 +42,15 @@ namespace main_robot
         static ArmPosition DISTRIBUTOR_CHERRY(125, -0.55, -130);
     }
 
+    static int RIGHT_ARM = 10;
+    static int LEFT_ARM = 20;
+
+    static int const PUMP_RIGHT = 12;
+    static int const PUMP_LEFT = 13;
+    static int const VALVE_RIGHT = 24;
+    static int const VALVE_LEFT = 26;
+
+
     class Strategy : public AbstractStrategy
     {
     public:
@@ -69,22 +78,17 @@ namespace main_robot
             RobotPosition currentPosition,
             MotionPlanner &motionPlanner);
 
-        /// @brief Sets the left arm to a specific position
-        /// @param armPosition the arm position
-        bool set_left_arm_position(ArmPosition const& armPosition);
-
-        /// @brief Sets the right arm to a specific position
-        /// @param armPosition the arm position
-        bool set_right_arm_position(ArmPosition const& armPosition);
-
-        /// @brief Try to move an arm to a set position, returns false if could not be computed.
-        bool set_arm_position(ArmPosition const& armPosition, unsigned char servoID);
-
         /// @brief  \brief Blocks until arms have finished moving
         void waitForArmMotion();
 
+        /// @brief  Try to move an arm to a set position, returns false if could not be computed.
+        /// @param[in] armPosition Target arm position
+        /// @param[in] armFirstServoId Id of the first servo of the arm
+        /// @return True if compuation succeeded
+    bool setArmPosition(int const& armFirstServoId, ArmPosition const& armPosition);
+
         /// @brief Execute the cake building sequence
-        void build_cakes();
+        void buildCakes();
     };
 }
 

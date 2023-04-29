@@ -50,7 +50,7 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
         return false;
 
     // Test that a servo is present.
-    bool hasPing = false;
+    bool hasPing = true;
     for (unsigned char i = 0; i < 0xFE; i++)
         if (ping(i))
         {
@@ -61,16 +61,22 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
     {
         // Configure servos
         writeRegister(0xFE, STS::registers::WRITE_LOCK, 0);
-        // Set a return delay of 20us.
-        writeRegister(0xFE, STS::registers::RESPONSE_DELAY, 10);
+        usleep(1000);
+        // Set a return delay of 40us.
+        writeRegister(0xFE, STS::registers::RESPONSE_DELAY, 200);
+        usleep(1000);
         // Set a return status level of 0.
         writeRegister(0xFE, STS::registers::RESPONSE_STATUS_LEVEL, 0);
+        usleep(1000);
         // Set voltage limit to  8.5V
         writeRegister(0xFE, STS::registers::MAXIMUM_VOLTAGE, 85);
+        usleep(1000);
         // Set all protections on
         writeRegister(0xFE, STS::registers::UNLOADING_CONDITION, 44);
+        usleep(1000);
         // Lock EEPROM
         writeRegister(0xFE, STS::registers::WRITE_LOCK, 1);
+        usleep(1000);
         // Disable all servos
         disable(0xFE);
 
@@ -188,7 +194,12 @@ double STSServoDriver::getCurrentCurrent(unsigned char const& servoId)
 
 bool STSServoDriver::isMoving(unsigned char const& servoId)
 {
-    unsigned char const result = readRegister(servoId, STS::registers::MOVING_STATUS);
+    unsigned char result = readRegister(servoId, STS::registers::MOVING_STATUS);
+    // Try a second time on failure
+    if (returnCode_ < 0)
+        result = readRegister(servoId, STS::registers::MOVING_STATUS);
+    if (returnCode_ < 0)
+        std::cout << "isMoving: read fail" << std::endl;
     return result > 0;
 }
 
@@ -231,7 +242,8 @@ bool STSServoDriver::trigerAction()
 int STSServoDriver::sendMessage(unsigned char const& servoId,
                                 unsigned char const& commandID,
                                 unsigned char const& paramLength,
-                                unsigned char *parameters)
+                                unsigned char *parameters,
+                                bool const& willRead)
 {
     if (port_ < 0)
         return 0;
@@ -250,10 +262,19 @@ int STSServoDriver::sendMessage(unsigned char const& servoId,
     message[5 + paramLength] = ~checksum;
 
     RPi_writeGPIO(dirPin_, false);
-    usleep(5);
+    usleep(50);
     int ret = write(port_, message, 6 + paramLength);
-    usleep(5);
-    RPi_writeGPIO(dirPin_, true);
+    if (!willRead)
+    {
+        usleep(2);
+        tcflush(port_, TCOFLUSH);
+        usleep(10);
+        RPi_writeGPIO(dirPin_, true);
+    }
+    else
+    {
+        usleep(22);
+    }
     return ret;
 }
 
@@ -299,8 +320,8 @@ bool STSServoDriver::writeTwoBytesRegister(unsigned char const& servoId,
 unsigned char STSServoDriver::readRegister(unsigned char const& servoId, unsigned char const& registerId)
 {
     unsigned char result = 0;
-    int rc = readRegisters(servoId, registerId, 1, &result);
-    if (rc < 0)
+    returnCode_= readRegisters(servoId, registerId, 1, &result);
+    if (returnCode_ < 0)
         return 0;
     return result;
 }
@@ -309,8 +330,8 @@ unsigned char STSServoDriver::readRegister(unsigned char const& servoId, unsigne
 int16_t STSServoDriver::readTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId)
 {
     unsigned char result[2] = {0, 0};
-    int rc = readRegisters(servoId, registerId, 2, result);
-    if (rc < 0)
+    returnCode_ = readRegisters(servoId, registerId, 2, result);
+    if (returnCode_ < 0)
     {
         std::cout << "Failed to read" << std::endl;
         return 0;
@@ -325,8 +346,10 @@ int STSServoDriver::readRegisters(unsigned char const& servoId,
                                   unsigned char *outputBuffer)
 {
     tcflush(port_, TCIOFLUSH);
+    usleep(20);
+    tcflush(port_, TCIOFLUSH);
     unsigned char readParam[2] = {startRegister, readLength};
-    int send = sendMessage(servoId, instruction::READ, 2, readParam);
+    int send = sendMessage(servoId, instruction::READ, 2, readParam, true);
     // Failed to send
     if (send != 8)
         return -1;
