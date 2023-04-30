@@ -22,13 +22,14 @@ namespace main_robot
   namespace arm{
 
     // Reference positions of the cakes
-    double const CAKES_FRONT_DISTANCE = 0.115;
-    double const CAKES_SIDE_DISTANCE = 0.060;
+    double const CAKES_FRONT_DISTANCE = 0.120; //0.115; [REMOVE]
+    double const CAKES_SIDE_DISTANCE = 0.130; //0.060; [REMOVE]
     
     // Reference angles for left arm
-    double const MIDDLE_PILE_ANGLE = -0.27;
-    double const FRONT_PILE_ANGLE = 0.27;
-    double const SIDE_PILE_ANGLE = 1.2;
+    double constexpr RAD = M_PI/180.;
+    double const MIDDLE_PILE_ANGLE = -35.0*RAD; //-0.27;
+    double const FRONT_PILE_ANGLE = 15.5*RAD;
+    double const SIDE_PILE_ANGLE = 95*RAD;
     
     //~ // Reference angles for right arm
     //~ double const RIGHT_MIDDLE_PILE_ANGLE = -0.27;

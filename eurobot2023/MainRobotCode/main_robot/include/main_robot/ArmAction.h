@@ -64,8 +64,11 @@ namespace main_robot
             type_ = ActionType::MOVE;
         };
 
+        ArmPosition(ArmPosition const& reference)
+        : ArmPosition(reference.r_, reference.theta_, reference.z_) {}
+
         ArmPosition() : ArmPosition(0.0, 0.0, 0.0) {};
-        static ArmPosition initPositionFromReferenceAndZ(ArmPosition& reference, double z = std::nan("z"));
+        static ArmPosition initPositionFromReferenceAndZ(ArmPosition const& reference, double z = std::nan("z"));
     };
 
     class ArmPump : public ArmAction

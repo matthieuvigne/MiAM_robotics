@@ -50,7 +50,7 @@ namespace main_robot
         return ArmPosition(r, thetaHorizontal, z);
     }
 
-    ArmPosition ArmPosition::initPositionFromReferenceAndZ(ArmPosition& reference, double z)
+    ArmPosition ArmPosition::initPositionFromReferenceAndZ(ArmPosition const& reference, double z)
     {
         ArmPosition res(reference);
         if (!std::isnan(z))
@@ -62,7 +62,8 @@ namespace main_robot
 
     void Strategy::waitForArmMotion()
     {
-        usleep(500000);
+        //~ usleep(500000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         // return;
         bool done = false;
         while (!done)
@@ -70,22 +71,29 @@ namespace main_robot
             done = true;
             for (int i = 0; i < 4; i++)
             {
+                servo->mutex_.lock();
                 done &= !servo->isMoving(RIGHT_ARM + i);
                 done &= !servo->isMoving(LEFT_ARM + i);
+                servo->mutex_.unlock();
             }
-            usleep(20000);
+            //~ usleep(20000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
         }
     }
 
-    void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction > >& actions, int armServoId)
+    void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int armServoId)
     {
 
         // std::cout << "Depiling " << (armServoId == RIGHT_ARM ? "right" : "left") <<  " arm " << std::endl;
 
         std::string armName((armServoId == RIGHT_ARM ? "right" : "left"));
+        std::cout << ">>>>>> Number of actions in pile of " << armName << " arm: " << actions.size() << std::endl;
 
         while(!actions.empty())
         {
+            std::cout << "New action depiling " << (armServoId == RIGHT_ARM ? "right" : "left") << " arm " << std::endl;
+            std::cout << "Remaining actions: " << actions.size() << std::endl;
+          
             // std::cout << "Actions not empty: size " << actions.size() << std::endl;
             switch(actions.front()->type_)
             {
@@ -94,7 +102,8 @@ namespace main_robot
                 {
                     std::cout << "### Sync " << armName << std::endl;
                     actions.pop();
-                    return;
+                    std::cout << "Popped sync action" << std::endl;
+                    break;
                 }
                 case ActionType::WAIT :
                 {
@@ -102,9 +111,11 @@ namespace main_robot
                     ArmWait* action(dynamic_cast<ArmWait*>(actions.front().get()));
 
                     std::cout << ">>> Wait " << armName << " t=" << action->time_ << std::endl;
-                    usleep(uint(1e6 * action->time_));
+                    //~ usleep(uint(1e6 * action->time_));
+                    std::this_thread::sleep_for(std::chrono::microseconds(uint(1e6*action->time_)));
+                    std::cout << "Waited" << std::endl;
                     actions.pop();
-                    return;
+                    break;
                 }
                 case ActionType::PUMP :
                 {
@@ -115,6 +126,10 @@ namespace main_robot
                     int valveNumber = (armServoId == RIGHT_ARM) ? VALVE_RIGHT : VALVE_LEFT;
                     RPi_writeGPIO(pumpNumber, action->activated_);
                     RPi_writeGPIO(valveNumber, !action->activated_);
+                    if(!action->activated_){
+                      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                      RPi_writeGPIO(valveNumber, false);
+                    }
                     actions.pop();
                     break;
                 }
@@ -126,17 +141,22 @@ namespace main_robot
                     if (action->z_ > 0)
                         std::cout << ">>>>> WARNING : z is positive <<<<<" << std::endl;
                     setArmPosition(armServoId, *action);
-                    usleep(500000);
+                    //~ usleep(500000);
+                    std::this_thread::sleep_for(std::chrono::microseconds(50));
                     // return;
                     bool done = false;
+                    //~ std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now()
                     while (!done)
                     {
                         done = true;
                         for (int i = 0; i < 4; i++)
                         {
+                            servo->mutex_.lock();
                             done &= !servo->isMoving(armServoId + i);
+                            servo->mutex_.unlock();
                         }
-                        usleep(20000);
+                        //~ usleep(20000);
+                        std::this_thread::sleep_for(std::chrono::microseconds(2));
                     }  
                     actions.pop();
                     break;
@@ -179,9 +199,10 @@ namespace main_robot
         std::cout << "Current position: " << currentArmPosition << " - destination: " << destination << std::endl;
 
         // dans le cas ou on est sur la bonne pile, descendre directement
-        if (abs(moduloTwoPi(currentArmPosition.theta_ - destination.theta_)) > 5.0 * M_PI / 180.0)
+        if (abs(moduloTwoPi(currentArmPosition.theta_ - destination.theta_)) > 5.0 * M_PI / 180.0
+          && abs(currentArmPosition.z_ - destination.z_) > 1e-2)
         {
-            currentArmPosition.z_ = PILE_CLEAR_HEIGHT;
+            currentArmPosition.z_ = PILE_CLEAR_HEIGHT ;
 
             std::shared_ptr<ArmPosition > moveUp(new ArmPosition(currentArmPosition));
             res.push_back(moveUp);
@@ -190,7 +211,6 @@ namespace main_robot
             std::shared_ptr<ArmPosition > moveSide(new ArmPosition(currentArmPosition));
             res.push_back(moveSide);
         }
-
         std::shared_ptr<ArmPosition > moveDown(new ArmPosition(destination));
         res.push_back(moveDown);
 
@@ -212,11 +232,13 @@ namespace main_robot
     {
         
         // lire les 4 angles
+        servo->mutex_.lock();
         double thetaHorizontal = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 0));
         double theta12 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 1));
         double theta23 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 2));
         double theta34 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 3));
-
+        servo->mutex_.unlock();
+        
         std::cout << "Read servo " << armFirstServoId << " : " << thetaHorizontal << " " << theta12 << " " << theta23 << " " << theta34 << std::endl; 
 
         if (armFirstServoId == RIGHT_ARM)
@@ -277,10 +299,15 @@ namespace main_robot
             {
                 double angle = armAngles[i];
                 // std::cout << angle << " ";
-                if (armFirstServoId == RIGHT_ARM)
+                if(i==0 && armFirstServoId == LEFT_ARM)
+                  angle = -angle;
+                if(i>0 && armFirstServoId == RIGHT_ARM)
                     angle = -angle;
+                servo->mutex_.lock();
                 servo->setTargetPosition(armFirstServoId + i, STS::radToServoValue(angle));
-                usleep(50);
+                servo->mutex_.unlock();
+                //~ usleep(50);
+                std::this_thread::sleep_for(std::chrono::microseconds(50));
             }
             // std::cout << std::endl;
             ArmPosition pos = servoAnglesToArmPosition(armAngles[0], armAngles[1], armAngles[2], armAngles[3]);

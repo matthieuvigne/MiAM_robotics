@@ -80,20 +80,25 @@ void Strategy::setup(RobotInterface *robot)
     // Arms
     for (int i = 0; i < 4; i++)
     {
+        servo->mutex_.lock();
         servo->setTargetPosition(RIGHT_ARM + i, 2048);
         servo->setTargetPosition(LEFT_ARM + i, 2048);
+        servo->mutex_.unlock();
     }
 
     // Change P gain of the first servos of each arm to prevent vibrations
+    servo->mutex_.lock();
     servo->setPGain(RIGHT_ARM, 20);
     servo->setPGain(LEFT_ARM, 20);
     servo->setPGain(RIGHT_ARM + 1, 20);
     servo->setPGain(LEFT_ARM + 1, 20);
-
+    servo->mutex_.unlock();
+    
     // Fold arm
+    servo->mutex_.lock();
     servo->setTargetPosition(RIGHT_ARM + 1, 3000);
     servo->setTargetPosition(LEFT_ARM + 1, 1000);
-
+    servo->mutex_.unlock();
 }
 
 void Strategy::shutdown()
@@ -163,6 +168,8 @@ void Strategy::match_impl()
     TrajectoryVector traj;
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
+
+    std::cout<<"AAAA"<<std::endl;
 
 
     buildCakes();
@@ -568,6 +575,7 @@ void Strategy::match_impl()
     go_to_straight_line(target_position);
 
     // build cakes
+    std::cout << "Cakes are coming" << std::endl;
     buildCakes();
     // set arms to push genoses
     // set_left_arm_position(left_arm_left_down);
