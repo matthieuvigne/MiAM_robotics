@@ -32,13 +32,17 @@ void Strategy::changePileHeight(int pileIndex, int delta)
 int Strategy::getPileHeight(int pileIndex)
 {
     int height = pileHeight[pileIndex];
-    std::cout << "Pile state is " << pileHeight[0] << " " << pileHeight[1] << " " << pileHeight[2] << " " << pileHeight[3] << " " << pileHeight[4] << std::endl;
+    std::cout << "Pile state is " 
+      << pileHeight[PILE_IDX::LEFT_SIDE] << " " 
+      << pileHeight[PILE_IDX::LEFT_FRONT] << " " 
+      << pileHeight[PILE_IDX::MIDDLE] << " " 
+      << pileHeight[PILE_IDX::RIGHT_FRONT] << " " 
+      << pileHeight[PILE_IDX::RIGHT_SIDE] << std::endl;
     return height;
 }
 
 void Strategy::addPositionToQueue_Left(ArmPosition target)
 {
-    // std::cout << "Request position: " << std::endl;
     std::vector<ArmPosition::Ptr > seq = computeSequenceToPosition(LEFT_ARM, target);
     for (auto& ap : seq)
     {
@@ -80,17 +84,17 @@ void Strategy::buildCakes()
     std::cout << "Building cakes" << std::endl;
     
     // right arm has inverted angles!
-    ArmPosition leftPile(arm::CAKES_FRONT_DISTANCE, arm::FRONT_LEFT_ANGLE, arm::GROUND_HEIGHT + 0.060);
-    ArmPosition rightPile(arm::CAKES_FRONT_DISTANCE, arm::FRONT_RIGHT_ANGLE, arm::GROUND_HEIGHT + 0.060);
-    ArmPosition sidePile(arm::CAKES_SIDE_DISTANCE, arm::SIDE_ANGLE, arm::GROUND_HEIGHT + 0.020 + 0.020);
+    ArmPosition middlePile(arm::CAKES_FRONT_DISTANCE, arm::FRONT_PILE_ANGLE, arm::GROUND_HEIGHT + 60e-3);
+    ArmPosition frontPile(arm::CAKES_FRONT_DISTANCE, arm::MIDDLE_PILE_ANGLE, arm::GROUND_HEIGHT + 60e-3);
+    ArmPosition sidePile(arm::CAKES_SIDE_DISTANCE, arm::SIDE_PILE_ANGLE, arm::GROUND_HEIGHT + 40e-3);
 
     // reset piles and arm positions
 
-    pileHeight[0] = 0;
-    pileHeight[1] = 3;
-    pileHeight[2] = 3;
-    pileHeight[3] = 3;
-    pileHeight[4] = 0;
+    pileHeight[PILE_IDX::LEFT_SIDE] = 0;
+    pileHeight[PILE_IDX::LEFT_FRONT] = 3;
+    pileHeight[PILE_IDX::MIDDLE] = 3;
+    pileHeight[PILE_IDX::RIGHT_FRONT] = 3;
+    pileHeight[PILE_IDX::RIGHT_SIDE] = 0;
 
     last_left_position = getArmPosition(LEFT_ARM);
     last_right_position = getArmPosition(RIGHT_ARM);
@@ -98,170 +102,237 @@ void Strategy::buildCakes()
     std::cout << "Initial left position: " << last_left_position << std::endl;
     std::cout << "Initial right position: " << last_right_position << std::endl;
 
-    // bras gauche va au milieu 
-    addPositionToQueue_Left(
-        ArmPosition::initPositionFromReferenceAndZ(rightPile, arm::PILE_CLEAR_HEIGHT)
-    );
-
-    // bras gauche allume sa pompe
+    // First synchronize block
+    // -----------------------
+    // Left arm goes middle
+    double z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    // Left arm turns its pump on, and goes down to take a genoese
     addPumpToLeftQueue(true);
-
-    // bras gauche descend
-    // bras gauche prend une genoise
-    {
-        
-        ArmPosition target = rightPile;
-        target.z_ = arm::GROUND_HEIGHT + getPileHeight(2) * arm::LAYER_HEIGHT;
-        addPositionToQueue_Left(target);
-        changePileHeight(3, -1);
-    }
-
-    {
-        
-        ArmWait::Ptr target(new ArmWait(0.5));
-        left_arm_positions.push(target);
-    }
-
-    // bras gauche remonte
-    {
-        
-        ArmPosition target = rightPile;
-        target.z_ = arm::PILE_CLEAR_HEIGHT;
-        addPositionToQueue_Left(target);
-    }
-
-    // SYNC   
+    z = arm::GROUND_HEIGHT + getPileHeight(2) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    changePileHeight(PILE_IDX::MIDDLE, -1);
+    ArmAction::Ptr target(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    // Left arm goes up
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    // Synchronize
     addSyncToQueue();
-
-
-    waitForArmMotionSequenced();
-    // while(true) ;;
-
-    // bras gauche va side pile et depose sa genoise
-    {
-        
-        changePileHeight(0, 1);
-        ArmPosition target = sidePile;
-        target.z_ = arm::GROUND_HEIGHT + getPileHeight(0) * arm::LAYER_HEIGHT;
-        addPositionToQueue_Left(target);
-    }
-    {
-        
-        ArmPump::Ptr target(new ArmPump(false));
-        left_arm_positions.push(target);
-    }
-    {
-        
-        ArmWait::Ptr target(new ArmWait(0.5));
-        left_arm_positions.push(target);
-    }
-    {
-        
-        ArmPosition target = sidePile;
-        target.z_ = arm::PILE_CLEAR_HEIGHT;
-        addPositionToQueue_Left(target);
-    }
-
-    // bras droit va au cemtre et va prendre sa genoise
-    {
-        
-        ArmPosition target = rightPile;
-        target.z_ = arm::PILE_CLEAR_HEIGHT;
-        addPositionToQueue_Right(target);
-    }
-    // bras droit allume sa pompe
-    {
-        
-        ArmPump::Ptr target(new ArmPump(true));
-        right_arm_positions.push(target);
-    }
-    {
-        
-        ArmPosition target = rightPile;
-        target.z_ = arm::GROUND_HEIGHT + getPileHeight(3) * arm::LAYER_HEIGHT;
-        addPositionToQueue_Right(target);
-        changePileHeight(3, -1);
-    }
-    {
-        
-        ArmWait::Ptr target(new ArmWait(0.5));
-        left_arm_positions.push(target);
-    }
-    {
-        
-        changePileHeight(4, 1);
-        ArmPosition target = sidePile;
-        target.z_ = arm::GROUND_HEIGHT + getPileHeight(4) * arm::LAYER_HEIGHT;
-        addPositionToQueue_Right(target);
-    }
-    {
-        
-        ArmPump::Ptr target(new ArmPump(false));
-        right_arm_positions.push(target);
-    }
-    {
-        
-        ArmWait::Ptr target(new ArmWait(0.5));
-        left_arm_positions.push(target);
-    }
-    {
-        
-        ArmPosition target = sidePile;
-        target.z_ = arm::PILE_CLEAR_HEIGHT;
-        addPositionToQueue_Right(target);
-    }
-
-    // SYNC
-    addSyncToQueue();
-
     waitForArmMotionSequenced();
 
-    while(true) ;;
+    // Second synchronize block
+    // ------------------------
+    // Left arm goes to side pile and delivers its genoese
+    changePileHeight(PILE_IDX::LEFT_SIDE, 1);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::LEFT_SIDE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(sidePile, z));
+    target.reset(new ArmPump(false));
+    left_arm_positions.push(target);
+    target.reset(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(sidePile, z));
+    // Right arm goes to center, turns its pump on and takes its genoese
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(middlePile, z));
+    target.reset(new ArmPump(true));
+    right_arm_positions.push(target);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::MIDDLE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(middlePile, z));
+    changePileHeight(PILE_IDX::MIDDLE, -1);
+    target.reset(new ArmWait(0.5));
+    right_arm_positions.push(target);
+    // Right arm goes to side pile and delivers its genoese
+    changePileHeight(PILE_IDX::RIGHT_SIDE, 1);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::RIGHT_SIDE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(sidePile, z));
+    target.reset(new ArmPump(false));
+    right_arm_positions.push(target);
+    target.reset(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(sidePile, z));
+    // Synchronize
+    addSyncToQueue();
+    waitForArmMotionSequenced();
 
-    // bras droit remonte et va side pile et depose
-    // bras gauche va pile du milieu et prend sa creme
-    // bras gauche remonte et pose la creme au milieu
-    // bras gauche remonte et va au dessus de la pile de gauche
-    // SYNC
+    // Third synchronize block
+    // -----------------------
+    // Left arm goes to front pile and takes a cream, and delivers it on the middle pile
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    target.reset(new ArmPump(true));
+    left_arm_positions.push(target);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::LEFT_FRONT) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    target.reset(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    changePileHeight(PILE_IDX::LEFT_FRONT, -1);
+    changePileHeight(PILE_IDX::MIDDLE, 1);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::MIDDLE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(middlePile, z));
+    target.reset(new ArmPump(false));
+    left_arm_positions.push(target);
+    target.reset(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    // Left returns to the left front pile
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    // Synchronize
+    addSyncToQueue();
+    waitForArmMotionSequenced();
+    
+    // Fourth synchronize block
+    // ------------------------
+    // Left arm takes a cream from the front pile
+    target.reset(new ArmPump(true));
+    left_arm_positions.push(target);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::LEFT_FRONT) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    target.reset(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    changePileHeight(PILE_IDX::LEFT_FRONT, -1);
+    // Left arm delivers the cream to the side pile
+    changePileHeight(PILE_IDX::LEFT_SIDE, 1);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::LEFT_SIDE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(sidePile, z));
+    target.reset(new ArmPump(false));
+    left_arm_positions.push(target);
+    target.reset(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    // Left arm goes over its front pile
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    // Right arm takes the cream from the middle pile 
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(middlePile, z));
+    target.reset(new ArmPump(true));
+    right_arm_positions.push(target);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::MIDDLE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(middlePile, z));
+    target.reset(new ArmWait(0.5));
+    right_arm_positions.push(target);
+    changePileHeight(PILE_IDX::MIDDLE, -1);
+    // Right arm delivers it to the side pile
+    changePileHeight(PILE_IDX::RIGHT_SIDE, 1);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::RIGHT_SIDE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(sidePile, z));
+    target.reset(new ArmPump(false));
+    right_arm_positions.push(target);
+    target.reset(new ArmWait(0.5));
+    right_arm_positions.push(target);
+    // Right arm goes over its front pile
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    // Synchronize
+    addSyncToQueue();
+    waitForArmMotionSequenced();
 
-    // bras gauche descend et prend la creme
-    // bras gauche le pose sur side pile
-    // bras droit va au milieu et prend la creme
-    // bras droit le pose sur sa side pile
-    // SYNC
+    // Fifth synchronize block
+    // -----------------------
+    // Left arm moves cream from its front pile to the middle pile
+    target.reset(new ArmPump(true));
+    left_arm_positions.push(target);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::LEFT_FRONT) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    target.reset(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    changePileHeight(PILE_IDX::LEFT_FRONT, -1);
+    // Left arm goes to the middle pile and delivers the cream
+    changePileHeight(PILE_IDX::MIDDLE, 1);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::MIDDLE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(middlePile, z));
+    target.reset(new ArmPump(false));
+    left_arm_positions.push(target);
+    target.reset(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    // Left arm goes over the front pile
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    // Right arm picks the ganache from its front pile
+    target.reset(new ArmPump(true));
+    right_arm_positions.push(target);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::RIGHT_FRONT) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(middlePile, z));
+    target.reset(new ArmWait(0.5));
+    right_arm_positions.push(target);
+    changePileHeight(PILE_IDX::RIGHT_FRONT, -1);
+    // Synchronize
+    addSyncToQueue();
+    waitForArmMotionSequenced();
 
-    // bras gauche prend creme pile de gauche
-    // bras gauche l'emmene sur pile du centre
-    // bras droit va pile de droite
-    // bras droit prend la ganache
-    // bras droit l'emmene sur sa side pile
-    // SYNC
-
-    // bras gauche va a gauche
-    // bras droit va a droite
-    // bras droit prend la ganache et l'emmene au milieu
-    // bras droit retourne sur pile de droite
-    // SYNC
-
-    // bras gauche va chercher la ganache au milieu
-    // bras gauche l'emmene au dessus de sa side pile
-    // SYNC
-
-    // bras gauche la pose sur sa side pile
-    // bras droit prend la ganache sur la pile de droite
-    // bras droit la pose sur la pile du milieu
-    // END
-
-
-
-
-
-
-
-
-
-
-
+    // Sixth synchronize block
+    // -----------------------
+    // Right arm delivers ganache to the middle pile
+    changePileHeight(PILE_IDX::MIDDLE, 1);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::MIDDLE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(middlePile, z));
+    target.reset(new ArmPump(false));
+    right_arm_positions.push(target);
+    target.reset(new ArmWait(0.5));
+    right_arm_positions.push(target);
+    // Right arm returns over its front pile
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    // Synchronize
+    addSyncToQueue();
+    waitForArmMotionSequenced();
+    
+    // Seventh synchronize block
+    // -------------------------
+    // Left arm takes the ganache from the middle pile
+    target.reset(new ArmPump(true));
+    left_arm_positions.push(target);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::MIDDLE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(middlePile, z));
+    target.reset(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    changePileHeight(PILE_IDX::MIDDLE, -1);
+    // Left arm delivers the ganache to the side pile
+    changePileHeight(PILE_IDX::LEFT_SIDE, 1);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::MIDDLE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Left(ArmPosition::initPositionFromReferenceAndZ(sidePile, z));
+    target.reset(new ArmPump(false));
+    left_arm_positions.push(target);
+    target.reset(new ArmWait(0.5));
+    left_arm_positions.push(target);
+    // Right arm moves ganache from front pile to side pile
+    target.reset(new ArmPump(true));
+    right_arm_positions.push(target);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::RIGHT_FRONT) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    target.reset(new ArmWait(0.5));
+    right_arm_positions.push(target);
+    changePileHeight(PILE_IDX::MIDDLE, -1);
+    changePileHeight(PILE_IDX::RIGHT_SIDE, 1);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::RIGHT_SIDE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(sidePile, z));
+    target.reset(new ArmPump(false));
+    right_arm_positions.push(target);
+    target.reset(new ArmWait(0.5));
+    right_arm_positions.push(target);
+    // Right arm moves over front pile
+    z = arm::PILE_CLEAR_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    // Right arm moves ganache from front pile to side pile
+    target.reset(new ArmPump(true));
+    right_arm_positions.push(target);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::RIGHT_FRONT) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(frontPile, z));
+    target.reset(new ArmWait(0.5));
+    right_arm_positions.push(target);
+    changePileHeight(PILE_IDX::MIDDLE, -1);
+    changePileHeight(PILE_IDX::MIDDLE, 1);
+    z = arm::GROUND_HEIGHT + getPileHeight(PILE_IDX::MIDDLE) * arm::LAYER_HEIGHT;
+    addPositionToQueue_Right(ArmPosition::initPositionFromReferenceAndZ(middlePile, z));
+    target.reset(new ArmPump(false));
+    right_arm_positions.push(target);
+    target.reset(new ArmWait(0.5));
+    right_arm_positions.push(target);
+    // Synchronize
+    addSyncToQueue();
+    waitForArmMotionSequenced();
 
     // std::vector<std::shared_ptr<ArmPosition > > seq = computeSequenceToPosition(LEFT_ARM, sidePile);
     // for (auto& ap : seq)
@@ -275,17 +346,17 @@ void Strategy::buildCakes()
 
 
 
-    // std::cout << "leftPile: " << leftPile.r_ << " " << leftPile.theta_ << " " << leftPile.z_ << std::endl;
+    // std::cout << "middlePile: " << middlePile.r_ << " " << middlePile.theta_ << " " << middlePile.z_ << std::endl;
 
 
     // std::array<double, 4 > destArray;
-    // common::arm_inverse_kinematics(leftPile.r_, leftPile.theta_, leftPile.z_, -M_PI_2, &destArray);
-    // ArmPosition leftPile2 = servoAnglesToArmPosition(destArray[0], destArray[1], destArray[2], destArray[3]);
-    // std::cout << "leftPile2: " << leftPile2.r_ << " " << leftPile2.theta_ << " " << leftPile2.z_ << std::endl;
+    // common::arm_inverse_kinematics(middlePile.r_, middlePile.theta_, middlePile.z_, -M_PI_2, &destArray);
+    // ArmPosition middlePile2 = servoAnglesToArmPosition(destArray[0], destArray[1], destArray[2], destArray[3]);
+    // std::cout << "middlePile2: " << middlePile2.r_ << " " << middlePile2.theta_ << " " << middlePile2.z_ << std::endl;
 
     // // left arm
     // {
-    //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(leftPile));
+    //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(middlePile));
     //     left_arm_positions.push (targetPosition);
     // }
 
@@ -303,13 +374,13 @@ void Strategy::buildCakes()
 
     // // left arm
     // {
-    //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(rightPile));
+    //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(frontPile));
     //     targetPosition->z_ += LAYER_MOVEMENT_CLEARANCE;
     //     left_arm_positions.push (targetPosition);
     // }
 
     // {
-    //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(rightPile));
+    //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(frontPile));
     //     left_arm_positions.push (targetPosition);
     // }
 
@@ -324,7 +395,7 @@ void Strategy::buildCakes()
 
 
     // go above right pile
-    ArmPosition targetPosition = rightPile;
+    ArmPosition targetPosition = frontPile;
     targetPosition.z_ += LAYER_MOVEMENT_CLEARANCE;
     setArmPosition(LEFT_ARM, targetPosition);
     waitForArmMotion();
@@ -354,7 +425,7 @@ void Strategy::buildCakes()
 
 
     // // Grab first item on right pile with left arm
-    // ArmPosition targetPosition = rightPile;
+    // ArmPosition targetPosition = frontPile;
     // targetPosition.z_ += LAYER_MOVEMENT_CLEARANCE;
     // setArmPosition(LEFT_ARM, targetPosition);
     // waitForArmMotion();

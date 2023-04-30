@@ -19,104 +19,107 @@
 
 namespace main_robot
 {
+  namespace arm{
+
+    // Reference positions of the cakes
+    double const CAKES_FRONT_DISTANCE = 0.115;
+    double const CAKES_SIDE_DISTANCE = 0.060;
     
+    // Reference angles for left arm
+    double const MIDDLE_PILE_ANGLE = -0.27;
+    double const FRONT_PILE_ANGLE = 0.27;
+    double const SIDE_PILE_ANGLE = 1.2;
+    
+    //~ // Reference angles for right arm
+    //~ double const RIGHT_MIDDLE_PILE_ANGLE = -0.27;
+    //~ double const RIGHT_FRONT_PILE_ANGLE = 0.27;
+    //~ double const RIGHT_SIDE_PILE_ANGLE = 1.2;
+    
+    // Reference layer heights
+    double const GROUND_HEIGHT = -0.195;
+    double const PILE_CLEAR_HEIGHT = GROUND_HEIGHT + 0.085;
+    double const LAYER_HEIGHT = 0.02;
+    double const LAYER_MOVEMENT_CLEARANCE = 0.025;
 
-    // inline std::ostream& operator<<(std::ostream &s, const ArmPosition &armPosition)
-    // {
-    //     return s << "[" << armPosition.r_ << ", " << armPosition.theta_ << ", " << armPosition.z_ << "]";
-    // }
+    static ArmPosition DISTRIBUTOR_CHERRY(125, -0.55, -130);
+    ArmPosition servoAnglesToArmPosition(double thetaH, double thetaV1, double thetaV2, double thetaV3);
+    
+  } // namespace arm
 
-    namespace arm{
-        double const GROUND_HEIGHT = -0.195;
-
-        // Position of the cakes
-        double const CAKES_FRONT_DISTANCE = 0.115;
-        double const CAKES_SIDE_DISTANCE = 0.060;
-        double const FRONT_RIGHT_ANGLE = -0.27;
-        double const FRONT_LEFT_ANGLE = 0.27;
-        double const SIDE_ANGLE = 1.2;
-
-        double const PILE_CLEAR_HEIGHT = GROUND_HEIGHT + 0.085;
-        static ArmPosition DISTRIBUTOR_CHERRY(125, -0.55, -130);
-
-        double const LAYER_HEIGHT = 0.02;
-        double const LAYER_MOVEMENT_CLEARANCE = 0.025;
-
-        ArmPosition servoAnglesToArmPosition(double thetaHorizontal, double theta12, double theta23, double theta34);
-    }
-
-    static int const RIGHT_ARM = 10;
-    static int const LEFT_ARM = 20;
-
-    static int const PUMP_RIGHT = 12;
-    static int const PUMP_LEFT = 13;
-    static int const VALVE_RIGHT = 24;
-    static int const VALVE_LEFT = 26;
+  // Reference indexes
+  static int const RIGHT_ARM = 10;
+  static int const LEFT_ARM = 20;
+  static int const PUMP_RIGHT = 12;
+  static int const PUMP_LEFT = 13;
+  static int const VALVE_RIGHT = 24;
+  static int const VALVE_LEFT = 26;
 
 
-    class Strategy : public AbstractStrategy
-    {
+  class Strategy : public AbstractStrategy
+  {
     public:
-        // Constructor
-        Strategy();
 
-        // Called before the start of the match, to setup the robot.
-        void setup(RobotInterface *robot) override;
+      // Constructor
+      Strategy();
 
-        // Code executed when shutting down the robot
-        void shutdown() override;
+      // Called before the start of the match, to setup the robot.
+      void setup(RobotInterface *robot) override;
 
-        // The actual match code, which runs in its own thread.
-        void match() override;
+      // Code executed when shutting down the robot
+      void shutdown() override;
 
-        bool moveArm(double r, double angle, double z);
+      // The actual match code, which runs in its own thread.
+      void match() override;
+
+      bool moveArm(double r, double angle, double z);
 
     private:
 
-        std::queue<std::shared_ptr<ArmAction > > left_arm_positions;
-        std::queue<std::shared_ptr<ArmAction > > right_arm_positions;
-        std::mutex pileLock;
-        std::array<int, 5> pileHeight;
+      std::queue<std::shared_ptr<ArmAction > > left_arm_positions;
+      std::queue<std::shared_ptr<ArmAction > > right_arm_positions;
+      std::mutex pileLock;
+      std::array<int, 5> pileHeight;
+      enum PILE_IDX {LEFT_SIDE = 0,LEFT_FRONT = 1, MIDDLE = 2, RIGHT_FRONT = 3, RIGHT_SIDE = 4};
 
-        ArmPosition last_left_position;
-        ArmPosition last_right_position;
+      ArmPosition last_left_position;
+      ArmPosition last_right_position;
 
-        void addPositionToQueue_Right(ArmPosition target);
-        void addPositionToQueue_Left(ArmPosition target);
-        void addSyncToQueue();
-        void changePileHeight(int pileIndex, int delta);
-        int getPileHeight(int pileIndex);
-        void addPumpToLeftQueue(bool activated);
-        void addPumpToRightQueue(bool activated);
+      void addPositionToQueue_Right(ArmPosition target);
+      void addPositionToQueue_Left(ArmPosition target);
+      void addSyncToQueue();
+      void changePileHeight(int pileIndex, int delta);
+      int getPileHeight(int pileIndex);
+      void addPumpToLeftQueue(bool activated);
+      void addPumpToRightQueue(bool activated);
 
-        void match_impl(); /// Actual implementation of the match code.
+      void match_impl(); /// Actual implementation of the match code.
 
-        STSServoDriver *servo;
+      STSServoDriver *servo;
 
-        Action *chooseNextAction(
-            std::vector<Action> &actions,
-            RobotPosition currentPosition,
-            MotionPlanner &motionPlanner);
+      Action *chooseNextAction(
+          std::vector<Action> &actions,
+          RobotPosition currentPosition,
+          MotionPlanner &motionPlanner);
 
-        /// @brief  \brief Blocks until arms have finished moving
-        ArmPosition getArmPosition(int const& armFirstServoId);
-        void waitForArmMotion();
-        void waitForArmMotionSequenced();
-        void depileArm(std::queue<std::shared_ptr<ArmAction > >& actions, int armServoId);
-        std::vector<std::shared_ptr<ArmPosition > > computeSequenceToPosition(int const& armFirstServoId, ArmPosition& destination);
+      /// @brief  \brief Blocks until arms have finished moving
+      ArmPosition getArmPosition(int const& armFirstServoId);
+      void waitForArmMotion();
+      void waitForArmMotionSequenced();
+      void depileArm(std::queue<std::shared_ptr<ArmAction > >& actions, int armServoId);
+      std::vector<std::shared_ptr<ArmPosition > > computeSequenceToPosition(int const& armFirstServoId, ArmPosition& destination);
 
-        /// @brief  Try to move an arm to a set position, returns false if could not be computed.
-        /// @param[in] armPosition Target arm position
-        /// @param[in] armFirstServoId Id of the first servo of the arm
-        /// @return True if compuation succeeded
-    bool setArmPosition(int const& armFirstServoId, ArmPosition const& armPosition);
+      /// @brief  Try to move an arm to a set position, returns false if could not be computed.
+      /// @param[in] armPosition Target arm position
+      /// @param[in] armFirstServoId Id of the first servo of the arm
+      /// @return True if compuation succeeded
+      bool setArmPosition(int const& armFirstServoId, ArmPosition const& armPosition);
 
-        /// @brief Execute the cake building sequence
-        void buildCakes();
-    };
+      /// @brief Execute the cake building sequence
+      void buildCakes();
+  };
 
 
-    std::ostream& operator<<(std::ostream& os, const main_robot::ArmPosition& p);
+  std::ostream& operator<<(std::ostream& os, const main_robot::ArmPosition& p);
 }
 
 

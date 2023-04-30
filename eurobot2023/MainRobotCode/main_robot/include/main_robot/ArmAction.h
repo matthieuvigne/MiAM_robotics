@@ -24,6 +24,7 @@ namespace main_robot
     class ArmAction
     {
     public:
+        typedef std::shared_ptr<ArmAction> Ptr;
         ArmAction() {}
         virtual ~ArmAction() = default;
         ActionType type_;
