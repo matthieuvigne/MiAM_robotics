@@ -10,6 +10,9 @@ import shutil
 import os
 from fractions import Fraction
 
+import socket
+import select
+
 from picamera import mmal, mmalobj, exc
 from picamera.mmalobj import to_rational
 
@@ -191,6 +194,19 @@ if __name__ == "__main__":
 
   # Setup raspberry
   camera = picamera.PiCamera(resolution = RESOLUTION_PARAMETER)
+  
+  # setup server
+  client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
+  client.setblocking(0)
+  client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+  # Enable broadcasting mode
+  client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+  client.bind(("", 37020))
+
+  inputs = [client]
+  outputs = []
+  message_queues = {}
 
   sleep(2.0)
 
@@ -224,6 +240,15 @@ if __name__ == "__main__":
   
   while(iter_idx<max_iters):
     print("Start iter")
+
+    print("Trying to receive")
+    readable, writable, exceptional = select.select(
+        inputs, outputs, inputs, 0) # non blocking
+    if client in readable:
+      print("receiving")
+      data, addr = client.recvfrom(1024)
+      print("received message: %s" % data)
+
 
     # Set LCD color to blue
     lcd.color = [0, 100, 0]
