@@ -36,12 +36,10 @@ STSServoDriver::STSServoDriver(double const& readTimeout):
     dirPin_(0),
     readTimeout_(readTimeout)
 {
-    std::cout << "STS constructor" << std::endl;
     for (int i = 0; i < 256; i++)
     {
         lastCommands_[(unsigned char) i] = -1;
     }
-    std::cout << "STS inited" << std::endl;
 }
 
 

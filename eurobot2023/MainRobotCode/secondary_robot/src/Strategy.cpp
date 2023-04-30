@@ -123,7 +123,6 @@ Action* Strategy::chooseNextAction(
 
 void Strategy::match_impl()
 {
-
     // Create required variables.
     RobotPosition targetPosition;
     TrajectoryVector traj;

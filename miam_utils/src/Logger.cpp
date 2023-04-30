@@ -32,7 +32,7 @@ void Logger::start(std::string const& filename, std::string const& teleplotPrefi
     // Wait for thread to finish
     if (thread_.joinable())
         thread_.join();
-    askForTerminate_ = true;
+    askForTerminate_ = false;
     thread_ = std::thread(&Logger::loggerThread, this, filename);
 }
 
