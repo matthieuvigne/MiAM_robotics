@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from picamera import mmal, mmalobj, exc
 from picamera.mmalobj import to_rational
 
