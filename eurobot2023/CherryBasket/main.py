@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from time import sleep
+from time import sleep, time
 import os
 
 import socket
@@ -24,10 +24,11 @@ if __name__ == "__main__":
   print("LCDHandler")
   lcd = LCDHandler()
   lcd.messageInit()
-  LCDHandler.beginMonitoring(lcd)
+  lcd.beginMonitoring()
 
   print("CherryCounter")
   cherry_counter = CherryCounter()
+  cherry_counter.beginCountingCherries()
 
   # setup server
   client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
@@ -51,12 +52,18 @@ if __name__ == "__main__":
   outputs = []
   message_queues = {}
 
-  iter_idx = 0
-  max_iters = 100
+  matchStarted = False
+  matchStartTime = 0
+  matchFinished = False
+  lastCherryCount = 0
 
-  while(iter_idx<max_iters):
-    print("Start iter")
 
+  while(True):
+
+    print("matchStarted ", matchStarted)
+
+    # Two ways to start match: either receive signal from
+    # network or press button
     print("Trying to receive")
     readable, writable, exceptional = select.select(
         inputs, outputs, inputs, 0) # non blocking
@@ -64,20 +71,36 @@ if __name__ == "__main__":
       print("receiving")
       data, addr = client.recvfrom(1024)
       print("received message: %s" % data)
+      matchStarted = True
+      matchStartTime = time()
+      matchFinished = False
 
+    if lcd.stateChanged:
+      matchStarted = not matchStarted
+      matchFinished = False
+      matchStartTime = time()
+      lcd.resetStateChanged()
+      print("Reset match")
+
+    if not matchStarted:
+      # Set LCD color to blue
+      lcd.setLCDColor(0, 0, 100)
+      lcd.setLCDMessage("Wait for start".rjust(16, " ") + "\n" + (str(cherry_counter.num_cherries) + " cherries").rjust(16, " "))
+    elif matchStarted and not matchFinished:
     # Set LCD color to green
-    lcd.setLCDColor(0, 100, 0)
-    
-    # Method with picamera
-    num_cherries = cherry_counter.count_cherries(iter_idx)
-    message = "Iter " + str(iter_idx) + " :\n" + str(num_cherries) + " cherries."
-    print(message)
+      lcd.setLCDColor(0, 100, 0)
+      lcd.setLCDMessage(("Time " + str(round(time() - matchStartTime))).rjust(16, " ") + "\n" + (str(cherry_counter.num_cherries) + " cherries").rjust(16, " "))
+      lastCherryCount = cherry_counter.num_cherries
 
-    # Set LCD color to blue
-    lcd.setLCDColor(0, 0, 100)
-    lcd.setLCDMessage(message)
-    iter_idx += 1
-    sleep(5)
+    if matchStarted and not matchFinished:
+      if (time() - matchStartTime) > 100:
+        print("End match")
+        matchFinished = True
+        lcd.setLCDColor(50, 0, 50)
+        lcd.setLCDMessage("Match finished".rjust(16, " ") + "\n" + (str(lastCherryCount) + " cherries").rjust(16, " "))
+    
+    sleep(3)
+
     
   cherry_counter.shutdown()
 

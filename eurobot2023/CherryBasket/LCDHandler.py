@@ -35,44 +35,48 @@ class LCDHandler():
         self.lcd.color = [r, g, b]
     
     def setLCDMessage(self, message):
-        self.lcd.clear()
+        # self.lcd.clear()
         self.lcd.message = message
 
     def clear(self):
         self.lcd.clear()
     
-    def beginMonitoring(lcd):
-        t = Thread(target=LCDHandler.monitor, args=[lcd])
+    def beginMonitoring(self):
+        t = Thread(target=LCDHandler.monitor, args=[self])
         t.start()
 
     def monitor(lcd):
-        upState_old = lcd.upState
-        rightState_old = lcd.rightState
-        leftState_old = lcd.leftState
-        downState_old = lcd.downState
-        stateChanged = lcd.stateChanged
+
         # detecter les nouveaux fronts montants
         while True:
-            lcd.leftState = lcd.lcd.left_button
-            stateChanged = stateChanged or (lcd.leftState & (lcd.leftState != leftState_old))
-            lcd.downState = lcd.lcd.down_button
-            stateChanged = stateChanged or (lcd.downState & (lcd.downState != downState_old))
-            lcd.rightState = lcd.lcd.right_button
-            stateChanged = stateChanged or (lcd.rightState & (lcd.rightState != rightState_old))
-            lcd.upState = lcd.lcd.up_button
-            stateChanged = stateChanged or (lcd.upState & (lcd.upState != upState_old))
-
-            lcd.stateChanged = stateChanged
-
             upState_old = lcd.upState
             rightState_old = lcd.rightState
             leftState_old = lcd.leftState
             downState_old = lcd.downState
+            stateChanged = lcd.stateChanged
+
+            lcd.leftState = lcd.leftState or lcd.lcd.left_button
+            stateChanged = stateChanged or (lcd.leftState & (lcd.leftState != leftState_old))
+            lcd.downState = lcd.downState or lcd.lcd.down_button
+            stateChanged = stateChanged or (lcd.downState & (lcd.downState != downState_old))
+            lcd.rightState = lcd.rightState or lcd.lcd.right_button
+            stateChanged = stateChanged or (lcd.rightState & (lcd.rightState != rightState_old))
+            lcd.upState = lcd.upState or lcd.lcd.up_button
+            stateChanged = stateChanged or (lcd.upState & (lcd.upState != upState_old))
+
+            if lcd.stateChanged != stateChanged:
+                print("stateChanged ", lcd.upState, " ", lcd.downState, " ", lcd.rightState, " ", lcd.leftState)
+
+            lcd.stateChanged = stateChanged
 
             # print("lcd.leftState", lcd.leftState)
-            # print("stateChanged ", lcd.stateChanged)
+
 
             sleep(0.05)
 
     def resetStateChanged(self):
         self.stateChanged = False
+        self.leftState = False
+        self.downState = False
+        self.rightState = False
+        self.upState = False
