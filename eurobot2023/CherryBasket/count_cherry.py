@@ -202,7 +202,13 @@ if __name__ == "__main__":
 
   # Enable broadcasting mode
   client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-  client.bind(("", 37020))
+  client.bind(("192.168.6.255", 37020))
+
+  ### example of udp broadcast using nc
+  # client: 
+  # echo -n "test data" | nc -u -b 192.168.6.255 37020
+  # server:
+  # nc -luk 37020
 
   inputs = [client]
   outputs = []
@@ -211,7 +217,7 @@ if __name__ == "__main__":
   sleep(2.0)
 
   iter_idx = 0;
-  max_iters = 10;
+  max_iters = 100;
   
   # Method with video capture
   # ~ video = cv2.VideoCapture(0);
