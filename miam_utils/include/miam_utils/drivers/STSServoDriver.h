@@ -11,6 +11,7 @@
     #include <unordered_map>
     #include <termios.h>
     #include <cmath>
+    #include <mutex>
 
     namespace STS
     {
@@ -213,6 +214,9 @@
             /// \param[in] registerId LSB register id.
             /// \return Register value, 0 on failure.
             int16_t readTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId);
+
+        public:
+          std::mutex mutex_;
 
 
         private:
