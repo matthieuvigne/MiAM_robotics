@@ -18,6 +18,8 @@ namespace secondary_robot
     enum ReservoirTilt
     {
         UP,
+        GRAB,
+        HORIZONTAL,
         DOWN
     };
 
@@ -28,14 +30,22 @@ namespace secondary_robot
         TOWARDS_BACK
     };
 
-    enum RailHeight // from 0 to 1000
+    namespace rail
     {
-        BOTTOM = 0,
-        TOP = 1000,
-        CHERRY_DISTRIBUTOR = 200,
-        CHERRY_BASKET = 800,
-        MIDDLE = 500
+        double const BOTTOM = 0.0;
+        double const TOP = 1.0;
+        double const CHERRY_DISTRIBUTOR = 0.10;
+        double const CHERRY_GRAB = 0.00;
+        double const CHERRY_BASKET = 0.8;
+        double const MIDDLE = 0.5;
+    }
+
+    struct RailMeasurements
+    {
+        int lastEncoderMeasurement_;
+        int currentPosition_;
     };
+
 
     class Strategy : public AbstractStrategy
     {
@@ -63,8 +73,8 @@ namespace secondary_robot
             MotionPlanner &motionPlanner);
 
         /// @brief Blocking function for moving the rail to a specified height
-        /// @param railHeight the height of the rail, between 0 and 1000
-        void move_rail(RailHeight railHeight);
+        /// @param railHeight Normalized rail height, between 0 and 1
+        void moveRail(double const& railHeight);
 
         /// @brief Set the brush to move either direction or switch it off
         /// @param brushDirection the desired movement or off
@@ -79,6 +89,11 @@ namespace secondary_robot
 
         /// @brief Execute the sequence to put cherries in the basket: set rail position, go forward 150mm, tilt and start motor, then de-tilt, stop and go backwards
         void put_cherries_in_the_basket();
+
+
+        void calibrateRail();
+        void updateRailHeight();
+        RailMeasurements currentRailMeasurements;
     };
 }
 

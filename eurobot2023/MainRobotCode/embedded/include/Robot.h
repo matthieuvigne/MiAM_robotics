@@ -43,25 +43,6 @@
 
     class RobotGUI;
 
-    // Controller parameters
-    namespace controller
-    {
-        double const railKp = 20.0;
-        double const railKd = 0.0;
-        double const railKi = 0.0;
-    }
-
-    class RailMeasurements
-    {
-        public:
-            RailMeasurements();
-            int turn_counts;
-            int encoder_counts;
-            bool init; // was the rail read once?
-
-            double getTurnCounts();
-    };
-
     class Robot : public RobotInterface
     {
         public:
@@ -74,11 +55,6 @@
             ///          estimates the position of the robot on the table, and performs motor servoing.
             ///          It also logs everything in a log file.
             void lowLevelLoop();
-
-            /// \brief Get current rail position.
-            ///
-            /// \return Current relative rail position, form 0 (down) to 1 (up).
-            double getRailPosition();
 
             /// \brief Update the robot score.
             /// \details This function increments the score then updates the display accordingly.
@@ -105,7 +81,6 @@
 
             /// \brief Shut down the robot when Ctrl+X is pressed.
             void shutdown();
-
         private:
 
             RobotGUI *gui_;
@@ -135,17 +110,6 @@
             ///          has started.
             bool setupBeforeMatchStart();
 
-            /// \brief Move the rail to the target position.
-            /// \details This function computes the velocity to be applied to the rail servo in order to reach
-            /// the desired target rail position using the potentiometer data.
-            /// \param[in] dt Time since last servoing call, for PID controller.
-            void updateMoveRail(double const& dt);
-
-            // miam::PID PIDRail_;
-            void calibrateRail();
-            void updateRailHeight();
-            void moveRail(int railHeight);
-            RailMeasurements currentRailMeasurements;
             double highTurnCount;
             double lowTurnCount;
 

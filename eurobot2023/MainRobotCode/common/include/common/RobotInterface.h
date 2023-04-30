@@ -76,13 +76,6 @@
 
             MotionController* getMotionController() { return &motionController_;}
             STSServoDriver* getServos() { return &servos_;}
-            
-            /// @brief Moves the rail to a position
-            /// @param railHeight int from 0 (bottom) to 1000 (top)
-            virtual void moveRail(int railHeight)
-            {
-                return;
-            }
 
         protected:
             MotionController motionController_;

@@ -55,8 +55,10 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
     if(port_ == -1)
         return false;
 
+    return true;
+
     // Test that a servo is present.
-    bool hasPing = true;
+    bool hasPing = false;
     for (unsigned char i = 0; i < 0xFE; i++)
         if (ping(i))
         {
@@ -104,7 +106,8 @@ bool STSServoDriver::ping(unsigned char const& servoId)
     int send = sendMessage(servoId,
                            instruction::PING,
                            0,
-                           response);
+                           response,
+                           true);
     // Failed to send
     if (send != 6)
         return false;
@@ -274,18 +277,18 @@ int STSServoDriver::sendMessage(unsigned char const& servoId,
     message[5 + paramLength] = ~checksum;
 
     RPi_writeGPIO(dirPin_, false);
-    usleep(50);
+    usleep(10);
     int ret = write(port_, message, 6 + paramLength);
     if (!willRead)
     {
         usleep(2);
         tcflush(port_, TCOFLUSH);
-        usleep(10);
+        usleep(5);
         RPi_writeGPIO(dirPin_, true);
     }
     else
     {
-        usleep(22);
+        usleep(15);
     }
     return ret;
 }
@@ -344,10 +347,7 @@ int16_t STSServoDriver::readTwoBytesRegister(unsigned char const& servoId, unsig
     unsigned char result[2] = {0, 0};
     returnCode_ = readRegisters(servoId, registerId, 2, result);
     if (returnCode_ < 0)
-    {
-        std::cout << "Failed to read" << std::endl;
         return 0;
-    }
     return static_cast<int16_t>(result[0] +  (result[1] << 8));
 }
 
@@ -357,23 +357,30 @@ int STSServoDriver::readRegisters(unsigned char const& servoId,
                                   unsigned char const& readLength,
                                   unsigned char *outputBuffer)
 {
-    tcflush(port_, TCIOFLUSH);
-    usleep(20);
-    tcflush(port_, TCIOFLUSH);
-    unsigned char readParam[2] = {startRegister, readLength};
-    int send = sendMessage(servoId, instruction::READ, 2, readParam, true);
-    // Failed to send
-    if (send != 8)
-        return -1;
-    // Read
-    unsigned char result[readLength + 1];
-    int rd = recieveMessage(servoId, readLength + 1, result);
-    if (rd < 0)
-        return rd;
+    #define N_RETRIES 3
+    for (int i = 0; i < N_RETRIES; i++)
+    {
+        tcflush(port_, TCIFLUSH);
+        unsigned char readParam[2] = {startRegister, readLength};
+        int send = sendMessage(servoId, instruction::READ, 2, readParam, true);
+        // Failed to send
+        if (send != 8)
+            continue;
+        // Read
+        unsigned char result[readLength + 1];
+        int rd = recieveMessage(servoId, readLength + 1, result);
+        if (rd < 0)
+        {
+            usleep(200);
+            continue;
+        }
 
-    for (int i = 0; i < readLength; i++)
-        outputBuffer[i] = result[i + 1];
-    return 0;
+        for (int i = 0; i < readLength; i++)
+            outputBuffer[i] = result[i + 1];
+        return 0;
+    }
+    std::cout << "[STS servo] Failed to read register" << std::endl;
+    return -1;
 }
 
 int STSServoDriver::recieveMessage(unsigned char const& servoId,

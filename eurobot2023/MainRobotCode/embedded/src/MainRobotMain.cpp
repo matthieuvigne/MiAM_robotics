@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 Robot *robotPtr;
 
@@ -31,6 +33,8 @@ void killCode(int x)
 
 int main(int argc, char **argv)
 {
+    setpriority(PRIO_PROCESS, 0, -20);
+
     // Parse input
     bool testMode = false;
     bool noLidar = false;

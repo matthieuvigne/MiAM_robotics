@@ -8,6 +8,8 @@
 #include <miam_utils/trajectory/StraightLine.h>
 #include <miam_utils/trajectory/PointTurn.h>
 #include <miam_utils/trajectory/Utilities.h>
+#include <miam_utils/raspberry_pi/RaspberryPi.h>
+
 #include "secondary_robot/Strategy.h"
 
 #include <common/MotionPlanner.h>
@@ -29,6 +31,17 @@ using miam::RobotPosition;
 // at the end of the match.
 bool MATCH_COMPLETED = false;
 
+int const BRUSH_MOTOR = 12;
+int const BRUSH_DIR = 16;
+
+
+// Rail
+int const RAIL_SWITCH = 21;
+#define RAIL_SERVO_ID 30
+#define MIAM_RAIL_TOLERANCE 100 // in counts
+#define RAIL_DOWN_VALUE -42000 // in counts
+
+
 namespace secondary_robot {
 
 Strategy::Strategy()
@@ -42,6 +55,16 @@ void Strategy::setup(RobotInterface *robot)
     this->servo = robot->getServos();
     this->motionController = robot->getMotionController();
 
+
+    RPi_setupGPIO(RAIL_SWITCH, PI_GPIO_INPUT_PULLUP);
+
+    // Start all servos in position mode.
+    servo->setMode(0xFE, STS::Mode::POSITION);
+
+    // usleep(10000);
+
+    // calibrateRail();
+
     // Set initial position
     RobotPosition targetPosition;
     targetPosition.x = 500;
@@ -50,10 +73,16 @@ void Strategy::setup(RobotInterface *robot)
     motionController->resetPosition(targetPosition, true, true, true);
     // motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_BASIC);
     motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
+
+    RPi_setupGPIO(BRUSH_MOTOR, PiGPIOMode::PI_GPIO_OUTPUT);
+    RPi_writeGPIO(BRUSH_MOTOR, false);
+    RPi_setupGPIO(BRUSH_DIR, PiGPIOMode::PI_GPIO_OUTPUT);
+    RPi_writeGPIO(BRUSH_DIR, false);
 }
 
 void Strategy::shutdown()
 {
+    RPi_writeGPIO(BRUSH_MOTOR, false);
 }
 
 Action* Strategy::chooseNextAction(
@@ -100,6 +129,23 @@ void Strategy::match_impl()
     TrajectoryVector traj;
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
+
+
+    // Cherry test
+    // Move down
+    // set_reservoir_tilt(ReservoirTilt::GRAB);
+    // moveRail(rail::CHERRY_DISTRIBUTOR);
+    // set_brush_move(BrushDirection::TOWARDS_BACK);
+    // usleep(100000);
+    // moveRail(rail::CHERRY_GRAB);
+    // Move forward
+
+    targetPosition = motionController->getCurrentPosition();
+    traj = miam::trajectory::computeTrajectoryStraightLine(motionController->robotParams_.getTrajConf(), targetPosition, 500);
+    motionController->setTrajectoryToFollow(traj);
+
+    while(true) ;;
+
 
     // create brain
     MotionPlanner* motionPlanner = motionController->motionPlanner_;
@@ -284,7 +330,7 @@ void Strategy::match_impl()
 
     // // set rail height and tilt
     // set_reservoir_tilt(ReservoirTilt::UP);
-    // move_rail(RailHeight::CHERRY_DISTRIBUTOR);
+    // moveRail(rail::CHERRY_DISTRIBUTOR);
     // set_brush_move(BrushDirection::TOWARDS_BACK);
 
     // // go front
@@ -384,32 +430,38 @@ void Strategy::set_brush_move(BrushDirection brushDirection)
 {
     if (brushDirection == BrushDirection::OFF)
     {
-        // set motor speed to 0
-        // TODO
+        RPi_writeGPIO(BRUSH_MOTOR, false);
     }
     else if (brushDirection == BrushDirection::TOWARDS_BACK)
     {
-        // set motor speed to +x
-        // TODO
+        RPi_writeGPIO(BRUSH_MOTOR, true);
+        RPi_writeGPIO(BRUSH_DIR, true);
     }
-    else if (brushDirection == BrushDirection::TOWARDS_BACK)
+    else if (brushDirection == BrushDirection::TOWARDS_FRONT)
     {
-        // set motor speed to +x
-        // TODO
+        RPi_writeGPIO(BRUSH_MOTOR, true);
+        RPi_writeGPIO(BRUSH_DIR, false);
     }
 }
 
+int const RESERVOIR_SERVO = 5;
 void Strategy::set_reservoir_tilt(ReservoirTilt reservoirTilt)
 {
     if (reservoirTilt == ReservoirTilt::DOWN)
     {
-        // set servo
-        // TODO
+        servo->setTargetPosition(RESERVOIR_SERVO, 2500);
+    }
+    else if (reservoirTilt == ReservoirTilt::HORIZONTAL)
+    {
+        servo->setTargetPosition(RESERVOIR_SERVO, 2100);
+    }
+    else if (reservoirTilt == ReservoirTilt::GRAB)
+    {
+        servo->setTargetPosition(RESERVOIR_SERVO, 1820);
     }
     else if (reservoirTilt == ReservoirTilt::UP)
     {
-        // set servo
-        // TODO
+        servo->setTargetPosition(RESERVOIR_SERVO, 1630);
     }
 }
 
@@ -417,7 +469,7 @@ void Strategy::grab_cherries()
 {
     // set rail height and tilt
     set_reservoir_tilt(ReservoirTilt::UP);
-    move_rail(RailHeight::CHERRY_DISTRIBUTOR);
+    moveRail(rail::CHERRY_DISTRIBUTOR);
     set_brush_move(BrushDirection::TOWARDS_BACK);
     // go front
     // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(150, 0, 0));
@@ -428,13 +480,13 @@ void Strategy::grab_cherries()
     // go back
     // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(-150, 0, 0), true); // backwards
     go_forward(-150);
-    move_rail(RailHeight::MIDDLE);
+    moveRail(rail::MIDDLE);
 }
 
 void Strategy::put_cherries_in_the_basket()
 {
     // put rail in the right height
-    move_rail(RailHeight::CHERRY_BASKET);
+    moveRail(rail::CHERRY_BASKET);
 
     // go front
     // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(150, 0, 0));
@@ -453,13 +505,63 @@ void Strategy::put_cherries_in_the_basket()
     // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(-150, 0, 0), true); // backwards
     go_forward(-150);
 
-    move_rail(RailHeight::MIDDLE);
+    moveRail(rail::MIDDLE);
 }
 
-void Strategy::move_rail(RailHeight railHeight)
+void Strategy::moveRail(double const& targetPosition)
 {
-    std::cout << "Moving rail to: " << railHeight << std::endl;
-    robot->moveRail((int) railHeight);
+    int targetValue = static_cast<int>((1 - std::min(1.0, std::max(0.0, targetPosition))) * RAIL_DOWN_VALUE);
+
+    if (currentRailMeasurements.currentPosition_ > targetValue)
+        servo->setTargetVelocity(RAIL_SERVO_ID, -4095);
+    else
+        servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
+
+    int nIter = 0;
+    while (std::abs(currentRailMeasurements.currentPosition_ - targetValue) > MIAM_RAIL_TOLERANCE && nIter < 12000)
+    {
+        updateRailHeight();
+        usleep(20000);
+        nIter++;
+    }
+    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+}
+
+
+
+void Strategy::calibrateRail()
+{
+    servo->setMode(RAIL_SERVO_ID, STS::Mode::VELOCITY);
+    usleep(2000);
+    // the switch is up
+    servo->setTargetVelocity(RAIL_SERVO_ID, 2000);
+    while (RPi_readGPIO(RAIL_SWITCH) == 1)
+    {
+        servo->setTargetVelocity(RAIL_SERVO_ID, 2000);
+        usleep(20000);
+    }
+    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+    usleep(2000);
+
+    // Init
+    currentRailMeasurements.currentPosition_ = 0;
+    currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
+}
+
+
+void Strategy::updateRailHeight()
+{
+    usleep(1000);
+    int currentCount = servo->getCurrentPosition(RAIL_SERVO_ID);
+    while (currentCount == 0)
+        currentCount = servo->getCurrentPosition(RAIL_SERVO_ID);
+    int delta = currentCount - currentRailMeasurements.lastEncoderMeasurement_;
+    currentRailMeasurements.lastEncoderMeasurement_ = currentCount;
+    while (delta > 2048)
+        delta -= 4096;
+    while (delta < -2048)
+        delta += 4096;
+    currentRailMeasurements.currentPosition_ += delta;
 }
 
 }

@@ -83,7 +83,7 @@
     {
         public:
             /// \brief Default contstructor.
-            STSServoDriver(double const& readTimeout = 0.0015);
+            STSServoDriver(double const& readTimeout = 0.0020);
 
             /// \brief Initialize the servo driver.
             ///
