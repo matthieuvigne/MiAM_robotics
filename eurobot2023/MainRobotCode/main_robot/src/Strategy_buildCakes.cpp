@@ -36,6 +36,45 @@ int Strategy::getPileHeight(int pileIndex)
     return height;
 }
 
+void Strategy::addPositionToQueue_Left(ArmPosition target)
+{
+    // std::cout << "Request position: " << std::endl;
+    std::vector<ArmPosition::Ptr > seq = computeSequenceToPosition(LEFT_ARM, target);
+    for (auto& ap : seq)
+    {
+        left_arm_positions.push(ap);
+    }
+}
+
+void Strategy::addPositionToQueue_Right(ArmPosition target)
+{
+    std::vector<ArmPosition::Ptr > seq = computeSequenceToPosition(RIGHT_ARM, target);
+    for (auto& ap : seq)
+    {
+        right_arm_positions.push(ap);
+    }
+}
+
+void Strategy::addSyncToQueue()
+{
+    ArmSync::Ptr target(new ArmSync());
+    left_arm_positions.push(target);
+    ArmSync::Ptr target2(new ArmSync());
+    right_arm_positions.push(target2);
+}
+
+void Strategy::addPumpToLeftQueue(bool activated)
+{
+    ArmPump::Ptr target(new ArmPump(activated));
+    left_arm_positions.push(target);
+}
+
+void Strategy::addPumpToRightQueue(bool activated)
+{
+    ArmPump::Ptr target(new ArmPump(activated));
+    right_arm_positions.push(target);
+}
+
 void Strategy::buildCakes()
 {
     std::cout << "Building cakes" << std::endl;
@@ -53,36 +92,19 @@ void Strategy::buildCakes()
     pileHeight[3] = 3;
     pileHeight[4] = 0;
 
-    
-    double thetaHorizontal = STS::servoToRadValue(servo->getLastCommand(LEFT_ARM + 0));
-    double theta12 = STS::servoToRadValue(servo->getLastCommand(LEFT_ARM + 1));
-    double theta23 = STS::servoToRadValue(servo->getLastCommand(LEFT_ARM + 2));
-    double theta34 = STS::servoToRadValue(servo->getLastCommand(LEFT_ARM + 3));
-    last_left_position = servoAnglesToArmPosition(thetaHorizontal, theta12, theta23, theta34);
-
-    thetaHorizontal = -STS::servoToRadValue(servo->getLastCommand(RIGHT_ARM + 0));
-    theta12 = -STS::servoToRadValue(servo->getLastCommand(RIGHT_ARM + 1));
-    theta23 = -STS::servoToRadValue(servo->getLastCommand(RIGHT_ARM + 2));
-    theta34 = -STS::servoToRadValue(servo->getLastCommand(RIGHT_ARM + 3));
-    last_right_position = servoAnglesToArmPosition(thetaHorizontal, theta12, theta23, theta34);
+    last_left_position = getArmPosition(LEFT_ARM);
+    last_right_position = getArmPosition(RIGHT_ARM);
 
     std::cout << "Initial left position: " << last_left_position << std::endl;
     std::cout << "Initial right position: " << last_right_position << std::endl;
 
     // bras gauche va au milieu 
-    {
-        
-        ArmPosition target = rightPile;
-        target.z_ = arm::PILE_CLEAR_HEIGHT;
-        addPositionToQueue_Left(target);
-    }
+    addPositionToQueue_Left(
+        ArmPosition::initPositionFromReferenceAndZ(rightPile, arm::PILE_CLEAR_HEIGHT)
+    );
 
     // bras gauche allume sa pompe
-    {
-        
-        ArmPump::Ptr target(new ArmPump(true));
-        left_arm_positions.push(target);
-    }
+    addPumpToLeftQueue(true);
 
     // bras gauche descend
     // bras gauche prend une genoise

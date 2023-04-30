@@ -81,11 +81,13 @@ namespace main_robot
         ArmPosition last_left_position;
         ArmPosition last_right_position;
 
-        void addPositionToQueue_Right(ArmPosition& target);
-        void addPositionToQueue_Left(ArmPosition& target);
+        void addPositionToQueue_Right(ArmPosition target);
+        void addPositionToQueue_Left(ArmPosition target);
         void addSyncToQueue();
         void changePileHeight(int pileIndex, int delta);
         int getPileHeight(int pileIndex);
+        void addPumpToLeftQueue(bool activated);
+        void addPumpToRightQueue(bool activated);
 
         void match_impl(); /// Actual implementation of the match code.
 

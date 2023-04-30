@@ -50,6 +50,16 @@ namespace main_robot
         return ArmPosition(r, thetaHorizontal, z);
     }
 
+    ArmPosition ArmPosition::initPositionFromReferenceAndZ(ArmPosition& reference, double z)
+    {
+        ArmPosition res(reference);
+        if (!std::isnan(z))
+        {
+            res.z_ = z;
+        }
+        return res;
+    }
+
     void Strategy::waitForArmMotion()
     {
         usleep(500000);
@@ -209,10 +219,18 @@ namespace main_robot
 
         std::cout << "Read servo " << armFirstServoId << " : " << thetaHorizontal << " " << theta12 << " " << theta23 << " " << theta34 << std::endl; 
 
-        // if (armFirstServoId == RIGHT_ARM)
-        //     thetaHorizontal = -thetaHorizontal;
+        if (armFirstServoId == RIGHT_ARM)
+        {
+            thetaHorizontal = -thetaHorizontal;
+            theta12 = -theta12;
+            theta23 = -theta23;
+            theta34 = -theta34;
+        }
+
+        ArmPosition res(servoAnglesToArmPosition(thetaHorizontal, theta12, theta23, theta34));
         
-        return servoAnglesToArmPosition(thetaHorizontal, theta12, theta23, theta34);
+        std::cout << "Converted to ArmPosition " << armFirstServoId << " : " << res << std::endl; 
+        return res;
     }
 
     bool Strategy::setArmPosition(int const& armFirstServoId, ArmPosition const& armPosition)
@@ -286,32 +304,5 @@ namespace main_robot
         // }
         // std::cout << std::endl;
         return result;
-    }
-
-    void Strategy::addPositionToQueue_Left(ArmPosition& target)
-    {
-        // std::cout << "Request position: " << std::endl;
-        std::vector<ArmPosition::Ptr > seq = computeSequenceToPosition(LEFT_ARM, target);
-        for (auto& ap : seq)
-        {
-            left_arm_positions.push(ap);
-        }
-    }
-
-    void Strategy::addPositionToQueue_Right(ArmPosition& target)
-    {
-        std::vector<ArmPosition::Ptr > seq = computeSequenceToPosition(RIGHT_ARM, target);
-        for (auto& ap : seq)
-        {
-            right_arm_positions.push(ap);
-        }
-    }
-
-    void Strategy::addSyncToQueue()
-    {
-        ArmSync::Ptr target(new ArmSync());
-        left_arm_positions.push(target);
-        ArmSync::Ptr target2(new ArmSync());
-        right_arm_positions.push(target2);
     }
 }

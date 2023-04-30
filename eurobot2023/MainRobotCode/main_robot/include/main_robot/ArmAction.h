@@ -9,6 +9,7 @@
 #include <queue>
 #include <mutex>
 #include <array>
+#include <cmath>
 
 namespace main_robot
 {
@@ -63,6 +64,7 @@ namespace main_robot
         };
 
         ArmPosition() : ArmPosition(0.0, 0.0, 0.0) {};
+        static ArmPosition initPositionFromReferenceAndZ(ArmPosition& reference, double z = std::nan("z"));
     };
 
     class ArmPump : public ArmAction
