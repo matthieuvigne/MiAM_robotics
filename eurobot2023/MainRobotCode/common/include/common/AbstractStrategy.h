@@ -28,6 +28,10 @@ class AbstractStrategy
         bool go_to_straight_line(RobotPosition targetPosition, bool backward = false);
         bool go_forward(double distance);
         bool go_to_rounded_corner(std::vector<RobotPosition> targetPositions, bool backwards = false);
+
+        /// @brief  Perform a square in the clockwise direction - used to calibrate the robot
+        /// @param squareDimenstion Square size, in mm.
+        void testSquare(double const& squareDimenstion = 500);
 };
 
 #endif

@@ -262,7 +262,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
 
     // If trajectory has an angular velocity but no linear velocity, it's a point turn:
     // disable corresponding position servoing.
-    if (!(std::abs(targetPoint.angularVelocity) > 0.1 && std::abs(targetPoint.linearVelocity) < 0.05))
+    if (!(std::abs(targetPoint.angularVelocity) > 0.1 && std::abs(targetPoint.linearVelocity) < 0.1))
         targetSpeed.linear += PIDLinear_.computeValue(trackingLongitudinalError, dt);
 
     // Modify angular PID target based on transverse error, if we are going fast enough.
@@ -301,6 +301,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
 
     log("linearPIDCorrection",PIDLinear_.getCorrection());
     log("angularPIDCorrection",PIDAngular_.getCorrection());
+
 
     return false;
 }

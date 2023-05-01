@@ -20,8 +20,6 @@ using miam::RobotPosition;
 
 #define USE_CAMERA 1
 
-#define FAIRE_CARRE 0 // make a square on the table to test motors
-#define TESTER_CERISES 0 // make a square on the table to test motors
 #define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
 
 // #define SKIP_TO_GRABBING_SAMPLES 1
@@ -62,12 +60,19 @@ void Strategy::setup(RobotInterface *robot)
     // Start all servos in position mode.
     servo->setMode(0xFE, STS::Mode::POSITION);
 
-    // calibrateRail();
+    // Fake calib
+    servo->setMode(RAIL_SERVO_ID, STS::Mode::VELOCITY);
+    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+    currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
+    currentRailMeasurements.currentPosition_ = -44000 * 0.10;
+
+    calibrateRail();
+    moveRail(rail::IDLE);
 
     // Set initial position
     RobotPosition targetPosition;
-    targetPosition.x = 500;
-    targetPosition.y = 200; ;
+    targetPosition.x = 725;
+    targetPosition.y = 170;
     targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
     // motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_BASIC);
@@ -99,7 +104,7 @@ void Strategy::setup(RobotInterface *robot)
         }
         attempts++;
     }
-    
+
 }
 
 void Strategy::shutdown()
@@ -157,103 +162,8 @@ void Strategy::match_impl()
     while (true);;
 
 
-    // while(true)
-    // {
-    //     std::cout << motionController->getCurrentPosition() << std::endl;
-    //     // usleep(1e6);
-        //    robot->wait(1.0);
-
-    // }
-
-
-    // moveRail(rail::CHERRY_GRAB);
-    // return;
-
-    // targetPosition = motionController->getCurrentPosition();
-    // endPosition = targetPosition;
-    // endPosition.x += 1000;
-    // traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-    //     targetPosition, endPosition);
-    // motionController->setTrajectoryToFollow(traj);
-    // motionController->waitForTrajectoryFinished();
-
-    // while(true) ;;
-
-
-#if FAIRE_CARRE
-
-    targetPosition = motionController->getCurrentPosition();
-    endPosition = targetPosition;
-    endPosition.x += 500;
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        targetPosition, endPosition);
-    motionController->setTrajectoryToFollow(traj);
-    motionController->waitForTrajectoryFinished();
-
-    targetPosition = motionController->getCurrentPosition();
-    endPosition = targetPosition;
-    endPosition.y -= 500;
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        targetPosition, endPosition);
-    motionController->setTrajectoryToFollow(traj);
-    motionController->waitForTrajectoryFinished();
-
-    targetPosition = motionController->getCurrentPosition();
-    endPosition = targetPosition;
-    endPosition.x -= 500;
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        targetPosition, endPosition);
-    motionController->setTrajectoryToFollow(traj);
-    motionController->waitForTrajectoryFinished();
-
-
-    targetPosition = motionController->getCurrentPosition();
-    endPosition = targetPosition;
-    endPosition.y += 500;
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        targetPosition, endPosition);
-    motionController->setTrajectoryToFollow(traj);
-    motionController->waitForTrajectoryFinished();
-
-    targetPosition = motionController->getCurrentPosition();
-    endPosition = targetPosition;
-    endPosition.x += 500;
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        targetPosition, endPosition);
-    traj.pop_back();
-    motionController->setTrajectoryToFollow(traj);
-    motionController->waitForTrajectoryFinished();
-
-
-    bool moveSuccess = motionController->waitForTrajectoryFinished();
-    if (moveSuccess)
-        robot->updateScore(20);
-    return;
-#endif
-
-#if TESTER_CERISES
-    // Cherry test
-    // Move down
-    set_reservoir_tilt(ReservoirTilt::GRAB);
-    moveRail(rail::CHERRY_DISTRIBUTOR);
-    set_brush_move(BrushDirection::TOWARDS_BACK);
-    robot->wait(0.100);
-    // usleep(100000);
-    moveRail(rail::CHERRY_GRAB);
-    // Move forward
-    targetPosition = motionController->getCurrentPosition();
-    miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
-    conf.maxWheelVelocity *= 0.2;
-    traj = miam::trajectory::computeTrajectoryStraightLine(conf, targetPosition, 60);
-    motionController->setTrajectoryToFollow(traj);
-
-    while(true) ;;
-#endif  
-
-
     // create brain
     MotionPlanner* motionPlanner = motionController->motionPlanner_;
-
 
     double const robot_chassis_front = robot->getParameters().CHASSIS_FRONT;
     double const robot_chassis_back = robot->getParameters().CHASSIS_BACK;
@@ -262,8 +172,8 @@ void Strategy::match_impl()
     RobotPosition const left_of_cherry_distributor_bottom(700,200,0);
     RobotPosition const center_of_cherry_distributor_left(15,1500,0);
     RobotPosition const center_of_cherry_distributor_right(2000 - 15,1500,0);
-    RobotPosition const center_of_cherry_distributor_bottom(1000,150,0);
-    RobotPosition const center_of_cherry_distributor_top(1000,2850,0);
+    RobotPosition const center_of_cherry_distributor_bottom(1000,170,0);
+    RobotPosition const center_of_cherry_distributor_top(1000,2830,0);
 
     double const distributor_width = 30;
 
@@ -452,15 +362,49 @@ void Strategy::match_impl()
 
     std::vector<RobotPosition> targetPositions;
 
-    // Get the  bottom cheeries
+    // // Get the  bottom cheeries
     targetPositions.clear();
     targetPositions.push_back(motionController->getCurrentPosition());
-    targetPositions.push_back(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 151 + distributor_width / 2,0,0));
-    targetPositions.push_back(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front + 150 + distributor_width / 2,0,0));
+    targetPositions.push_back(center_of_cherry_distributor_bottom - RobotPosition(robot_chassis_front  + 40 + distributor_width / 2,0,0));
     go_to_rounded_corner(targetPositions);
 
-    // grab cherries
     grab_cherries();
+
+    // Go to the top cherries, grab them
+    targetPositions.clear();
+    targetPositions.push_back(motionController->getCurrentPosition());
+    targetPositions.push_back(RobotPosition(500, 3000 - 600,0));
+    targetPositions.push_back(RobotPosition(300, 3000 - robot_chassis_front - 300,0));
+    targetPositions.push_back(RobotPosition(300, 3000 - robot_chassis_front - 20,0));
+    // targetPositions.push_back(RobotPosition(500, 3000 - 600,0));
+    // targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front  + 300 + distributor_width, 150,0));
+    // targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front  + 200 + distributor_width, 50,0));
+    // targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front  + 40 + distributor_width, 0,0));
+    go_to_rounded_corner(targetPositions);
+
+
+    // grab_cherries();
+
+
+    // RobotPosition startPos = center_of_cherry_distributor_top -RobotPosition(robot_chassis_front  + 40 + distributor_width, 0,0);
+    // motionController->resetPosition(startPos, true, true, true);
+
+    // Put the cherries in the basket
+
+    // targetPositions.clear();
+    // RobotPosition position = motionController->getCurrentPosition();
+    // targetPositions.push_back(position);
+    // position.y -= 200;
+    // targetPositions.push_back(position);
+    // position.x = 300;
+    // targetPositions.push_back(position);
+    // position.y += 100;
+    // targetPositions.push_back(position);
+    // go_to_rounded_corner(targetPositions);
+
+    put_cherries_in_the_basket();
+
+    while (true) ;;
 
     // Go to get right cherries then get the top cherries
     targetPositions.clear();
@@ -477,8 +421,12 @@ void Strategy::match_impl()
     targetPositions.clear();
     targetPositions.push_back(motionController->getCurrentPosition());
     targetPositions.push_back(RobotPosition(500, 3000-600,0));
-    targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front + 155 + distributor_width / 2, 0,0));
+    targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front  + 300 + distributor_width, 150,0));
+    targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front  + 100 + distributor_width, 50,0));
+    targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robot_chassis_front  + 40 + distributor_width, 0,0));
     go_to_rounded_corner(targetPositions, true);
+    grab_cherries();
+
 
     targetPositions.clear();
     targetPositions.push_back(motionController->getCurrentPosition());
@@ -530,154 +478,4 @@ void Strategy::match()
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
     }
 }
-
-void Strategy::set_brush_move(BrushDirection brushDirection)
-{
-    if (brushDirection == BrushDirection::OFF)
-    {
-        RPi_writeGPIO(BRUSH_MOTOR, false);
-    }
-    else if (brushDirection == BrushDirection::TOWARDS_BACK)
-    {
-        RPi_writeGPIO(BRUSH_MOTOR, true);
-        RPi_writeGPIO(BRUSH_DIR, true);
-    }
-    else if (brushDirection == BrushDirection::TOWARDS_FRONT)
-    {
-        RPi_writeGPIO(BRUSH_MOTOR, true);
-        RPi_writeGPIO(BRUSH_DIR, false);
-    }
-}
-
-int const RESERVOIR_SERVO = 5;
-void Strategy::set_reservoir_tilt(ReservoirTilt reservoirTilt)
-{
-
-#ifndef SIMULATION
-    if (reservoirTilt == ReservoirTilt::DOWN)
-    {
-        servo->setTargetPosition(RESERVOIR_SERVO, 2500);
-    }
-    else if (reservoirTilt == ReservoirTilt::HORIZONTAL)
-    {
-        servo->setTargetPosition(RESERVOIR_SERVO, 2100);
-    }
-    else if (reservoirTilt == ReservoirTilt::GRAB)
-    {
-        servo->setTargetPosition(RESERVOIR_SERVO, 1820);
-    }
-    else if (reservoirTilt == ReservoirTilt::UP)
-    {
-        servo->setTargetPosition(RESERVOIR_SERVO, 1630);
-    }
-#endif
-}
-
-void Strategy::grab_cherries()
-{
-    // set rail height and tilt
-    set_reservoir_tilt(ReservoirTilt::UP);
-    moveRail(rail::CHERRY_DISTRIBUTOR);
-    set_brush_move(BrushDirection::TOWARDS_BACK);
-    // go front
-    // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(150, 0, 0));
-    go_forward(150);
-
-    // wait
-    robot->wait(3);
-    // go back
-    // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(-150, 0, 0), true); // backwards
-    go_forward(-150);
-    moveRail(rail::MIDDLE);
-}
-
-void Strategy::put_cherries_in_the_basket()
-{
-    // put rail in the right height
-    moveRail(rail::CHERRY_BASKET);
-
-    // go front
-    // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(150, 0, 0));
-    go_forward(150);
-
-    // tilt and push cherries
-    set_reservoir_tilt(ReservoirTilt::DOWN);
-    set_brush_move(BrushDirection::TOWARDS_FRONT);
-    // wait
-    robot->wait(3);
-    // prepare to go back
-    set_reservoir_tilt(ReservoirTilt::UP);
-    set_brush_move(BrushDirection::OFF);
-
-    // go back
-    // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(-150, 0, 0), true); // backwards
-    go_forward(-150);
-
-    moveRail(rail::MIDDLE);
-}
-
-void Strategy::moveRail(double const& targetPosition)
-{
-#ifndef SIMULATION
-    int targetValue = static_cast<int>((1 - std::min(1.0, std::max(0.0, targetPosition))) * RAIL_DOWN_VALUE);
-
-    if (currentRailMeasurements.currentPosition_ > targetValue)
-        servo->setTargetVelocity(RAIL_SERVO_ID, -4095);
-    else
-        servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
-
-    int nIter = 0;
-    while (std::abs(currentRailMeasurements.currentPosition_ - targetValue) > MIAM_RAIL_TOLERANCE && nIter < 12000)
-    {
-        updateRailHeight();
-        robot->wait(0.020);
-        // usleep(20000);
-        nIter++;
-    }
-    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
-#endif
-}
-
-
-
-void Strategy::calibrateRail()
-{
-    servo->setMode(RAIL_SERVO_ID, STS::Mode::VELOCITY);
-    robot->wait(0.002);
-    // usleep(2000);
-
-    // the switch is up
-    servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
-    while (RPi_readGPIO(RAIL_SWITCH) == 1)
-    {
-        servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
-        robot->wait(0.020);
-        // usleep(20000);
-    }
-    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
-    robot->wait(0.002);
-    // usleep(2000);
-
-    // Init
-    currentRailMeasurements.currentPosition_ = 0;
-    currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
-}
-
-
-void Strategy::updateRailHeight()
-{
-    robot->wait(0.001);
-    // usleep(1000);
-    int currentCount = servo->getCurrentPosition(RAIL_SERVO_ID);
-    while (currentCount == 0)
-        currentCount = servo->getCurrentPosition(RAIL_SERVO_ID);
-    int delta = currentCount - currentRailMeasurements.lastEncoderMeasurement_;
-    currentRailMeasurements.lastEncoderMeasurement_ = currentCount;
-    while (delta > 2048)
-        delta -= 4096;
-    while (delta < -2048)
-        delta += 4096;
-    currentRailMeasurements.currentPosition_ += delta;
-}
-
 }

@@ -13,13 +13,13 @@
 using namespace miam;
 using namespace miam::trajectory;
 
-bool AbstractStrategy::go_to_straight_line(RobotPosition targetPosition, bool backward) 
+bool AbstractStrategy::go_to_straight_line(RobotPosition position, bool backward)
 {
     RobotPosition currentPosition = motionController->getCurrentPosition();
     TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
         robot->getParameters().getTrajConf(),
         currentPosition, // start
-        targetPosition, // end
+        position, // end
         0.0, // no velocity at end point
         backward // or forward
     );
@@ -29,14 +29,13 @@ bool AbstractStrategy::go_to_straight_line(RobotPosition targetPosition, bool ba
     return motionController->waitForTrajectoryFinished();
 }
 
-bool AbstractStrategy::go_to_rounded_corner(std::vector<RobotPosition> targetPositions, bool backwards) 
+bool AbstractStrategy::go_to_rounded_corner(std::vector<RobotPosition> positions, bool backwards)
 {
-    RobotPosition currentPosition = motionController->getCurrentPosition();
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
         robot->getParameters().getTrajConf(),
-        targetPositions, // end
+        positions,
         200,
-        0.6,
+        0.2,
         backwards
     );
 
@@ -45,7 +44,7 @@ bool AbstractStrategy::go_to_rounded_corner(std::vector<RobotPosition> targetPos
     return motionController->waitForTrajectoryFinished();
 }
 
-bool AbstractStrategy::go_forward(double distance) 
+bool AbstractStrategy::go_forward(double distance)
 {
     RobotPosition currentPosition = motionController->getCurrentPosition();
     TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLine(
@@ -57,4 +56,58 @@ bool AbstractStrategy::go_forward(double distance)
     motionController->setTrajectoryToFollow(traj);
 
     return motionController->waitForTrajectoryFinished();
+}
+
+
+void AbstractStrategy::testSquare(double const& squareDimension)
+{
+    RobotPosition position;
+    position.x = 0;
+    position.y = 0;
+    position.theta = 0;
+    motionController->resetPosition(position, true, true, true);
+
+    RobotPosition endPosition = position;
+    endPosition.x += 500;
+    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+        position, endPosition);
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
+
+    position = motionController->getCurrentPosition();
+    endPosition = position;
+    endPosition.y -= 500;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+        position, endPosition);
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
+
+    position = motionController->getCurrentPosition();
+    endPosition = position;
+    endPosition.x -= 500;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+        position, endPosition);
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
+
+
+    position = motionController->getCurrentPosition();
+    endPosition = position;
+    endPosition.y += 500;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+        position, endPosition);
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
+
+    position = motionController->getCurrentPosition();
+    endPosition = position;
+    endPosition.x += 500;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+        position, endPosition);
+    traj.pop_back();
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
+
+
+    bool moveSuccess = motionController->waitForTrajectoryFinished();
 }

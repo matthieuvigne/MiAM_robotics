@@ -36,10 +36,8 @@ namespace secondary_robot
     {
         double const BOTTOM = 0.0;
         double const TOP = 1.0;
-        double const CHERRY_DISTRIBUTOR = 0.10;
+        double const IDLE = 0.10;
         double const CHERRY_GRAB = 0.00;
-        double const CHERRY_BASKET = 0.8;
-        double const MIDDLE = 0.5;
     }
 
     struct RailMeasurements

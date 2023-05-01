@@ -130,7 +130,7 @@ bool Robot::setupBeforeMatchStart()
 
             if (testMode_)
             {
-                matchStartTime_ = currentTime_;
+                matchStartTime_ = -1;
                 isPlayingRightSide_ = true;
             }
             guiState_.state = robotstate::WAITING_FOR_CABLE;
@@ -138,10 +138,12 @@ bool Robot::setupBeforeMatchStart()
     }
     else if (guiState_.state == robotstate::WAITING_FOR_CABLE)
     {
+        if (matchStartTime_ < 0)
+            matchStartTime_ = currentTime_;
         if (testMode_)
         {
             // Wait for motor to boot
-            if (currentTime_ - matchStartTime_ > 3.5)
+            if (currentTime_ - matchStartTime_ > 1.5)
                 return true;
         }
         else

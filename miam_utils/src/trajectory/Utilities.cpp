@@ -36,7 +36,7 @@ namespace miam{
 
             if (this->empty())
                 return TrajectoryPoint();
-            
+
             double sum_time = 0;
             for (long unsigned int i = 0; i < this->size(); i++) {
                 double traj_time = this->at(i)->getDuration();
@@ -193,7 +193,7 @@ namespace miam{
                     endAngle += M_PI;
 
                 // Compute trajectory.
-                std::shared_ptr<StraightLine> line(new StraightLine(config, startPoint, circleIntersection, transitionLinearVelocity, transitionLinearVelocity, backward));
+                std::shared_ptr<StraightLine> line(new StraightLine(config, startPoint, circleIntersection, (i == 1 ? 0.0 : transitionLinearVelocity), transitionLinearVelocity, backward));
                 trajectories.push_back(line);
                 std::shared_ptr<ArcCircle> circle(new ArcCircle(config, circleIntersection, circleRadius, side, endAngle, transitionAngularVelocity, transitionAngularVelocity, backward));
                 trajectories.push_back(circle);
@@ -201,7 +201,7 @@ namespace miam{
             // Append final straight line.
             RobotPosition currentPoint = trajectories.back()->getEndPoint().position;
             RobotPosition endPoint = positions.back();
-            std::shared_ptr<StraightLine> line(new StraightLine(config, currentPoint, endPoint, transitionLinearVelocity, 0.0, backward));
+            std::shared_ptr<StraightLine> line(new StraightLine(config, currentPoint, endPoint, (positions.size() == 2 ? 0 : transitionLinearVelocity), 0.0, backward));
             trajectories.push_back(line);
 
             return trajectories;
