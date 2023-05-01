@@ -24,6 +24,9 @@ class LCDHandler():
         self.downState = False
         self.stateChanged = False
 
+        self.pending_message = ""
+        self.pending_color = [0, 0, 0]
+
     def messageInit(self):
         self.lcd.clear()
         # Set LCD color to red
@@ -32,18 +35,22 @@ class LCDHandler():
 
     def setLCDColor(self, r, g, b):
         # Set LCD color to green
-        self.lcd.color = [r, g, b]
+        self.pending_color = [r, g, b]
     
     def setLCDMessage(self, message):
         # self.lcd.clear()
-        self.lcd.message = message
+        self.pending_message = message
 
     def clear(self):
         self.lcd.clear()
     
     def beginMonitoring(self):
+        print("beginMonitoring")
         t = Thread(target=LCDHandler.monitor, args=[self])
         t.start()
+        t2 = Thread(target=LCDHandler.update, args=[self])
+        t2.start()
+        print("end beginMonitoring")
 
     def monitor(lcd):
 
@@ -55,28 +62,42 @@ class LCDHandler():
             downState_old = lcd.downState
             stateChanged = lcd.stateChanged
 
-            lcd.leftState = lcd.leftState or lcd.lcd.left_button
-            stateChanged = stateChanged or (lcd.leftState & (lcd.leftState != leftState_old))
-            lcd.downState = lcd.downState or lcd.lcd.down_button
-            stateChanged = stateChanged or (lcd.downState & (lcd.downState != downState_old))
-            lcd.rightState = lcd.rightState or lcd.lcd.right_button
-            stateChanged = stateChanged or (lcd.rightState & (lcd.rightState != rightState_old))
-            lcd.upState = lcd.upState or lcd.lcd.up_button
-            stateChanged = stateChanged or (lcd.upState & (lcd.upState != upState_old))
+            lcd.leftState = lcd.lcd.left_button
+            lcd.downState = lcd.lcd.down_button
+            lcd.rightState = lcd.lcd.right_button
+            lcd.upState = lcd.lcd.up_button
+
+            stateChanged = ((lcd.leftState & (lcd.leftState != leftState_old)) or
+                (lcd.downState & (lcd.downState != downState_old)) or
+                (lcd.rightState & (lcd.rightState != rightState_old)) or
+                (lcd.upState & (lcd.upState != upState_old)))
 
             if lcd.stateChanged != stateChanged:
                 print("stateChanged ", lcd.upState, " ", lcd.downState, " ", lcd.rightState, " ", lcd.leftState)
-
-            lcd.stateChanged = stateChanged
+                print("from ", upState_old, " ", downState_old, " ", rightState_old, " ", leftState_old)
+                lcd.stateChanged = stateChanged
 
             # print("lcd.leftState", lcd.leftState)
 
-
-            sleep(0.05)
+            sleep(0.1)
+    
+    def update(lcd):
+        # update lcd every 2 sec, update color every 0.5 sec
+        niter = 0
+        while True:
+            if niter % 4 == 0:
+                if lcd.lcd.message != lcd.pending_message:
+                    print("Change message")
+                    lcd.lcd.message = lcd.pending_message
+            if lcd.lcd.color != lcd.pending_color:
+                print("Change color")
+                lcd.lcd.color = lcd.pending_color
+            niter = niter + 1
+            sleep(0.5)
 
     def resetStateChanged(self):
         self.stateChanged = False
-        self.leftState = False
-        self.downState = False
-        self.rightState = False
-        self.upState = False
+        # self.leftState = False
+        # self.downState = False
+        # self.rightState = False
+        # self.upState = False

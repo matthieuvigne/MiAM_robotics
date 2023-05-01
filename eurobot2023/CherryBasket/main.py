@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
   while(True):
 
-    print("matchStarted ", matchStarted)
+    # print("matchStarted ", matchStarted)
 
     # Two ways to start match: either receive signal from
     # network or press button
@@ -99,7 +99,7 @@ if __name__ == "__main__":
         lcd.setLCDColor(50, 0, 50)
         lcd.setLCDMessage("Match finished".rjust(16, " ") + "\n" + (str(lastCherryCount) + " cherries").rjust(16, " "))
     
-    sleep(3)
+    sleep(0.2)
 
     
   cherry_counter.shutdown()
