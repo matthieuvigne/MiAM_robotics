@@ -359,7 +359,7 @@ int STSServoDriver::readRegisters(unsigned char const& servoId,
                                   unsigned char const& readLength,
                                   unsigned char *outputBuffer)
 {
-    #define N_RETRIES 3
+    #define N_RETRIES 5
 
     static int success = 0;
     static int fail = 0;

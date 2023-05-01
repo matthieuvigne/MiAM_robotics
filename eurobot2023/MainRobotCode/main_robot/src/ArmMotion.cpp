@@ -142,7 +142,7 @@ namespace main_robot
                         std::cout << ">>>>> WARNING : z is positive <<<<<" << std::endl;
                     setArmPosition(armServoId, *action);
                     //~ usleep(500000);
-                    std::this_thread::sleep_for(std::chrono::microseconds(50));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
                     // return;
                     bool done = false;
                     //~ std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now()

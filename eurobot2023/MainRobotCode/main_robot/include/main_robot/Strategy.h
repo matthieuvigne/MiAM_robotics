@@ -47,6 +47,10 @@ namespace main_robot
     
   } // namespace arm
 
+  // Reference values
+  static int const ABS = 0;
+  static int const REL = 1;
+
   // Reference indexes
   static int const RIGHT_ARM = 10;
   static int const LEFT_ARM = 20;
@@ -76,6 +80,8 @@ namespace main_robot
 
     private:
 
+      ArmPosition left_arm_position_;
+      ArmPosition right_arm_position_;
       std::queue<std::shared_ptr<ArmAction > > left_arm_positions;
       std::queue<std::shared_ptr<ArmAction > > right_arm_positions;
       std::mutex pileLock;
@@ -87,9 +93,23 @@ namespace main_robot
 
       void addPositionToQueue_Right(ArmPosition target);
       void addPositionToQueue_Left(ArmPosition target);
+      
+      void initPosition(int arm_idx, double r, double theta_rad, double z);
+      void initPosition(int arm_idx, ArmPosition const& position);
+      void setRelTargetPosition(int arm_idx, double dr, double dtheta_rad, double dz);
+      void setAbsTargetPosition(int arm_idx, double new_r, double new_theta_rad, double new_z);
+      void setTargetPosition(int arm_idx, 
+        int absrel_r, double r, 
+        int absrel_theta, double theta_rad, 
+        int absrel_z, double z);
+      void wait(int arm_idx, double duration);
+      void pump(int arm_idx, bool activate);
+      void runActionBlock();
+      
       void addSyncToQueue();
       void changePileHeight(int pileIndex, int delta);
       int getPileHeight(int pileIndex);
+      double getPileZ(int pileIndex);
       void addPumpToLeftQueue(bool activated);
       void addPumpToRightQueue(bool activated);
 
