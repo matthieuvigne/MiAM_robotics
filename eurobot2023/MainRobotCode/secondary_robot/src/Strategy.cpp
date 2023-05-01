@@ -20,7 +20,7 @@ using miam::RobotPosition;
 
 #define USE_CAMERA 1
 
-#define TEST_SQUARE_MOVE 0 // make a square on the table to test motors
+#define FAIRE_CARRE 1 // make a square on the table to test motors
 #define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
 
 // #define SKIP_TO_GRABBING_SAMPLES 1
@@ -61,7 +61,7 @@ void Strategy::setup(RobotInterface *robot)
     // Start all servos in position mode.
     servo->setMode(0xFE, STS::Mode::POSITION);
 
-    calibrateRail();
+    // calibrateRail();
 
     // Set initial position
     RobotPosition targetPosition;
@@ -126,6 +126,80 @@ void Strategy::match_impl()
     TrajectoryVector traj;
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
+
+
+    // while(true)
+    // {
+    //     std::cout << motionController->getCurrentPosition() << std::endl;
+    //     usleep(1e6);
+
+    // }
+
+
+    // moveRail(rail::CHERRY_GRAB);
+    // return;
+
+    // targetPosition = motionController->getCurrentPosition();
+    // endPosition = targetPosition;
+    // endPosition.x += 1000;
+    // traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+    //     targetPosition, endPosition);
+    // motionController->setTrajectoryToFollow(traj);
+    // motionController->waitForTrajectoryFinished();
+
+    // while(true) ;;
+
+
+#if FAIRE_CARRE
+
+    targetPosition = motionController->getCurrentPosition();
+    endPosition = targetPosition;
+    endPosition.x += 500;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+        targetPosition, endPosition);
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
+
+    targetPosition = motionController->getCurrentPosition();
+    endPosition = targetPosition;
+    endPosition.y -= 500;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+        targetPosition, endPosition);
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
+
+    targetPosition = motionController->getCurrentPosition();
+    endPosition = targetPosition;
+    endPosition.x -= 500;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+        targetPosition, endPosition);
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
+
+
+    targetPosition = motionController->getCurrentPosition();
+    endPosition = targetPosition;
+    endPosition.y += 500;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+        targetPosition, endPosition);
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
+
+    targetPosition = motionController->getCurrentPosition();
+    endPosition = targetPosition;
+    endPosition.x += 500;
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+        targetPosition, endPosition);
+    traj.pop_back();
+    motionController->setTrajectoryToFollow(traj);
+    motionController->waitForTrajectoryFinished();
+
+
+    bool moveSuccess = motionController->waitForTrajectoryFinished();
+    if (moveSuccess)
+        robot->updateScore(20);
+    return;
+#endif
 
 
     // Cherry test

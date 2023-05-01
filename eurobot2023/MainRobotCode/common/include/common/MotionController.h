@@ -71,6 +71,15 @@
         double const rotationKp = 10.0;
         double const rotationKd = 0.01;
         double const rotationKi = 0.0;
+
+        // double const linearKp = 0.0; // previously 3.0
+        // double const linearKd = 0.0; // previously 0.0
+        // double const linearKi = 0.0; // previously 0.1
+        // double const transverseKp = 0.0;
+
+        // double const rotationKp = 0.0;
+        // double const rotationKd = 0.0;
+        // double const rotationKi = 0.0;
     }
 
 
