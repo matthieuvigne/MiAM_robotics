@@ -26,6 +26,16 @@
                 param.maxWheelSpeedTrajectory = 300; ///< Maximum wheel speed, in mm/s, for trajectory generation.
                 param.maxWheelAccelerationTrajectory = 600; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
+
+                param.linearKp = 3.5;
+                param.linearKd = 0.01;
+                param.linearKi = 0.0;
+                param.transverseKp = 0.005;
+                param.rotationKp = 10.0;
+                param.rotationKd = 0.01;
+                param.rotationKi = 0.0;
+
+
                 // Chassis physical dimensions
                 param.CHASSIS_FRONT = 90.0;
                 param.CHASSIS_BACK = 130.0;

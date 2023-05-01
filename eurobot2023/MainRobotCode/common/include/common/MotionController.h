@@ -56,34 +56,7 @@
         std::deque<DetectedRobot> lidarDetection; ///< Robots detected by the lidar.
     }DrivetrainMeasurements;
 
-
-    // Controller parameters
-    namespace motioncontroller
-    {
-        //~ double const transverseKp = 0.1;
-
-        double const linearKp = 3.5; // previously 3.0
-        double const linearKd = 0.01; // previously 0.0
-        double const linearKi = 0.0; // previously 0.1
-
-        double const transverseKp = 0.005;
-
-        double const rotationKp = 10.0;
-        double const rotationKd = 0.01;
-        double const rotationKi = 0.0;
-
-        // double const linearKp = 0.0; // previously 3.0
-        // double const linearKd = 0.0; // previously 0.0
-        // double const linearKi = 0.0; // previously 0.1
-        // double const transverseKp = 0.0;
-
-        // double const rotationKp = 0.0;
-        // double const rotationKd = 0.0;
-        // double const rotationKi = 0.0;
-    }
-
-
-    // Detection parameters
+    // Detection arameters
     namespace detection {
 
       // Zone radius
@@ -231,7 +204,7 @@
 
             RobotPosition lidarPointToRobotPosition(LidarPoint const &point);
             bool isLidarPointWithinTable(LidarPoint const& point);
-            
+
             // Avoidance functions
 
             TrajectoryVector computeAvoidanceTrajectory(std::deque<DetectedRobot> const &detectedRobots, bool forward);

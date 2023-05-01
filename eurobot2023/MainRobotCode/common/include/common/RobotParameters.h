@@ -23,6 +23,14 @@
             double maxWheelSpeedTrajectory; ///< Maximum wheel speed, in mm/s, for trajectory generation.
             double maxWheelAccelerationTrajectory; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
+            double linearKp; // Servoing gains: translation PID
+            double linearKd;
+            double linearKi;
+            double transverseKp;  // Servoing gains: transverse offset
+            double rotationKp;  // Servoing gains: rotation PID
+            double rotationKd;
+            double rotationKi;
+
             // Chassis physical dimensions
             double CHASSIS_FRONT;
             double CHASSIS_BACK;

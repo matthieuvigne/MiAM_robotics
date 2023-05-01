@@ -21,8 +21,8 @@ MotionController::MotionController(RobotParameters const &robotParameters) : cur
     currentPosition_.set(initialPosition);
 
     // Set PIDs.
-    PIDLinear_ = miam::PID(motioncontroller::linearKp, motioncontroller::linearKd, motioncontroller::linearKi, 0.2);
-    PIDAngular_ = miam::PID(motioncontroller::rotationKp, motioncontroller::rotationKd, motioncontroller::rotationKi, 0.15);
+    PIDLinear_ = miam::PID(robotParams_.linearKp, robotParams_.linearKd, robotParams_.linearKi, 0.2);
+    PIDAngular_ = miam::PID(robotParams_.rotationKp, robotParams_.rotationKd, robotParams_.rotationKi, 0.15);
 
     // Set MotionPlanner
     motionPlanner_ = new MotionPlanner(robotParameters);
@@ -241,15 +241,15 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // std::cout << "targetPoint " << targetPoint << std::endl;
     double trackingAngleError = miam::trajectory::moduloTwoPi(currentPosition.theta - targetPoint.position.theta);
     // std::cout << "end trackingAngleError" << std::endl;
-    
+
     log("trackingLongitudinalError",trackingLongitudinalError);
     log("trackingTransverseError",trackingTransverseError);
     log("trackingAngleError",trackingAngleError);
 
-    // If we are beyon trajector end, look to see if we are close enough to the target point to stop.
+    // If we are beyond trajectory end, look to see if we are close enough to the target point to stop.
     if (traj->getDuration() <= curvilinearAbscissa_)
     {
-        if (trackingLongitudinalError < 3 && trackingAngleError < 0.02 && measurements.motorSpeed[side::RIGHT] < 1.0 && measurements.motorSpeed[side::LEFT] < 1.0)
+        if (trackingLongitudinalError < 3 && trackingAngleError < 0.02 && measurements.encoderSpeed.right < 1.0 && measurements.encoderSpeed.left < 1.0)
         {
             // Just stop the robot.
             target.motorSpeed[0] = 0.0;
@@ -262,14 +262,14 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
 
     // If trajectory has an angular velocity but no linear velocity, it's a point turn:
     // disable corresponding position servoing.
-    if (std::abs(targetPoint.linearVelocity) > 0.1)
+    if (!(std::abs(targetPoint.angularVelocity) > 0.1 && std::abs(targetPoint.linearVelocity) < 0.05))
         targetSpeed.linear += PIDLinear_.computeValue(trackingLongitudinalError, dt);
 
     // Modify angular PID target based on transverse error, if we are going fast enough.
     double angularPIDError = trackingAngleError;
     double transverseCorrection = 0.0;
     if (std::abs(targetPoint.linearVelocity) > 0.1 * robotParams_.maxWheelSpeed)
-        transverseCorrection = motioncontroller::transverseKp * targetPoint.linearVelocity / robotParams_.maxWheelSpeed * trackingTransverseError;
+        transverseCorrection = robotParams_.transverseKp * targetPoint.linearVelocity / robotParams_.maxWheelSpeed * trackingTransverseError;
     if (targetPoint.linearVelocity < 0)
         transverseCorrection = -transverseCorrection;
     angularPIDError += transverseCorrection;
@@ -335,7 +335,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
         if (traj.getDuration() > 0 & !traj.front()->needReplanning_) {
             std::cout << "Setting avoidance trajectory" << std::endl;
             currentTrajectories_.clear();
-            currentTrajectories_ = traj;    
+            currentTrajectories_ = traj;
         }
         else
         {
@@ -437,7 +437,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
                         }
                     }
                 }
-            }   
+            }
         }
 
         if (is_robot_stopped)
@@ -478,13 +478,13 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
                     if (traj.getDuration() > 0) {
                         std::cout << "Setting avoidance trajectory" << std::endl;
                         currentTrajectories_.clear();
-                        currentTrajectories_ = traj;  
-                        coeff = 1.0;  
+                        currentTrajectories_ = traj;
+                        coeff = 1.0;
                         numStopIters_ = 0;
                     }
 
                 }
-                    
+
             }
         }
         else
@@ -547,11 +547,11 @@ RobotPosition MotionController::lidarPointToRobotPosition(LidarPoint const &poin
 
 bool MotionController::isLidarPointWithinTable(LidarPoint const &point)
 {
-    
+
     RobotPosition robotPosition = lidarPointToRobotPosition(point);
 
     // 3. Check if the lidar point falls within the table
-    if (robotPosition.x < table_dimensions::table_max_x and robotPosition.x > table_dimensions::table_min_x 
+    if (robotPosition.x < table_dimensions::table_max_x and robotPosition.x > table_dimensions::table_min_x
         and robotPosition.y < table_dimensions::table_max_y and robotPosition.y > table_dimensions::table_min_y)
     {
         return true;
@@ -696,9 +696,9 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
                     robotParams_.getTrajConf(),
                     currentPosition, // start
                     distanceToGoBack
-                ); 
+                );
             }
-            
+
 
             newStartPoint = traj1.getEndPoint().position;
 
@@ -708,7 +708,7 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
                 subtraj->isAvoidanceTrajectory_ = true;
             }
 
-        }    
+        }
 
         std::cout << "currentPosition: " << currentPosition << std::endl;
         std::cout << "newStartPoint: " << newStartPoint << std::endl;
@@ -719,7 +719,7 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
             newStartPoint,
             targetPosition
         );
-        
+
         // if motion planning failed, plan a straight line in order to go back anyway
         if (traj2.getDuration() == 0)
         {
@@ -732,7 +732,7 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
 
             // add a point turn to keep the end angle info
             std::shared_ptr<PointTurn > pt_sub_end(
-                new PointTurn(robotParams_.getTrajConf(), 
+                new PointTurn(robotParams_.getTrajConf(),
                 traj2.getEndPoint().position, targetPosition.theta)
             );
             traj2.push_back(pt_sub_end);
