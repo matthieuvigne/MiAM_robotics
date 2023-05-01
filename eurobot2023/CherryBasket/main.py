@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     # Two ways to start match: either receive signal from
     # network or press button
-    print("Trying to receive")
+    #print("Trying to receive")
     readable, writable, exceptional = select.select(
         inputs, outputs, inputs, 0) # non blocking
     if client in readable:
@@ -85,11 +85,11 @@ if __name__ == "__main__":
     if not matchStarted:
       # Set LCD color to blue
       lcd.setLCDColor(0, 0, 100)
-      lcd.setLCDMessage("Wait for start".rjust(16, " ") + "\n" + (str(cherry_counter.num_cherries) + " cherries").rjust(16, " "))
+      lcd.setLCDMessage("Wait for start".ljust(16, " ") + "\n" + (str(cherry_counter.num_cherries) + " cherries").ljust(16, " "))
     elif matchStarted and not matchFinished:
     # Set LCD color to green
       lcd.setLCDColor(0, 100, 0)
-      lcd.setLCDMessage(("Time " + str(round(time() - matchStartTime))).rjust(16, " ") + "\n" + (str(cherry_counter.num_cherries) + " cherries").rjust(16, " "))
+      lcd.setLCDMessage(("Time " + str(round(time() - matchStartTime))).ljust(16, " ") + "\n" + (str(cherry_counter.num_cherries) + " cherries").ljust(16, " "))
       lastCherryCount = cherry_counter.num_cherries
 
     if matchStarted and not matchFinished:
@@ -97,7 +97,7 @@ if __name__ == "__main__":
         print("End match")
         matchFinished = True
         lcd.setLCDColor(50, 0, 50)
-        lcd.setLCDMessage("Match finished".rjust(16, " ") + "\n" + (str(lastCherryCount) + " cherries").rjust(16, " "))
+        lcd.setLCDMessage("Match finished".ljust(16, " ") + "\n" + (str(lastCherryCount) + " cherries").ljust(16, " "))
     
     sleep(0.2)
 

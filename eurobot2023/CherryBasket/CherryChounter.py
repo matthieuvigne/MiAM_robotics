@@ -66,11 +66,11 @@ class CherryCounter():
       mask_blue = cv2.inRange(img[:,:,0],0,90);
       mask = mask_red*mask_green*mask_blue;
       img = cv2.bitwise_and(img,img, mask=mask);
-      cv2.imwrite("masked/image{}_masked.jpg".format(cherry_counter.iter_idx), img);
+      #cv2.imwrite("masked/image{}_masked.jpg".format(cherry_counter.iter_idx), img);
       
       # Convert to grey levels
       gimg = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-      cv2.imwrite("grey/image{}_grey.jpg".format(cherry_counter.iter_idx), gimg)
+      #cv2.imwrite("grey/image{}_grey.jpg".format(cherry_counter.iter_idx), gimg)
 
       # Detect circles using Hough transform
       detected_circles_raw=cv2.HoughCircles(
@@ -103,7 +103,7 @@ class CherryCounter():
         a, b, r = pt[0], pt[1], pt[2]
         cv2.circle(dimg, (a, b), r, (0, 255, 0), 2)
         cv2.circle(dimg, (a, b), 1, (0, 0, 255), 3)
-      cv2.imwrite("detected/image{}_detected.jpg".format(cherry_counter.iter_idx), dimg)
+      #cv2.imwrite("detected/image{}_detected.jpg".format(cherry_counter.iter_idx), dimg)
       
       cherry_counter.num_cherries = len(detected_circles)
       cherry_counter.message = "Iter " + str(cherry_counter.iter_idx) + " :\n" + str(cherry_counter.num_cherries) + " cherries."
