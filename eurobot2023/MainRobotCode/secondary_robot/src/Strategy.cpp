@@ -39,7 +39,7 @@ int const BRUSH_DIR = 16;
 int const RAIL_SWITCH = 21;
 #define RAIL_SERVO_ID 30
 #define MIAM_RAIL_TOLERANCE 100 // in counts
-#define RAIL_DOWN_VALUE -42000 // in counts
+#define RAIL_DOWN_VALUE -44000 // in counts
 
 
 namespace secondary_robot {
@@ -61,9 +61,7 @@ void Strategy::setup(RobotInterface *robot)
     // Start all servos in position mode.
     servo->setMode(0xFE, STS::Mode::POSITION);
 
-    // usleep(10000);
-
-    // calibrateRail();
+    calibrateRail();
 
     // Set initial position
     RobotPosition targetPosition;
@@ -132,15 +130,16 @@ void Strategy::match_impl()
 
     // Cherry test
     // Move down
-    // set_reservoir_tilt(ReservoirTilt::GRAB);
-    // moveRail(rail::CHERRY_DISTRIBUTOR);
-    // set_brush_move(BrushDirection::TOWARDS_BACK);
-    // usleep(100000);
-    // moveRail(rail::CHERRY_GRAB);
+    set_reservoir_tilt(ReservoirTilt::GRAB);
+    moveRail(rail::CHERRY_DISTRIBUTOR);
+    set_brush_move(BrushDirection::TOWARDS_BACK);
+    usleep(100000);
+    moveRail(rail::CHERRY_GRAB);
     // Move forward
-
     targetPosition = motionController->getCurrentPosition();
-    traj = miam::trajectory::computeTrajectoryStraightLine(motionController->robotParams_.getTrajConf(), targetPosition, 500);
+    miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
+    conf.maxWheelVelocity *= 0.2;
+    traj = miam::trajectory::computeTrajectoryStraightLine(conf, targetPosition, 60);
     motionController->setTrajectoryToFollow(traj);
 
     while(true) ;;
@@ -533,10 +532,10 @@ void Strategy::calibrateRail()
     servo->setMode(RAIL_SERVO_ID, STS::Mode::VELOCITY);
     usleep(2000);
     // the switch is up
-    servo->setTargetVelocity(RAIL_SERVO_ID, 2000);
+    servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
     while (RPi_readGPIO(RAIL_SWITCH) == 1)
     {
-        servo->setTargetVelocity(RAIL_SERVO_ID, 2000);
+        servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
         usleep(20000);
     }
     servo->setTargetVelocity(RAIL_SERVO_ID, 0);
