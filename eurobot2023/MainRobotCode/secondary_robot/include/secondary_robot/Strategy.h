@@ -11,7 +11,7 @@
 #include "common/AbstractAction.h"
 #include "common/AbstractStrategy.h"
 #include "common/MotionPlanner.h"
-#include "miam_utils/network/socket.hpp"
+#include "miam_utils/network/client_socket.hpp"
 #include "miam_utils/network/socket_exception.hpp"
 
 namespace secondary_robot
@@ -61,7 +61,7 @@ namespace secondary_robot
 
         // The actual match code, which runs in its own thread.
         void match();
-        
+
         // socket to send start signal
         network::ClientSocket sock_;
 

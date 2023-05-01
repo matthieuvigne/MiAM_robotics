@@ -1,7 +1,6 @@
 #ifndef ABSTRACT_STRATEGY_H
 #define ABSTRACT_STRATEGY_H
 
-#include <network/camera_client.hpp>
 #include "common/RobotInterface.h"
 
 class AbstractStrategy

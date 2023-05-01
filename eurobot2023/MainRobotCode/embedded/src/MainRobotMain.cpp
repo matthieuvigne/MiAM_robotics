@@ -9,9 +9,6 @@
 #include "main_robot/Parameters.h"
 #include "main_robot/Strategy.h"
 
-//~ #include "CameraClient.h"
-#include "network/camera_client.hpp"
-
 #include <iostream>
 #include <thread>
 #include <stdlib.h>
