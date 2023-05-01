@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
   # Enable broadcasting mode
   client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-  client.bind(("192.168.6.255", 37020))
+  client.bind(("", 37020))
 
   # wait for init
   sleep(2.0)
