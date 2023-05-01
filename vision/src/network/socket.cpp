@@ -30,17 +30,32 @@ Socket::~Socket()
 // Methods
 //--------------------------------------------------------------------------------------------------
 
-bool Socket::create()
+bool Socket::create(bool isUDP)
 {
-  m_sock = socket ( AF_INET, SOCK_STREAM, 0 );
+  if (isUDP)
+  {
+    m_sock = socket ( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
+  }
+  else
+  {
+    m_sock = socket ( AF_INET, SOCK_STREAM, 0 );
+  }
 
   if ( ! is_valid() )
     return false;
 
   // TIME_WAIT - argh
   int on = 1;
-  if ( setsockopt ( m_sock, SOL_SOCKET, SO_REUSEADDR, ( char const* ) &on, sizeof ( on ) ) == -1 )
-    return false;
+  if (isUDP)
+  {
+    if ( setsockopt ( m_sock, SOL_SOCKET, SO_BROADCAST, ( char const* ) &on, sizeof ( on ) ) == -1 )
+      return false;
+  }
+  else
+  {
+    if ( setsockopt ( m_sock, SOL_SOCKET, SO_REUSEADDR, ( char const* ) &on, sizeof ( on ) ) == -1 )
+      return false;
+  }
 
   return true;
 }

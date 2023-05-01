@@ -63,6 +63,9 @@ namespace secondary_robot
 
         // The actual match code, which runs in its own thread.
         void match();
+        
+        // socket to send start signal
+        network::ClientSocket sock_;
 
     private:
         void match_impl(); /// Actual implementation of the match code.
@@ -96,9 +99,6 @@ namespace secondary_robot
         void calibrateRail();
         void updateRailHeight();
         RailMeasurements currentRailMeasurements;
-
-        // socket to send start signal
-        network::ClientSocket sock_;
     };
 }
 

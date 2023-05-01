@@ -17,9 +17,9 @@ ClientSocket::ClientSocket()
 // Methods
 //--------------------------------------------------------------------------------------------------
 
-void ClientSocket::connect(std::string host, int port)
+void ClientSocket::connect(std::string host, int port, bool isUDP)
 {
-  if(!Socket::create())
+  if(!Socket::create(isUDP))
     throw SocketException("Could not create client socket.");
 
   if(!Socket::connect(host, port))

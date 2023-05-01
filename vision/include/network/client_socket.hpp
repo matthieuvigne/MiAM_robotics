@@ -9,13 +9,17 @@ namespace network {
 // Class declaration
 //--------------------------------------------------------------------------------------------------
 
-class ClientSocket : private Socket
+class ClientSocket : public Socket
 {
   public:
     ClientSocket();
     virtual ~ClientSocket(){};
 
-    void connect(std::string host, int port);
+    /// @brief connects to socket
+    /// @param host id address
+    /// @param port port 
+    /// @param isUDP if true, set udp broadcast
+    void connect(std::string host, int port, bool isUDP=false);
     ClientSocket const& operator << (std::string const&) const;
     ClientSocket const& operator >> (std::string&) const;
 };

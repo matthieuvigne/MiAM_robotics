@@ -32,7 +32,7 @@ class Socket
     virtual ~Socket();
 
     // Server initialization
-    bool create();
+    bool create(bool isUDP = false);
     bool bind(int const port);
     bool listen() const;
     bool accept(Socket&) const;

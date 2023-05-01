@@ -79,18 +79,27 @@ void Strategy::setup(RobotInterface *robot)
     RPi_writeGPIO(BRUSH_DIR, false);
 
     // connect socket
-    try
+    int attempts = 0;
+    while(attempts < 20)
     {
-        std::cout << "Trying to connect" << std::endl;
-        sock_.connect("", 37020);
-        std::cout << "Connected!" << std::endl;
-        usleep(50000);
+        try
+        {
+            std::cout << "Trying to connect" << std::endl;
+            // args: addr, port, isUDP
+            // address is broadcast address ; UDP = true
+            sock_.connect("192.168.6.255", 37020, true);
+            std::cout << "Connected!" << std::endl;
+            usleep(50000);
+            return;
+        }
+        catch(network::SocketException const&)
+        {
+            usleep(1e6);
+            std::cout << "Failed to connect..." << std::endl;
+        }
+        attempts++;
     }
-    catch(network::SocketException const&)
-    {
-        usleep(1e6);
-        std::cout << "Failed to connect..." << std::endl;
-    }
+    
 }
 
 void Strategy::shutdown()
@@ -142,12 +151,17 @@ void Strategy::match_impl()
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
 
+    std::cout << "Sending starting signal... ";
+    std::cout << sock_.send("Match started") << std::endl;
+
+    while (true);;
+
 
     // while(true)
     // {
     //     std::cout << motionController->getCurrentPosition() << std::endl;
     //     // usleep(1e6);
-           robot->wait(1.0);
+        //    robot->wait(1.0);
 
     // }
 
