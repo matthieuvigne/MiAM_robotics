@@ -1,8 +1,8 @@
 #ifndef NETWORK_CLIENT_REQUEST_HPP
 #define NETWORK_CLIENT_REQUEST_HPP
 
-#include <common/macros.hpp>
-#include <network/message.hpp>
+#include <miam_utils/network/macros.hpp>
+#include <miam_utils/network/message.hpp>
 
 namespace network {
 

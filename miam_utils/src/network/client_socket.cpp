@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include <network/client_socket.hpp>
-#include <network/socket_exception.hpp>
+#include <miam_utils/network/client_socket.hpp>
+#include <miam_utils/network/socket_exception.hpp>
 
 namespace network {
 

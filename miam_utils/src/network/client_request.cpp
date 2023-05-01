@@ -1,9 +1,9 @@
 #include <cstring>
 #include <vector>
 
-#include <common/common.hpp>
-#include <common/logger.hpp>
-#include <network/client_request.hpp>
+#include <miam_utils/network/common.hpp>
+// #include <common/logger.hpp>
+#include <miam_utils/network/client_request.hpp>
 
 namespace network {
 
@@ -47,7 +47,7 @@ bool ClientRequest::serializeParams(std::vector<char>* params_ptr) const
       break;
     }
     case MessageType::UNKNOWN:
-    case MessageType::GET_MEASUREMENTS:
+    // case MessageType::GET_MEASUREMENTS:
     case MessageType::SHUT_DOWN:
       break;
     default:
@@ -68,7 +68,7 @@ bool ClientRequest::deserializeParams(std::vector<char> const& params)
       std::memcpy(params_.get(), params.data(), sizeof(common::Team));
       break;
     }
-    case MessageType::GET_MEASUREMENTS:
+    // case MessageType::GET_MEASUREMENTS:
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:
       break;

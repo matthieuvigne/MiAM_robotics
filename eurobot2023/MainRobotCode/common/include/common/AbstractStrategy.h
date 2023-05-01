@@ -19,7 +19,7 @@ class AbstractStrategy
         // The actual match code, which runs in its own thread.
         virtual void match() = 0;
 
-        network::CameraClient camera_;
+        // network::CameraClient camera_;
         std::vector<pthread_t> createdThreads_;
 
         RobotInterface *robot;

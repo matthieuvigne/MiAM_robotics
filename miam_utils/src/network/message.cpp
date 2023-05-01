@@ -2,10 +2,10 @@
 #include <vector>
 #include <iostream>
 
-#include <common/common.hpp>
-#include <common/logger.hpp>
-#include <common/time.hpp>
-#include <network/message.hpp>
+#include <miam_utils/network/common.hpp>
+// #include <common/logger.hpp>
+#include <miam_utils/network/time.hpp>
+#include <miam_utils/network/message.hpp>
 
 namespace network {
 
@@ -32,9 +32,9 @@ std::string print(MessageType type)
     case MessageType::INITIALIZATION:
       type_str = std::string("INITIALIZATION");
       break;
-    case MessageType::GET_MEASUREMENTS:
-      type_str = std::string("GET_MEASUREMENTS");
-      break;
+    // case MessageType::GET_MEASUREMENTS:
+    //   type_str = std::string("GET_MEASUREMENTS");
+    //   break;
     case MessageType::SHUT_DOWN:
       type_str = std::string("SHUT_DOWN");
       break;
@@ -64,9 +64,9 @@ void Message::initializeParams()
     case MessageType::INITIALIZATION:
       params_.reset(new common::Team);
       break;
-    case MessageType::GET_MEASUREMENTS:
-      params_.reset(new common::MarkerList);
-      break;
+    // case MessageType::GET_MEASUREMENTS:
+    //   params_.reset(new common::MarkerList);
+    //   break;
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:
       break;
@@ -141,7 +141,7 @@ bool Message::deserialize(std::string const& message)
   }
   catch(std::length_error&)
   {
-    CONSOLE << "Failed to deserialize the message -> dropped";
+    // CONSOLE << "Failed to deserialize the message -> dropped";
   }
   return false;
 }

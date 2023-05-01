@@ -10,9 +10,8 @@
 
 #include <assert.h>
 
-#include <common/macros.hpp>
-#include <network/server_socket.hpp>
-#include <camera/camera_thread.hpp>
+#include <miam_utils/network/macros.hpp>
+#include <miam_utils/network/server_socket.hpp>
 
 namespace network {
 
@@ -32,7 +31,7 @@ public:
 public:
 
   inline void join();
-  inline bool setCameraThread(camera::CameraThread const* camera_thread_ptr);
+  // inline bool setCameraThread(camera::CameraThread const* camera_thread_ptr);
 
 private:
 
@@ -43,7 +42,7 @@ public:
   // Threading
   mutable std::mutex mtx_;
   std::unique_ptr<std::thread> thread_ptr_;
-  camera::CameraThread const* camera_thread_ptr_;
+  // camera::CameraThread const* camera_thread_ptr_;
 
 }; // class ServerThread
 
@@ -56,14 +55,14 @@ void ServerThread::join()
   thread_ptr_->join();
 }
 
-//--------------------------------------------------------------------------------------------------
+// //--------------------------------------------------------------------------------------------------
 
-bool ServerThread::setCameraThread(camera::CameraThread const* camera_thread_ptr)
-{
-  if(camera_thread_ptr == nullptr) return false;
-  camera_thread_ptr_ = camera_thread_ptr;
-  return true;
-}
+// bool ServerThread::setCameraThread(camera::CameraThread const* camera_thread_ptr)
+// {
+//   if(camera_thread_ptr == nullptr) return false;
+//   camera_thread_ptr_ = camera_thread_ptr;
+//   return true;
+// }
 
 //--------------------------------------------------------------------------------------------------
 

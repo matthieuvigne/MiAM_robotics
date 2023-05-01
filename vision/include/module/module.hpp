@@ -1,39 +1,39 @@
-#ifndef CAMERA_BOARD_HPP
-#define CAMERA_BOARD_HPP
+// #ifndef CAMERA_BOARD_HPP
+// #define CAMERA_BOARD_HPP
 
-#include <opencv2/aruco.hpp>
+// #include <opencv2/aruco.hpp>
 
-#include <network/server_thread.hpp>
-#include <camera/camera_thread.hpp>
+// #include <network/server_thread.hpp>
+// #include <camera/camera_thread.hpp>
 
-namespace module {
+// namespace module {
 
-//--------------------------------------------------------------------------------------------------
-// Class definition
-//--------------------------------------------------------------------------------------------------
+// //--------------------------------------------------------------------------------------------------
+// // Class definition
+// //--------------------------------------------------------------------------------------------------
 
-class Module {
+// class Module {
 
-public:
+// public:
 
-  POINTER_TYPEDEF(Module);
-  Module(std::string const& logDirectory);
-  virtual ~Module();
+//   POINTER_TYPEDEF(Module);
+//   Module(std::string const& logDirectory);
+//   virtual ~Module();
 
-public:
+// public:
 
-  void join();
+//   void join();
 
-private:
+// private:
 
-  camera::CameraThread::UniquePtr camera_thread_ptr_;
-  network::ServerThread::UniquePtr server_thread_ptr_;
-  bool turn_off_ = false;
+//   camera::CameraThread::UniquePtr camera_thread_ptr_;
+//   network::ServerThread::UniquePtr server_thread_ptr_;
+//   bool turn_off_ = false;
 
-}; // class Module
+// }; // class Module
 
-//--------------------------------------------------------------------------------------------------
+// //--------------------------------------------------------------------------------------------------
 
-} // namespace module
+// } // namespace module
 
-#endif // CAMERA_BOARD_HPP
+// #endif // CAMERA_BOARD_HPP

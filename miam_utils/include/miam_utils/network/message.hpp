@@ -2,10 +2,11 @@
 #define NETWORK_MESSAGE_HPP
 
 #include <iostream>
+#include <vector>
 
-#include <common/common.hpp>
-#include <common/macros.hpp>
-#include <common/marker.hpp>
+#include <miam_utils/network/common.hpp>
+#include <miam_utils/network/macros.hpp>
+// #include <miam_utils/network/marker.hpp>
 
 namespace network {
 
@@ -13,7 +14,9 @@ namespace network {
 // Struct declaration
 //--------------------------------------------------------------------------------------------------
 
-enum class MessageType {UNKNOWN, INITIALIZATION, GET_MEASUREMENTS, SHUT_DOWN};
+enum class MessageType {UNKNOWN, INITIALIZATION, 
+  // GET_MEASUREMENTS, 
+  SHUT_DOWN};
 std::string print(MessageType type);
 
 //--------------------------------------------------------------------------------------------------
@@ -95,9 +98,9 @@ T* Message::getParamsPtrAs()
     case MessageType::INITIALIZATION:
       is_consistent = std::is_same<T,common::Team>::value;
       break;
-    case MessageType::GET_MEASUREMENTS:
-      is_consistent = std::is_same<T,common::MarkerList>::value;
-      break;
+    // case MessageType::GET_MEASUREMENTS:
+    //   is_consistent = std::is_same<T,common::MarkerList>::value;
+    //   break;
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:
     default:
@@ -120,9 +123,9 @@ T const* Message::getParamsPtrAs() const
     case MessageType::INITIALIZATION:
       is_consistent = std::is_same<T,common::Team>::value;
       break;
-    case MessageType::GET_MEASUREMENTS:
-      is_consistent = std::is_same<T,common::MarkerList>::value;
-      break;
+    // case MessageType::GET_MEASUREMENTS:
+    //   is_consistent = std::is_same<T,common::MarkerList>::value;
+    //   break;
     case MessageType::SHUT_DOWN:
     case MessageType::UNKNOWN:
     default:

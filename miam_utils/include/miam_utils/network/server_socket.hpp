@@ -1,8 +1,8 @@
 #ifndef NETORK_SERVER_SOCKET_HPP
 #define NETORK_SERVER_SOCKET_HPP
 
-#include <common/macros.hpp>
-#include <network/socket.hpp>
+#include <miam_utils/network/macros.hpp>
+#include <miam_utils/network/socket.hpp>
 
 namespace network {
 

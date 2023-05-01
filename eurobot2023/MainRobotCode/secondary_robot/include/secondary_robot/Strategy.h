@@ -11,8 +11,8 @@
 #include "common/AbstractAction.h"
 #include "common/AbstractStrategy.h"
 #include "common/MotionPlanner.h"
-#include "../../vision/include/network/socket.hpp"
-#include "../../vision/include/network/socket_exception.hpp"
+#include "miam_utils/network/socket.hpp"
+#include "miam_utils/network/socket_exception.hpp"
 
 namespace secondary_robot
 {

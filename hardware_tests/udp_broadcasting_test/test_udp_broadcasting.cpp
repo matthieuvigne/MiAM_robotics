@@ -1,10 +1,12 @@
-#include <network/socket.hpp>
+
+#include "socket.hpp"
+#include "socket_exception.hpp"
+#include "client_socket.hpp"
+
+#include <iostream>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <iostream>
-
-#include <common/macros.hpp>
 
 namespace network {
 
@@ -158,5 +160,79 @@ void Socket::set_non_blocking(bool const b)
 }
 
 //--------------------------------------------------------------------------------------------------
+// Constructor and destructors
+//--------------------------------------------------------------------------------------------------
+
+ClientSocket::ClientSocket()
+: Socket()
+{}
+
+//--------------------------------------------------------------------------------------------------
+// Methods
+//--------------------------------------------------------------------------------------------------
+
+void ClientSocket::connect(std::string host, int port, bool isUDP)
+{
+  if(!Socket::create(isUDP))
+    throw SocketException("Could not create client socket.");
+
+  if(!Socket::connect(host, port))
+    throw SocketException("Could not bind to port.");
+}
+//--------------------------------------------------------------------------------------------------
+
+ClientSocket const& ClientSocket::operator << (std::string const& s) const
+{
+  if(!Socket::send(s))
+    throw SocketException("Could not write to socket.");
+  return *this;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+ClientSocket const& ClientSocket::operator >> (std::string& s) const
+{
+  if(!Socket::recv(s))
+    throw SocketException("Could not read from socket.");
+  return *this;
+}
+
+//--------------------------------------------------------------------------------------------------
 
 } // namespace network
+
+
+
+int main()
+{
+
+    // socket to send start signal
+    network::ClientSocket sock_;
+
+    // connect socket
+    int attempts = 0;
+    while(attempts < 20)
+    {
+        try
+        {
+            std::cout << "Trying to connect" << std::endl;
+            // args: addr, port, isUDP
+            // address is broadcast address ; UDP = true
+            sock_.connect("192.168.6.255", 37020, true);
+            std::cout << "Connected!" << std::endl;
+            usleep(50000);
+            break;
+        }
+        catch(network::SocketException const&)
+        {
+            usleep(1e6);
+            std::cout << "Failed to connect..." << std::endl;
+        }
+        attempts++;
+    }
+
+    std::cout << "Sending starting signal... ";
+    std::cout << sock_.send("Match started") << std::endl;
+
+    return 0;
+}

@@ -1,10 +1,10 @@
 #include <iostream>
 
-#include <common/logger.hpp>
-#include <network/client_request.hpp>
-#include <network/server_response.hpp>
-#include <network/server_thread.hpp>
-#include <network/socket_exception.hpp>
+// #include <common/logger.hpp>
+#include <miam_utils/network/client_request.hpp>
+#include <miam_utils/network/server_response.hpp>
+#include <miam_utils/network/server_thread.hpp>
+#include <miam_utils/network/socket_exception.hpp>
 
 namespace network {
 
@@ -57,14 +57,14 @@ void ServerThread::serverThread()
           case MessageType::INITIALIZATION:
           {
             common::Team const& team = client_request.getParamsAs<common::Team>();
-            camera_thread_ptr_->setTeam(team);
+            // camera_thread_ptr_->setTeam(team);
             break;
           }
-          case MessageType::GET_MEASUREMENTS:
-          {
-            camera_thread_ptr_->getMarkers(response_ptr->getParamsPtrAs<common::MarkerList>());
-            break;
-          }
+          // case MessageType::GET_MEASUREMENTS:
+          // {
+          //   camera_thread_ptr_->getMarkers(response_ptr->getParamsPtrAs<common::MarkerList>());
+          //   break;
+          // }
           case MessageType::SHUT_DOWN:
           {
             shut_down = true;
@@ -88,8 +88,8 @@ void ServerThread::serverThread()
     }
     catch(SocketException const& e)
     {
-      CONSOLE << "Lost connection with the client";
-      CONSOLE << e.description();
+      // CONSOLE << "Lost connection with the client";
+      // CONSOLE << e.description();
     }
   }
 }

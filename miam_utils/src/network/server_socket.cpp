@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include <common/logger.hpp>
-#include <network/server_socket.hpp>
-#include <network/socket_exception.hpp>
+// #include <common/logger.hpp>
+#include <miam_utils/network/server_socket.hpp>
+#include <miam_utils/network/socket_exception.hpp>
 
 namespace network {
 

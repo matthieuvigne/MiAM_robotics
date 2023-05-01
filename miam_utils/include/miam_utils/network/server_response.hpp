@@ -1,8 +1,8 @@
 #ifndef NETWORK_SERVER_RESPONSE_HPP
 #define NETWORK_SERVER_RESPONSE_HPP
 
-#include <common/macros.hpp>
-#include <network/message.hpp>
+#include <miam_utils/network/macros.hpp>
+#include <miam_utils/network/message.hpp>
 
 namespace network {
 
