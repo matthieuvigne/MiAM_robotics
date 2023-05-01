@@ -55,10 +55,14 @@ class CherryCounter():
     while True: 
 
       cherry_counter.iter_idx = (cherry_counter.iter_idx + 1) % 10
-      cherry_counter.camera.capture(img, "bgr")
+      try:
+        cherry_counter.camera.capture(img, "bgr")
+      except Exception:
+        print("Erreur camera !")
+        continue
       
       # Common processing
-      cv2.imwrite("raw/image"+str(cherry_counter.iter_idx)+"_raw.jpg", img);
+      # cv2.imwrite("raw/image"+str(cherry_counter.iter_idx)+"_raw.jpg", img);
 
       # Threshold the channels
       mask_red = cv2.inRange(img[:,:,2], 110, 255);
