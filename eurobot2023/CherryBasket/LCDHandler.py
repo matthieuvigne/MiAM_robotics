@@ -72,7 +72,7 @@ class LCDHandler():
                 (lcd.rightState & (lcd.rightState != rightState_old)) or
                 (lcd.upState & (lcd.upState != upState_old)))
 
-            if lcd.stateChanged != stateChanged:
+            if stateChanged:
                 print("stateChanged ", lcd.upState, " ", lcd.downState, " ", lcd.rightState, " ", lcd.leftState)
                 print("from ", upState_old, " ", downState_old, " ", rightState_old, " ", leftState_old)
                 lcd.stateChanged = stateChanged
