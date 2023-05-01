@@ -35,9 +35,9 @@ namespace main_robot
         double constexpr d45x = 29.1e-3;
         double constexpr d45z = 45.8e-3;
 
-        double r = d12 
-            + d23 * std::cos(theta12) 
-            + d34 * std::cos(theta12 + theta23) 
+        double r = d12
+            + d23 * std::cos(theta12)
+            + d34 * std::cos(theta12 + theta23)
             + d45x * std::cos(theta12 + theta23 + theta34)
             - d45z * std::sin(theta12 + theta23 + theta34);
 
@@ -71,10 +71,8 @@ namespace main_robot
             done = true;
             for (int i = 0; i < 4; i++)
             {
-                servo->mutex_.lock();
                 done &= !servo->isMoving(RIGHT_ARM + i);
                 done &= !servo->isMoving(LEFT_ARM + i);
-                servo->mutex_.unlock();
             }
             //~ usleep(20000);
             std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -93,7 +91,7 @@ namespace main_robot
         {
             std::cout << "New action depiling " << (armServoId == RIGHT_ARM ? "right" : "left") << " arm " << std::endl;
             std::cout << "Remaining actions: " << actions.size() << std::endl;
-          
+
             // std::cout << "Actions not empty: size " << actions.size() << std::endl;
             switch(actions.front()->type_)
             {
@@ -151,13 +149,11 @@ namespace main_robot
                         done = true;
                         for (int i = 0; i < 4; i++)
                         {
-                            servo->mutex_.lock();
                             done &= !servo->isMoving(armServoId + i);
-                            servo->mutex_.unlock();
                         }
                         //~ usleep(20000);
                         std::this_thread::sleep_for(std::chrono::microseconds(2));
-                    }  
+                    }
                     actions.pop();
                     break;
                 }
@@ -230,16 +226,14 @@ namespace main_robot
 
     ArmPosition Strategy::getArmPosition(int const& armFirstServoId)
     {
-        
+
         // lire les 4 angles
-        servo->mutex_.lock();
         double thetaHorizontal = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 0));
         double theta12 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 1));
         double theta23 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 2));
         double theta34 = STS::servoToRadValue(servo->getLastCommand(armFirstServoId + 3));
-        servo->mutex_.unlock();
-        
-        std::cout << "Read servo " << armFirstServoId << " : " << thetaHorizontal << " " << theta12 << " " << theta23 << " " << theta34 << std::endl; 
+
+        std::cout << "Read servo " << armFirstServoId << " : " << thetaHorizontal << " " << theta12 << " " << theta23 << " " << theta34 << std::endl;
 
         if (armFirstServoId == RIGHT_ARM)
         {
@@ -250,8 +244,8 @@ namespace main_robot
         }
 
         ArmPosition res(servoAnglesToArmPosition(thetaHorizontal, theta12, theta23, theta34));
-        
-        std::cout << "Converted to ArmPosition " << armFirstServoId << " : " << res << std::endl; 
+
+        std::cout << "Converted to ArmPosition " << armFirstServoId << " : " << res << std::endl;
         return res;
     }
 
@@ -303,9 +297,7 @@ namespace main_robot
                   angle = -angle;
                 if(i>0 && armFirstServoId == RIGHT_ARM)
                     angle = -angle;
-                servo->mutex_.lock();
                 servo->setTargetPosition(armFirstServoId + i, STS::radToServoValue(angle));
-                servo->mutex_.unlock();
                 //~ usleep(50);
                 std::this_thread::sleep_for(std::chrono::microseconds(50));
             }

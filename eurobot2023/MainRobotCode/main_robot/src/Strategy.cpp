@@ -80,25 +80,19 @@ void Strategy::setup(RobotInterface *robot)
     // Arms
     for (int i = 0; i < 4; i++)
     {
-        servo->mutex_.lock();
         servo->setTargetPosition(RIGHT_ARM + i, 2048);
         servo->setTargetPosition(LEFT_ARM + i, 2048);
-        servo->mutex_.unlock();
     }
 
     // Change P gain of the first servos of each arm to prevent vibrations
-    servo->mutex_.lock();
     servo->setPGain(RIGHT_ARM, 20);
     servo->setPGain(LEFT_ARM, 20);
     servo->setPGain(RIGHT_ARM + 1, 20);
     servo->setPGain(LEFT_ARM + 1, 20);
-    servo->mutex_.unlock();
-    
+
     // Fold arm
-    servo->mutex_.lock();
     servo->setTargetPosition(RIGHT_ARM + 1, 3000);
     servo->setTargetPosition(LEFT_ARM + 1, 1000);
-    servo->mutex_.unlock();
 }
 
 void Strategy::shutdown()

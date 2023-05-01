@@ -215,10 +215,6 @@
             /// \return Register value, 0 on failure.
             int16_t readTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId);
 
-        public:
-          std::mutex mutex_;
-
-
         private:
 
             /// \brief Clear internal device error.
@@ -280,5 +276,6 @@
             int returnCode_; ///< Last return code.
 
             std::unordered_map<unsigned char, int16_t> lastCommands_;
+            std::mutex mutex_;
     };
 #endif

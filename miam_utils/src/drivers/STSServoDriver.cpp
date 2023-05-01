@@ -260,6 +260,8 @@ int STSServoDriver::sendMessage(unsigned char const& servoId,
 {
     if (port_ < 0)
         return 0;
+    if (!willRead)
+        mutex_.lock();
     unsigned char message[6 + paramLength];
     unsigned char checksum = servoId + paramLength + 2 + commandID;
     message[0] = 0xFF;
@@ -288,6 +290,8 @@ int STSServoDriver::sendMessage(unsigned char const& servoId,
     {
         usleep(15);
     }
+    if (!willRead)
+        mutex_.unlock();
     return ret;
 }
 
@@ -356,6 +360,10 @@ int STSServoDriver::readRegisters(unsigned char const& servoId,
                                   unsigned char *outputBuffer)
 {
     #define N_RETRIES 3
+
+    static int success = 0;
+    static int fail = 0;
+    mutex_.lock();
     for (int i = 0; i < N_RETRIES; i++)
     {
         tcflush(port_, TCIFLUSH);
@@ -375,9 +383,13 @@ int STSServoDriver::readRegisters(unsigned char const& servoId,
 
         for (int i = 0; i < readLength; i++)
             outputBuffer[i] = result[i + 1];
+        mutex_.unlock();
+        success++;
         return 0;
     }
-    std::cout << "[STS servo] Failed to read register" << std::endl;
+    fail ++;
+    std::cout << "[STS servo] Failed to read register " << success << " " << fail << std::endl;
+    mutex_.unlock();
     return -1;
 }
 
