@@ -20,7 +20,8 @@ using miam::RobotPosition;
 
 #define USE_CAMERA 1
 
-#define FAIRE_CARRE 1 // make a square on the table to test motors
+#define FAIRE_CARRE 0 // make a square on the table to test motors
+#define TESTER_CERISES 0 // make a square on the table to test motors
 #define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
 
 // #define SKIP_TO_GRABBING_SAMPLES 1
@@ -76,6 +77,20 @@ void Strategy::setup(RobotInterface *robot)
     RPi_writeGPIO(BRUSH_MOTOR, false);
     RPi_setupGPIO(BRUSH_DIR, PiGPIOMode::PI_GPIO_OUTPUT);
     RPi_writeGPIO(BRUSH_DIR, false);
+
+    // connect socket
+    try
+    {
+        std::cout << "Trying to connect" << std::endl;
+        sock_.connect("", 37020);
+        std::cout << "Connected!" << std::endl;
+        usleep(50000);
+    }
+    catch(network::SocketException const&)
+    {
+        usleep(1e6);
+        std::cout << "Failed to connect..." << std::endl;
+    }
 }
 
 void Strategy::shutdown()
@@ -131,7 +146,8 @@ void Strategy::match_impl()
     // while(true)
     // {
     //     std::cout << motionController->getCurrentPosition() << std::endl;
-    //     usleep(1e6);
+    //     // usleep(1e6);
+           robot->wait(1.0);
 
     // }
 
@@ -201,13 +217,14 @@ void Strategy::match_impl()
     return;
 #endif
 
-
+#if TESTER_CERISES
     // Cherry test
     // Move down
     set_reservoir_tilt(ReservoirTilt::GRAB);
     moveRail(rail::CHERRY_DISTRIBUTOR);
     set_brush_move(BrushDirection::TOWARDS_BACK);
-    usleep(100000);
+    robot->wait(0.100);
+    // usleep(100000);
     moveRail(rail::CHERRY_GRAB);
     // Move forward
     targetPosition = motionController->getCurrentPosition();
@@ -217,6 +234,7 @@ void Strategy::match_impl()
     motionController->setTrajectoryToFollow(traj);
 
     while(true) ;;
+#endif  
 
 
     // create brain
@@ -491,7 +509,8 @@ void Strategy::match()
     if (!MATCH_COMPLETED)
         pthread_cancel(handle);
     createdThreads_.clear();
-    usleep(50000);
+    robot->wait(0.05);
+    // usleep(50000);
     if (!MATCH_COMPLETED)
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
@@ -519,6 +538,8 @@ void Strategy::set_brush_move(BrushDirection brushDirection)
 int const RESERVOIR_SERVO = 5;
 void Strategy::set_reservoir_tilt(ReservoirTilt reservoirTilt)
 {
+
+#ifndef SIMULATION
     if (reservoirTilt == ReservoirTilt::DOWN)
     {
         servo->setTargetPosition(RESERVOIR_SERVO, 2500);
@@ -535,6 +556,7 @@ void Strategy::set_reservoir_tilt(ReservoirTilt reservoirTilt)
     {
         servo->setTargetPosition(RESERVOIR_SERVO, 1630);
     }
+#endif
 }
 
 void Strategy::grab_cherries()
@@ -582,6 +604,7 @@ void Strategy::put_cherries_in_the_basket()
 
 void Strategy::moveRail(double const& targetPosition)
 {
+#ifndef SIMULATION
     int targetValue = static_cast<int>((1 - std::min(1.0, std::max(0.0, targetPosition))) * RAIL_DOWN_VALUE);
 
     if (currentRailMeasurements.currentPosition_ > targetValue)
@@ -593,10 +616,12 @@ void Strategy::moveRail(double const& targetPosition)
     while (std::abs(currentRailMeasurements.currentPosition_ - targetValue) > MIAM_RAIL_TOLERANCE && nIter < 12000)
     {
         updateRailHeight();
-        usleep(20000);
+        robot->wait(0.020);
+        // usleep(20000);
         nIter++;
     }
     servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+#endif
 }
 
 
@@ -604,16 +629,20 @@ void Strategy::moveRail(double const& targetPosition)
 void Strategy::calibrateRail()
 {
     servo->setMode(RAIL_SERVO_ID, STS::Mode::VELOCITY);
-    usleep(2000);
+    robot->wait(0.002);
+    // usleep(2000);
+
     // the switch is up
     servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
     while (RPi_readGPIO(RAIL_SWITCH) == 1)
     {
         servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
-        usleep(20000);
+        robot->wait(0.020);
+        // usleep(20000);
     }
     servo->setTargetVelocity(RAIL_SERVO_ID, 0);
-    usleep(2000);
+    robot->wait(0.002);
+    // usleep(2000);
 
     // Init
     currentRailMeasurements.currentPosition_ = 0;
@@ -623,7 +652,8 @@ void Strategy::calibrateRail()
 
 void Strategy::updateRailHeight()
 {
-    usleep(1000);
+    robot->wait(0.001);
+    // usleep(1000);
     int currentCount = servo->getCurrentPosition(RAIL_SERVO_ID);
     while (currentCount == 0)
         currentCount = servo->getCurrentPosition(RAIL_SERVO_ID);

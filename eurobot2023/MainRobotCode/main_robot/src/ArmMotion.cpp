@@ -62,6 +62,7 @@ namespace main_robot
 
     void Strategy::waitForArmMotion()
     {
+#ifndef SIMULATION
         //~ usleep(500000);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         // return;
@@ -77,6 +78,7 @@ namespace main_robot
             //~ usleep(20000);
             std::this_thread::sleep_for(std::chrono::milliseconds(2));
         }
+#endif
     }
 
     void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int armServoId)
@@ -297,9 +299,12 @@ namespace main_robot
                   angle = -angle;
                 if(i>0 && armFirstServoId == RIGHT_ARM)
                     angle = -angle;
+
+#ifndef SIMULATION
                 servo->setTargetPosition(armFirstServoId + i, STS::radToServoValue(angle));
                 //~ usleep(50);
                 std::this_thread::sleep_for(std::chrono::microseconds(50));
+#endif
             }
             // std::cout << std::endl;
             ArmPosition pos = servoAnglesToArmPosition(armAngles[0], armAngles[1], armAngles[2], armAngles[3]);

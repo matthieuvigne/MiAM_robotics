@@ -84,6 +84,11 @@ void Strategy::addPumpToRightQueue(bool activated)
 
 void Strategy::buildCakes()
 {
+#ifdef SIMULATION
+    robot->wait(10.0);
+    return;
+#endif
+
     std::cout << "Building cakes" << std::endl;
     
     // right arm has inverted angles!

@@ -11,6 +11,8 @@
 #include "common/AbstractAction.h"
 #include "common/AbstractStrategy.h"
 #include "common/MotionPlanner.h"
+#include "../../vision/include/network/socket.hpp"
+#include "../../vision/include/network/socket_exception.hpp"
 
 namespace secondary_robot
 {
@@ -94,6 +96,9 @@ namespace secondary_robot
         void calibrateRail();
         void updateRailHeight();
         RailMeasurements currentRailMeasurements;
+
+        // socket to send start signal
+        network::ClientSocket sock_;
     };
 }
 
