@@ -68,7 +68,7 @@ void AbstractStrategy::testSquare(double const& squareDimension)
     motionController->resetPosition(position, true, true, true);
 
     RobotPosition endPosition = position;
-    endPosition.x += 500;
+    endPosition.x += squareDimension;
     TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition);
     motionController->setTrajectoryToFollow(traj);
@@ -76,7 +76,7 @@ void AbstractStrategy::testSquare(double const& squareDimension)
 
     position = motionController->getCurrentPosition();
     endPosition = position;
-    endPosition.y -= 500;
+    endPosition.y -= squareDimension;
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition);
     motionController->setTrajectoryToFollow(traj);
@@ -84,7 +84,7 @@ void AbstractStrategy::testSquare(double const& squareDimension)
 
     position = motionController->getCurrentPosition();
     endPosition = position;
-    endPosition.x -= 500;
+    endPosition.x -= squareDimension;
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition);
     motionController->setTrajectoryToFollow(traj);
@@ -93,7 +93,7 @@ void AbstractStrategy::testSquare(double const& squareDimension)
 
     position = motionController->getCurrentPosition();
     endPosition = position;
-    endPosition.y += 500;
+    endPosition.y += squareDimension;
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition);
     motionController->setTrajectoryToFollow(traj);
@@ -101,7 +101,7 @@ void AbstractStrategy::testSquare(double const& squareDimension)
 
     position = motionController->getCurrentPosition();
     endPosition = position;
-    endPosition.x += 500;
+    endPosition.x += squareDimension;
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition);
     traj.pop_back();

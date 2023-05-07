@@ -25,17 +25,17 @@
                 param.maxWheelSpeed = 700.0; ///< Maximum wheel speed, in mm/s.
                 param.maxWheelAcceleration = 1000.0; ///< Maximum wheel acceleration, in mm/s^2.
 
-                param.maxWheelSpeedTrajectory = 600.0; ///< Maximum wheel speed, in mm/s, for trajectory generation.
-                param.maxWheelAccelerationTrajectory = 600.0; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
+                param.maxWheelSpeedTrajectory = 500.0; ///< Maximum wheel speed, in mm/s, for trajectory generation.
+                param.maxWheelAccelerationTrajectory = 500.0; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
                 // Motion servoing gains
-                param.linearKp = 10.0; // previously 3.5
+                param.linearKp = 3.5; // previously 3.5
                 param.linearKd = 0.01;
                 param.linearKi = 0.00;
 
                 param.transverseKp = 0.005;
 
-                param.rotationKp = 10.0;
+                param.rotationKp = 5.0;
                 param.rotationKd = 0.01;
                 param.rotationKi = 0.0;
 

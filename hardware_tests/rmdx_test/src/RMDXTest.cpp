@@ -3,12 +3,14 @@
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
 #include <miam_utils/drivers/MCP2515Driver.h>
 #include <miam_utils/drivers/RMDX.h>
+#include <miam_utils/drivers/RMDXController.h>
 #include <miam_utils/Logger.h>
 #include <miam_utils/Metronome.h>
 #include <miam_utils/PID.h>
 #include <cstdlib>
 #include <iostream>
 #include <unistd.h>
+#include <cmath>
 
 struct timespec startTime;
 
@@ -27,7 +29,7 @@ int main (int argc, char *argv[])
 {
     RPi_enablePorts();
 
-    SPIWrapper spi(RPI_SPI_00, 300000);
+    SPIWrapper spi(RPI_SPI_00, 1000000);
     MCP2515 mcp(&spi);
     if (!mcp.init())
     {
@@ -39,23 +41,33 @@ int main (int argc, char *argv[])
     int const motorRightId = 1;
     int const motorLeftId = 2;
 
-    if (!motor.init(motorRightId))
+    while (!motor.init(motorRightId))
     {
         std::cout << "Failed to init right motor, id " << motorRightId << std::endl;
-        return -1;
+        // return -1;
     }
-    if (!motor.init(motorLeftId))
+    while (!motor.init(motorLeftId))
     {
         std::cout << "Failed to init left motor, id " << motorLeftId << std::endl;
-        return -1;
+        // return -1;
     }
+
+
+    double Kp = 0.7;
+    double Ki = 0.9;
+    double maxOutput = 5.0;
+    double filterCutoff = 10.0;
+    double maxFeedforward = 0.4;
+
+    RMDXController rightController(&motor, motorRightId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward);
+    RMDXController leftController(&motor, motorLeftId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward);
 
     Logger log;
     log.start("test.hdf5");
 
     setStart();
 
-    while (time() < 6)
+    while (time() < 4)
     {
         motor.setCurrent(motorRightId, 0);
         motor.setCurrent(motorLeftId, 0);
@@ -64,39 +76,48 @@ int main (int argc, char *argv[])
     int i = 0;
     double rightTarget, leftTarget;
 
-    Metronome m(2000000);
+    Metronome m(10000000);
 
     double oldt;
     oldt = m.getElapsedTime();;
 
-    while (true)
+    while (time() < 8)
     {
-        while (time() / 2 > i)
-            i++;
-        if (i % 2)
-        {
-            rightTarget = 2.0;
-            leftTarget = -2.0;
-        }
-        else
-        {
-            rightTarget = -2.0;
-            leftTarget = 3.0;
-        }
-        leftTarget = -rightTarget;
+    // rightController.stop();
+    // leftController.stop();
+    // std::cout << motor.getStatus(motorRightId) << std::endl;
 
         m.wait();
         double t = m.getElapsedTime();
         double dt = t - oldt;
         oldt = t;
 
-        double rightSpeed = motor.setSpeed(motorRightId, rightTarget);
-        double leftSpeed = motor.setSpeed(motorLeftId, leftTarget);
+
+        // while (t > 8)
+        // {
+        //     t -= 8;
+        // }
+        rightTarget = 2 * std::sin(2 * 3.14159 * 0.25 * t);
+        leftTarget = -rightTarget;
+
+
+        // rightController.sendTarget(rightTarget);
+        double rightSpeed = rightController.sendTarget(rightTarget, dt);
+        double leftSpeed = leftController.sendTarget(leftTarget, dt);
+
 
         log.log("rightTargetSpeed", time(), rightTarget);
         log.log("rightSpeed", time(), rightSpeed);
+
+        log.log("rightTargetCurrent", time(), rightController.targetCurrent_);
+        log.log("rightCurrent", time(), rightController.current_);
+
         log.log("leftTargetSpeed", time(), leftTarget);
         log.log("leftSpeed", time(), leftSpeed);
+
+        log.log("leftTargetCurrent", time(), leftController.targetCurrent_);
+        log.log("leftCurrent", time(), leftController.current_);
+
 
         log.log("dt", time(), dt);
     }

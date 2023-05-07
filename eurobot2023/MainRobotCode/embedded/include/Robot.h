@@ -18,6 +18,7 @@
     #include <miam_utils/raspberry_pi/RaspberryPi.h>
     #include <miam_utils/drivers/SPI-Wrapper.h>
     #include <miam_utils/drivers/RMDX.h>
+    #include <miam_utils/drivers/RMDXController.h>
     #include <miam_utils/drivers/AS5045Driver.h>
     #include <miam_utils/trajectory/PointTurn.h>
     #include <miam_utils/trajectory/Utilities.h>
@@ -116,6 +117,9 @@
             SPIWrapper spiMotor_;
             MCP2515 mcp_;
             RMDX motors_;
+            RMDXController rightController_;
+            RMDXController leftController_;
+
             SPIWrapper spiEncoder_;
             AS5045 encoders_;
 

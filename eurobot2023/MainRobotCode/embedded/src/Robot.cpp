@@ -10,22 +10,33 @@
 #include "common/RobotGUI.h"
 
 // Update loop frequency
-const double LOOP_PERIOD = 0.005;
+const double LOOP_PERIOD = 0.010;
 const int START_SWITCH = 20;
 double const UNDERVOLTAGE_LEVEL = 19.5;
 
+
+// Motor control parameters
+double const Kp = 0.7;
+double const Ki = 0.9;
+double const maxOutput = 5.0;
+double const filterCutoff = 10.0;
+double const maxFeedforward = 0.4;
+
+
 Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar):
-    gui_(gui),
     RobotInterface(parameters),
+    gui_(gui),
+    lidar_(parameters.lidarOffset),
     testMode_(testMode),
     disableLidar_(disableLidar),
-    strategy_(strategy),
     spiMotor_(RPI_SPI_00, 1000000),
     mcp_(&spiMotor_),
     motors_(&mcp_),
+    rightController_(&motors_, parameters.rightMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward),
+    leftController_(&motors_, parameters.leftMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward),
     spiEncoder_(RPI_SPI_01, 1000000),
-    lidar_(parameters.lidarOffset),
-    encoders_(&spiEncoder_, 2)
+    encoders_(&spiEncoder_, 2),
+    strategy_(strategy)
 {
     motionController_.init(RobotPosition());
 
@@ -264,11 +275,19 @@ void Robot::lowLevelLoop()
         DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
 
         // Apply target
-        int sign = motionController_.robotParams_.rightMotorDirection;
-        measurements.motorSpeed(0) = sign * motors_.setSpeed(motionController_.robotParams_.rightMotorId, sign * target.motorSpeed[0]);
-        sign = motionController_.robotParams_.leftMotorDirection;
-        measurements.motorSpeed(1) = sign * motors_.setSpeed(motionController_.robotParams_.leftMotorId, sign * target.motorSpeed[1]);
-
+        // TODO brake ?
+        if (!hasMatchStarted_)
+        {
+            rightController_.stop();
+            leftController_.stop();
+        }
+        else
+        {
+            int sign = motionController_.robotParams_.rightMotorDirection;
+            measurements.motorSpeed(0) = sign * rightController_.sendTarget(sign * target.motorSpeed[0], dt);
+            sign = motionController_.robotParams_.leftMotorDirection;
+            measurements.motorSpeed(1) = sign * leftController_.sendTarget(sign * target.motorSpeed[1], dt);
+        }
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;
         gui_->update(guiState_);
@@ -301,17 +320,18 @@ void Robot::updateScore(int const& scoreIncrement)
 
 void Robot::stopMotors()
 {
-    // TODO brake.
-    motors_.setSpeed(motionController_.robotParams_.rightMotorId, 0);
-    motors_.setSpeed(motionController_.robotParams_.leftMotorId, 0);
+    motors_.setCurrent(motionController_.robotParams_.rightMotorId, 0);
+    motors_.setCurrent(motionController_.robotParams_.leftMotorId, 0);
 }
 
 
 void Robot::shutdown()
 {
+    stopMotors();
+    // Hack: lock motors to prevent override.
+    motors_.mutex_.lock();
     if (isLidarInit_)
         lidar_.stop();
     servos_.disable(0xFE);
     strategy_->shutdown();
-    stopMotors();
 }

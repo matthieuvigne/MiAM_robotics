@@ -9,6 +9,7 @@
 
 #include "miam_utils/drivers/MCP2515Driver.h"
 #include <iostream>
+#include <mutex>
 
 
 namespace MyActuator::commands
@@ -116,13 +117,20 @@ class RMDX{
         /// \param[in] motorId Motor id
         /// \param[in] reductionRatio Reduction ratio
         /// \return Joint angular position, in rad.
-        double getCurrentPosition(unsigned char const& motorId, double const& reductionRatio = 6);
+        double getCurrentPosition(unsigned char const& motorId, double const& reductionRatio = 1.0);
 
         /// \brief Get motor status
         /// \param[in] motorId Motor id
         /// \return Motor status (voltage, temperature, error code)
         RMDX::Status getStatus(unsigned char const& motorId);
 
+
+        /// \brief Turn brake on or off
+        /// \param[in] motorId Motor id
+        /// \param[in] turnBrakeOn Desired brake status
+        void setBrake(unsigned char const& motorId, bool const& turnBrakeOn);
+
+        std::mutex mutex_;
     private:
 
         /// \brief Set communication timeout (0 to disable)

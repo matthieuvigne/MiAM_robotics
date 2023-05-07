@@ -141,10 +141,15 @@ bool RMDX::setCommunicationTimeout(unsigned char const& motorId, int32_t const& 
 
 int RMDX::canReadWrite(CANMessage& message, bool const& waitForReply)
 {
+    mutex_.lock();
     CANMessage dump;
+    canDriver_->sendMessage(message);
+    mutex_.unlock();
+
+    // Clear pending message - the motor takes a lot of time to reply anyway.
+    usleep(100);
     while (canDriver_->isDataAvailable())
         canDriver_->readAvailableMessage(dump);
-    canDriver_->sendMessage(message);
 
     if (waitForReply)
     {
@@ -169,4 +174,15 @@ int RMDX::canReadWrite(CANMessage& message, bool const& waitForReply)
             return -2;
     }
     return 0;
+}
+
+
+void RMDX::setBrake(unsigned char const& motorId, bool const& turnBrakeOn)
+{
+    CANMessage message;
+    if (turnBrakeOn)
+        message = createMessage(motorId, MyActuator::commands::BRAKE_LOCK);
+    else
+        message = createMessage(motorId, MyActuator::commands::BRAKE_RELEASE);
+    canReadWrite(message, false);
 }
