@@ -52,7 +52,7 @@ Strategy::Strategy()
   // [TODO]
 }
 
-void Strategy::setup(RobotInterface *robot)
+bool Strategy::setup(RobotInterface *robot)
 {
     // Get robot
     this->robot = robot;
@@ -93,6 +93,12 @@ void Strategy::setup(RobotInterface *robot)
     // Fold arm
     servo->setTargetPosition(RIGHT_ARM + 1, STS::radToServoValue(M_PI_2));
     servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
+    return true;
+}
+
+void Strategy::periodicAction()
+{
+
 }
 
 void Strategy::shutdown()

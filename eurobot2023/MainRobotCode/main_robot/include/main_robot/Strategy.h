@@ -24,18 +24,18 @@ namespace main_robot
     // Reference positions of the cakes
     double const CAKES_FRONT_DISTANCE = 0.120; //0.115; [REMOVE]
     double const CAKES_SIDE_DISTANCE = 0.130; //0.060; [REMOVE]
-    
+
     // Reference angles for left arm
     double constexpr RAD = M_PI/180.;
     double const MIDDLE_PILE_ANGLE = -35.0*RAD; //-0.27;
     double const FRONT_PILE_ANGLE = 15.5*RAD;
     double const SIDE_PILE_ANGLE = 95*RAD;
-    
+
     //~ // Reference angles for right arm
     //~ double const RIGHT_MIDDLE_PILE_ANGLE = -0.27;
     //~ double const RIGHT_FRONT_PILE_ANGLE = 0.27;
     //~ double const RIGHT_SIDE_PILE_ANGLE = 1.2;
-    
+
     // Reference layer heights
     double const GROUND_HEIGHT = -0.195;
     double const PILE_CLEAR_HEIGHT = GROUND_HEIGHT + 0.085;
@@ -44,7 +44,7 @@ namespace main_robot
 
     static ArmPosition DISTRIBUTOR_CHERRY(125, -0.55, -130);
     ArmPosition servoAnglesToArmPosition(double thetaH, double thetaV1, double thetaV2, double thetaV3);
-    
+
   } // namespace arm
 
   // Reference values
@@ -68,7 +68,7 @@ namespace main_robot
       Strategy();
 
       // Called before the start of the match, to setup the robot.
-      void setup(RobotInterface *robot) override;
+      bool setup(RobotInterface *robot) override;
 
       // Code executed when shutting down the robot
       void shutdown() override;
@@ -77,6 +77,8 @@ namespace main_robot
       void match() override;
 
       bool moveArm(double r, double angle, double z);
+
+      void periodicAction() override;
 
     private:
 
@@ -93,19 +95,19 @@ namespace main_robot
 
       void addPositionToQueue_Right(ArmPosition target);
       void addPositionToQueue_Left(ArmPosition target);
-      
+
       void initPosition(int arm_idx, double r, double theta_rad, double z);
       void initPosition(int arm_idx, ArmPosition const& position);
       void setRelTargetPosition(int arm_idx, double dr, double dtheta_rad, double dz);
       void setAbsTargetPosition(int arm_idx, double new_r, double new_theta_rad, double new_z);
-      void setTargetPosition(int arm_idx, 
-        int absrel_r, double r, 
-        int absrel_theta, double theta_rad, 
+      void setTargetPosition(int arm_idx,
+        int absrel_r, double r,
+        int absrel_theta, double theta_rad,
         int absrel_z, double z);
       void wait(int arm_idx, double duration);
       void pump(int arm_idx, bool activate);
       void runActionBlock();
-      
+
       void addSyncToQueue();
       void changePileHeight(int pileIndex, int delta);
       int getPileHeight(int pileIndex);

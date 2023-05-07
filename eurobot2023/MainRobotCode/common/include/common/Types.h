@@ -6,14 +6,15 @@
 
     ///< The various states the robot can be in
     enum robotstate{
-        INIT                = 0,
-        WAITING_FOR_CABLE   = 1,
-        WAITING_FOR_START   = 2,
-        MATCH               = 3,
-        MATCH_DONE          = 4,
-        UNDERVOLTAGE        = 5
+        INIT                 = 0,
+        STRATEGY_SETUP       = 1,
+        WAITING_FOR_CABLE    = 2,
+        WAITING_FOR_START    = 3,
+        MATCH                = 4,
+        MATCH_DONE           = 5,
+        UNDERVOLTAGE         = 6
     };
-    std::string const robotStateNames[] = {"Initializing", "Waiting for cable", "Waiting for start", "Match", "Match done", "Undervoltage"};
+    std::string const robotStateNames[] = {"Initializing", "Strategy setup", "Waiting for cable", "Waiting for start", "Match", "Match done", "Undervoltage"};
 
 
     struct RobotGUIData {

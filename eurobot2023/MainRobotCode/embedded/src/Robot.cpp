@@ -137,8 +137,14 @@ bool Robot::setupBeforeMatchStart()
                 return false;
             }
             gui_->update(guiState_);
-            strategy_->setup(this);
-
+            guiState_.state = robotstate::STRATEGY_SETUP;
+        }
+    }
+    if (guiState_.state == STRATEGY_SETUP)
+    {
+        bool isSetup = strategy_->setup(this);
+        if (isSetup)
+        {
             if (testMode_)
             {
                 matchStartTime_ = -1;
@@ -216,7 +222,11 @@ void Robot::lowLevelLoop()
             }
         }
 
-        // If match hasn't started, look at switch value to see if it has.
+        // Once init has passed, call strategy update function
+        if (guiState_.state != robotstate::INIT && guiState_.state != robotstate::UNDERVOLTAGE)
+            strategy_->periodicAction();
+
+        // If match hasn't started, perform setup and wait for switch.
         if (!hasMatchStarted_)
         {
             hasMatchStarted_ = setupBeforeMatchStart();

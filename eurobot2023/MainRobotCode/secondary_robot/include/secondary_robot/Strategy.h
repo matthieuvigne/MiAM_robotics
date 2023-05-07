@@ -36,8 +36,15 @@ namespace secondary_robot
     {
         double const BOTTOM = 0.0;
         double const TOP = 1.0;
-        double const IDLE = 0.10;
+        double const NOMINAL = 0.10;
         double const CHERRY_GRAB = 0.00;
+        enum state
+        {
+            CALIBRATING,
+            IDLE,
+            GOING_UP,
+            GOING_DOWN
+        };
     }
 
     struct RailMeasurements
@@ -54,13 +61,15 @@ namespace secondary_robot
         Strategy();
 
         // Called before the start of the match, to setup the robot.
-        void setup(RobotInterface *robot);
+        bool setup(RobotInterface *robot);
 
         // Code executed when shutting down the robot
         void shutdown() override;
 
         // The actual match code, which runs in its own thread.
-        void match();
+        void match() override;
+
+        void periodicAction() override;
 
         // socket to send start signal
         network::ClientSocket sock_;
@@ -97,6 +106,11 @@ namespace secondary_robot
         void calibrateRail();
         void updateRailHeight();
         RailMeasurements currentRailMeasurements;
+
+        int targetRailValue_;
+        rail::state railState_ = rail::state::IDLE;
+        /// @brief  Wait for the rail to stop moving.
+        void waitForRail();
     };
 }
 

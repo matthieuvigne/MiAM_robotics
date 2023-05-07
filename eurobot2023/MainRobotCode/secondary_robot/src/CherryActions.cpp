@@ -27,7 +27,6 @@ int const RAIL_SWITCH = 21;
 
 namespace secondary_robot {
 
-
 void Strategy::set_brush_move(BrushDirection brushDirection)
 {
     if (brushDirection == BrushDirection::OFF)
@@ -72,6 +71,7 @@ void Strategy::grab_cherries()
     set_reservoir_tilt(ReservoirTilt::GRAB);
     set_brush_move(BrushDirection::TOWARDS_BACK);
     moveRail(rail::CHERRY_GRAB);
+    waitForRail();
 
     // Move forward - slowly
     RobotPosition targetPosition = motionController->getCurrentPosition();
@@ -86,7 +86,7 @@ void Strategy::grab_cherries()
     set_reservoir_tilt(ReservoirTilt::UP);
     robot->wait(0.1);
     set_brush_move(BrushDirection::OFF);
-    moveRail(rail::IDLE);
+    moveRail(rail::NOMINAL);
 
     traj = miam::trajectory::computeTrajectoryStraightLine(motionController->robotParams_.getTrajConf(), targetPosition, -60);
     motionController->setTrajectoryToFollow(traj);
@@ -98,6 +98,7 @@ void Strategy::put_cherries_in_the_basket()
     // put rail in the right height
     set_reservoir_tilt(ReservoirTilt::HORIZONTAL);
     moveRail(rail::TOP);
+    waitForRail();
 
     // go front
     // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(150, 0, 0));
@@ -116,53 +117,40 @@ void Strategy::put_cherries_in_the_basket()
     set_brush_move(BrushDirection::OFF);
 
     go_forward(-100);
-    moveRail(rail::IDLE);
+    moveRail(rail::NOMINAL);
+}
+
+
+void Strategy::waitForRail()
+{
+    while (railState_ != rail::state::IDLE)
+        usleep(500);
 }
 
 void Strategy::moveRail(double const& targetPosition)
 {
-    int targetValue = static_cast<int>((1 - std::min(1.0, std::max(0.0, targetPosition))) * RAIL_DOWN_VALUE);
+    targetRailValue_ = static_cast<int>((1 - std::min(1.0, std::max(0.0, targetPosition))) * RAIL_DOWN_VALUE);
 
-    if (currentRailMeasurements.currentPosition_ > targetValue)
-        servo->setTargetVelocity(RAIL_SERVO_ID, -4095);
-    else
-        servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
-
-    int nIter = 0;
-    while (std::abs(currentRailMeasurements.currentPosition_ - targetValue) > MIAM_RAIL_TOLERANCE && nIter < 12000)
+    if (currentRailMeasurements.currentPosition_ > targetRailValue_)
     {
-        updateRailHeight();
-        usleep(20000);
-        nIter++;
+        servo->setTargetVelocity(RAIL_SERVO_ID, -4095);
+        railState_ = rail::state::GOING_DOWN;
     }
-    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+    else
+    {
+        servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
+        railState_ = rail::state::GOING_UP;
+    }
 }
-
-
 
 void Strategy::calibrateRail()
 {
     servo->setMode(RAIL_SERVO_ID, STS::Mode::VELOCITY);
-    usleep(2000);
-    // the switch is up
-    servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
-    while (RPi_readGPIO(RAIL_SWITCH) == 1)
-    {
-        servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
-        usleep(20000);
-    }
-    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
-    usleep(2000);
-
-    // Init
-    currentRailMeasurements.currentPosition_ = 0;
-    currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
+    railState_ = rail::state::CALIBRATING;
 }
-
 
 void Strategy::updateRailHeight()
 {
-    usleep(1000);
     int currentCount = servo->getCurrentPosition(RAIL_SERVO_ID);
     while (currentCount == 0)
         currentCount = servo->getCurrentPosition(RAIL_SERVO_ID);

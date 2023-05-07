@@ -99,7 +99,7 @@ void ViewerRobot::tick(double const& dt, double const& simulationTime, std::vect
 
     // Create lidar measurements.
     measurements_.lidarDetection.clear();
-    for (auto& obstaclePosition : obstaclesPosition) 
+    for (auto& obstaclePosition : obstaclesPosition)
     {
         Vector2 relativePosition;
         relativePosition << simulationPosition_.x, simulationPosition_.y;
@@ -115,6 +115,9 @@ void ViewerRobot::tick(double const& dt, double const& simulationTime, std::vect
 
     // Run iteration of controller
     motionTarget_ = motionController_.computeDrivetrainMotion(measurements_, dt, true);
+
+    // Run periodic action
+    strategy_.periodicAction();
 
     // Store result.
     ViewerTrajectoryPoint p;

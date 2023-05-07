@@ -48,63 +48,112 @@ Strategy::Strategy()
 
 }
 
-void Strategy::setup(RobotInterface *robot)
+
+enum setupPhase
 {
-    this->robot = robot;
-    this->servo = robot->getServos();
-    this->motionController = robot->getMotionController();
+    FIRST_CALL,
+    CALIBRATING_RAIL,
+    MOVING_RAIL
+};
 
+bool Strategy::setup(RobotInterface *robot)
+{
+    static setupPhase phase = setupPhase::FIRST_CALL;
 
-    RPi_setupGPIO(RAIL_SWITCH, PI_GPIO_INPUT_PULLUP);
-
-    // Start all servos in position mode.
-    servo->setMode(0xFE, STS::Mode::POSITION);
-
-    // Fake calib
-    servo->setMode(RAIL_SERVO_ID, STS::Mode::VELOCITY);
-    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
-    currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
-    currentRailMeasurements.currentPosition_ = -44000 * 0.10;
-
-    calibrateRail();
-    moveRail(rail::IDLE);
-
-    // Set initial position
-    RobotPosition targetPosition;
-    targetPosition.x = 725;
-    targetPosition.y = 170;
-    targetPosition.theta = 0;
-    motionController->resetPosition(targetPosition, true, true, true);
-    // motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_BASIC);
-    motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
-
-    RPi_setupGPIO(BRUSH_MOTOR, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(BRUSH_MOTOR, false);
-    RPi_setupGPIO(BRUSH_DIR, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(BRUSH_DIR, false);
-
-    // connect socket
-    int attempts = 0;
-    while(attempts < 20)
+    if (phase == setupPhase::FIRST_CALL)
     {
-        try
-        {
-            std::cout << "Trying to connect" << std::endl;
-            // args: addr, port, isUDP
-            // address is broadcast address ; UDP = true
-            sock_.connect("192.168.6.255", 37020, true);
-            std::cout << "Connected!" << std::endl;
-            usleep(50000);
-            return;
-        }
-        catch(network::SocketException const&)
-        {
-            usleep(1e6);
-            std::cout << "Failed to connect..." << std::endl;
-        }
-        attempts++;
-    }
+        phase = setupPhase::CALIBRATING_RAIL;
+        this->robot = robot;
+        this->servo = robot->getServos();
+        this->motionController = robot->getMotionController();
 
+        RPi_setupGPIO(RAIL_SWITCH, PI_GPIO_INPUT_PULLUP);
+
+        // Start all servos in position mode, except for the rail.
+        servo->setMode(0xFE, STS::Mode::POSITION);
+        servo->setMode(RAIL_SERVO_ID, STS::Mode::VELOCITY);
+
+        // Set initial position
+        RobotPosition targetPosition;
+        targetPosition.x = 725;
+        targetPosition.y = 170;
+        targetPosition.theta = 0;
+        motionController->resetPosition(targetPosition, true, true, true);
+        motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
+
+        RPi_setupGPIO(BRUSH_MOTOR, PiGPIOMode::PI_GPIO_OUTPUT);
+        RPi_writeGPIO(BRUSH_MOTOR, false);
+        RPi_setupGPIO(BRUSH_DIR, PiGPIOMode::PI_GPIO_OUTPUT);
+        RPi_writeGPIO(BRUSH_DIR, false);
+
+        // connect socket
+        int attempts = 0;
+        while(attempts < 20)
+        {
+            try
+            {
+                std::cout << "Trying to connect" << std::endl;
+                // args: addr, port, isUDP
+                // address is broadcast address ; UDP = true
+                sock_.connect("192.168.6.255", 37020, true);
+                std::cout << "Connected!" << std::endl;
+                usleep(50000);
+                break;
+            }
+            catch(network::SocketException const&)
+            {
+                usleep(1e6);
+                std::cout << "Failed to connect..." << std::endl;
+            }
+            attempts++;
+        }
+
+        calibrateRail();
+    }
+    else if (phase == setupPhase::CALIBRATING_RAIL)
+    {
+        if (railState_ == rail::IDLE)
+        {
+            moveRail(rail::NOMINAL);
+            phase = setupPhase::MOVING_RAIL;
+        }
+    }
+    else if (phase == setupPhase::MOVING_RAIL)
+    {
+        return railState_ == rail::IDLE;
+    }
+    return false;
+}
+
+void Strategy::periodicAction()
+{
+#ifdef SIMULATION
+    railState_ = rail::state::IDLE;
+    return;
+#endif
+    // Perform calibration if needed.
+    if (railState_ == rail::state::CALIBRATING)
+    {
+        if (RPi_readGPIO(RAIL_SWITCH) == 0)
+        {
+            servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+            currentRailMeasurements.currentPosition_ = 0;
+            currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
+            railState_ = rail::state::IDLE;
+        }
+        else
+            servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
+    }
+    else
+    {
+        updateRailHeight();
+        if ((railState_ == rail::state::GOING_UP && currentRailMeasurements.currentPosition_ > targetRailValue_) ||
+            (railState_ == rail::state::GOING_DOWN && currentRailMeasurements.currentPosition_ < targetRailValue_))
+        {
+            servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+            railState_ = rail::state::IDLE;
+        }
+    }
 }
 
 void Strategy::shutdown()
@@ -156,11 +205,8 @@ void Strategy::match_impl()
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
 
-    std::cout << "Sending starting signal... ";
-    std::cout << sock_.send("Match started") << std::endl;
-
-    while (true);;
-
+    // Send start signal
+    // std::cout << sock_.send("Match started") << std::endl;
 
     // create brain
     MotionPlanner* motionPlanner = motionController->motionPlanner_;
