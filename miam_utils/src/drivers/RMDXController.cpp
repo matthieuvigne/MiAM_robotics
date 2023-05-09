@@ -75,7 +75,6 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
 
 void RMDXController::stop()
 {
-    driver_->setCurrent(motorId_, 0.0);
-    // driver_->setBrake(motorId_, false);
+    driver_->stop(motorId_);
     isStopped_ = true;
 }

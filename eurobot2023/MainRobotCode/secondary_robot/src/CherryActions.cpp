@@ -22,7 +22,7 @@ int const RESERVOIR_SERVO = 5;
 int const RAIL_SWITCH = 21;
 #define RAIL_SERVO_ID 30
 #define MIAM_RAIL_TOLERANCE 100 // in counts
-#define RAIL_DOWN_VALUE -44000 // in counts
+#define RAIL_DOWN_VALUE -42000 // in counts
 
 
 namespace secondary_robot {
@@ -106,18 +106,19 @@ void Strategy::put_cherries_in_the_basket()
 
     // tilt and push cherries
     set_reservoir_tilt(ReservoirTilt::DOWN);
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 2; i++)
     {
         set_brush_move(BrushDirection::TOWARDS_FRONT);
-        robot->wait(0.75);
+        robot->wait(0.6);
         set_brush_move(BrushDirection::TOWARDS_BACK);
-        robot->wait(0.75);
+        robot->wait(0.6);
     }
     set_reservoir_tilt(ReservoirTilt::HORIZONTAL);
     set_brush_move(BrushDirection::OFF);
 
     go_forward(-100);
     moveRail(rail::NOMINAL);
+    set_reservoir_tilt(ReservoirTilt::UP);
 }
 
 

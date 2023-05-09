@@ -117,7 +117,7 @@ void ViewerRobot::tick(double const& dt, double const& simulationTime, std::vect
     motionTarget_ = motionController_.computeDrivetrainMotion(measurements_, dt, true);
 
     // Run periodic action
-    strategy_.periodicAction();
+    strategy_->periodicAction();
 
     // Store result.
     ViewerTrajectoryPoint p;

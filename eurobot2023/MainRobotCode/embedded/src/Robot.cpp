@@ -285,18 +285,29 @@ void Robot::lowLevelLoop()
         DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
 
         // Apply target
-        // TODO brake ?
         if (!hasMatchStarted_)
         {
-            rightController_.stop();
             leftController_.stop();
+            rightController_.stop();
         }
         else
         {
             int sign = motionController_.robotParams_.rightMotorDirection;
-            measurements.motorSpeed(0) = sign * rightController_.sendTarget(sign * target.motorSpeed[0], dt);
+            if (std::abs(target.motorSpeed[0]) < 0.001)
+            {
+                rightController_.stop();
+                measurements.motorSpeed(0) = 0.0;
+            }
+            else
+                measurements.motorSpeed(0) = sign * rightController_.sendTarget(sign * target.motorSpeed[0], dt);
             sign = motionController_.robotParams_.leftMotorDirection;
-            measurements.motorSpeed(1) = sign * leftController_.sendTarget(sign * target.motorSpeed[1], dt);
+            if (std::abs(target.motorSpeed[1]) < 0.001)
+            {
+                leftController_.stop();
+                measurements.motorSpeed(1) = 0.0;
+            }
+            else
+                measurements.motorSpeed(1) = sign * leftController_.sendTarget(sign * target.motorSpeed[1], dt);
         }
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;

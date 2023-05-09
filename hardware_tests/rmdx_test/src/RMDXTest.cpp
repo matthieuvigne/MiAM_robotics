@@ -38,8 +38,8 @@ int main (int argc, char *argv[])
     }
 
     RMDX motor(&mcp);
-    int const motorRightId = 1;
-    int const motorLeftId = 2;
+    int const motorRightId = 3;
+    int const motorLeftId = 4;
 
     while (!motor.init(motorRightId))
     {
@@ -51,7 +51,6 @@ int main (int argc, char *argv[])
         std::cout << "Failed to init left motor, id " << motorLeftId << std::endl;
         // return -1;
     }
-
 
     double Kp = 0.7;
     double Ki = 0.9;
@@ -81,29 +80,37 @@ int main (int argc, char *argv[])
     double oldt;
     oldt = m.getElapsedTime();;
 
-    while (time() < 8)
+    while (true)
     {
-    // rightController.stop();
-    // leftController.stop();
-    // std::cout << motor.getStatus(motorRightId) << std::endl;
-
         m.wait();
         double t = m.getElapsedTime();
         double dt = t - oldt;
         oldt = t;
 
 
-        // while (t > 8)
-        // {
-        //     t -= 8;
-        // }
+        while (t > 10)
+        {
+            t -= 10;
+        }
         rightTarget = 2 * std::sin(2 * 3.14159 * 0.25 * t);
+        if (t > 8)
+            rightTarget = 0.0;
         leftTarget = -rightTarget;
 
 
         // rightController.sendTarget(rightTarget);
-        double rightSpeed = rightController.sendTarget(rightTarget, dt);
-        double leftSpeed = leftController.sendTarget(leftTarget, dt);
+        double rightSpeed  = 0;
+        double leftSpeed  = 0;
+        if (t > 8)
+        {
+            rightController.stop();
+            leftController.stop();
+        }
+        else
+        {
+            rightSpeed = rightController.sendTarget(rightTarget, dt);
+            leftSpeed = leftController.sendTarget(leftTarget, dt);
+        }
 
 
         log.log("rightTargetSpeed", time(), rightTarget);
@@ -121,6 +128,10 @@ int main (int argc, char *argv[])
 
         log.log("dt", time(), dt);
     }
+
+    // Stop
+    rightController.stop();
+    leftController.stop();
 
     // Time it.
     // while (true)

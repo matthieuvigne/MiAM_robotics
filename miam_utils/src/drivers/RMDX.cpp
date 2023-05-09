@@ -67,7 +67,8 @@ void RMDX::enable(unsigned char const& motorId)
 
 void RMDX::stop(unsigned char const& motorId)
 {
-    CANMessage message = createMessage(motorId, MyActuator::commands::STOP);
+    // Hack: send 0 position increment to freeze the motor.
+    CANMessage message = createMessage(motorId, MyActuator::commands::REL_POS_COMMAND);
     canReadWrite(message, false);
 }
 
@@ -104,7 +105,6 @@ double RMDX::setCurrent(unsigned char const& motorId, double const& targetCurren
     int16_t data = message.data[2] + (message.data[3] << 8);
     return static_cast<double>(data) * 33.0 / 2048.0;
 }
-
 
 double RMDX::getCurrentPosition(unsigned char const& motorId, double const& reductionRatio)
 {
@@ -184,5 +184,5 @@ void RMDX::setBrake(unsigned char const& motorId, bool const& turnBrakeOn)
         message = createMessage(motorId, MyActuator::commands::BRAKE_LOCK);
     else
         message = createMessage(motorId, MyActuator::commands::BRAKE_RELEASE);
-    canReadWrite(message, false);
+    canReadWrite(message, true);
 }

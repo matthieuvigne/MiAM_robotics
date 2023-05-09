@@ -35,7 +35,7 @@ namespace secondary_robot
     namespace rail
     {
         double const BOTTOM = 0.0;
-        double const TOP = 1.0;
+        double const TOP = 1.03;
         double const NOMINAL = 0.10;
         double const CHERRY_GRAB = 0.00;
         enum state
@@ -111,6 +111,9 @@ namespace secondary_robot
         rail::state railState_ = rail::state::IDLE;
         /// @brief  Wait for the rail to stop moving.
         void waitForRail();
+
+        // Go back to base (at the end of the match)
+        void goBackToBase();
     };
 }
 
