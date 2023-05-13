@@ -69,11 +69,11 @@ bool Strategy::setup(RobotInterface *robot)
     RPi_setupGPIO(VALVE_LEFT, PiGPIOMode::PI_GPIO_OUTPUT);
     RPi_writeGPIO(VALVE_LEFT, false);
 
-    // Set initial position
+    // Set initial position: bottom left
     RobotPosition targetPosition;
-    targetPosition.x = 2000 - robot->getParameters().CHASSIS_BACK;
-    targetPosition.y = 1725 + robot->getParameters().CHASSIS_WIDTH/2.0;
-    targetPosition.theta = M_PI;
+    targetPosition.x = robot->getParameters().CHASSIS_BACK;
+    targetPosition.y = 1125;
+    targetPosition.theta = 0;
     motionController->resetPosition(targetPosition, true, true, true);
 
     // Arms
@@ -84,14 +84,17 @@ bool Strategy::setup(RobotInterface *robot)
     }
 
     // Change P gain of the first servos of each arm to prevent vibrations
-    servo->setPGain(RIGHT_ARM, 20);
-    servo->setPGain(LEFT_ARM, 20);
-    servo->setPGain(RIGHT_ARM + 1, 20);
-    servo->setPGain(LEFT_ARM + 1, 20);
+    servo->setPIDGains(RIGHT_ARM, 25, 15, 0);
+    servo->setPIDGains(LEFT_ARM, 25, 15, 0);
+    servo->setPIDGains(RIGHT_ARM + 1, 20, 15, 0);
+    servo->setPIDGains(LEFT_ARM + 1, 20, 1, 0);
+
 
     // Fold arm
     servo->setTargetPosition(RIGHT_ARM + 1, STS::radToServoValue(M_PI_2));
     servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
+
+    while (true) ;;
     return true;
 }
 
@@ -168,18 +171,11 @@ void Strategy::match_impl()
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
 
-    std::cout<<"AAAA"<<std::endl;
-
-    // testSquare();
-
-
-    // buildCakes();
-    while(true) ;;
-    // Faire un carré pour faire un test de déplacement
-
     // Create brain
     MotionPlanner* motionPlanner = motionController->motionPlanner_;
     std::vector<Action> actionVector;
+
+    RobotParameters const robotParameters = robot->getParameters();
 
     // Common cake dimensions
     double const cake_radius = 60; // [mm]
@@ -203,11 +199,6 @@ void Strategy::match_impl()
     ArmPosition right_arm_center_up(100, 0, 250);
     ArmPosition right_arm_right_down(100, -M_PI_4, 10);
 
-    // Get the initial position of the robot
-    RobotPosition initial_position;
-    initial_position.x = 2000 - robot->getParameters().CHASSIS_BACK;
-    initial_position.y = 1725 + robot->getParameters().CHASSIS_WIDTH/2.0;
-    initial_position.theta = M_PI;
     RobotPosition current_position = motionController->getCurrentPosition();
 
 #if TEST_MPC_PLANNER
@@ -500,6 +491,43 @@ void Strategy::match_impl()
 
     }
 #else
+
+    // Open arms
+    servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.5));
+    servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.5));
+
+    // Grab first genoise
+    go_to_straight_line(genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0));
+
+    servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.1));
+    servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.1));
+    robot->wait(0.5);
+
+    // Go between the next two cakes, stop just before them.
+
+    targetPosition = motionController->getCurrentPosition();
+    positions.clear();
+    positions.push_back(targetPosition);
+    targetPosition.x = 1200;
+    targetPosition.y = 675;
+    positions.push_back(targetPosition);
+    targetPosition.x = cream_ganache_bottom_right.x - robotParameters.CHASSIS_FRONT - 120;
+    positions.push_back(targetPosition);
+    go_to_rounded_corner(positions);
+
+    // Grab the three cakes.
+    servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(1.0));
+    servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-1.0));
+    robot->wait(0.5);
+    go_forward(120);
+    servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.3));
+    servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.3));
+
+    // Bring the cakes to the bottom square
+
+    // Build cakes.
+
+    while (true) ;;
 
     // Get the top right genoese and get it
     double distance = (genoese_top_left-current_position).norm();

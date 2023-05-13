@@ -35,7 +35,7 @@ namespace secondary_robot
     namespace rail
     {
         double const BOTTOM = 0.0;
-        double const TOP = 1.03;
+        double const TOP = 1.00;
         double const NOMINAL = 0.10;
         double const CHERRY_GRAB = 0.00;
         enum state
@@ -46,6 +46,7 @@ namespace secondary_robot
             GOING_DOWN
         };
     }
+    #define RAIL_SERVO_ID 30
 
     struct RailMeasurements
     {

@@ -145,10 +145,13 @@
             /// \return True if moving, false otherwise.
             bool isMoving(unsigned char const& servoId);
 
-            /// \brief Check if the servo is moving
+            /// \brief Set position loop PID gains
             /// \param[in] servoId ID of the servo
             /// \param[in] Kp Proportional gain
-            void setPGain(unsigned char const& servoId, unsigned char const& Kp);
+            /// \param[in] Kd Derivative gain
+            /// \param[in] Ki Integral gain
+            void setPIDGains(unsigned char const& servoId, unsigned char const& Kp, unsigned char const& Kd, unsigned char const& Ki);
+
 
             /// \brief Set target servo position.
             /// \note This function assumes that the amplification factor ANGULAR_RESOLUTION is set to 1.

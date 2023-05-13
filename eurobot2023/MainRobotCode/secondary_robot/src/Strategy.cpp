@@ -36,10 +36,6 @@ int const BRUSH_DIR = 16;
 
 // Rail
 int const RAIL_SWITCH = 21;
-#define RAIL_SERVO_ID 30
-#define MIAM_RAIL_TOLERANCE 100 // in counts
-#define RAIL_DOWN_VALUE -44000 // in counts
-
 
 namespace secondary_robot {
 
@@ -141,7 +137,8 @@ void Strategy::periodicAction()
         if (RPi_readGPIO(RAIL_SWITCH) == 0)
         {
             servo->setTargetVelocity(RAIL_SERVO_ID, 0);
-            currentRailMeasurements.currentPosition_ = 0;
+            // Offset so that 1.0 corresponds to the top
+            currentRailMeasurements.currentPosition_ = -500;
             currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
             railState_ = rail::state::IDLE;
         }
@@ -170,11 +167,7 @@ void Strategy::match_impl()
     // Create required variables.
     RobotPosition targetPosition;
     TrajectoryVector traj;
-    RobotPosition endPosition;
-    std::vector<RobotPosition> positions;
-
-    // Send start signal
-    // std::cout << sock_.send("Match started") << std::endl;
+    std::vector<RobotPosition> targetPositions;
 
     // create brain
     MotionPlanner* motionPlanner = motionController->motionPlanner_;
@@ -183,7 +176,7 @@ void Strategy::match_impl()
 
     // Points of interest: points to go to grab the cherries (before the final move action)
     double const distributor_width = 30;
-    double const cherryDistributorOffset = robotParameters.CHASSIS_FRONT  + 50 + distributor_width / 2;
+    double const cherryDistributorOffset = robotParameters.CHASSIS_FRONT  + 60 + distributor_width / 2;
 
     RobotPosition const cherryDistributorBottom(1000 - cherryDistributorOffset, 165, 0);
     RobotPosition const cherryDistributorTop(1000 - cherryDistributorOffset, 3000 - 165, 0);
@@ -191,28 +184,7 @@ void Strategy::match_impl()
     RobotPosition const cherryDistributorRight(2000 - cherryDistributorOffset, 1500, 0);
 
 
-    // // grab cheries in front of robot
-    // go_to_straight_line(left_of_cherry_distributor_bottom);
-
-    // // set rail height and tilt
-    // set_reservoir_tilt(ReservoirTilt::UP);
-    // moveRail(rail::CHERRY_DISTRIBUTOR);
-    // set_brush_move(BrushDirection::TOWARDS_BACK);
-
-    // // go front
-    // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(100, 0, 0));
-    // // wait
-    // robot->wait(3);
-    // // go back
-    // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(-100, 0, 0), true); // backwards
-
-
-    // code de sophie
-
-    // Option 1 -> Bottom, right & top cherries
-    // -------------------------------
-
-    std::vector<RobotPosition> targetPositions;
+    // Start bottom, grab bottom and left cherries.
 
     // // Get the  bottom cheeries
     targetPositions.clear();
@@ -226,7 +198,7 @@ void Strategy::match_impl()
     targetPositions.clear();
     targetPositions.push_back(motionController->getCurrentPosition());
     targetPositions.push_back(cherryDistributorLeft + RobotPosition(300, 0, 0));
-    targetPositions.push_back(cherryDistributorLeft);
+    targetPositions.push_back(cherryDistributorLeft+ RobotPosition(20, 0, 0));
     go_to_rounded_corner(targetPositions);
     grab_cherries();
 
@@ -237,7 +209,7 @@ void Strategy::match_impl()
     position.x = robotParameters.CHASSIS_WIDTH + 40.0;
     position.y = 2500;
     targetPositions.push_back(position);
-    position.y = 3000 - robotParameters.CHASSIS_FRONT - 40;
+    position.y = 3000 - robotParameters.CHASSIS_FRONT - 60;
     targetPositions.push_back(position);
     go_to_rounded_corner(targetPositions);
 
@@ -247,50 +219,6 @@ void Strategy::match_impl()
     goBackToBase();
 
     while (true) ;;
-
-    // // Go to get right cherries then get the top cherries
-    // targetPositions.clear();
-    // targetPositions.push_back(motionController->getCurrentPosition());
-    // targetPositions.push_back(center_of_cherry_distributor_right - RobotPosition(robotParameters.CHASSIS_FRONT + 700,0,0));
-    // targetPositions.push_back(center_of_cherry_distributor_right - RobotPosition(robotParameters.CHASSIS_FRONT + 151 + distributor_width / 2,0,0));
-    // targetPositions.push_back(center_of_cherry_distributor_right - RobotPosition(robotParameters.CHASSIS_FRONT + 150 + distributor_width / 2,0,0));
-    // go_to_rounded_corner(targetPositions);
-
-    // grab_cherries();
-
-
-    // // avoid the line
-    // targetPositions.clear();
-    // targetPositions.push_back(motionController->getCurrentPosition());
-    // targetPositions.push_back(RobotPosition(500, 3000-600,0));
-    // targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robotParameters.CHASSIS_FRONT  + 300 + distributor_width, 150,0));
-    // targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robotParameters.CHASSIS_FRONT  + 100 + distributor_width, 50,0));
-    // targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robotParameters.CHASSIS_FRONT  + 40 + distributor_width, 0,0));
-    // go_to_rounded_corner(targetPositions, true);
-    // grab_cherries();
-
-
-    // targetPositions.clear();
-    // targetPositions.push_back(motionController->getCurrentPosition());
-    // targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robotParameters.CHASSIS_FRONT + 151 + distributor_width / 2, 0,0));
-    // targetPositions.push_back(center_of_cherry_distributor_top -RobotPosition(robotParameters.CHASSIS_FRONT + 150 + distributor_width / 2, 0,0));
-    // go_to_rounded_corner(targetPositions);
-
-    // grab_cherries();
-
-    // // Go to put the cherries in the basket
-    // targetPositions.clear();
-    // targetPositions.push_back(motionController->getCurrentPosition());
-    // targetPositions.push_back(RobotPosition(225,3000 - robotParameters.CHASSIS_FRONT - 151, 0));
-    // targetPositions.push_back(RobotPosition(225,3000 - robotParameters.CHASSIS_FRONT - 150,M_PI_2));
-    // go_to_rounded_corner(targetPositions);
-
-    // put_cherries_in_the_basket();
-
-    // // Go to the final zone
-    // go_to_straight_line(RobotPosition(725,200,0), true);
-    // // go_to_straight_line(RobotPosition(300,1300,0), true);
-
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }
