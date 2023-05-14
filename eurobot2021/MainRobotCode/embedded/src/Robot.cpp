@@ -370,6 +370,7 @@ void Robot::lowLevelLoop()
     double lastTime = 0;
 
     std::thread strategyThread;
+    pthread_t strategyHandle;
     int nIter = 0;
     bool heartbeatLed = true;
     // Loop until start of the match, then for 100 seconds after the start of the match.
@@ -402,6 +403,7 @@ void Robot::lowLevelLoop()
                 metronome.resetLag();
                 // Start strategy thread.
                 strategyThread = std::thread(&Strategy::match, strategy_);
+                strategyHandle = strategyThread.native_handle();
                 strategyThread.detach();
                 // Start range aquisition
                 std::thread measureThread = std::thread(&Robot::updateRangeMeasurement, this);
@@ -474,7 +476,7 @@ void Robot::lowLevelLoop()
     }
     // End of the match.
     std::cout << "Match end" << std::endl;
-    pthread_cancel(strategyThread.native_handle());
+    pthread_cancel(strategyHandle.native_handle());
     stopMotors();
 
     if (!testMode_ || !disableLidar_)

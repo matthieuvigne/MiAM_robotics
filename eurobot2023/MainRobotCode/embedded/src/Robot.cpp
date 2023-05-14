@@ -196,6 +196,7 @@ void Robot::lowLevelLoop()
     double lastTime = 0;
 
     std::thread strategyThread;
+    pthread_t strategyHandle = 0;
     int nIter = 0;
     DrivetrainMeasurements measurements;
 
@@ -238,6 +239,7 @@ void Robot::lowLevelLoop()
                 metronome.resetLag();
                 // Start strategy thread.
                 strategyThread = std::thread(&AbstractStrategy::match, strategy_);
+                strategyHandle = strategyThread.native_handle();
                 strategyThread.detach();
             }
         }
@@ -317,11 +319,16 @@ void Robot::lowLevelLoop()
     std::cout << "Match end" << std::endl;
     guiState_.state = robotstate::MATCH_DONE;
     gui_->update(guiState_);
-    pthread_cancel(strategyThread.native_handle());
+    for (auto handle: strategy_->createdThreads_)
+        pthread_cancel(handle);
+    pthread_cancel(strategyHandle);
     stopMotors();
 
     if (!testMode_ || !disableLidar_)
         lidar_.stop();
+
+    // Wait for referees to count the score.
+    while (true) ;;
 }
 
 double Robot::getMatchTime()

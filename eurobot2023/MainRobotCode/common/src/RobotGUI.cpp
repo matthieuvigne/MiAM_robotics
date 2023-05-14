@@ -117,6 +117,10 @@ bool RobotGUI::doUpdate()
         {
             box_.pack_start(scoreLabel_);
         }
+        if (robotData.state == robotstate::MATCH_DONE)
+        {
+            box_.pack_start(scoreLabel_);
+        }
         show_all();
         lastState_ = robotData.state;
     }

@@ -149,7 +149,7 @@ void Strategy::periodicAction()
             // Hit slowly
             if (RPi_readGPIO(RAIL_SWITCH) == 1)
             {
-                servo->setTargetVelocity(RAIL_SERVO_ID, 1000);
+                servo->setTargetVelocity(RAIL_SERVO_ID, 800);
                 phase = 2;
             }
         }
@@ -172,11 +172,10 @@ void Strategy::periodicAction()
         {
             servo->setTargetVelocity(RAIL_SERVO_ID, 0);
             railState_ = rail::state::IDLE;
-            std::cout << "stopping" << std::endl;
         }
         else if (railState_ != rail::state::IDLE)
         {
-            int targetVelocity = 2 * (targetRailValue_ - currentRailMeasurements.currentPosition_);
+            int targetVelocity = static_cast<int>(1.5 * (targetRailValue_ - currentRailMeasurements.currentPosition_));
             if (targetVelocity > 4096)
                 targetVelocity = 4096;
             if (targetVelocity < -4096)
@@ -187,10 +186,7 @@ void Strategy::periodicAction()
                 targetVelocity = -500;
 
             servo->setTargetVelocity(RAIL_SERVO_ID, targetVelocity);
-        std::cout << currentRailMeasurements.currentPosition_ << " " << targetRailValue_ << " " << targetVelocity << std::endl;
         }
-        std::cout << currentRailMeasurements.currentPosition_ << " " << targetRailValue_ << std::endl;
-
     }
 }
 
@@ -223,9 +219,10 @@ void Strategy::match_impl()
     // Reset initial position
     motionController->resetPosition(START_POSITION, true, true, true);
 
-    robot->wait(0.5);
-    moveRail(rail::TOP);
-    while(true) ;;
+    // robot->wait(0.5);
+    // set_reservoir_tilt(ReservoirTilt::HORIZONTAL);
+    // moveRail(rail::TOP);
+    // while(true) ;;
     // Start bottom, grab bottom and left cherries.
 
     // Get the  bottom cheeries
@@ -248,7 +245,7 @@ void Strategy::match_impl()
     targetPositions.clear();
     RobotPosition position = motionController->getCurrentPosition();
     targetPositions.push_back(position);
-    position.x = robotParameters.CHASSIS_WIDTH + 40.0;
+    position.x = robotParameters.CHASSIS_WIDTH + 90.0;
     position.y = 2500;
     targetPositions.push_back(position);
     position.y = 3000 - robotParameters.CHASSIS_FRONT - 60;

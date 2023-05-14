@@ -89,7 +89,7 @@ double RMDX::setSpeed(unsigned char const& motorId, double const& targetSpeed, d
     // Verify that the reply the correct type - otherwise print warning and return target speed
     if (message.data[0] != MyActuator::commands::SPEED_COMMAND)
     {
-        std::cout << "[RMDX] Error: unexpected reply to command" << static_cast<int>(MyActuator::commands::SPEED_COMMAND) << std::endl;
+        std::cout << "[RMDX] Error:" << static_cast<int>(motorId) << ", unexpected reply to command" << static_cast<int>(MyActuator::commands::SPEED_COMMAND) << std::endl;
         return targetSpeed;
     }
     int16_t data = message.data[4] + (message.data[5] << 8);
@@ -112,7 +112,7 @@ double RMDX::setCurrent(unsigned char const& motorId, double const& targetCurren
     // and return target current.
     if (message.data[0] != MyActuator::commands::TORQUE_COMMAND)
     {
-        std::cout << "[RMDX] Error: unexpected reply to command" << static_cast<int>(MyActuator::commands::TORQUE_COMMAND) << std::endl;
+        std::cout << "[RMDX] Error: " << static_cast<int>(motorId) << ", unexpected reply to command" << static_cast<int>(MyActuator::commands::TORQUE_COMMAND) << std::endl;
         return targetCurrent;
     }
     int16_t data = message.data[2] + (message.data[3] << 8);
@@ -127,7 +127,7 @@ double RMDX::getCurrentPosition(unsigned char const& motorId, double const& redu
         // Verify that the reply the correct type - otherwise print warning and return 0
         if (message.data[0] != MyActuator::commands::READ_MULTITURN_ANGLE)
         {
-            std::cout << "[RMDX] Error: unexpected reply to command" << static_cast<int>(MyActuator::commands::READ_MULTITURN_ANGLE) << std::endl;
+            std::cout << "[RMDX] Error:" << static_cast<int>(motorId) << ", unexpected reply to command" << static_cast<int>(MyActuator::commands::READ_MULTITURN_ANGLE) << std::endl;
             return 0.0;
         }
         double result = messageToInt32(message);

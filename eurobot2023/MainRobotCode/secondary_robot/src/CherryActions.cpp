@@ -17,7 +17,7 @@ int const BRUSH_MOTOR = 12;
 int const BRUSH_DIR = 16;
 int const RESERVOIR_SERVO = 5;
 
-#define RAIL_DOWN_VALUE -37000 // in counts
+#define RAIL_DOWN_VALUE -23400 // in counts
 
 namespace secondary_robot {
 
@@ -51,7 +51,7 @@ void Strategy::set_reservoir_tilt(ReservoirTilt reservoirTilt)
     }
     else if (reservoirTilt == ReservoirTilt::GRAB)
     {
-        servo->setTargetPosition(RESERVOIR_SERVO, 1900);
+        servo->setTargetPosition(RESERVOIR_SERVO, 1825);
     }
     else if (reservoirTilt == ReservoirTilt::UP)
     {
@@ -63,11 +63,11 @@ void Strategy::grab_cherries()
 {
 
     set_reservoir_tilt(ReservoirTilt::GRAB);
-    set_brush_move(BrushDirection::TOWARDS_BACK);
     moveRail(rail::CHERRY_GRAB);
     // Wait for rail to start moving.
     robot->wait(0.1);
     waitForRail();
+    set_brush_move(BrushDirection::TOWARDS_BACK);
 
     // Move forward - slowly
     RobotPosition targetPosition = motionController->getCurrentPosition();
@@ -113,8 +113,6 @@ void Strategy::put_cherries_in_the_basket()
     }
     set_reservoir_tilt(ReservoirTilt::HORIZONTAL);
     set_brush_move(BrushDirection::OFF);
-
-    while (true) ;;
 
     go_forward(-100);
     moveRail(rail::NOMINAL);
