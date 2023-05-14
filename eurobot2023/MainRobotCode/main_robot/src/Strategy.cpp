@@ -46,9 +46,12 @@ bool MATCH_COMPLETED = false;
 
 
 
+RobotPosition START_POSITION(0, 1125, 0);
+
+
 Strategy::Strategy()
 {
-  // [TODO]
+    // Empty on purpose
 }
 
 bool Strategy::setup(RobotInterface *robot)
@@ -70,11 +73,8 @@ bool Strategy::setup(RobotInterface *robot)
     RPi_writeGPIO(VALVE_LEFT, false);
 
     // Set initial position: bottom left
-    RobotPosition targetPosition;
-    targetPosition.x = robot->getParameters().CHASSIS_BACK;
-    targetPosition.y = 1125;
-    targetPosition.theta = 0;
-    motionController->resetPosition(targetPosition, true, true, true);
+    START_POSITION.x = robot->getParameters().CHASSIS_BACK;
+    motionController->resetPosition(START_POSITION, true, true, true);
 
     // Arms
     for (int i = 0; i < 4; i++)
@@ -94,7 +94,6 @@ bool Strategy::setup(RobotInterface *robot)
     servo->setTargetPosition(RIGHT_ARM + 1, STS::radToServoValue(M_PI_2));
     servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
 
-    while (true) ;;
     return true;
 }
 
@@ -162,9 +161,31 @@ Action* Strategy::chooseNextAction(
     return bestAction;
 }
 
+
+namespace arm_positions{
+    double const GROUND_HEIGHT = -0.195;
+
+    // Position of the cakes
+    double const CAKES_FRONT_DISTANCE = 0.115;
+    double const CAKES_SIDE_DISTANCE = 0.100;
+    double const FRONT_RIGHT_ANGLE = -0.27;
+    double const FRONT_LEFT_ANGLE = 0.27;
+    double const SIDE_ANGLE = 1.2;
+
+    double const PILE_CLEAR_HEIGHT = GROUND_HEIGHT + 0.085;
+    // double const PILE_CLEAR_HEIGHT = GROUND_HEIGHT + 0.085;
+
+    ArmPosition DISTRIBUTOR_CHERRY(125, -0.55, -130);
+
+}
 void Strategy::match_impl()
 {
+    ArmPosition sidePile(arm_positions::CAKES_SIDE_DISTANCE, arm_positions::SIDE_ANGLE, arm_positions::GROUND_HEIGHT + 0.070);
 
+    setArmPosition(RIGHT_ARM_FIRST_SERVO_ID, sidePile);
+    setArmPosition(LEFT_ARM_FIRST_SERVO_ID, sidePile);
+
+    while (true) ;;
     // Create required variables.
     RobotPosition targetPosition;
     TrajectoryVector traj;

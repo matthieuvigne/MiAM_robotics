@@ -39,6 +39,8 @@ int const RAIL_SWITCH = 21;
 
 namespace secondary_robot {
 
+RobotPosition const START_POSITION(715, 165, 0);
+
 Strategy::Strategy()
 {
 
@@ -74,11 +76,7 @@ bool Strategy::setup(RobotInterface *robot)
         servo->setMode(RAIL_SERVO_ID, STS::Mode::VELOCITY);
 
         // Set initial position
-        RobotPosition targetPosition;
-        targetPosition.x = 715;
-        targetPosition.y = 165;
-        targetPosition.theta = 0;
-        motionController->resetPosition(targetPosition, true, true, true);
+        motionController->resetPosition(START_POSITION, true, true, true);
         motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 
         RPi_setupGPIO(BRUSH_MOTOR, PiGPIOMode::PI_GPIO_OUTPUT);
@@ -107,7 +105,7 @@ bool Strategy::setup(RobotInterface *robot)
             }
             attempts++;
         }
-
+        set_reservoir_tilt(ReservoirTilt::UP);
         calibrateRail();
     }
     else if (phase == setupPhase::CALIBRATING_RAIL)
@@ -134,16 +132,37 @@ void Strategy::periodicAction()
     // Perform calibration if needed.
     if (railState_ == rail::state::CALIBRATING)
     {
-        if (RPi_readGPIO(RAIL_SWITCH) == 0)
+        static int phase = 0;
+        // Hit first time, going fast
+        if (phase == 0)
         {
-            servo->setTargetVelocity(RAIL_SERVO_ID, 0);
-            // Offset so that 1.0 corresponds to the top
-            currentRailMeasurements.currentPosition_ = -500;
-            currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
-            railState_ = rail::state::IDLE;
+            if (RPi_readGPIO(RAIL_SWITCH) == 0)
+            {
+                servo->setTargetVelocity(RAIL_SERVO_ID, -4096);
+                phase = 1;
+            }
+            else
+                servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
+        }
+        else if (phase == 1)
+        {
+            // Hit slowly
+            if (RPi_readGPIO(RAIL_SWITCH) == 1)
+            {
+                servo->setTargetVelocity(RAIL_SERVO_ID, 1000);
+                phase = 2;
+            }
         }
         else
-            servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
+        {
+            if (RPi_readGPIO(RAIL_SWITCH) == 0)
+            {
+                servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+                currentRailMeasurements.currentPosition_ = 0;
+                currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
+                railState_ = rail::state::IDLE;
+            }
+        }
     }
     else
     {
@@ -153,7 +172,25 @@ void Strategy::periodicAction()
         {
             servo->setTargetVelocity(RAIL_SERVO_ID, 0);
             railState_ = rail::state::IDLE;
+            std::cout << "stopping" << std::endl;
         }
+        else if (railState_ != rail::state::IDLE)
+        {
+            int targetVelocity = 2 * (targetRailValue_ - currentRailMeasurements.currentPosition_);
+            if (targetVelocity > 4096)
+                targetVelocity = 4096;
+            if (targetVelocity < -4096)
+                targetVelocity = -4096;
+            if (targetVelocity > 0 && targetVelocity < 500)
+                targetVelocity = 500;
+            if (targetVelocity < 0 && targetVelocity > -500)
+                targetVelocity = -500;
+
+            servo->setTargetVelocity(RAIL_SERVO_ID, targetVelocity);
+        std::cout << currentRailMeasurements.currentPosition_ << " " << targetRailValue_ << " " << targetVelocity << std::endl;
+        }
+        std::cout << currentRailMeasurements.currentPosition_ << " " << targetRailValue_ << std::endl;
+
     }
 }
 
@@ -183,10 +220,15 @@ void Strategy::match_impl()
     RobotPosition const cherryDistributorLeft(cherryDistributorOffset, 1500, 0);
     RobotPosition const cherryDistributorRight(2000 - cherryDistributorOffset, 1500, 0);
 
+    // Reset initial position
+    motionController->resetPosition(START_POSITION, true, true, true);
 
+    robot->wait(0.5);
+    moveRail(rail::TOP);
+    while(true) ;;
     // Start bottom, grab bottom and left cherries.
 
-    // // Get the  bottom cheeries
+    // Get the  bottom cheeries
     targetPositions.clear();
     targetPositions.push_back(motionController->getCurrentPosition());
     targetPositions.push_back(cherryDistributorBottom);
@@ -198,7 +240,7 @@ void Strategy::match_impl()
     targetPositions.clear();
     targetPositions.push_back(motionController->getCurrentPosition());
     targetPositions.push_back(cherryDistributorLeft + RobotPosition(300, 0, 0));
-    targetPositions.push_back(cherryDistributorLeft+ RobotPosition(20, 0, 0));
+    targetPositions.push_back(cherryDistributorLeft+ RobotPosition(10, 0, 0));
     go_to_rounded_corner(targetPositions);
     grab_cherries();
 

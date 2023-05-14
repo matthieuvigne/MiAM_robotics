@@ -17,7 +17,7 @@ int const BRUSH_MOTOR = 12;
 int const BRUSH_DIR = 16;
 int const RESERVOIR_SERVO = 5;
 
-#define RAIL_DOWN_VALUE -43000 // in counts
+#define RAIL_DOWN_VALUE -37000 // in counts
 
 namespace secondary_robot {
 
@@ -43,19 +43,19 @@ void Strategy::set_reservoir_tilt(ReservoirTilt reservoirTilt)
 {
     if (reservoirTilt == ReservoirTilt::DOWN)
     {
-        servo->setTargetPosition(RESERVOIR_SERVO, 2500);
+        servo->setTargetPosition(RESERVOIR_SERVO, 2450);
     }
     else if (reservoirTilt == ReservoirTilt::HORIZONTAL)
     {
-        servo->setTargetPosition(RESERVOIR_SERVO, 2100);
+        servo->setTargetPosition(RESERVOIR_SERVO, 2048);
     }
     else if (reservoirTilt == ReservoirTilt::GRAB)
     {
-        servo->setTargetPosition(RESERVOIR_SERVO, 1950);
+        servo->setTargetPosition(RESERVOIR_SERVO, 1900);
     }
     else if (reservoirTilt == ReservoirTilt::UP)
     {
-        servo->setTargetPosition(RESERVOIR_SERVO, 1630);
+        servo->setTargetPosition(RESERVOIR_SERVO, 1580);
     }
 }
 
@@ -130,7 +130,7 @@ void Strategy::waitForRail()
 
 void Strategy::moveRail(double const& targetPosition)
 {
-    targetRailValue_ = static_cast<int>((1 - std::min(1.0, std::max(0.0, targetPosition))) * RAIL_DOWN_VALUE);
+    targetRailValue_ = static_cast<int>((1 - std::max(0.0, targetPosition)) * RAIL_DOWN_VALUE);
 
     if (currentRailMeasurements.currentPosition_ > targetRailValue_)
     {
