@@ -180,17 +180,26 @@ namespace arm_positions{
 }
 void Strategy::match_impl()
 {
-    ArmPosition sidePile(arm_positions::CAKES_SIDE_DISTANCE, arm_positions::SIDE_ANGLE, arm_positions::GROUND_HEIGHT + 0.070);
-
-    setArmPosition(RIGHT_ARM_FIRST_SERVO_ID, sidePile);
-    setArmPosition(LEFT_ARM_FIRST_SERVO_ID, sidePile);
-
-    while (true) ;;
     // Create required variables.
     RobotPosition targetPosition;
     TrajectoryVector traj;
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
+    std::cout<<"AAAA"<<std::endl;
+    buildCakes();
+    while(true);;
+    // END OF SHIT
+  
+    ArmPosition sidePile(arm_positions::CAKES_SIDE_DISTANCE, arm_positions::SIDE_ANGLE, arm_positions::GROUND_HEIGHT + 0.070);
+
+    setArmPosition(RIGHT_ARM_FIRST_SERVO_ID, sidePile);
+    setArmPosition(LEFT_ARM_FIRST_SERVO_ID, sidePile);
+
+    //~ // Create required variables.
+    //~ RobotPosition targetPosition;
+    //~ TrajectoryVector traj;
+    //~ RobotPosition endPosition;
+    //~ std::vector<RobotPosition> positions;
 
     // Create brain
     MotionPlanner* motionPlanner = motionController->motionPlanner_;
@@ -516,13 +525,15 @@ void Strategy::match_impl()
     // Open arms
     servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.5));
     servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.5));
-
+    
     // Grab first genoise
-    go_to_straight_line(genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0));
+    //~ go_to_straight_line(genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0));
 
     servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.1));
     servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.1));
     robot->wait(0.5);
+
+
 
     // Go between the next two cakes, stop just before them.
 
@@ -547,8 +558,6 @@ void Strategy::match_impl()
     // Bring the cakes to the bottom square
 
     // Build cakes.
-
-    while (true) ;;
 
     // Get the top right genoese and get it
     double distance = (genoese_top_left-current_position).norm();
