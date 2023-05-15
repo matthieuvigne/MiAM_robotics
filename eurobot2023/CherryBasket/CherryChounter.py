@@ -31,7 +31,7 @@ class CherryCounter():
 
     self.camera.awb_mode = "off"
     self.camera.awb_gains = (Fraction(125, 128), Fraction(579, 256))
-    # self.camera.shutter_speed = 1000000 #54036
+    self.camera.shutter_speed = 1000000 #54036
     self.camera.brightness = 60
     # self.camera.contrast = 70
 
@@ -62,10 +62,10 @@ class CherryCounter():
         continue
       
       # Common processing
-      # cv2.imwrite("raw/image"+str(cherry_counter.iter_idx)+"_raw.jpg", img);
+      cv2.imwrite("raw/image"+str(cherry_counter.iter_idx)+"_raw.jpg", img);
 
       # Threshold the channels
-      mask_red = cv2.inRange(img[:,:,2], 110, 255);
+      mask_red = cv2.inRange(img[:,:,2], 100, 255);
       mask_green = cv2.inRange(img[:,:,1],0,90);
       mask_blue = cv2.inRange(img[:,:,0],0,90);
       mask = mask_red*mask_green*mask_blue;
@@ -107,7 +107,7 @@ class CherryCounter():
         a, b, r = pt[0], pt[1], pt[2]
         cv2.circle(dimg, (a, b), r, (0, 255, 0), 2)
         cv2.circle(dimg, (a, b), 1, (0, 0, 255), 3)
-      #cv2.imwrite("detected/image{}_detected.jpg".format(cherry_counter.iter_idx), dimg)
+      cv2.imwrite("detected/image{}_detected.jpg".format(cherry_counter.iter_idx), dimg)
       
       cherry_counter.num_cherries = len(detected_circles)
       cherry_counter.message = "Iter " + str(cherry_counter.iter_idx) + " :\n" + str(cherry_counter.num_cherries) + " cherries."
