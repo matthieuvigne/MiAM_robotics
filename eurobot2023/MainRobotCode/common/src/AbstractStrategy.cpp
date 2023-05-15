@@ -59,7 +59,6 @@ bool AbstractStrategy::go_forward(double distance)
 }
 
 
-<<<<<<< HEAD
 void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
 {
     RobotPosition position;

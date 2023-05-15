@@ -202,7 +202,7 @@ void Strategy::match_impl()
     //~ std::cout << "before" << std::endl;
     //~ go_forward(1000);
     //~ std::cout << "after" << std::endl;
-    while(true);;
+    //~ while(true);;
     
   
     // Initialize arm positions
@@ -254,17 +254,17 @@ void Strategy::match_impl()
     //~ servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.5));
     //~ servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.5));
 
-    miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
+    //~ miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
     //~ conf.maxWheelVelocity *= 0.8;
     //~ conf.maxWheelAcceleration *= 0.8;
     // Grab first genoise
     clearActionSequence();
     targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
-    //~ go_to_straight_line(targetPosition);
-      traj = miam::trajectory::computeTrajectoryStraightLineToPoint(conf, 
-        motionController->getCurrentPosition(), targetPosition);
-      motionController->setTrajectoryToFollow(traj);
-      motionController->waitForTrajectoryFinished();
+    go_to_straight_line(targetPosition);
+      //~ traj = miam::trajectory::computeTrajectoryStraightLineToPoint(conf, 
+        //~ motionController->getCurrentPosition(), targetPosition);
+      //~ motionController->setTrajectoryToFollow(traj);
+      //~ motionController->waitForTrajectoryFinished();
     setTargetPosition(LEFT_ARM, ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::PILE_CLEAR_HEIGHT);
     setTargetPosition(LEFT_ARM, REL, 0.00, REL, 0, ABS, arm::GROUND_HEIGHT + 1e-2);
     setTargetPosition(LEFT_ARM, REL, 0.00, REL, -30*arm::RAD, REL, 0);
@@ -276,19 +276,19 @@ void Strategy::match_impl()
     
     // Go between the next two cakes, stop just before them.
     targetPosition = cream_ganache_bottom_right + RobotPosition(-600,0,0);
-    //~ go_to_straight_line(targetPosition);
-      traj = miam::trajectory::computeTrajectoryStraightLineToPoint(conf, 
-        motionController->getCurrentPosition(), targetPosition);
-      motionController->setTrajectoryToFollow(traj);
-      motionController->waitForTrajectoryFinished();
+    go_to_straight_line(targetPosition);
+      //~ traj = miam::trajectory::computeTrajectoryStraightLineToPoint(conf, 
+        //~ motionController->getCurrentPosition(), targetPosition);
+      //~ motionController->setTrajectoryToFollow(traj);
+      //~ motionController->waitForTrajectoryFinished();
     robot->wait(0.25);
     targetPosition = cream_ganache_bottom_right + RobotPosition(-300,0,0);
-    //~ go_to_straight_line(targetPosition);
-      traj = miam::trajectory::computeTrajectoryStraightLineToPoint(conf, 
-        motionController->getCurrentPosition(), targetPosition);
-      traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(conf, targetPosition,5*arm::RAD)));
-      motionController->setTrajectoryToFollow(traj);
-      motionController->waitForTrajectoryFinished();
+    go_to_straight_line(targetPosition);
+      //~ traj = miam::trajectory::computeTrajectoryStraightLineToPoint(conf, 
+        //~ motionController->getCurrentPosition(), targetPosition);
+      //~ traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(conf, targetPosition,5*arm::RAD)));
+      //~ motionController->setTrajectoryToFollow(traj);
+      //~ motionController->waitForTrajectoryFinished();
       
     robot->wait(0.25);
     setTargetPosition(LEFT_ARM, REL, 0.00, ABS, 70*arm::RAD, REL, 0);
