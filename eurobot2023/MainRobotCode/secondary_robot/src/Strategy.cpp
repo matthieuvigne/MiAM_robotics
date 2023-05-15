@@ -278,7 +278,7 @@ void Strategy::match_impl()
 
     // cible
     RobotPosition position = motionController->getCurrentPosition();
-    position.x = robotParameters.CHASSIS_WIDTH + 90.0;
+    position.x = 210; //robotParameters.CHASSIS_WIDTH + 90.0;
     position.y = 3000 - robotParameters.CHASSIS_FRONT - 160;
     position.theta = M_PI_2;
 

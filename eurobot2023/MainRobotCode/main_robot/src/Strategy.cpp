@@ -183,7 +183,6 @@ namespace arm_positions{
     ArmPosition DISTRIBUTOR_CHERRY(125, -0.55, -130);
 
 }
-
 //--------------------------------------------------------------------------------------------------
 
 void Strategy::match_impl()
