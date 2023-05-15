@@ -19,6 +19,8 @@
 using namespace main_robot;
 using namespace main_robot::arm;
 
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::changePileHeight(int pileIndex, int delta)
 {
     std::cout << "Before mutex" << std::endl;
@@ -29,6 +31,8 @@ void Strategy::changePileHeight(int pileIndex, int delta)
     pileLock.unlock();
     std::cout << "After mutex" << std::endl;
 }
+
+//--------------------------------------------------------------------------------------------------
 
 int Strategy::getPileHeight(int pileIndex)
 {
@@ -44,10 +48,14 @@ int Strategy::getPileHeight(int pileIndex)
     return height;
 }
 
+//--------------------------------------------------------------------------------------------------
+
 double Strategy::getPileZ(int pileIndex)
 {
   return arm::GROUND_HEIGHT + getPileHeight(pileIndex) * arm::LAYER_HEIGHT;
 }
+
+//--------------------------------------------------------------------------------------------------
 
 void Strategy::addPositionToQueue_Left(ArmPosition target)
 {
@@ -58,6 +66,8 @@ void Strategy::addPositionToQueue_Left(ArmPosition target)
     }
 }
 
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::addPositionToQueue_Right(ArmPosition target)
 {
     std::vector<ArmPosition::Ptr > seq = computeSequenceToPosition(RIGHT_ARM, target);
@@ -66,6 +76,8 @@ void Strategy::addPositionToQueue_Right(ArmPosition target)
         right_arm_positions.push(ap);
     }
 }
+
+//--------------------------------------------------------------------------------------------------
 
 void Strategy::initPosition(int arm_idx, double r, double theta_rad, double z)
 {
@@ -86,10 +98,14 @@ void Strategy::initPosition(int arm_idx, double r, double theta_rad, double z)
   }
 }
 
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::initPosition(int arm_idx, ArmPosition const& position)
 {
   initPosition(arm_idx, position.r_, position.theta_, position.z_);
 }
+
+//--------------------------------------------------------------------------------------------------
 
 void Strategy::setTargetPosition(int arm_idx, 
   int absrel_r, double r, 
@@ -111,21 +127,11 @@ void Strategy::setTargetPosition(int arm_idx,
       addPositionToQueue_Right(right_arm_position_);
       break;
     default:
-      std::cout << "Unknown arm type" << std::endl;
+      std::cerr << "Unknown arm type" << std::endl;
   }
 }
 
-void Strategy::setRelTargetPosition(
-  int arm_idx, double dr, double dtheta_rad, double dz)
-{
-  return setTargetPosition(arm_idx, REL, dr, REL, dtheta_rad, REL, dz);
-}
-
-void Strategy::setAbsTargetPosition(
-  int arm_idx, double new_r, double new_theta_rad, double new_z)
-{ 
-  return setTargetPosition(arm_idx, ABS, new_r, ABS, new_theta_rad, ABS, new_z);
-}
+//--------------------------------------------------------------------------------------------------
 
 void Strategy::wait(int arm_idx, double duration_sec)
 {
@@ -143,6 +149,8 @@ void Strategy::wait(int arm_idx, double duration_sec)
   }
 }
 
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::pump(int arm_idx, bool activate)
 {
   ArmAction::Ptr action(new ArmPump(activate));
@@ -159,6 +167,8 @@ void Strategy::pump(int arm_idx, bool activate)
   }
 }
 
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::runActionBlock()
 {
   ArmSync::Ptr left_sync(new ArmSync());
@@ -168,6 +178,18 @@ void Strategy::runActionBlock()
   waitForArmMotionSequenced();
 }
 
+//--------------------------------------------------------------------------------------------------
+
+void Strategy::clearActionSequence()
+{
+  while(!left_arm_positions.empty())
+    left_arm_positions.pop();
+  while(!right_arm_positions.empty())
+    right_arm_positions.pop();
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::addSyncToQueue()
 {
     ArmSync::Ptr target(new ArmSync());
@@ -176,17 +198,23 @@ void Strategy::addSyncToQueue()
     right_arm_positions.push(target2);
 }
 
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::addPumpToLeftQueue(bool activated)
 {
     ArmPump::Ptr target(new ArmPump(activated));
     left_arm_positions.push(target);
 }
 
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::addPumpToRightQueue(bool activated)
 {
     ArmPump::Ptr target(new ArmPump(activated));
     right_arm_positions.push(target);
 }
+
+//--------------------------------------------------------------------------------------------------
 
 void Strategy::buildCakes()
 {
@@ -426,117 +454,6 @@ void Strategy::buildCakes()
     runActionBlock();
     std::cout << "FINISHED" << std::endl;
     while(true);;
-    
-    // std::vector<std::shared_ptr<ArmPosition > > seq = computeSequenceToPosition(LEFT_ARM, sidePile);
-    // for (auto& ap : seq)
-    // {
-    //     left_arm_positions.push(ap);
-    // }
-
-    // waitForArmMotionSequenced();
-
-
-
-    // std::cout << "middlePile: " << middlePile.r_ << " " << middlePile.theta_ << " " << middlePile.z_ << std::endl;
-
-
-    // std::array<double, 4 > destArray;
-    // common::arm_inverse_kinematics(middlePile.r_, middlePile.theta_, middlePile.z_, -M_PI_2, &destArray);
-    // ArmPosition position_tmp = servoAnglesToArmPosition(destArray[0], destArray[1], destArray[2], destArray[3]);
-    // std::cout << "position_tmp: " << position_tmp.r_ << " " << position_tmp.theta_ << " " << position_tmp.z_ << std::endl;
-
-    // // left arm
-    // {
-    //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(middlePile));
-    //     left_arm_positions.push (targetPosition);
-    // }
-
-    // waitForArmMotionSequenced();
-
-    // ArmPosition leftArm = getArmPosition(LEFT_ARM);
-    // std::cout << "leftArm: " << leftArm.r_ << " " << leftArm.theta_ << " " << leftArm.z_ << std::endl;
-
-    // ArmPosition rightArm = getArmPosition(RIGHT_ARM);
-    // std::cout << "rightArm: " << rightArm.r_ << " " << rightArm.theta_ << " " << rightArm.z_ << std::endl;
-
-    // while(true) ;;
-
-    // Grab first item on right pile with left arm
-
-    // // left arm
-    // {
-    //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(frontPile));
-    //     targetPosition->z_ += LAYER_MOVEMENT_CLEARANCE;
-    //     left_arm_positions.push (targetPosition);
-    // }
-
-    // {
-    //     std::shared_ptr<ArmPosition > targetPosition(new ArmPosition(frontPile));
-    //     left_arm_positions.push (targetPosition);
-    // }
-
-    // waitForArmMotionSequenced();
-
-    // std::cout << "Sequence finished" << std::endl;
-
-    //~ return;
-
-
-
-
-
-    //~ // go above right pile
-    //~ ArmPosition targetPosition = frontPile;
-    //~ targetPosition.z_ += LAYER_MOVEMENT_CLEARANCE;
-    //~ setArmPosition(LEFT_ARM, targetPosition);
-    //~ waitForArmMotion();
-
-    //~ // grab
-    //~ targetPosition.z_ -= LAYER_MOVEMENT_CLEARANCE;
-    //~ setArmPosition(LEFT_ARM, targetPosition);
-    //~ robot->wait(1.5);
-    //~ targetPosition.z_ = arm::PILE_CLEAR_HEIGHT;
-    //~ setArmPosition(LEFT_ARM, targetPosition);
-    //~ waitForArmMotion();
-
-
-
-
-    //~ targetPosition.theta_ = sidePile.theta_;
-    //~ setArmPosition(LEFT_ARM, targetPosition);
-    //~ waitForArmMotion();
-    //~ targetPosition.z_ = arm::GROUND_HEIGHT + 0.035;
-    //~ setArmPosition(LEFT_ARM, targetPosition);
-    //~ waitForArmMotion();
-    //~ RPi_writeGPIO(PUMP_LEFT, false);
-    //~ RPi_writeGPIO(VALVE_LEFT, true);
-    //~ robot->wait(0.1);
-    //~ RPi_writeGPIO(VALVE_LEFT, false);
-
-
-
-    // // Grab first item on right pile with left arm
-    // ArmPosition targetPosition = frontPile;
-    // targetPosition.z_ += LAYER_MOVEMENT_CLEARANCE;
-    // setArmPosition(LEFT_ARM, targetPosition);
-    // waitForArmMotion();
-    // RPi_writeGPIO(PUMP_LEFT, true);
-    // RPi_writeGPIO(VALVE_LEFT, false);
-    // targetPosition.z_ -= 0.025;
-    // setArmPosition(LEFT_ARM, targetPosition);
-    // robot->wait(1.5);
-    // targetPosition.z_ = arm::PILE_CLEAR_HEIGHT;
-    // setArmPosition(LEFT_ARM, targetPosition);
-    // waitForArmMotion();
-    // targetPosition.theta_ = sidePile.theta_;
-    // setArmPosition(LEFT_ARM, targetPosition);
-    // waitForArmMotion();
-    // targetPosition.z_ = arm::GROUND_HEIGHT + 0.035;
-    // setArmPosition(LEFT_ARM, targetPosition);
-    // waitForArmMotion();
-    // RPi_writeGPIO(PUMP_LEFT, false);
-    // RPi_writeGPIO(VALVE_LEFT, true);
-    // robot->wait(0.1);
-    // RPi_writeGPIO(VALVE_LEFT, false);
-
 }
+
+//--------------------------------------------------------------------------------------------------

@@ -208,7 +208,6 @@ void Robot::lowLevelLoop()
         currentTime_ = metronome.getElapsedTime();
         double dt = currentTime_ - lastTime;
 
-
         // Once init has passed, call strategy update function
         if (guiState_.state != robotstate::INIT && guiState_.state != robotstate::UNDERVOLTAGE)
             strategy_->periodicAction();

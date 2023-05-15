@@ -98,8 +98,6 @@ namespace main_robot
 
       void initPosition(int arm_idx, double r, double theta_rad, double z);
       void initPosition(int arm_idx, ArmPosition const& position);
-      void setRelTargetPosition(int arm_idx, double dr, double dtheta_rad, double dz);
-      void setAbsTargetPosition(int arm_idx, double new_r, double new_theta_rad, double new_z);
       void setTargetPosition(int arm_idx,
         int absrel_r, double r,
         int absrel_theta, double theta_rad,
@@ -107,6 +105,7 @@ namespace main_robot
       void wait(int arm_idx, double duration);
       void pump(int arm_idx, bool activate);
       void runActionBlock();
+      void clearActionSequence();
 
       void addSyncToQueue();
       void changePileHeight(int pileIndex, int delta);

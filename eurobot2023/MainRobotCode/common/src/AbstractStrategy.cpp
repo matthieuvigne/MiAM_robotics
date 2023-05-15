@@ -59,13 +59,14 @@ bool AbstractStrategy::go_forward(double distance)
 }
 
 
-void AbstractStrategy::testSquare(double const& squareDimension)
+void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
 {
     RobotPosition position;
     position.x = 0;
     position.y = 0;
     position.theta = 0;
     motionController->resetPosition(position, true, true, true);
+    double sgn = clockwise ? 1. : -1.;
 
     RobotPosition endPosition = position;
     endPosition.x += squareDimension;
@@ -76,7 +77,7 @@ void AbstractStrategy::testSquare(double const& squareDimension)
 
     position = motionController->getCurrentPosition();
     endPosition = position;
-    endPosition.y -= squareDimension;
+    endPosition.y -= sgn*squareDimension;
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition);
     motionController->setTrajectoryToFollow(traj);
@@ -93,7 +94,7 @@ void AbstractStrategy::testSquare(double const& squareDimension)
 
     position = motionController->getCurrentPosition();
     endPosition = position;
-    endPosition.y += squareDimension;
+    endPosition.y += sgn*squareDimension;
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition);
     motionController->setTrajectoryToFollow(traj);
