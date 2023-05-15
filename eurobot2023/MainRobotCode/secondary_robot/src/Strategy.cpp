@@ -202,12 +202,25 @@ void Strategy::periodicAction()
                 targetVelocity = 4096;
             if (targetVelocity < -4096)
                 targetVelocity = -4096;
-            if (targetVelocity > 0 && targetVelocity < 500)
-                targetVelocity = 500;
+            if (targetVelocity > 0 && targetVelocity < 700)
+                targetVelocity = 700;
             if (targetVelocity < 0 && targetVelocity > -500)
                 targetVelocity = -500;
-
-            servo->setTargetVelocity(RAIL_SERVO_ID, targetVelocity);
+            // Special case: top has a mechanical bound, wait until we touch it.
+            if (currentRailMeasurements.currentPosition_ > 1500 && targetVelocity > 700)
+                targetVelocity = 700;
+            int speed = servo->getCurrentSpeed(RAIL_SERVO_ID);
+            if (targetRailValue_ >  0 && currentRailMeasurements.currentPosition_ > 0 && speed > 0 && speed < 500)
+            {
+                servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+                railState_ = rail::state::IDLE;
+                // Reset position to bound
+                currentRailMeasurements.currentPosition_ = 2600;
+            }
+            else
+            {
+                servo->setTargetVelocity(RAIL_SERVO_ID, targetVelocity);
+            }
         }
     }
 }
@@ -221,9 +234,9 @@ void Strategy::match_impl()
 {
     // Send start message
     if (sock_.send("Match started"))
-        std::cout << "Start message sent" << std::endl; 
+        std::cout << "Start message sent" << std::endl;
     else
-        std::cout << "Start message error! not sent" << std::endl; 
+        std::cout << "Start message error! not sent" << std::endl;
 
     // Create required variables.
     RobotPosition targetPosition;
@@ -345,14 +358,14 @@ void Strategy::match_impl()
             {
                 // distance to center of obstacle minus size of the obstacle
                 minDistanceFromObstacle = std::min(
-                    minDistanceFromObstacle, 
+                    minDistanceFromObstacle,
                     (std::get<0>(obstacle) - action.start_position).norm() - std::get<1>(obstacle));
                 // // distance to center of obstacle minus size of the obstacle
                 // minDistanceFromObstacle = std::min(
-                //     minDistanceFromObstacle, 
+                //     minDistanceFromObstacle,
                 //     (std::get<0>(obstacle) - action.end_position).norm() - std::get<1>(obstacle));
             }
-            
+
             // 150 = radius of the robot
             if (minDistanceFromObstacle > 150 &  distanceToStartPoint < minDistanceToStartPoint)
             {
@@ -380,7 +393,7 @@ void Strategy::match_impl()
             }
 
             traj = robot->getMotionController()->computeMPCTrajectory(action.start_position, robot->getMotionController()->getDetectedObstacles(), true);
-            
+
             // remove obstacles on the road
             for (auto obstacle : action.obstacles_on_the_road)
             {
@@ -412,7 +425,7 @@ void Strategy::match_impl()
             }
         }
     }
-    
+
     // // action 1 : pousser les piles
     // {
     //     RobotPosition start_position;
@@ -604,7 +617,7 @@ void Strategy::goBackToBase()
     position.x = 600;
     position.y = 400;
 
-    if ((motionController->getCurrentPosition() - position).norm() > 100) 
+    if ((motionController->getCurrentPosition() - position).norm() > 100)
     {
         // positions.push_back(position);
         // go_to_rounded_corner(positions);

@@ -34,9 +34,9 @@ namespace secondary_robot
 
     namespace rail
     {
-        double const TOP = 1.115;
+        double const TOP = 1.14;
         double const NOMINAL = 0.15;
-        double const CHERRY_GRAB = 0.035;
+        double const CHERRY_GRAB = 0.0;
         double const MIDDLE = 0.5;
         enum state
         {
