@@ -240,7 +240,8 @@ void Strategy::match_impl()
     // Reset initial position
     motionController->resetPosition(START_POSITION, true, true, true);
 
-    testSquare();
+    // go_forward(1000.0);
+    testSquare(10, false);
 
     // set_reservoir_tilt(ReservoirTilt::HORIZONTAL);
     // moveRail(rail::TOP);

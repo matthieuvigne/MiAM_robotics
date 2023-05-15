@@ -38,7 +38,7 @@ class AbstractStrategy
 
         /// @brief  Perform a square in the clockwise direction - used to calibrate the robot
         /// @param squareDimenstion Square size, in mm.
-        void testSquare(double const& squareDimenstion = 500);
+        void testSquare(double const& squareDimenstion = 500, bool const& clockwise = true);
 };
 
 #endif

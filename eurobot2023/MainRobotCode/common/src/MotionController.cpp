@@ -277,7 +277,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // If we are beyond trajectory end, look to see if we are close enough to the target point to stop.
     if (traj->getDuration() <= curvilinearAbscissa_)
     {
-        if (trackingLongitudinalError < 3 && trackingAngleError < 0.02 && measurements.encoderSpeed.right < 1.0 && measurements.encoderSpeed.left < 1.0)
+        if (trackingLongitudinalError < 2 && trackingAngleError < 0.01 && measurements.encoderSpeed.right < 0.5 && measurements.encoderSpeed.left < 0.5)
         {
             // Just stop the robot.
             target.motorSpeed[0] = 0.0;

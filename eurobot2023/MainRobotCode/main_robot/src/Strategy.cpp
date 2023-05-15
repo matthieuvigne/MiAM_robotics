@@ -186,10 +186,11 @@ void Strategy::match_impl()
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
     std::cout<<"AAAA"<<std::endl;
-    buildCakes();
+    testSquare(300, true);
+    // buildCakes();
     while(true);;
     // END OF SHIT
-  
+
     ArmPosition sidePile(arm_positions::CAKES_SIDE_DISTANCE, arm_positions::SIDE_ANGLE, arm_positions::GROUND_HEIGHT + 0.070);
 
     setArmPosition(RIGHT_ARM_FIRST_SERVO_ID, sidePile);
@@ -525,7 +526,7 @@ void Strategy::match_impl()
     // Open arms
     servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.5));
     servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.5));
-    
+
     // Grab first genoise
     //~ go_to_straight_line(genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0));
 
