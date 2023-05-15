@@ -91,7 +91,7 @@ void Strategy::grab_cherries()
     set_reservoir_tilt(ReservoirTilt::UP);
     robot->wait(0.1);
     set_brush_move(BrushDirection::OFF);
-    moveRail(rail::MIDDLE);
+    moveRail(rail::NOMINAL);
 
     traj = miam::trajectory::computeTrajectoryStraightLine(motionController->robotParams_.getTrajConf(), targetPosition, -120);
     motionController->setTrajectoryToFollow(traj);
@@ -123,7 +123,7 @@ void Strategy::put_cherries_in_the_basket()
     set_brush_move(BrushDirection::OFF);
 
     go_forward(-100);
-    moveRail(rail::NOMINAL);
+    moveRail(rail::MIDDLE);
     robot->wait(2.0);
     set_reservoir_tilt(ReservoirTilt::UP);
     waitForRail();
