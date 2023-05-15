@@ -196,7 +196,7 @@ bool TableDrawing::on_draw(Cairo::RefPtr<Cairo::Context> const& cr)
         cr->translate(scaling * p.x, - scaling * p.y);
         cr->arc(0, 0, 80 * scaling, 0, 2 * M_PI);
         if (p.theta > M_PI_2)
-            cr->set_source_rgb(1, 1, 0);
+            cr->set_source_rgb(1, 0.5, 0);
         else
             cr->set_source_rgb(1, 0, 0);
         cr->fill();
