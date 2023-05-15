@@ -73,12 +73,12 @@
       double const yfar_max = 500;
 
       // during avoidance...
-      double const x_max_avoidance = 320;
+      double const x_max_avoidance = 380;
       double const y_max_avoidance = 300;
-      double const xfar_max_avoidance = 350;
+      double const xfar_max_avoidance = 380;
       double const yfar_max_avoidance = 300;
 
-      double const mpc_obstacle_size = 350;
+      double const mpc_obstacle_size = 380;
     }
 
     // Dimensions of the table
