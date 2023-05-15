@@ -1,5 +1,6 @@
 #include <common/MotionController.h>
 #include <miam_utils/trajectory/Utilities.h>
+#include <filesystem>
 
 MotionController::MotionController(RobotParameters const &robotParameters) : currentPosition_(),
                                                                              newTrajectories_(),
@@ -41,7 +42,13 @@ void MotionController::init(RobotPosition const& startPosition, std::string cons
     std::time_t t = std::time(nullptr);
     char timestamp[100];
     std::strftime(timestamp, sizeof(timestamp), "%Y%m%dT%H%M%SZ", std::localtime(&t));
-    std::string filename = "logs/log" + std::string(timestamp) + "_" + robotParams_.name + ".hdf5";
+
+    // Generate unique file ID, because raspberry pi clock is always reset.
+    int count = 0;
+    std::filesystem::path logDir{"logs/"};
+    for (auto& p : std::filesystem::directory_iterator(logDir))
+        count++;
+    std::string filename = "logs/log" + std::to_string(count) + "_" + std::string(timestamp) + "_" + robotParams_.name + ".hdf5";
     logger_.start(filename, teleplotPrefix);
     currentTime_ = 0.0;
 }
@@ -133,7 +140,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     }
 
     // add obstacles
-    
+
     for (auto obstacle : getPersistentObstacles())
     {
         detectedObstacles_.push_back(obstacle);

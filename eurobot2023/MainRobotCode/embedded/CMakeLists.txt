@@ -8,7 +8,7 @@ set(PROJECT_DESCRIPTION "Code for the main robot for Eurobot")
 set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
 
 # Set C++ compiler flags.
-set(CMAKE_CXX_FLAGS "-Wall -Wno-psabi -fdiagnostics-color -pthread")
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wno-psabi -fdiagnostics-color -pthread")
 
 # Set build-type specific flags
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -85,12 +85,12 @@ message(${RPLIDAR_INCLUDE_DIRS})
 
 # Set executable target and link libraries.
 add_executable(mainRobotCode ${MAIN_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(mainRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} 
+target_link_libraries(mainRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES}
 AStar acado_solver "-lhdf5_cpp")
 
 
 add_executable(secondaryRobotCode ${SECONDARY_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(secondaryRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES} 
+target_link_libraries(secondaryRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES}
 AStar acado_solver "-lhdf5_cpp")
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")
