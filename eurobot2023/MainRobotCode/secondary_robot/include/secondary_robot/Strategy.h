@@ -37,6 +37,7 @@ namespace secondary_robot
         double const TOP = 1.115;
         double const NOMINAL = 0.15;
         double const CHERRY_GRAB = 0.035;
+        double const MIDDLE = 0.5;
         enum state
         {
             CALIBRATING,

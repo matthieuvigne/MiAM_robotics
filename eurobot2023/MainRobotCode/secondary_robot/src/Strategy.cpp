@@ -219,6 +219,12 @@ void Strategy::shutdown()
 
 void Strategy::match_impl()
 {
+    // Send start message
+    if (sock_.send("Match started"))
+        std::cout << "Start message sent" << std::endl; 
+    else
+        std::cout << "Start message error! not sent" << std::endl; 
+
     // Create required variables.
     RobotPosition targetPosition;
     TrajectoryVector traj;
@@ -298,7 +304,6 @@ void Strategy::match_impl()
 
     go_forward(100);
     put_cherries_in_the_basket();
-    go_forward(-50);
 
     // go_forward(-50);
     // traj.clear();

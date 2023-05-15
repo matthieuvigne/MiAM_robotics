@@ -708,9 +708,12 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
 
             std::cout << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
 
+            TrajectoryConfig tc_pt = robotParams_.getTrajConf();
+            tc_pt.maxWheelAcceleration *= 0.5;
+
             // add a point turn to keep the end angle info
             std::shared_ptr<PointTurn > pt_sub_end(
-                new PointTurn(robotParams_.getTrajConf(),
+                new PointTurn(tc_pt,
                 traj.getEndPoint().position, targetPosition.theta)
             );
             traj.push_back(pt_sub_end);
@@ -791,9 +794,12 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
                 !forward
             );
 
+            TrajectoryConfig tc_pt = robotParams_.getTrajConf();
+            tc_pt.maxWheelAcceleration *= 0.5;
+
             // add a point turn to keep the end angle info
             std::shared_ptr<PointTurn > pt_sub_end(
-                new PointTurn(robotParams_.getTrajConf(),
+                new PointTurn(tc_pt,
                 traj2.getEndPoint().position, targetPosition.theta)
             );
             traj2.push_back(pt_sub_end);

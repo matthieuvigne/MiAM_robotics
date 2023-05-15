@@ -79,13 +79,21 @@ void Strategy::grab_cherries()
     motionController->waitForTrajectoryFinished();
     // Wait a bit more
     robot->wait(0.5);
+    for (int i = 0; i < 2; i++)
+    {
+        set_brush_move(BrushDirection::TOWARDS_FRONT);
+        robot->wait(0.6);
+        set_brush_move(BrushDirection::TOWARDS_BACK);
+        robot->wait(0.6);
+    }
+    set_brush_move(BrushDirection::TOWARDS_FRONT);
     // Stop and move back
     set_reservoir_tilt(ReservoirTilt::UP);
     robot->wait(0.1);
     set_brush_move(BrushDirection::OFF);
-    moveRail(rail::NOMINAL);
+    moveRail(rail::MIDDLE);
 
-    traj = miam::trajectory::computeTrajectoryStraightLine(motionController->robotParams_.getTrajConf(), targetPosition, -60);
+    traj = miam::trajectory::computeTrajectoryStraightLine(motionController->robotParams_.getTrajConf(), targetPosition, -120);
     motionController->setTrajectoryToFollow(traj);
     motionController->waitForTrajectoryFinished();
 }
