@@ -22,7 +22,6 @@ double LowPass::filter(double const& value, double const& dt)
     {
         state_ = value;
         isInit_ = true;
-        std::cout << isInit_ << std::endl;
     }
     // Low-pass equation: y + dy / omega = x
     double const& b = std::exp(-dt * omega_);

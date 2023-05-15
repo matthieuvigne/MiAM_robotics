@@ -34,16 +34,20 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
     double const newPos = driver_->getCurrentPosition(motorId_);
     if (isStopped_)
     {
-        // driver_->setBrake(motorId_, false);
         position_ = newPos;
         integralValue_ = 0;
     }
-    rawVelocity_ = (newPos - position_) / dt;
-    // Handle communication problems: only perform computation when a valid position is returned.
-    if (std::abs(rawVelocity_) < 100)
+
+    // Process only if valid signal is obtained
+    if (driver_->lastError_ == RMDX::ErrorCode::OK)
     {
-        position_ = newPos;
-        velocity_ = lowPass_.filter(rawVelocity_, dt);
+        rawVelocity_ = (newPos - position_) / dt;
+        // Handle communication problems: only perform computation when a valid position is returned.
+        if (std::abs(rawVelocity_) < 100)
+        {
+            position_ = newPos;
+            velocity_ = lowPass_.filter(rawVelocity_, dt);
+        }
     }
 
     // Compute PI output, update integral only if not in saturation.
@@ -66,7 +70,6 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
     if (targetCurrent_ < -maxOutput_)
         targetCurrent_ = -maxOutput_;
 
-    // targetCurrent_ = targetVelocity / 10.0;
     current_ = driver_->setCurrent(motorId_, targetCurrent_);
     isStopped_ = false;
     return velocity_;

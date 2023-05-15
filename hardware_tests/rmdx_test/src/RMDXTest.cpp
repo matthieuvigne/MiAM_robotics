@@ -38,8 +38,8 @@ int main (int argc, char *argv[])
     }
 
     RMDX motor(&mcp);
-    int const motorRightId = 3;
-    int const motorLeftId = 4;
+    int const motorRightId = 1;
+    int const motorLeftId = 2;
 
     while (!motor.init(motorRightId))
     {
@@ -88,39 +88,42 @@ int main (int argc, char *argv[])
         oldt = t;
 
 
-        while (t > 10)
-        {
-            t -= 10;
-        }
+        // while (t > 10)
+        // {
+        //     t -= 10;
+        // }
         rightTarget = 2 * std::sin(2 * 3.14159 * 0.25 * t);
-        if (t > 8)
-            rightTarget = 0.0;
+        // if (t > 8)
+        //     rightTarget = 0.0;
         leftTarget = -rightTarget;
 
 
         // rightController.sendTarget(rightTarget);
         double rightSpeed  = 0;
         double leftSpeed  = 0;
-        if (t > 8)
-        {
-            rightController.stop();
-            leftController.stop();
-        }
-        else
-        {
-            rightSpeed = rightController.sendTarget(rightTarget, dt);
-            leftSpeed = leftController.sendTarget(leftTarget, dt);
-        }
+        // if (t > 8)
+        // {
+        //     rightController.stop();
+        //     leftController.stop();
+        // }
+        // else
+        // {
+
+        rightSpeed = rightController.sendTarget(rightTarget, dt);
+        leftSpeed = leftController.sendTarget(leftTarget, dt);
+        // }
 
 
         log.log("rightTargetSpeed", time(), rightTarget);
         log.log("rightSpeed", time(), rightSpeed);
+        log.log("rightPosition", time(), rightController.position_);
 
         log.log("rightTargetCurrent", time(), rightController.targetCurrent_);
         log.log("rightCurrent", time(), rightController.current_);
 
         log.log("leftTargetSpeed", time(), leftTarget);
         log.log("leftSpeed", time(), leftSpeed);
+        log.log("leftPosition", time(), leftController.position_);
 
         log.log("leftTargetCurrent", time(), leftController.targetCurrent_);
         log.log("leftCurrent", time(), leftController.current_);

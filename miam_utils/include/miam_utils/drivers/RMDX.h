@@ -72,8 +72,14 @@ namespace MyActuator::commands
 
 
 class RMDX{
-
     public:
+        enum ErrorCode
+        {
+            OK,
+            TIMEOUT,
+            BAD_REPLY
+        };
+
         struct Status{
             double batteryVoltage = 0; ///< Battery voltage, V
             int motorTemperature = 0; ///< Motor temperature, deg C
@@ -130,6 +136,7 @@ class RMDX{
         /// \param[in] turnBrakeOn Desired brake status
         void setBrake(unsigned char const& motorId, bool const& turnBrakeOn);
 
+        ErrorCode lastError_;
         std::mutex mutex_;
     private:
 

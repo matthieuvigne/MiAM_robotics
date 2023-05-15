@@ -195,12 +195,6 @@ bool MCP2515::readAvailableMessage(CANMessage & message)
     data[3] = 0;
     res = spiDriver_->spiReadWriteSingle(data, 4);
 
-    // std::cout << "CAN read:";
-    // for (int i = 0; i < 8; i++)
-    //     std::cout << int(message.data[i]) << " ";
-    // std::cout << std::endl;
-
-
     return res == 4;
 }
 

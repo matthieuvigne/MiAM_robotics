@@ -83,17 +83,13 @@ double RMDX::setSpeed(unsigned char const& motorId, double const& targetSpeed, d
 {
     int32_t speedCount = static_cast<int32_t>(targetSpeed * RAD_TO_DEG * reductionRatio * 100);
     CANMessage message = createMessage(motorId, MyActuator::commands::SPEED_COMMAND, speedCount);
-    int result = canReadWrite(message);
-    if (result <= 0)
-        return 0;
-    // Verify that the reply the correct type - otherwise print warning and return target speed
-    if (message.data[0] != MyActuator::commands::SPEED_COMMAND)
+    if (canReadWrite(message) >= 0)
     {
-        std::cout << "[RMDX] Error:" << static_cast<int>(motorId) << ", unexpected reply to command" << static_cast<int>(MyActuator::commands::SPEED_COMMAND) << std::endl;
-        return targetSpeed;
+        int16_t data = message.data[4] + (message.data[5] << 8);
+        return static_cast<double>(data) / RAD_TO_DEG / reductionRatio;
     }
-    int16_t data = message.data[4] + (message.data[5] << 8);
-    return static_cast<double>(data) / RAD_TO_DEG / reductionRatio;
+    // If no reply could be obtained, return target speed.
+    return targetSpeed;
 }
 
 double RMDX::setCurrent(unsigned char const& motorId, double const& targetCurrent)
@@ -105,32 +101,21 @@ double RMDX::setCurrent(unsigned char const& motorId, double const& targetCurren
     message.data[4] = currentCount & 0xFF;
     message.data[5] = (currentCount >> 8) & 0xFF;
 
-    int result = canReadWrite(message);
-    if (result <= 0)
-        return 0;
-    // Verify that the reply is indeed a current reply - otherwise print warning
-    // and return target current.
-    if (message.data[0] != MyActuator::commands::TORQUE_COMMAND)
+    if (canReadWrite(message) > 0)
     {
-        std::cout << "[RMDX] Error: " << static_cast<int>(motorId) << ", unexpected reply to command" << static_cast<int>(MyActuator::commands::TORQUE_COMMAND) << std::endl;
-        return targetCurrent;
+        int16_t data = message.data[2] + (message.data[3] << 8);
+        return static_cast<double>(data) * 33.0 / 2048.0;
     }
-    int16_t data = message.data[2] + (message.data[3] << 8);
-    return static_cast<double>(data) * 33.0 / 2048.0;
+    // If no reply could be obtained, return target current.
+    return targetCurrent;
 }
 
 double RMDX::getCurrentPosition(unsigned char const& motorId, double const& reductionRatio)
 {
     CANMessage message = createMessage(motorId, MyActuator::commands::READ_MULTITURN_ANGLE);
-    if (canReadWrite(message) > 0)
+    if (canReadWrite(message) >= 0)
     {
-        // Verify that the reply the correct type - otherwise print warning and return 0
-        if (message.data[0] != MyActuator::commands::READ_MULTITURN_ANGLE)
-        {
-            std::cout << "[RMDX] Error:" << static_cast<int>(motorId) << ", unexpected reply to command" << static_cast<int>(MyActuator::commands::READ_MULTITURN_ANGLE) << std::endl;
-            return 0.0;
-        }
-        double result = messageToInt32(message);
+        double const result = messageToInt32(message);
         return result / RAD_TO_DEG / 100.0 / reductionRatio;
     }
     return 0;
@@ -160,13 +145,14 @@ bool RMDX::setCommunicationTimeout(unsigned char const& motorId, int32_t const& 
 
 int RMDX::canReadWrite(CANMessage& message, bool const& waitForReply)
 {
+    lastError_ = ErrorCode::OK;
     mutex_.lock();
-    CANMessage dump;
     canDriver_->sendMessage(message);
     mutex_.unlock();
 
     // Clear pending message - the motor takes a lot of time to reply anyway.
     usleep(100);
+    CANMessage dump;
     while (canDriver_->isDataAvailable())
         canDriver_->readAvailableMessage(dump);
 
@@ -186,11 +172,23 @@ int RMDX::canReadWrite(CANMessage& message, bool const& waitForReply)
 
         if (canDriver_->isDataAvailable())
         {
+            unsigned char const originalCode = message.data[0];
+            int const originalId = static_cast<int>(message.id - 0x140);
             canDriver_->readAvailableMessage(message);
+            if (message.data[0] != originalCode)
+            {
+                std::cout << "[RMDX] Error: motor " << originalId << ", unexpected reply to command" << static_cast<int>(originalCode) << ": " << static_cast<int>(message.data[0]) << std::endl;
+                lastError_ = ErrorCode::BAD_REPLY;
+                return -1;
+            }
             return 1;
         }
         else
+        {
+            lastError_ = ErrorCode::TIMEOUT;
+            std::cout << "[RMDX] Error: motor " << static_cast<int>(message.id - 0x140) << ": timeout on message listening" << std::endl;
             return -2;
+        }
     }
     return 0;
 }
