@@ -117,7 +117,6 @@ bool Strategy::setup(RobotInterface *robot)
             }
             attempts++;
         }
-        return true;
         set_reservoir_tilt(ReservoirTilt::UP);
         calibrateRail();
     }
@@ -240,12 +239,9 @@ void Strategy::match_impl()
     // Reset initial position
     motionController->resetPosition(START_POSITION, true, true, true);
 
-    // go_forward(1000.0);
-    testSquare(10, false);
-
     // set_reservoir_tilt(ReservoirTilt::HORIZONTAL);
     // moveRail(rail::TOP);
-    while(true) ;;
+    // while(true) ;;
     // Start bottom, grab bottom and left cherries.
 
     // Get the  bottom cheeries
@@ -279,7 +275,7 @@ void Strategy::match_impl()
     // cible
     RobotPosition position = motionController->getCurrentPosition();
     position.x = robotParameters.CHASSIS_WIDTH + 90.0;
-    position.y = 3000 - robotParameters.CHASSIS_FRONT - 60;
+    position.y = 3000 - robotParameters.CHASSIS_FRONT - 160;
     position.theta = M_PI_2;
 
     // Ajouter un obstacle fictif au niveau des gateaux
@@ -296,10 +292,11 @@ void Strategy::match_impl()
     // retirer l'obstacle
     robot->getMotionController()->popBackPersistentObstacles();
 
+    go_forward(100);
     put_cherries_in_the_basket();
 
     // Roam around the terrain
-    
+
     // action 1 : pousser les piles
     {
         RobotPosition start_position;
