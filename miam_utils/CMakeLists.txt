@@ -25,7 +25,7 @@ else()
 endif()
 
 # Set compiler flags.
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fdiagnostics-color -lpthread -lm")
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -fdiagnostics-color -lpthread -lm")
 
 # Set build-type specific flags
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")

@@ -197,7 +197,6 @@ void Robot::lowLevelLoop()
 
     std::thread strategyThread;
     pthread_t strategyHandle = 0;
-    int nIter = 0;
     DrivetrainMeasurements measurements;
 
     // Loop until start of the match, then for 100 seconds after the start of the match.
@@ -209,19 +208,6 @@ void Robot::lowLevelLoop()
         currentTime_ = metronome.getElapsedTime();
         double dt = currentTime_ - lastTime;
 
-        // Heartbeat.
-        nIter ++;
-        if (nIter % 50 == 0)
-        {
-            if (isMotorsInit_)
-            {
-                guiState_.batteryVoltage = motors_.getStatus(motionController_.robotParams_.rightMotorId).batteryVoltage;
-                if (guiState_.batteryVoltage < UNDERVOLTAGE_LEVEL + 0.5)
-                {
-                    std::cout << "Warning: low battery: " << guiState_.batteryVoltage << "V. Critical level: " << UNDERVOLTAGE_LEVEL << "V" << std::endl;
-                }
-            }
-        }
 
         // Once init has passed, call strategy update function
         if (guiState_.state != robotstate::INIT && guiState_.state != robotstate::UNDERVOLTAGE)
@@ -294,22 +280,24 @@ void Robot::lowLevelLoop()
         }
         else
         {
-            int sign = motionController_.robotParams_.rightMotorDirection;
-            if (std::abs(target.motorSpeed[0]) < 0.001)
+            if (std::abs(target.motorSpeed[0]) < 0.001 && std::abs(target.motorSpeed[1]))
             {
                 rightController_.stop();
                 measurements.motorSpeed(0) = 0.0;
-            }
-            else
-                measurements.motorSpeed(0) = sign * rightController_.sendTarget(sign * target.motorSpeed[0], dt);
-            sign = motionController_.robotParams_.leftMotorDirection;
-            if (std::abs(target.motorSpeed[1]) < 0.001)
-            {
                 leftController_.stop();
                 measurements.motorSpeed(1) = 0.0;
             }
             else
+            {
+                int sign = motionController_.robotParams_.rightMotorDirection;
+                measurements.motorSpeed(0) = sign * rightController_.sendTarget(sign * target.motorSpeed[0], dt);
+                sign = motionController_.robotParams_.leftMotorDirection;
                 measurements.motorSpeed(1) = sign * leftController_.sendTarget(sign * target.motorSpeed[1], dt);
+            }
+            motionController_.log("rightMotorCurrent", rightController_.current_);
+            motionController_.log("rightMotorTargetCurrent", rightController_.targetCurrent_);
+            motionController_.log("leftMotorCurrent", leftController_.current_);
+            motionController_.log("leftMotorTargetCurrent", leftController_.targetCurrent_);
         }
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;

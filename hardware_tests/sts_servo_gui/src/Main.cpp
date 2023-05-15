@@ -24,6 +24,7 @@ int main (int argc, char *argv[])
     }
     // Start all servos in position mode.
     driver.setMode(0xFE, STS::Mode::POSITION);
+    driver.setTorqueLimit(0x01, 0.1);
     usleep(10000);
 
     // Create GUI

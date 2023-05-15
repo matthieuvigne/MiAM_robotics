@@ -152,6 +152,10 @@
             /// \param[in] Ki Integral gain
             void setPIDGains(unsigned char const& servoId, unsigned char const& Kp, unsigned char const& Kd, unsigned char const& Ki);
 
+            /// \brief Set torque limit
+            /// \param[in] servoId ID of the servo
+            /// \param[in] torqueLimit Torque limit, ratio of maximum torque (0-1)
+            void setTorqueLimit(unsigned char const& servoId, double const& torqueLimit);
 
             /// \brief Set target servo position.
             /// \note This function assumes that the amplification factor ANGULAR_RESOLUTION is set to 1.

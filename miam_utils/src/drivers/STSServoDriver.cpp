@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <iostream>
+#include <algorithm>
 
 namespace instruction
 {
@@ -215,12 +216,23 @@ bool STSServoDriver::isMoving(unsigned char const& servoId)
     return result > 0;
 }
 
+
 void STSServoDriver::setPIDGains(unsigned char const& servoId, unsigned char const& Kp, unsigned char const& Kd, unsigned char const& Ki)
 {
     writeRegister(servoId, STS::registers::WRITE_LOCK, 0);
     writeRegister(servoId, STS::registers::POS_PROPORTIONAL_GAIN, Kp);
     writeRegister(servoId, STS::registers::POS_DERIVATIVE_GAIN, Kd);
     writeRegister(servoId, STS::registers::POS_INTEGRAL_GAIN, Ki);
+    writeRegister(servoId, STS::registers::WRITE_LOCK, 1);
+}
+
+
+void STSServoDriver::setTorqueLimit(unsigned char const& servoId, double const& torqueLimit)
+{
+    writeRegister(servoId, STS::registers::WRITE_LOCK, 0);
+    std::cout << static_cast<int>(1000 * std::clamp(torqueLimit, 0.0, 1.0)) << std::endl;
+    writeRegister(servoId, STS::registers::TORQUE_LIMIT, static_cast<int>(1000 * std::clamp(torqueLimit, 0.0, 1.0)));
+    writeRegister(servoId, STS::registers::MAXIMUM_TORQUE, static_cast<int>(1000 * std::clamp(torqueLimit, 0.0, 1.0)));
     writeRegister(servoId, STS::registers::WRITE_LOCK, 1);
 }
 

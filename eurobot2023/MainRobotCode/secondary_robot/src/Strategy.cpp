@@ -41,6 +41,16 @@ namespace secondary_robot {
 
 RobotPosition const START_POSITION(715, 165, 0);
 
+
+
+double getTime()
+{
+    struct timespec currentTime;
+    clock_gettime(CLOCK_MONOTONIC, &currentTime);
+    return currentTime.tv_sec + static_cast<double>(currentTime.tv_nsec  / 1.0e9);
+}
+
+
 Strategy::Strategy()
 {
 
@@ -51,12 +61,14 @@ enum setupPhase
 {
     FIRST_CALL,
     CALIBRATING_RAIL,
-    MOVING_RAIL
+    MOVING_RAIL,
+    WAITING,
 };
 
 bool Strategy::setup(RobotInterface *robot)
 {
     static setupPhase phase = setupPhase::FIRST_CALL;
+    static double waitStart = 0;
 #ifdef SIMULATION
     // Always perform setup in simulation
     phase = setupPhase::FIRST_CALL;
@@ -105,6 +117,7 @@ bool Strategy::setup(RobotInterface *robot)
             }
             attempts++;
         }
+        return true;
         set_reservoir_tilt(ReservoirTilt::UP);
         calibrateRail();
     }
@@ -112,8 +125,16 @@ bool Strategy::setup(RobotInterface *robot)
     {
         if (railState_ == rail::IDLE)
         {
-            moveRail(rail::NOMINAL);
+            waitStart = getTime();
+            phase = setupPhase::WAITING;
+        }
+    }
+    else if (phase == setupPhase::WAITING)
+    {
+        if (getTime() - waitStart > 1.0)
+        {
             phase = setupPhase::MOVING_RAIL;
+            moveRail(rail::NOMINAL);
         }
     }
     else if (phase == setupPhase::MOVING_RAIL)
@@ -219,10 +240,11 @@ void Strategy::match_impl()
     // Reset initial position
     motionController->resetPosition(START_POSITION, true, true, true);
 
-    // robot->wait(0.5);
+    testSquare();
+
     // set_reservoir_tilt(ReservoirTilt::HORIZONTAL);
     // moveRail(rail::TOP);
-    // while(true) ;;
+    while(true) ;;
     // Start bottom, grab bottom and left cherries.
 
     // Get the  bottom cheeries
