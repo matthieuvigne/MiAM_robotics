@@ -254,11 +254,9 @@ void Strategy::match_impl()
     //~ servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.5));
     //~ servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.5));
 
-
     miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
     //~ conf.maxWheelVelocity *= 0.8;
     //~ conf.maxWheelAcceleration *= 0.8;
-    
     // Grab first genoise
     clearActionSequence();
     targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
@@ -301,134 +299,6 @@ void Strategy::match_impl()
     robot->wait(0.25);
     targetPosition = targetPosition + RobotPosition(cake_radius,0,0);
     go_to_straight_line(targetPosition);
-    
-    //~ positions.clear();
-    //~ positions.push_back(targetPosition);
-    //~ targetPosition.x = 1200;
-    //~ targetPosition.y = 675;
-    //~ positions.push_back(targetPosition);
-    //~ targetPosition.x = cream_ganache_bottom_right.x - robotParameters.CHASSIS_FRONT - 120;
-    //~ positions.push_back(targetPosition);
-    //~ go_to_rounded_corner(positions);
-
-        //~ // Reach the bottom left genoese (in a favorable position for the next action).
-        //~ RobotPosition tmp_position = cream_ganache_bottom_right + RobotPosition(-250,0,0);
-        //~ distance = (genoese_bottom_right - tmp_position).norm();
-        //~ target_position = tmp_position + (distance+250)*(genoese_bottom_right - tmp_position)/distance;
-        //~ go_to_straight_line(target_position);
-        
-        //~ // Move forward - slowly
-        //~ RobotPosition targetPosition = motionController->getCurrentPosition();
-        //~ miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
-        //~ conf.maxWheelVelocity *= 0.4;
-        //~ conf.maxWheelAcceleration *= 0.4;
-        //~ TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLine(conf, targetPosition, 60);
-        //~ motionController->setTrajectoryToFollow(traj);
-        //~ motionController->waitForTrajectoryFinished();
-
-    //~ // Grab the three cakes.
-    //~ servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(1.0));
-    //~ servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-1.0));
-    //~ robot->wait(0.5);
-    //~ go_forward(120);
-    //~ servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.3));
-    //~ servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.3));
-
-    // Bring the cakes to the bottom square
-
-    // Build cakes.
-
-    // Get the top right genoese and get it
-    //~ double distance = (genoese_top_left-current_position).norm();
-    //~ double coeff = (distance-cake_radius-robot_chassis_front)/distance;
-    //~ RobotPosition target_position = current_position + coeff*(genoese_top_right-current_position);
-    //~ go_to_straight_line(target_position);
-    // set left arm to push genoese
-    // set_left_arm_position(left_arm_left_down);
-
-    // Bring the first genoese to the top left cream and ganache
-    //~ target_position = cream_ganache_top_left + RobotPosition(150,0,0);
-    //~ go_to_straight_line(target_position);
-    // reset arm positions
-    // set_left_arm_position(left_arm_center_up);
-    // set_left_arm_position(left_arm_center_up);
-    //~ target_position = cream_ganache_top_left + RobotPosition(robot_chassis_front,0,0);
-    //~ go_to_straight_line(target_position);
-
-    //~ // Build the cakes
-    //~ double constexpr RAD = M_PI/180.;
-    //~ target_position = target_position + 100*RobotPosition(-std::cos(45*RAD),std::sin(45*RAD),0);
-    //~ go_to_straight_line(target_position);
-
-    // build cakes
-    //~ std::cout << "Cakes are coming" << std::endl;
-    //~ buildCakes();
-    // set arms to push genoses
-    // set_left_arm_position(left_arm_left_down);
-    // set_right_arm_position(right_arm_right_down);
-
-    //~ // and then push them into the blue tray zone
-    //~ target_position = RobotPosition(target_position.x,2550-robot_chassis_front,0);
-    //~ go_to_straight_line(target_position);
-
-    // reset arm positions
-    // set_left_arm_position(left_arm_center_up);
-    // set_right_arm_position(right_arm_center_up);
-
-    //~ // Go back
-    //~ target_position = RobotPosition(target_position.x,target_position.y-300,M_PI);
-    //~ go_to_straight_line(target_position, true); // backward to not destroy cakes
-
-    //~ if(false)
-    //~ {
-        //~ // Option 2 -> bottom right genoese
-        //~ // --------------------------------
-
-        //~ // Reach the bottom left genoese (in a favorable position for the next action).
-        //~ RobotPosition tmp_position = cream_ganache_bottom_right + RobotPosition(-250,0,0);
-        //~ distance = (genoese_bottom_right - tmp_position).norm();
-        //~ target_position = tmp_position + (distance+250)*(genoese_bottom_right - tmp_position)/distance;
-        //~ go_to_straight_line(target_position);
-
-        //~ // Push the bottom left genoese up to the bottom left cream and ganache
-        //~ // set arms to push genoses
-        //~ // set_left_arm_position(left_arm_left_down);
-        //~ target_position = tmp_position;
-        //~ go_to_straight_line(target_position);
-
-        //~ // left arm up and right arm down to push genose
-        //~ // set_left_arm_position(left_arm_center_up);
-        //~ // set_right_arm_position(right_arm_right_down);
-
-        //~ target_position = cream_ganache_bottom_right + RobotPosition(-robot_chassis_front,0,0);
-        //~ go_to_straight_line(target_position);
-
-        //~ // left arm up and right arm down to push genose
-        //~ // set_left_arm_position(left_arm_left_down);
-        //~ // set_right_arm_position(right_arm_center_up);
-
-        //~ // Build the cakes and push them into the closest blue plate zone
-        //~ target_position = target_position + 100*RobotPosition(std::cos(45*RAD),-std::sin(45*RAD),0);
-        //~ go_to_straight_line(target_position);
-
-        //~ // build cakes
-        //~ // build_cakes();
-        //~ // set arms to push genoses
-        //~ // set_left_arm_position(left_arm_left_down);
-        //~ // set_right_arm_position(right_arm_right_down);
-
-        //~ target_position = RobotPosition(target_position.x,450+robot_chassis_front,0);
-        //~ go_to_straight_line(target_position);
-
-        //~ // Go to the final zone
-        //~ target_position = target_position + RobotPosition(0,150,M_PI);
-        //~ go_to_straight_line(target_position, true); // backward to not destroy cakes
-        //~ target_position = RobotPosition(725,450,0);
-        //~ go_to_straight_line(target_position);
-        //~ target_position = RobotPosition(725,robot_chassis_front,0);
-        //~ go_to_straight_line(target_position);
-
-    //~ }
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }

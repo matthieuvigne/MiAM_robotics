@@ -89,6 +89,8 @@
       double constexpr table_min_y = 50;
     } // namespace table dimensions
 
+    typedef std::tuple<RobotPosition, double> Obstacle;
+
     class MotionController
     {
         public:
@@ -165,6 +167,16 @@
 
             void setAvoidanceMode(AvoidanceMode avoidanceMode);
 
+
+            // void setDetectedObstacles(std::vector<RobotPosition> detectedObstacles);
+            std::vector<Obstacle> getDetectedObstacles();
+            std::vector<Obstacle> getPersistentObstacles();
+            void addPersistentObstacle(Obstacle obstacle);
+            void clearPersistentObstacles();
+            void popBackPersistentObstacles();
+
+            TrajectoryVector computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
+
         private:
             ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
             double currentTime_{0.0};
@@ -207,8 +219,13 @@
 
             // Avoidance functions
 
-            TrajectoryVector computeAvoidanceTrajectory(std::deque<DetectedRobot> const &detectedRobots, bool forward);
 
+            // List of obstacles
+            std::vector<Obstacle> detectedObstacles_;
+            std::mutex detectedObstaclesMutex_;
+
+            std::mutex persistentObstaclesMutex_;
+            std::vector<Obstacle> persistentObstacles_;
 
             // Handle robot stops
             int numStopIters_ = 0.;

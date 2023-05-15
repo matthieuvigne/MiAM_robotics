@@ -69,7 +69,7 @@ void RMDX::stop(unsigned char const& motorId)
 {
     // Hack: send 0 position increment to freeze the motor.
     CANMessage message = createMessage(motorId, MyActuator::commands::REL_POS_COMMAND);
-    canReadWrite(message, false);
+    canReadWrite(message);
 }
 
 void RMDX::disable(unsigned char const& motorId)
