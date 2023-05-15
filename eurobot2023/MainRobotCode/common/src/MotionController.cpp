@@ -113,6 +113,34 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
     DrivetrainTarget target;
 
+    // Update list of obstacles
+    detectedObstaclesMutex_.lock();
+    detectedObstacles_.clear();
+
+    // add obstacles from measurements
+    for (auto robot : measurements.lidarDetection)
+    {
+        // Get the Lidar Point, symeterize it if needed and check its projection
+        LidarPoint const point = this->isPlayingRightSide_
+                                    ? LidarPoint(robot.point.r, -robot.point.theta)
+                                    : LidarPoint(robot.point.r, robot.point.theta);
+
+        if (!this->isLidarPointWithinTable(point))
+            continue;
+
+        RobotPosition obspos = lidarPointToRobotPosition(point);
+        detectedObstacles_.push_back(std::make_tuple(obspos, detection::mpc_obstacle_size));
+    }
+
+    // add obstacles
+    
+    for (auto obstacle : getPersistentObstacles())
+    {
+        detectedObstacles_.push_back(obstacle);
+    }
+
+    detectedObstaclesMutex_.unlock();
+
     double slowDownCoeff = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
     log("detectionCoeff",slowDownCoeff);
 
@@ -332,7 +360,9 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
         coeff = 0.0;
         is_robot_stopped = true;
 
-        TrajectoryVector traj = computeAvoidanceTrajectory(detectedRobots, forward);
+        RobotPosition targetPosition = currentTrajectories_.back()->getEndPoint().position;
+
+        TrajectoryVector traj = computeMPCTrajectory(targetPosition, getDetectedObstacles(), forward);
         if (traj.getDuration() > 0 & !traj.front()->needReplanning_) {
             std::cout << "Setting avoidance trajectory" << std::endl;
             currentTrajectories_.clear();
@@ -475,7 +505,9 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
                     // Proceed avoidance
 
                     // try to compute a basic avoidance path and follow if succeeded
-                    TrajectoryVector traj = computeAvoidanceTrajectory(detectedRobots, forward);
+                    RobotPosition targetPosition = currentTrajectories_.back()->getEndPoint().position;
+
+                    TrajectoryVector traj = computeMPCTrajectory(targetPosition, getDetectedObstacles(), forward);
                     if (traj.getDuration() > 0) {
                         std::cout << "Setting avoidance trajectory" << std::endl;
                         currentTrajectories_.clear();
@@ -566,11 +598,10 @@ void MotionController::setAvoidanceMode(AvoidanceMode avoidanceMode)
     avoidanceMode_ = avoidanceMode;
 }
 
-TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<DetectedRobot> const &detectedRobots, bool forward)
+TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward)
 {
     TrajectoryVector traj;
     RobotPosition currentPosition = getCurrentPosition();
-    RobotPosition targetPosition = currentTrajectories_.back()->getEndPoint().position;
 
     std::cout << ">> MotionControllerAvoidance : current position : " << currentPosition << std::endl;
     std::cout << ">> MotionControllerAvoidance : target position : " << targetPosition << std::endl;
@@ -649,25 +680,14 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
 
         std::cout << ">> MotionControllerAvoidance : planning MPC" << std::endl;
 
-        // reset obstacle map
-        motionPlanner_->pathPlanner_->resetCollisions();
-
         double minDistanceToObstacle = 10000;
 
         // update obstacle map
-        for (const DetectedRobot &robot : detectedRobots)
+        motionPlanner_->pathPlanner_->resetCollisions();
+        for (auto obstacle : detectedObstacles)
         {
-            // Get the Lidar Point, symeterize it if needed and check its projection
-            LidarPoint const point = this->isPlayingRightSide_
-                                        ? LidarPoint(robot.point.r, -robot.point.theta)
-                                        : LidarPoint(robot.point.r, robot.point.theta);
-
-            if (!this->isLidarPointWithinTable(point))
-                continue;
-
-            RobotPosition obspos = lidarPointToRobotPosition(point);
-            motionPlanner_->pathPlanner_->addCollision(obspos, detection::mpc_obstacle_size);
-            minDistanceToObstacle = std::min(minDistanceToObstacle, (obspos - currentPosition).norm());
+            motionPlanner_->pathPlanner_->addCollision(std::get<0>(obstacle), std::get<1>(obstacle));
+            minDistanceToObstacle = std::min(minDistanceToObstacle, (std::get<0>(obstacle) - currentPosition).norm());
         }
 
         std::cout << ">> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
@@ -762,4 +782,52 @@ TrajectoryVector MotionController::computeAvoidanceTrajectory(std::deque<Detecte
     }
 
     return traj;
+}
+
+// void MotionController::setDetectedObstacles(std::vector<RobotPosition> detectedObstacles)
+// {
+//     detectedObstaclesMutex_.lock();
+//     detectedObstacles_.clear();
+//     copy(detectedObstacles.begin(), detectedObstacles.end(), back_inserter(detectedObstacles_));
+//     detectedObstaclesMutex_.unlock();
+// }
+
+std::vector<Obstacle> MotionController::getDetectedObstacles()
+{
+    detectedObstaclesMutex_.lock();
+    std::vector<Obstacle> detectedObstacles;
+    copy(detectedObstacles_.begin(), detectedObstacles_.end(), back_inserter(detectedObstacles));
+    copy(persistentObstacles_.begin(), persistentObstacles_.end(), back_inserter(detectedObstacles));
+    detectedObstaclesMutex_.unlock();
+    return detectedObstacles;
+}
+
+std::vector<Obstacle> MotionController::getPersistentObstacles()
+{
+    persistentObstaclesMutex_.lock();
+    std::vector<Obstacle> persistentObstacles;
+    copy(persistentObstacles_.begin(), persistentObstacles_.end(), back_inserter(persistentObstacles));
+    persistentObstaclesMutex_.unlock();
+    return persistentObstacles;
+}
+
+void MotionController::addPersistentObstacle(Obstacle obstacle)
+{
+    persistentObstaclesMutex_.lock();
+    persistentObstacles_.push_back(obstacle);
+    persistentObstaclesMutex_.unlock();
+}
+
+void MotionController::clearPersistentObstacles()
+{
+    persistentObstaclesMutex_.lock();
+    persistentObstacles_.clear();
+    persistentObstaclesMutex_.unlock();
+}
+
+void MotionController::popBackPersistentObstacles()
+{
+    persistentObstaclesMutex_.lock();
+    persistentObstacles_.pop_back();
+    persistentObstaclesMutex_.unlock();
 }

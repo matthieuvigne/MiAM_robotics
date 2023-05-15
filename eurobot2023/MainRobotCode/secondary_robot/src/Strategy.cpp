@@ -264,17 +264,189 @@ void Strategy::match_impl()
     grab_cherries();
 
     // Put the cherries in the basket
-    targetPositions.clear();
+    // targetPositions.clear();
+    // RobotPosition position = motionController->getCurrentPosition();
+    // targetPositions.push_back(position);
+    // position.x = robotParameters.CHASSIS_WIDTH + 90.0;
+    // position.y = 2500;
+    // targetPositions.push_back(position);
+    // position.y = 3000 - robotParameters.CHASSIS_FRONT - 60;
+    // targetPositions.push_back(position);
+    // go_to_rounded_corner(targetPositions);
+
+
+    // cible
     RobotPosition position = motionController->getCurrentPosition();
-    targetPositions.push_back(position);
     position.x = robotParameters.CHASSIS_WIDTH + 90.0;
-    position.y = 2500;
-    targetPositions.push_back(position);
     position.y = 3000 - robotParameters.CHASSIS_FRONT - 60;
-    targetPositions.push_back(position);
-    go_to_rounded_corner(targetPositions);
+    position.theta = M_PI_2;
+
+    // Ajouter un obstacle fictif au niveau des gateaux
+    // x 230, y 2300, radius 200
+    RobotPosition obstacle;
+    obstacle.x = 230;
+    obstacle.y = 2300;
+    robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
+
+    traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
+    robot->getMotionController()->setTrajectoryToFollow(traj);
+    robot->getMotionController()->waitForTrajectoryFinished();
+
+    // retirer l'obstacle
+    robot->getMotionController()->popBackPersistentObstacles();
 
     put_cherries_in_the_basket();
+
+    // Roam around the terrain
+    
+    // action 1 : pousser les piles
+    {
+        RobotPosition start_position;
+        start_position.x = 230;
+        start_position.y = 2600;
+        start_position.theta = -M_PI_2;
+
+        traj = robot->getMotionController()->computeMPCTrajectory(start_position, robot->getMotionController()->getDetectedObstacles(), true);
+        robot->getMotionController()->setTrajectoryToFollow(traj);
+
+        // rail doit etre en position basse en position tractopelle
+        // todo
+
+        robot->getMotionController()->waitForTrajectoryFinished();
+
+        RobotPosition end_position;
+        end_position.x = 230;
+        end_position.y = 1270;
+        end_position.theta = -M_PI_2;
+
+        go_to_straight_line(end_position);
+
+        // Ajouter un obstacle fictif au niveau des gateaux
+        // x 230, y 2300, radius 200
+        RobotPosition obstacle;
+        obstacle.x = 230;
+        obstacle.y = 1200;
+        robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
+
+    }
+
+    // action 2 : pousser les piles
+    {
+        RobotPosition start_position;
+        start_position.x = 230;
+        start_position.y = 209;
+        start_position.theta = M_PI_2;
+
+        {
+            // Ajouter un obstacle fictif au niveau des gateaux
+            // x 230, y 2300, radius 200
+            RobotPosition obstacle;
+            obstacle.x = 230;
+            obstacle.y = 670;
+            robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
+        }
+
+        traj = robot->getMotionController()->computeMPCTrajectory(start_position, robot->getMotionController()->getDetectedObstacles(), true);
+        robot->getMotionController()->setTrajectoryToFollow(traj);
+
+        // rail doit etre en position basse en position tractopelle
+        // todo
+
+        robot->getMotionController()->waitForTrajectoryFinished();
+
+        // retirer l'obstacle
+        robot->getMotionController()->popBackPersistentObstacles();
+
+        RobotPosition end_position;
+        end_position.x = 230;
+        end_position.y = 1000;
+        end_position.theta = -M_PI_2;
+
+        go_to_straight_line(end_position);
+
+        // Ajouter un obstacle fictif au niveau des gateaux
+        // x 230, y 2300, radius 200
+        RobotPosition obstacle;
+        obstacle.x = 230;
+        obstacle.y = 1200;
+        robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
+
+    }
+
+    // action 3 : pousser les piles
+    {
+        RobotPosition start_position;
+        start_position.x = 446;
+        start_position.y = 1890;
+        start_position.theta = 0;
+
+        {
+            // Ajouter un obstacle fictif au niveau des gateaux
+            // x 230, y 2300, radius 200
+            RobotPosition obstacle;
+            obstacle.x = 738;
+            obstacle.y = 1890;
+            robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 200));
+        }
+
+        traj = robot->getMotionController()->computeMPCTrajectory(start_position, robot->getMotionController()->getDetectedObstacles(), true);
+        robot->getMotionController()->setTrajectoryToFollow(traj);
+
+        // rail doit etre en position basse en position tractopelle
+        // todo
+
+        robot->getMotionController()->waitForTrajectoryFinished();
+
+        // retirer l'obstacle
+        robot->getMotionController()->popBackPersistentObstacles();
+
+        RobotPosition end_position;
+        end_position.x = 1592;
+        end_position.y = 1890;
+        end_position.theta = 0;
+
+        go_to_straight_line(end_position);
+
+        // Ajouter un obstacle fictif au niveau des gateaux
+        // x 230, y 2300, radius 200
+        RobotPosition obstacle;
+        obstacle.x = 1770;
+        obstacle.y = 1890;
+        robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
+
+    }
+
+    // action 4 : pousser les piles
+    {
+        RobotPosition start_position;
+        start_position.x = 1780;
+        start_position.y = 1400;
+        start_position.theta = -M_PI_2;
+
+        traj = robot->getMotionController()->computeMPCTrajectory(start_position, robot->getMotionController()->getDetectedObstacles(), true);
+        robot->getMotionController()->setTrajectoryToFollow(traj);
+
+        // rail doit etre en position basse en position tractopelle
+        // todo
+
+        robot->getMotionController()->waitForTrajectoryFinished();
+
+        RobotPosition end_position;
+        end_position.x = 1780;
+        end_position.y = 410;
+        end_position.theta = 0;
+
+        go_to_straight_line(end_position);
+
+        // Ajouter un obstacle fictif au niveau des gateaux
+        // x 230, y 2300, radius 200
+        RobotPosition obstacle;
+        obstacle.x = 1770;
+        obstacle.y = 200;
+        robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
+
+    }
+
 
     // Match end: go back to base
     goBackToBase();
@@ -314,10 +486,17 @@ void Strategy::goBackToBase()
     std::vector<RobotPosition> positions;
 
     RobotPosition position = motionController->getCurrentPosition();
-    positions.push_back(position);
+    // positions.push_back(position);
     position.x = 600;
     position.y = 400;
-    positions.push_back(position);
-    go_to_rounded_corner(positions);
+    // positions.push_back(position);
+    // go_to_rounded_corner(positions);
+    traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
+    robot->getMotionController()->setTrajectoryToFollow(traj);
+
+    // rail doit etre en position basse en position tractopelle
+    // todo
+
+    robot->getMotionController()->waitForTrajectoryFinished();
 }
 }
