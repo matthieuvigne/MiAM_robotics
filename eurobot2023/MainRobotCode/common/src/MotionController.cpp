@@ -695,6 +695,27 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
 
         std::cout << ">> MotionControllerAvoidance : planning MPC" << std::endl;
 
+        if ((currentPosition - targetPosition).norm() < 100) 
+        {
+            std::cout << "Target too close, doing a straight line to point" << std::endl;
+
+            traj = computeTrajectoryStraightLineToPoint(
+                robotParams_.getTrajConf(),
+                currentPosition, // start
+                targetPosition,
+                !forward
+            );
+
+            // add a point turn to keep the end angle info
+            std::shared_ptr<PointTurn > pt_sub_end(
+                new PointTurn(robotParams_.getTrajConf(),
+                traj.getEndPoint().position, targetPosition.theta)
+            );
+            traj.push_back(pt_sub_end);
+
+            return traj;
+        } 
+
         double minDistanceToObstacle = 10000;
 
         // update obstacle map

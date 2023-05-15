@@ -33,11 +33,11 @@ class PushCakes1to5 : public PushingCakesAction
         PushCakes1to5()
         {
             start_position.x = 230;
-            start_position.y = 2600;
+            start_position.y = 2650;
             start_position.theta = -M_PI_2;
 
             end_position.x = 230;
-            end_position.y = 1270;
+            end_position.y = 1350;
             end_position.theta = -M_PI_2;
 
             {
@@ -51,7 +51,7 @@ class PushCakes1to5 : public PushingCakesAction
                 RobotPosition obstacle;
                 obstacle.x = 230;
                 obstacle.y = 1200;
-                obstacles_in_the_end.push_back(std::make_tuple(obstacle, 300));
+                obstacles_in_the_end.push_back(std::make_tuple(obstacle, 200));
             }
         }
 };
@@ -62,11 +62,11 @@ class PushCakes7to5 : public PushingCakesAction
         PushCakes7to5()
         {
             start_position.x = 230;
-            start_position.y = 209;
+            start_position.y = 300;
             start_position.theta = M_PI_2;
 
             end_position.x = 230;
-            end_position.y = 1000;
+            end_position.y = 900;
             end_position.theta = M_PI_2;
 
             {
@@ -80,7 +80,7 @@ class PushCakes7to5 : public PushingCakesAction
                 RobotPosition obstacle;
                 obstacle.x = 230;
                 obstacle.y = 1200;
-                obstacles_in_the_end.push_back(std::make_tuple(obstacle, 300));
+                obstacles_in_the_end.push_back(std::make_tuple(obstacle, 200));
             }
         }
 };
@@ -109,7 +109,7 @@ class PushCakes3to4 : public PushingCakesAction
                 RobotPosition obstacle;
                 obstacle.x = 1770;
                 obstacle.y = 1890;
-                obstacles_in_the_end.push_back(std::make_tuple(obstacle, 300));
+                obstacles_in_the_end.push_back(std::make_tuple(obstacle, 200));
             }
         }
 };
@@ -119,11 +119,11 @@ class PushCakes6to10 : public PushingCakesAction
     public:
         PushCakes6to10()
         {
-            start_position.x = 1780;
-            start_position.y = 1400;
+            start_position.x = 1760;
+            start_position.y = 1300;
             start_position.theta = -M_PI_2;
 
-            end_position.x = 1780;
+            end_position.x = 1760;
             end_position.y = 410;
             end_position.theta = -M_PI_2;
 
@@ -138,7 +138,7 @@ class PushCakes6to10 : public PushingCakesAction
                 RobotPosition obstacle;
                 obstacle.x = 1770;
                 obstacle.y = 200;
-                obstacles_in_the_end.push_back(std::make_tuple(obstacle, 300));
+                obstacles_in_the_end.push_back(std::make_tuple(obstacle, 200));
             }
         }
 };

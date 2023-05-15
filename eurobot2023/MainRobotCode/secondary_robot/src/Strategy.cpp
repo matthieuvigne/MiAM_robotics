@@ -299,9 +299,17 @@ void Strategy::match_impl()
     go_forward(100);
     put_cherries_in_the_basket();
 
+    // go_forward(-50);
+    // traj.clear();
+    // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(robot->getParameters().getTrajConf(), robot->getMotionController()->getCurrentPosition(), -M_PI_2)));
+    // robot->getMotionController()->setTrajectoryToFollow(traj);
+    // robot->getMotionController()->waitForTrajectoryFinished();
+
     // Roam around the terrain
-    moveRail(rail::CHERRY_GRAB);
-    set_reservoir_tilt(ReservoirTilt::DOWN);
+    // moveRail(rail::CHERRY_GRAB);
+    // robot->wait(0.1);
+    // waitForRail();
+    // set_reservoir_tilt(ReservoirTilt::DOWN);
 
     std::vector<PushingCakesAction > actions;
     actions.push_back(PushCakes1to5());
@@ -338,13 +346,14 @@ void Strategy::match_impl()
                 //     (std::get<0>(obstacle) - action.end_position).norm() - std::get<1>(obstacle));
             }
             
-            if (minDistanceFromObstacle > 300 &  distanceToStartPoint < minDistanceToStartPoint)
+            // 150 = radius of the robot
+            if (minDistanceFromObstacle > 150 &  distanceToStartPoint < minDistanceToStartPoint)
             {
                 action_index = i;
                 minDistanceToStartPoint = distanceToStartPoint;
             }
 
-            std::cout << "action " << i << " minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceToStartPoint " << minDistanceToStartPoint << std::endl;
+            std::cout << "action " << i << " start point " << action.start_position << " minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceToStartPoint " << minDistanceToStartPoint << std::endl;
         }
 
         std::cout << "Chosen action: " << action_index << std::endl;
@@ -383,6 +392,8 @@ void Strategy::match_impl()
                 // perform action
                 if (go_to_straight_line(action.end_position))
                 {
+                    go_forward(-100);
+
                     // remove action from vector
                     actions.erase( actions.begin() + action_index);
                     // add obstacle in the end
@@ -585,14 +596,21 @@ void Strategy::goBackToBase()
     // positions.push_back(position);
     position.x = 600;
     position.y = 400;
-    // positions.push_back(position);
-    // go_to_rounded_corner(positions);
-    traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
-    robot->getMotionController()->setTrajectoryToFollow(traj);
+
+    if ((motionController->getCurrentPosition() - position).norm() > 100) 
+    {
+        // positions.push_back(position);
+        // go_to_rounded_corner(positions);
+        traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
+        robot->getMotionController()->setTrajectoryToFollow(traj);
+        robot->getMotionController()->waitForTrajectoryFinished();
+    }
+    else
+    {
+        go_to_straight_line(position);
+    }
 
     // rail doit etre en position basse en position tractopelle
     // todo
-
-    robot->getMotionController()->waitForTrajectoryFinished();
 }
 }
