@@ -23,11 +23,8 @@
         double batteryVoltage = 0;
         int score = 0;
         double currentMatchTime = 0;
+        miam::RobotPosition currentPosition;
+        std::vector<miam::RobotPosition> detectedObstacles;
     }; ///< Data forwarded by the robot to the GUI
-
-    struct DetectedObstacle {
-        miam::RobotPosition position;
-        double diameter;
-    };
 
  #endif

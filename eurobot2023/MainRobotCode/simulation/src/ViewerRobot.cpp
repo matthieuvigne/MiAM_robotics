@@ -135,6 +135,8 @@ void ViewerRobot::tick(double const& dt, double const& simulationTime, std::vect
 
     // Update gui
     RobotGUIData data;
+    data.detectedObstacles = motionController_.filteredDetectedObstacles_;
+    data.currentPosition = p.position;
     data.batteryVoltage = 24.0;
     data.currentMatchTime = simulationTime_;
     data.state = robotstate::MATCH;

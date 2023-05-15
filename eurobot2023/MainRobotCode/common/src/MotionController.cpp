@@ -123,8 +123,10 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     // Update list of obstacles
     detectedObstaclesMutex_.lock();
     detectedObstacles_.clear();
+    filteredDetectedObstacles_.clear();
 
     // add obstacles from measurements
+    int nObstaclesOnTable = 0;
     for (auto robot : measurements.lidarDetection)
     {
         // Get the Lidar Point, symeterize it if needed and check its projection
@@ -132,15 +134,21 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
                                     ? LidarPoint(robot.point.r, -robot.point.theta)
                                     : LidarPoint(robot.point.r, robot.point.theta);
 
-        if (!this->isLidarPointWithinTable(point))
-            continue;
-
         RobotPosition obspos = lidarPointToRobotPosition(point);
+
+        if (!this->isLidarPointWithinTable(point))
+        {
+            obspos.theta = M_PI;
+            filteredDetectedObstacles_.push_back(obspos);
+            continue;
+        }
+        filteredDetectedObstacles_.push_back(obspos);
         detectedObstacles_.push_back(std::make_tuple(obspos, detection::mpc_obstacle_size));
+        nObstaclesOnTable += 1;
     }
+    log("lidarNumberOfObstacles", nObstaclesOnTable);
 
     // add obstacles
-
     for (auto obstacle : getPersistentObstacles())
     {
         detectedObstacles_.push_back(obstacle);

@@ -300,6 +300,8 @@ void Robot::lowLevelLoop()
         }
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;
+        guiState_.currentPosition = motionController_.getCurrentPosition();
+        guiState_.detectedObstacles = motionController_.filteredDetectedObstacles_;
         gui_->update(guiState_);
     }
     // End of the match.

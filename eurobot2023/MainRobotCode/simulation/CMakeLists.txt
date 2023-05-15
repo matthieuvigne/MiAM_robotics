@@ -33,7 +33,7 @@ file(GLOB_RECURSE SOURCES ../common/src/*.cpp
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX )
 
 #compile flag
-set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -fdiagnostics-color -DSIMULATION -pthread")
+set(CMAKE_CXX_FLAGS "-Wall -std=c++17 -fdiagnostics-color -DSIMULATION -pthread")
 
 # Use the package PkgConfig to detect GTK+ headers/library files
 find_package(PkgConfig REQUIRED)
