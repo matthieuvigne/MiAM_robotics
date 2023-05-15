@@ -695,7 +695,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
 
         std::cout << ">> MotionControllerAvoidance : planning MPC" << std::endl;
 
-        if ((currentPosition - targetPosition).norm() < 100) 
+        if ((currentPosition - targetPosition).norm() < 150) 
         {
             std::cout << "Target too close, doing a straight line to point" << std::endl;
 
@@ -706,12 +706,16 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
                 !forward
             );
 
+            std::cout << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
+
             // add a point turn to keep the end angle info
             std::shared_ptr<PointTurn > pt_sub_end(
                 new PointTurn(robotParams_.getTrajConf(),
                 traj.getEndPoint().position, targetPosition.theta)
             );
             traj.push_back(pt_sub_end);
+
+            std::cout << "pt_sub_end ends at " << traj.getEndPoint().position << std::endl;
 
             return traj;
         } 
@@ -800,6 +804,9 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
         }
         else
         {
+            std::cout << "MPC traj planned from " << traj2.getCurrentPoint(0.0) << std::endl;
+            std::cout << " to " << traj2.getEndPoint() << std::endl;
+
             // traj is an avoidance traj
             for (auto& subtraj : traj2)
             {

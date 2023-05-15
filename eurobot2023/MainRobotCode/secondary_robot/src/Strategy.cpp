@@ -298,6 +298,7 @@ void Strategy::match_impl()
 
     go_forward(100);
     put_cherries_in_the_basket();
+    go_forward(-50);
 
     // go_forward(-50);
     // traj.clear();
@@ -315,7 +316,8 @@ void Strategy::match_impl()
     actions.push_back(PushCakes1to5());
     actions.push_back(PushCakes7to5());
     actions.push_back(PushCakes3to4());
-    actions.push_back(PushCakes6to10());
+    // actions.push_back(PushCakes6to10());
+    actions.push_back(PushCakes6to4());
 
     while (actions.size() > 0)
     {
