@@ -13,6 +13,8 @@
 using namespace miam;
 using namespace miam::trajectory;
 
+//--------------------------------------------------------------------------------------------------
+
 bool AbstractStrategy::go_to_straight_line(RobotPosition position, bool backward)
 {
     RobotPosition currentPosition = motionController->getCurrentPosition();
@@ -29,6 +31,20 @@ bool AbstractStrategy::go_to_straight_line(RobotPosition position, bool backward
     return motionController->waitForTrajectoryFinished();
 }
 
+//--------------------------------------------------------------------------------------------------
+
+bool AbstractStrategy::turn_around_point(double angle_rad)
+{
+  miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
+  RobotPosition currentPosition = motionController->getCurrentPosition();
+  TrajectoryVector traj;
+  traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(conf, currentPosition, angle_rad)));
+  motionController->setTrajectoryToFollow(traj);
+  return motionController->waitForTrajectoryFinished();
+}
+
+//--------------------------------------------------------------------------------------------------
+
 bool AbstractStrategy::go_to_rounded_corner(std::vector<RobotPosition> positions, bool backwards)
 {
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
@@ -44,6 +60,8 @@ bool AbstractStrategy::go_to_rounded_corner(std::vector<RobotPosition> positions
     return motionController->waitForTrajectoryFinished();
 }
 
+//--------------------------------------------------------------------------------------------------
+
 bool AbstractStrategy::go_forward(double distance)
 {
     RobotPosition currentPosition = motionController->getCurrentPosition();
@@ -58,6 +76,7 @@ bool AbstractStrategy::go_forward(double distance)
     return motionController->waitForTrajectoryFinished();
 }
 
+//--------------------------------------------------------------------------------------------------
 
 void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
 {
@@ -112,3 +131,5 @@ void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
 
     bool moveSuccess = motionController->waitForTrajectoryFinished();
 }
+
+//--------------------------------------------------------------------------------------------------

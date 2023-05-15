@@ -24,6 +24,7 @@ using namespace kinematics;
 #define RIGHT_ARM_FIRST_SERVO_ID 10
 #define LEFT_ARM_FIRST_SERVO_ID 20
 
+#define TEST_CAKE 1
 #define USE_CAMERA 1
 #define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
 #define TEST_MPC_PLANNER 0
@@ -74,12 +75,7 @@ bool Strategy::setup(RobotInterface *robot)
     START_POSITION.x = robot->getParameters().CHASSIS_BACK;
     motionController->resetPosition(START_POSITION, true, true, true);
 
-    // Arms
-    for (int i = 0; i < 4; i++)
-    {
-        servo->setTargetPosition(RIGHT_ARM + i, 2048);
-        servo->setTargetPosition(LEFT_ARM + i, 2048);
-    }
+
 
     // Change P gain of the first servos of each arm to prevent vibrations
     servo->setPIDGains(RIGHT_ARM, 25, 15, 0);
@@ -87,10 +83,29 @@ bool Strategy::setup(RobotInterface *robot)
     servo->setPIDGains(RIGHT_ARM + 1, 20, 15, 0);
     servo->setPIDGains(LEFT_ARM + 1, 20, 1, 0);
 
-
-    // Fold arm
+#if TEST_CAKE
+    // Fold arm (to comment)
+    servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(M_PI_2));
+    servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-M_PI_2));
+    for (int i = 1; i < 4; i++)
+    {
+        servo->setTargetPosition(RIGHT_ARM + i, 2048);
+        servo->setTargetPosition(LEFT_ARM + i, 2048);
+    }
     servo->setTargetPosition(RIGHT_ARM + 1, STS::radToServoValue(M_PI_2));
     servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
+    setTargetPosition(LEFT_ARM, ABS, 0.15, ABS, 80*arm::RAD, ABS, arm::PILE_CLEAR_HEIGHT);
+    setTargetPosition(RIGHT_ARM, ABS, 0.15, ABS, 80*arm::RAD, ABS, arm::PILE_CLEAR_HEIGHT);
+    runActionBlock();
+#else
+    for (int i = 0; i < 4; i++)
+    {
+        servo->setTargetPosition(RIGHT_ARM + i, 2048);
+        servo->setTargetPosition(LEFT_ARM + i, 2048);
+    }
+    servo->setTargetPosition(RIGHT_ARM + 1, STS::radToServoValue(M_PI_2));
+    servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
+#endif
 
     std::cout << "End of the setup" << std::endl;
     return true;
@@ -187,23 +202,6 @@ namespace arm_positions{
 
 void Strategy::match_impl()
 {
-    //~ // Create required variables.
-    //~ RobotPosition targetPosition;
-    //~ TrajectoryVector traj;
-    //~ RobotPosition endPosition;
-    //~ std::vector<RobotPosition> positions;
-    //~ std::cout<<"AAAA"<<std::endl;
-    //~ buildCakes();
-    //~ while(true);;
-    //~ // END OF SHIT
-
-    //~ testSquare(false);
-    //~ std::cout << "before" << std::endl;
-    //~ go_forward(1000);
-    //~ std::cout << "after" << std::endl;
-    //~ while(true);;
-    
-  
     // Initialize arm positions
     ArmPosition sidePile(
       arm_positions::CAKES_SIDE_DISTANCE,
@@ -253,17 +251,11 @@ void Strategy::match_impl()
     //~ servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.5));
     //~ servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.5));
 
-    //~ miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
-    //~ conf.maxWheelVelocity *= 0.8;
-    //~ conf.maxWheelAcceleration *= 0.8;
-    // Grab first genoise
+    // Grab first genoise with the arms aside
+    #if 0
     clearActionSequence();
     targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
     go_to_straight_line(targetPosition);
-      //~ traj = miam::trajectory::computeTrajectoryStraightLineToPoint(conf, 
-        //~ motionController->getCurrentPosition(), targetPosition);
-      //~ motionController->setTrajectoryToFollow(traj);
-      //~ motionController->waitForTrajectoryFinished();
     setTargetPosition(LEFT_ARM, ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::PILE_CLEAR_HEIGHT);
     setTargetPosition(LEFT_ARM, REL, 0.00, REL, 0, ABS, arm::GROUND_HEIGHT + 1e-2);
     setTargetPosition(LEFT_ARM, REL, 0.00, REL, -30*arm::RAD, REL, 0);
@@ -276,19 +268,11 @@ void Strategy::match_impl()
     // Go between the next two cakes, stop just before them.
     targetPosition = cream_ganache_bottom_right + RobotPosition(-600,0,0);
     go_to_straight_line(targetPosition);
-      //~ traj = miam::trajectory::computeTrajectoryStraightLineToPoint(conf, 
-        //~ motionController->getCurrentPosition(), targetPosition);
-      //~ motionController->setTrajectoryToFollow(traj);
-      //~ motionController->waitForTrajectoryFinished();
     robot->wait(0.25);
     targetPosition = cream_ganache_bottom_right + RobotPosition(-300,0,0);
     go_to_straight_line(targetPosition);
-      //~ traj = miam::trajectory::computeTrajectoryStraightLineToPoint(conf, 
-        //~ motionController->getCurrentPosition(), targetPosition);
-      //~ traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(conf, targetPosition,5*arm::RAD)));
-      //~ motionController->setTrajectoryToFollow(traj);
-      //~ motionController->waitForTrajectoryFinished();
-      
+    turn_around_point(5*arm::RAD);
+    motionController->resetPosition(targetPosition,true,true,true);
     robot->wait(0.25);
     setTargetPosition(LEFT_ARM, REL, 0.00, ABS, 70*arm::RAD, REL, 0);
     setTargetPosition(RIGHT_ARM, REL, 0.00, ABS, 70*arm::RAD, REL, 0);
@@ -296,8 +280,41 @@ void Strategy::match_impl()
     targetPosition = cream_ganache_bottom_right - RobotPosition(robotParameters.CHASSIS_FRONT+50,0,0);
     go_to_straight_line(targetPosition);
     robot->wait(0.25);
-    targetPosition = targetPosition + RobotPosition(cake_radius,0,0);
+    targetPosition.x = 2000 - cake_radius - robotParameters.CHASSIS_FRONT;
     go_to_straight_line(targetPosition);
+    targetPosition.x = targetPosition.x - 100;
+    go_to_straight_line(targetPosition, true);
+    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
+    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
+    runActionBlock();
+    robot->wait(1.00);
+    targetPosition.x += 30;
+    go_to_straight_line(targetPosition);
+    #endif
+    
+    // Build the cakes
+    buildCakes();
+    while(true);;
+
+    //~ targetPosition = targetPosition + RobotPosition(cake_radius,0,0);
+    //~ // Go back, set arms and fuck the cakes
+    //~ targetPosition = targetPosition + RobotPosition(-200,0,0);
+    //~ go_to_straight_line(targetPosition, true);
+    //~ setTargetPosition(LEFT_ARM, REL, 0, ABS, 10*arm::RAD, REL, 0);
+    //~ setTargetPosition(RIGHT_ARM, REL, 0, ABS, 10*arm::RAD, REL, 0);
+    //~ runActionBlock();
+    //~ targetPosition = targetPosition + RobotPosition(140,0,0);
+    //~ go_to_straight_line(targetPosition);
+
+    //~ // Build the cakes
+    //~ targetPosition = targetPosition + RobotPosition(-30,0,0);
+    //~ go_to_straight_line(targetPosition,true);
+    //~ setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
+    //~ setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
+    //~ runActionBlock();
+    //~ targetPosition = targetPosition + RobotPosition(100,0,0);
+    //~ go_to_straight_line(targetPosition);
+    //~ buildCakes();
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }

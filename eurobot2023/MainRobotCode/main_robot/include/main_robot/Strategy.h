@@ -102,6 +102,7 @@ namespace main_robot
         int absrel_r, double r,
         int absrel_theta, double theta_rad,
         int absrel_z, double z);
+      void oscillate(int arm_idx, double amplitude_rad);
       void wait(int arm_idx, double duration);
       void pump(int arm_idx, bool activate);
       void runActionBlock();
