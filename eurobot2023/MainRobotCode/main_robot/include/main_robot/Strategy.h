@@ -82,6 +82,7 @@ namespace main_robot
 
     private:
 
+      void funnyAction();
       ArmPosition left_arm_position_;
       ArmPosition right_arm_position_;
       std::queue<std::shared_ptr<ArmAction > > left_arm_positions;

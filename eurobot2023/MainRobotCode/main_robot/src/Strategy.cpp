@@ -24,6 +24,9 @@ using namespace kinematics;
 #define RIGHT_ARM_FIRST_SERVO_ID 10
 #define LEFT_ARM_FIRST_SERVO_ID 20
 
+#define FUNNY_ACTION_LEFT_SERVO_ID 6
+#define FUNNY_ACTION_RIGHT_SERVO_ID 7
+
 #define TEST_CAKE 1
 #define USE_CAMERA 1
 #define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
@@ -54,7 +57,7 @@ Strategy::Strategy()
 bool Strategy::setup(RobotInterface *robot)
 {
     std::cout << "Begin the setup" << std::endl;
-  
+
     // Get robot
     this->robot = robot;
     this->servo = robot->getServos();
@@ -85,6 +88,8 @@ bool Strategy::setup(RobotInterface *robot)
 
 #if TEST_CAKE
     // Fold arm (to comment)
+    servo->setTargetPosition(FUNNY_ACTION_LEFT_SERVO_ID, 2048);
+    servo->setTargetPosition(FUNNY_ACTION_RIGHT_SERVO_ID, 2048);
     servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(M_PI_2));
     servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-M_PI_2));
     for (int i = 1; i < 4; i++)
@@ -110,6 +115,13 @@ bool Strategy::setup(RobotInterface *robot)
     std::cout << "End of the setup" << std::endl;
     return true;
 }
+
+void Strategy::funnyAction()
+{
+    servo->setTargetPosition(FUNNY_ACTION_LEFT_SERVO_ID, 1500);
+    servo->setTargetPosition(FUNNY_ACTION_RIGHT_SERVO_ID, 2500);
+}
+
 
 //--------------------------------------------------------------------------------------------------
 
@@ -264,7 +276,7 @@ void Strategy::match_impl()
     setTargetPosition(RIGHT_ARM, REL, 0.00, REL, -30*arm::RAD, REL, 0);
     runActionBlock();
     robot->wait(0.25);
-    
+
     // Go between the next two cakes, stop just before them.
     targetPosition = cream_ganache_bottom_right + RobotPosition(-600,0,0);
     go_to_straight_line(targetPosition);
@@ -291,7 +303,7 @@ void Strategy::match_impl()
     targetPosition.x += 30;
     go_to_straight_line(targetPosition);
     #endif
-    
+
     //~ // Funny action
     //~ for (int i = 0; i < 4; i++)
     //~ {
@@ -303,11 +315,9 @@ void Strategy::match_impl()
     //~ servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(25*arm::RAD));
     //~ servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
     //~ RPi_setupGPIO(25, PiGPIOMode::PI_GPIO_OUTPUT);
-    //~ RPi_writeGPIO(25, true);
-    //~ sleep(100000);
-    //~ RPi_writeGPIO(25, false);
+    //~ funnyAction();
     //~ while(true);;
-    
+
     // Build the cakes
     buildCakes();
     while(true);;
@@ -357,6 +367,7 @@ void Strategy::match()
     {
         std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
     }
+    funnyAction();
 }
 
 //--------------------------------------------------------------------------------------------------

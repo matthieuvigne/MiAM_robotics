@@ -87,7 +87,7 @@ class RMDX{
             int16_t motorStatus = 0; ///< Motor status
         };
 
-        RMDX(MCP2515 *canDriver, double const& timeout = 0.005);
+        RMDX(MCP2515 *canDriver, double const& timeout = 0.002);
 
         /// \brief Reset a given motor
         /// \param[in] motorId Motor id
@@ -97,7 +97,7 @@ class RMDX{
         /// @param motorId Motor id
         /// @param motorTimeout Motor timeout before autostop, in s.
         /// @return True if motor answered back.
-        bool init(unsigned char const& motorId, double const& motorTimeout = 0.050);
+        bool init(unsigned char const& motorId, double const& motorTimeout = 0.100);
 
         void enable(unsigned char const& motorId);
         void disable(unsigned char const& motorId);

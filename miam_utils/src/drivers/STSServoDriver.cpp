@@ -54,8 +54,6 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
     if(port_ == -1)
         return false;
 
-    return true;
-
     // Test that a servo is present.
     bool hasPing = false;
     for (unsigned char i = 0; i < 0xFE; i++)
