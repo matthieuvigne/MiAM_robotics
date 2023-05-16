@@ -133,6 +133,30 @@ void Strategy::setTargetPosition(int arm_idx,
 
 //--------------------------------------------------------------------------------------------------
 
+void Strategy::setTargetPositionTicks(int arm_idx, 
+  int16_t tick0, int16_t tick1, int16_t tick2, int16_t tick3)
+{
+  switch(arm_idx)
+  {
+    case LEFT_ARM:
+      left_arm_position_ = arm::servoAnglesToArmPosition(
+        STS::servoToRadValue(tick0), STS::servoToRadValue(tick1),
+        STS::servoToRadValue(tick2), STS::servoToRadValue(tick3));
+      addPositionToQueue_Left(left_arm_position_);
+      break;
+    case RIGHT_ARM:
+      right_arm_position_ = arm::servoAnglesToArmPosition(
+        STS::servoToRadValue(tick0), STS::servoToRadValue(tick1),
+        STS::servoToRadValue(tick2), STS::servoToRadValue(tick3));
+      addPositionToQueue_Right(right_arm_position_);
+      break;
+    default:
+      std::cerr << "Unknown arm type" << std::endl;
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::wait(int arm_idx, double duration_sec)
 {
   ArmAction::Ptr action(new ArmWait(duration_sec));
@@ -258,6 +282,74 @@ ArmPosition Strategy::getPileFromIndex(int pile_idx)
       throw std::runtime_error("Unknown pile");
   }
   return pile;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Strategy::takeCherry()
+{
+  //~ // Position 1
+  //~ std::array<int16_t,4> ticks{2683,1519,921,2698};
+  //~ std::array<double,4> angles;
+  //~ for(int i=0; i<4; i+=1)
+    //~ angles[i] = STS::servoToRadValue(ticks[i]);
+  //~ ArmPosition position = arm::servoAnglesToArmPosition(angles[0],angles[1],angles[2],angles[3]);
+  //~ std::cout << "r=" << position.r_ << ", theta=" << position.theta_ << ", z=" << position.z_ << std::endl;
+  
+  //~ // Position 2
+  //~ ticks = std::array<int16_t,4>{2680,1587,833,2690};
+  //~ for(int i=0; i<4; i+=1)
+    //~ angles[i] = STS::servoToRadValue(ticks[i]);
+  //~ position = arm::servoAnglesToArmPosition(angles[0],angles[1],angles[2],angles[3]);
+  //~ std::cout << "r=" << position.r_ << ", theta=" << position.theta_ << ", z=" << position.z_ << std::endl;
+  
+  //~ // Position 3
+  //~ ticks = std::array<int16_t,4>{2678,1772,593,2697};
+  //~ for(int i=0; i<4; i+=1)
+    //~ angles[i] = STS::servoToRadValue(ticks[i]);
+  //~ position = arm::servoAnglesToArmPosition(angles[0],angles[1],angles[2],angles[3]);
+  //~ std::cout << "r=" << position.r_ << ", theta=" << position.theta_ << ", z=" << position.z_ << std::endl;
+  
+  //~ // Position 4
+  //~ ticks = std::array<int16_t,4>{2083,1885,554,2689};
+  //~ for(int i=0; i<4; i+=1)
+    //~ angles[i] = STS::servoToRadValue(ticks[i]);
+  //~ position = arm::servoAnglesToArmPosition(angles[0],angles[1],angles[2],angles[3]);
+  //~ std::cout << "r=" << position.r_ << ", theta=" << position.theta_ << ", z=" << position.z_ << std::endl;
+
+  //~ setTargetPositionTicks(LEFT_ARM,2683,1519,921,2698);
+  //~ wait(LEFT_ARM, 1.0);
+  //~ setTargetPositionTicks(LEFT_ARM,2680,1587,833,2690);
+  //~ wait(LEFT_ARM, 1.0);
+  //~ setTargetPositionTicks(LEFT_ARM,2678,1772,593,2697);
+  //~ wait(LEFT_ARM, 1.0);
+  //~ setTargetPositionTicks(LEFT_ARM,2083,1885,554,2689);
+  //~ runActionBlock();
+  
+  // Position cerise
+  //~ ArmPosition pos1{0.0969812,-0.974078,-0.130286};
+  //~ ArmPosition pos2{0.099274,-0.969476,-0.124606};
+  //~ ArmPosition pos3{0.103802,-0.966408,-0.1044};
+  //~ ArmPosition pos4{0.116272,-0.053689,-0.0971};
+  
+  //~ setTargetPosition(LEFT_ARM, ABS, pos4.r_, ABS, pos4.theta_, ABS, pos4.z_);
+  //~ wait(LEFT_ARM, 1.0);
+  //~ setTargetPosition(LEFT_ARM, ABS, pos3.r_, ABS, pos3.theta_, ABS, pos3.z_);
+  //~ wait(LEFT_ARM, 1.0);
+  //~ setTargetPosition(LEFT_ARM, ABS, pos2.r_, ABS, pos2.theta_, ABS, pos2.z_);
+  //~ wait(LEFT_ARM, 1.0);
+  //~ setTargetPosition(LEFT_ARM, ABS, pos1.r_, ABS, pos1.theta_, ABS, pos1.z_);
+  //~ runActionBlock();
+  
+  ArmPosition position{0.100,-1.05,-0.125};
+  setTargetPosition(LEFT_ARM, ABS, 0.130, ABS, position.theta_, ABS, position.z_);
+  setTargetPosition(LEFT_ARM, ABS, position.r_, ABS, position.theta_, ABS, position.z_);
+  setTargetPosition(LEFT_ARM, ABS, position.r_, ABS, -1.115, ABS, position.z_);
+  setTargetPosition(LEFT_ARM, ABS, position.r_, ABS, -1.115, REL, -15e-3);
+  pump(LEFT_ARM, true);
+  wait(LEFT_ARM, 2.0);
+  setTargetPosition(LEFT_ARM, REL, 1e-2, REL, 5*arm::RAD, REL, 2e-2);
+  runActionBlock();
 }
 
 //--------------------------------------------------------------------------------------------------

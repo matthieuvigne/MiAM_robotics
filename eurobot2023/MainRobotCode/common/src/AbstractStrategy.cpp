@@ -33,12 +33,15 @@ bool AbstractStrategy::go_to_straight_line(RobotPosition position, bool backward
 
 //--------------------------------------------------------------------------------------------------
 
-bool AbstractStrategy::turn_around_point(double angle_rad)
+bool AbstractStrategy::turn_around_point(double angle_rad, double factor)
 {
   miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
+  conf.maxWheelVelocity *= factor;
+  conf.maxWheelAcceleration *= factor;
   RobotPosition currentPosition = motionController->getCurrentPosition();
   TrajectoryVector traj;
-  traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(conf, currentPosition, angle_rad)));
+  traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(conf, currentPosition,
+    currentPosition.theta + angle_rad)));
   motionController->setTrajectoryToFollow(traj);
   return motionController->waitForTrajectoryFinished();
 }

@@ -138,6 +138,8 @@ namespace main_robot
         int absrel_r, double r,
         int absrel_theta, double theta_rad,
         int absrel_z, double z);
+      void setTargetPositionTicks(int arm_idx, 
+        int16_t tick0, int16_t tick1, int16_t tick2, int16_t tick3);
       ArmPosition getPileFromIndex(int pile_idx);
       void grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate = false);
       void dumbCakeToPile(int arm_idx, int pile_idx);
@@ -148,6 +150,7 @@ namespace main_robot
       void adjustRobotPosition();
       void runActionBlock();
       void clearActionSequence();
+      void takeCherry();
 
       void addSyncToQueue();
       void changePileHeight(int pileIndex, int delta);

@@ -234,27 +234,27 @@ void Strategy::match_impl()
 
     RobotParameters const robotParameters = robot->getParameters();
 
-    // Common cake dimensions
-    double const cake_radius = 60; // [mm]
-    double const robot_chassis_front = robot->getParameters().CHASSIS_FRONT;
+    //~ // Common cake dimensions
+    //~ double const cake_radius = 60; // [mm]
+    //~ double const robot_chassis_front = robot->getParameters().CHASSIS_FRONT;
 
-    // Initial positions of the genoeses
-    RobotPosition const genoese_top_left(725,1875,0);
-    RobotPosition const genoese_top_right(1275,1875,0);
-    RobotPosition const genoese_bottom_left(725,1125,0);
-    RobotPosition const genoese_bottom_right(1275,1125,0);
+    //~ // Initial positions of the genoeses
+    //~ RobotPosition const genoese_top_left(725,1875,0);
+    //~ RobotPosition const genoese_top_right(1275,1875,0);
+    //~ RobotPosition const genoese_bottom_left(725,1125,0);
+    //~ RobotPosition const genoese_bottom_right(1275,1125,0);
 
-    // Initial barycenters of the cream/ganache couples
-    RobotPosition const cream_ganache_top_left(225,2325,0);
-    RobotPosition const cream_ganache_top_right(1775,2325,0);
-    RobotPosition const cream_ganache_bottom_left(225,675+30,0);
-    RobotPosition const cream_ganache_bottom_right(1775,675+30,0);
+    //~ // Initial barycenters of the cream/ganache couples
+    //~ RobotPosition const cream_ganache_top_left(225,2325,0);
+    //~ RobotPosition const cream_ganache_top_right(1775,2325,0);
+    //~ RobotPosition const cream_ganache_bottom_left(225,675+30,0);
+    //~ RobotPosition const cream_ganache_bottom_right(1775,675+30,0);
 
-    // Arm positions ; r theta z
-    ArmPosition left_arm_center_up(100, 0, 250);
-    ArmPosition left_arm_left_down(100, M_PI_4, 10);
-    ArmPosition right_arm_center_up(100, 0, 250);
-    ArmPosition right_arm_right_down(100, -M_PI_4, 10);
+    //~ // Arm positions ; r theta z
+    //~ ArmPosition left_arm_center_up(100, 0, 250);
+    //~ ArmPosition left_arm_left_down(100, M_PI_4, 10);
+    //~ ArmPosition right_arm_center_up(100, 0, 250);
+    //~ ArmPosition right_arm_right_down(100, -M_PI_4, 10);
 
     RobotPosition tmp_position;
     RobotPosition current_position = motionController->getCurrentPosition();
@@ -319,7 +319,37 @@ void Strategy::match_impl()
     //~ while(true);;
 
     // Build the cakes
-    buildCakes();
+    //~ buildCakes();
+    //~ takeCherry();
+    //~ while(true);;
+
+
+    // Push the cakes to safe space
+    clearActionSequence();
+    go_forward(-150);
+    turn_around_point(55*arm::RAD);
+    go_forward(160);
+    setTargetPosition(LEFT_ARM, ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
+    setTargetPosition(RIGHT_ARM, ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
+    runActionBlock();
+    setTargetPosition(LEFT_ARM, REL, 1e-2, REL, -30*arm::RAD, REL, 0.00);
+    setTargetPosition(RIGHT_ARM, REL, 0.00, REL, -30*arm::RAD, REL, 0.00);
+    runActionBlock();
+    turn_around_point(-90*arm::RAD,0.4);
+    turn_around_point(-30*arm::RAD,0.4);
+    setTargetPosition(LEFT_ARM, REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
+    setTargetPosition(RIGHT_ARM, REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
+    runActionBlock();
+    go_forward(180);
+    turn_around_point(-20*arm::RAD,0.4);
+    go_forward(380);
+    setTargetPosition(LEFT_ARM, ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
+    setTargetPosition(RIGHT_ARM, ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
+    runActionBlock();
+    go_forward(80);
+    //~ turn_around_point(-30*arm::RAD,0.4);
+    //~ setTargetPosition(LEFT_ARM, REL, 0.00, ABS, 90*arm::RAD, REL, 0.00);
+    //~ runActionBlock();
     while(true);;
 
     //~ targetPosition = targetPosition + RobotPosition(cake_radius,0,0);
