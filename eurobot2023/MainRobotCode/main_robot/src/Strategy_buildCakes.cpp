@@ -16,6 +16,8 @@
 #include "common/MotionPlanner.h"
 #include "common/ArmInverseKinematics.hpp"
 
+#define USE_SWITCH_CASE 0
+
 using namespace main_robot;
 using namespace main_robot::arm;
 
@@ -38,12 +40,6 @@ int Strategy::getPileHeight(int pileIndex)
 {
     pileLock.lock();
     int height = pileHeight[pileIndex];
-    //~ std::cout << "Pile state is " 
-      //~ << pileHeight[PILE_IDX::LEFT_SIDE] << " " 
-      //~ << pileHeight[PILE_IDX::LEFT_FRONT] << " " 
-      //~ << pileHeight[PILE_IDX::MIDDLE] << " " 
-      //~ << pileHeight[PILE_IDX::RIGHT_FRONT] << " " 
-      //~ << pileHeight[PILE_IDX::RIGHT_SIDE] << std::endl;
     pileLock.unlock();
     return height;
 }
@@ -81,6 +77,7 @@ void Strategy::addPositionToQueue_Right(ArmPosition target)
 
 void Strategy::initPosition(int arm_idx, double r, double theta_rad, double z)
 {
+  #if USE_SWITCH_CASE
   switch(arm_idx)
   {
     case LEFT_ARM:
@@ -96,6 +93,24 @@ void Strategy::initPosition(int arm_idx, double r, double theta_rad, double z)
     default:
       std::cout << "Unknown arm type" << std::endl;
   }
+  #else
+  if(arm_idx == LEFT_ARM)
+  {
+    left_arm_position_.r_ = r;
+    left_arm_position_.theta_ = theta_rad;
+    left_arm_position_.z_ = z;
+  }
+  else if(arm_idx == RIGHT_ARM)
+  {
+    right_arm_position_.r_ = r;
+    right_arm_position_.theta_ = theta_rad;
+    right_arm_position_.z_ = z;
+  }
+  else
+  {
+    std::cout << "Unknown arm type" << std::endl;
+  }
+  #endif
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -112,6 +127,7 @@ void Strategy::setTargetPosition(int arm_idx,
   int absrel_theta, double theta_rad, 
   int absrel_z, double z)
 {
+  #if USE_SWITCH_CASE
   switch(arm_idx)
   {
     case LEFT_ARM:
@@ -129,6 +145,26 @@ void Strategy::setTargetPosition(int arm_idx,
     default:
       std::cerr << "Unknown arm type" << std::endl;
   }
+  #else
+  if(arm_idx == LEFT_ARM)
+  {
+    left_arm_position_.r_ = absrel_r*left_arm_position_.r_ + r;
+    left_arm_position_.theta_ = absrel_theta*left_arm_position_.theta_ + theta_rad;
+    left_arm_position_.z_  = absrel_z*left_arm_position_.z_ + z;
+    addPositionToQueue_Left(left_arm_position_);
+  }
+  else if(arm_idx == RIGHT_ARM)
+  {
+    right_arm_position_.r_ = absrel_r*right_arm_position_.r_ + r;
+    right_arm_position_.theta_ = absrel_theta*right_arm_position_.theta_ + theta_rad;
+    right_arm_position_.z_  = absrel_z*right_arm_position_.z_ + z;
+    addPositionToQueue_Right(right_arm_position_);
+  }
+  else
+  {
+    std::cerr << "Unknown arm type" << std::endl;
+  }
+  #endif
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -136,6 +172,7 @@ void Strategy::setTargetPosition(int arm_idx,
 void Strategy::setTargetPositionTicks(int arm_idx, 
   int16_t tick0, int16_t tick1, int16_t tick2, int16_t tick3)
 {
+  #if USE_SWITCH_CASE
   switch(arm_idx)
   {
     case LEFT_ARM:
@@ -153,6 +190,26 @@ void Strategy::setTargetPositionTicks(int arm_idx,
     default:
       std::cerr << "Unknown arm type" << std::endl;
   }
+  #else
+  if(arm_idx == LEFT_ARM)
+  {
+    left_arm_position_ = arm::servoAnglesToArmPosition(
+      STS::servoToRadValue(tick0), STS::servoToRadValue(tick1),
+      STS::servoToRadValue(tick2), STS::servoToRadValue(tick3));
+    addPositionToQueue_Left(left_arm_position_);
+  }
+  else if(arm_idx == RIGHT_ARM)
+  {
+    right_arm_position_ = arm::servoAnglesToArmPosition(
+      STS::servoToRadValue(tick0), STS::servoToRadValue(tick1),
+      STS::servoToRadValue(tick2), STS::servoToRadValue(tick3));
+    addPositionToQueue_Right(right_arm_position_);
+  }
+  else
+  {
+    std::cerr << "Unknown arm type" << std::endl;
+  }
+  #endif
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -160,6 +217,8 @@ void Strategy::setTargetPositionTicks(int arm_idx,
 void Strategy::wait(int arm_idx, double duration_sec)
 {
   ArmAction::Ptr action(new ArmWait(duration_sec));
+  
+  #if USE_SWITCH_CASE
   switch(arm_idx)
   {
     case LEFT_ARM:
@@ -171,6 +230,20 @@ void Strategy::wait(int arm_idx, double duration_sec)
     default:
       std::cout << "Unknown arm type" << std::endl;
   }
+  #else
+  if(arm_idx == LEFT_ARM)
+  {
+    left_arm_positions.push(action);
+  }
+  else if(arm_idx == RIGHT_ARM)
+  {
+    right_arm_positions.push(action);
+  }
+  else
+  {
+    std::cerr << "Unknown arm type" << std::endl;
+  }
+  #endif
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -178,6 +251,8 @@ void Strategy::wait(int arm_idx, double duration_sec)
 void Strategy::pump(int arm_idx, bool activate)
 {
   ArmAction::Ptr action(new ArmPump(activate));
+  
+  #if USE_SWITCH_CASE
   switch(arm_idx)
   {
     case LEFT_ARM:
@@ -189,6 +264,20 @@ void Strategy::pump(int arm_idx, bool activate)
     default:
       std::cout << "Unknown arm type" << std::endl;
   }
+  #else
+  if(arm_idx == LEFT_ARM)
+  {
+    left_arm_positions.push(action);
+  }
+  else if(arm_idx == RIGHT_ARM)
+  {
+    right_arm_positions.push(action);
+  }
+  else
+  {
+    std::cerr << "Unknown arm type" << std::endl;
+  }
+  #endif
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -411,6 +500,8 @@ void Strategy::buildCakes()
   #endif
 
   std::cout << "Building cakes" << std::endl;
+  std::cout << "LEFT_ARM: " << LEFT_ARM << std::endl;
+  std::cout << "RIGHT_ARM: " << RIGHT_ARM << std::endl;
   
   // Right arm has inverted angles!
   ArmPosition middlePile(
@@ -464,7 +555,7 @@ void Strategy::buildCakes()
   // Block 4
   // Left arm takes cream from front pile and rises it up
   // Right arm takes genoese from middle pile and rises it up
-  grabCakeFromPile(LEFT_ARM, PILE_IDX::LEFT_FRONT, false);
+  grabCakeFromPile(LEFT_ARM, PILE_IDX::LEFT_FRONT, true);
   grabCakeFromPile(RIGHT_ARM, PILE_IDX::MIDDLE, true);
   runActionBlock();
   

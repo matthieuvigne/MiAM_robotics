@@ -17,6 +17,8 @@
 #include <mutex>
 #include <array>
 
+#define USE_SWITCH_CASE 0
+
 namespace main_robot
 {
   namespace arm{
@@ -30,11 +32,6 @@ namespace main_robot
     double const MIDDLE_PILE_ANGLE = -30.0*RAD; //-35.0*RAD; //-0.27;
     double const FRONT_PILE_ANGLE = 15.5*RAD;
     double const SIDE_PILE_ANGLE = 95*RAD;
-
-    //~ // Reference angles for right arm
-    //~ double const RIGHT_MIDDLE_PILE_ANGLE = -0.27;
-    //~ double const RIGHT_FRONT_PILE_ANGLE = 0.27;
-    //~ double const RIGHT_SIDE_PILE_ANGLE = 1.2;
 
     // Reference layer heights
     double const GROUND_HEIGHT = -0.195;
@@ -52,13 +49,22 @@ namespace main_robot
   static int const REL = 1;
 
   // Reference indexes
+  #if USE_SWITCH_CASE
   static int const RIGHT_ARM = 10;
   static int const LEFT_ARM = 20;
   static int const PUMP_RIGHT = 12;
   static int const PUMP_LEFT = 13;
   static int const VALVE_RIGHT = 24;
   static int const VALVE_LEFT = 26;
-
+  #else
+  static int RIGHT_ARM = 10;
+  static int LEFT_ARM = 20;
+  static int PUMP_RIGHT = 12;
+  static int PUMP_LEFT = 13;
+  static int VALVE_RIGHT = 24;
+  static int VALVE_LEFT = 26;
+  #endif
+  
   class Strategy : public AbstractStrategy
   {
     public:
