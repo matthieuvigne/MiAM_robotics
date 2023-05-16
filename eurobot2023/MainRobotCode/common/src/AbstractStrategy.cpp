@@ -41,6 +41,7 @@ bool AbstractStrategy::turn_around_point(double angle_rad, double factor)
   miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
   conf.maxWheelVelocity *= factor;
   conf.maxWheelAcceleration *= factor;
+  if(robot->isPlayingRightSide()) angle_rad = - angle_rad;
   RobotPosition currentPosition = motionController->getCurrentPosition();
   TrajectoryVector traj;
   traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(conf, currentPosition,
