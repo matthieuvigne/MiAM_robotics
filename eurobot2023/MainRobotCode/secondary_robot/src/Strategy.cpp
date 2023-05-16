@@ -125,7 +125,7 @@ bool Strategy::setup(RobotInterface *robot)
     }
     else if (phase == setupPhase::WAITING)
     {
-        if (getTime() - waitStart > 1.0)
+        if (getTime() - waitStart > 0.3)
         {
             phase = setupPhase::MOVING_RAIL;
             moveRail(rail::NOMINAL);
@@ -369,16 +369,16 @@ void Strategy::match_impl()
 
                 // distance to center of obstacle minus size of the obstacle
                 minDistanceFromObstacle = std::min(
-                    minDistanceFromObstacle, 
+                    minDistanceFromObstacle,
                     tmpMin);
                 // distance to center of obstacle minus size of the obstacle
                 minDistanceFromObstacleEnd = std::min(
-                    minDistanceFromObstacleEnd, 
+                    minDistanceFromObstacleEnd,
                     tmpMinEnd);
             }
 
             // 150 = radius of the robot
-            if (minDistanceFromObstacle > 150 & minDistanceFromObstacleEnd > 70 & 
+            if (minDistanceFromObstacle > 150 & minDistanceFromObstacleEnd > 70 &
                 distanceToStartPoint < minDistanceToStartPoint)
             {
                 action_index = i;
@@ -390,7 +390,7 @@ void Strategy::match_impl()
             textlog << "[Strategy (secondary_robot)] " << "   minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceFromObstacleEnd " << minDistanceFromObstacleEnd << " distanceToStartPoint " << distanceToStartPoint << std::endl;
 
 
-            
+
         }
 
         textlog << "[Strategy (secondary_robot)] " << "Chosen action: " << action_index << std::endl;
@@ -531,8 +531,8 @@ void Strategy::goBackToBase()
     if ((motionController->getCurrentPosition() - position).norm() > 100)
     {
         traj = robot->getMotionController()->computeMPCTrajectory(
-            position, 
-            robot->getMotionController()->getDetectedObstacles(), 
+            position,
+            robot->getMotionController()->getDetectedObstacles(),
             false,   // is forward
             true,   // is an avoidance traj
             true); // ensure end angle

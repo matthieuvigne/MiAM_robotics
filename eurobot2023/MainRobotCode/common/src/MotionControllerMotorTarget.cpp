@@ -73,15 +73,13 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // Modify angular PID target based on transverse error, if we are going fast enough.
     double angularPIDError = trackingAngleError;
     double transverseCorrection = 0.0;
-    if (std::abs(targetPoint.linearVelocity) > 0.1 * robotParams_.maxWheelSpeed)
+    if (std::abs(targetPoint.linearVelocity) > 0.1 * robotParams_.maxWheelSpeedTrajectory)
         transverseCorrection = robotParams_.transverseKp * targetPoint.linearVelocity / robotParams_.maxWheelSpeed * trackingTransverseError;
     if (targetPoint.linearVelocity < 0)
         transverseCorrection = -transverseCorrection;
     angularPIDError += transverseCorrection;
 
-    // Use PID if a trajectory velocity is present.
-    if (std::abs(targetPoint.linearVelocity) > 0.1 || std::abs(targetPoint.angularVelocity) > 0.005)
-        targetSpeed.angular += PIDAngular_.computeValue(angularPIDError, dt);
+    targetSpeed.angular += PIDAngular_.computeValue(angularPIDError, dt);
 
     // Invert velocity if playing on side::RIGHT side.
     if (isPlayingRightSide_)

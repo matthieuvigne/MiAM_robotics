@@ -43,7 +43,8 @@ class RMDXController{
         double rawVelocity_; ///< Unfiltered velocity (rad/s)
         double targetCurrent_; ///< Motor target current (A)
         double current_; ///< Motor current (A)
-        double clampedTargetVelocity_ = 0;
+        double clampedTargetVelocity_ = 0.0;
+        double targetVelocity_ = 0.0;
     private:
         RMDX *driver_;
         unsigned char motorId_;

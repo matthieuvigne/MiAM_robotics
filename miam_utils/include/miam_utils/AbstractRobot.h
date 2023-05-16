@@ -94,7 +94,6 @@
             bool isStepperInit_; ///< Boolean representing the initialization of the stepper motors.
 
             // Match-related variables.
-            bool isPlayingRightSide_; ///< True if robot is playing on the right (purple) side of the field.
             bool hasMatchStarted_;    ///< Boolean flag to indicate match status.
             double matchStartTime_;   ///< Start time of the match, for end timer.
 

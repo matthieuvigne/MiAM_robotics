@@ -1,4 +1,5 @@
 #include "miam_utils/drivers/RMDXController.h"
+#include "miam_utils/TextLogger.h"
 
 #include <iostream>
 #include <algorithm>
@@ -40,6 +41,7 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
         position_ = newPos;
         integralValue_ = 0;
         clampedTargetVelocity_ = 0.0;
+        textlog << static_cast<int>(motorId_) << " stop, resetting target" << std::endl;
     }
 
     // Process only if valid signal is obtained
@@ -53,14 +55,11 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
             velocity_ = lowPass_.filter(rawVelocity_, dt);
         }
     }
+    targetVelocity_ = targetVelocity;
 
     // Clamp target to maximum acceleration - but always allow deceleration.
-    if (clampedTargetVelocity_ > 0.01)
-        clampedTargetVelocity_ = std::clamp(targetVelocity, 0.0, std::max(velocity_, clampedTargetVelocity_) + maxAcceleration_ * dt);
-    else if (clampedTargetVelocity_ < -0.01)
-        clampedTargetVelocity_ = std::clamp(targetVelocity, std::min(velocity_, clampedTargetVelocity_) - maxAcceleration_ * dt, 0.0);
-    else
-        clampedTargetVelocity_ = std::clamp(targetVelocity, clampedTargetVelocity_ - maxAcceleration_ * dt, clampedTargetVelocity_ + maxAcceleration_ * dt);
+    clampedTargetVelocity_ = std::clamp(targetVelocity, clampedTargetVelocity_ - maxAcceleration_ * dt, clampedTargetVelocity_ + maxAcceleration_ * dt);
+
     // Compute PI output, update integral only if not in saturation.
     double err = velocity_ - clampedTargetVelocity_;
 
@@ -93,6 +92,8 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
 
 void RMDXController::stop()
 {
+    clampedTargetVelocity_ = 0.0;
+    targetVelocity_ = 0.0;
     driver_->stop(motorId_);
     isStopped_ = true;
 }
