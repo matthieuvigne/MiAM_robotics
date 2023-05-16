@@ -140,6 +140,10 @@ void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int ar
             }
             case ActionType::MOVE :
             {
+                // Check the current during the action
+                // double getCurrentCurrent(unsigned char const& servoId);
+                //~ std::array<double,4> current; // [TO REMOVE]
+              
                 ArmPosition* action = dynamic_cast<ArmPosition*>(actions.front().get());
                 std::cout << ">>>> Move " << armName << " " << *action << std::endl;
 
@@ -154,6 +158,8 @@ void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int ar
                     for (int i = 0; i < 4; i++)
                     {
                         done &= !servo->isMoving(armServoId + i);
+                        //~ current[i] = servo->getCurrentCurrent(armServoId + i); // [TO REMOVE]
+                        //~ std::cout << "Servo[" << i << "] " << 100*current[i] << std::endl; // [TO REMOVE]
                     }
                     std::this_thread::sleep_for(std::chrono::microseconds(2));
                 }

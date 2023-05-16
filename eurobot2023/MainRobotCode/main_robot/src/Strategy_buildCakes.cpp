@@ -38,12 +38,12 @@ int Strategy::getPileHeight(int pileIndex)
 {
     pileLock.lock();
     int height = pileHeight[pileIndex];
-    std::cout << "Pile state is " 
-      << pileHeight[PILE_IDX::LEFT_SIDE] << " " 
-      << pileHeight[PILE_IDX::LEFT_FRONT] << " " 
-      << pileHeight[PILE_IDX::MIDDLE] << " " 
-      << pileHeight[PILE_IDX::RIGHT_FRONT] << " " 
-      << pileHeight[PILE_IDX::RIGHT_SIDE] << std::endl;
+    //~ std::cout << "Pile state is " 
+      //~ << pileHeight[PILE_IDX::LEFT_SIDE] << " " 
+      //~ << pileHeight[PILE_IDX::LEFT_FRONT] << " " 
+      //~ << pileHeight[PILE_IDX::MIDDLE] << " " 
+      //~ << pileHeight[PILE_IDX::RIGHT_FRONT] << " " 
+      //~ << pileHeight[PILE_IDX::RIGHT_SIDE] << std::endl;
     pileLock.unlock();
     return height;
 }
@@ -266,11 +266,14 @@ void Strategy::grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate)
 {
   // Go the target pile (initially, we assume Z = PILE_CLEAR_HEIGHT)
   ArmPosition const pile = getPileFromIndex(pile_idx);
-  setTargetPosition(arm_idx, ABS, pile.r_ + 10e-3, ABS, pile.theta_, ABS, PILE_CLEAR_HEIGHT);
-  pump(LEFT_ARM, true);
+  double delta_r = (getPileHeight(pile_idx)==1) ? -5e-3 : 0.;
+  double delta_theta1 = (getPileHeight(pile_idx)==1) ? 20*arm::RAD : 0.;
+  double delta_theta2 = (getPileHeight(pile_idx)==1) ? 10*arm::RAD : 0.;
+  setTargetPosition(arm_idx, ABS, pile.r_ + 10e-3, ABS, pile.theta_ + delta_theta2, ABS, PILE_CLEAR_HEIGHT);
+  pump(arm_idx, true);
   setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) + 5e-3);
   setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) - 3e-3);
-  setTargetPosition(arm_idx, REL, -10e-3, REL, 0, REL, 0);
+  setTargetPosition(arm_idx, REL, -10e-3, REL, delta_theta1, REL, 0);
   if(oscillate) this->oscillate(arm_idx, 3*arm::RAD);
   wait(arm_idx, 1.0);
   changePileHeight(pile_idx, -1);
@@ -284,14 +287,29 @@ void Strategy::grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate)
 
 void Strategy::dumbCakeToPile(int arm_idx, int pile_idx)
 {
+  double delta_r = (pile_idx == PILE_IDX::MIDDLE) ? 5e-3 : 0.;
   ArmPosition const pile = getPileFromIndex(pile_idx);
-  setTargetPosition(arm_idx, REL, 0, ABS, pile.theta_-8*arm::RAD, REL, 0);
+  setTargetPosition(arm_idx, REL, 0, ABS, pile.theta_, REL, 0);
   setTargetPosition(arm_idx, ABS, pile.r_, REL, 0, REL, 0);
-  setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) + LAYER_HEIGHT + 2e-2);
+  setTargetPosition(arm_idx, REL, delta_r, REL, 0, ABS, getPileZ(pile_idx) + LAYER_HEIGHT + 2e-2);
+  setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) + LAYER_HEIGHT + 1e-2);
+  setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) + LAYER_HEIGHT + 5e-3);
   pump(arm_idx, false);
   wait(arm_idx, 1.0);
   changePileHeight(pile_idx, 1);
   setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Strategy::adjustRobotPosition()
+{
+  RobotPosition pos_before = motionController->getCurrentPosition();
+  go_forward(40);
+  RobotPosition pos_after = motionController->getCurrentPosition();
+  double delta_x = pos_after.x - pos_before.x;
+  robot->wait(0.100);
+  go_forward(-delta_x);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -341,10 +359,11 @@ void Strategy::buildCakes()
     // Right arm takes ganache from its front pile and delivers it to the middle pile
     grabCakeFromPile(LEFT_ARM, PILE_IDX::LEFT_FRONT, false);
     dumbCakeToPile(LEFT_ARM, PILE_IDX::LEFT_SIDE);
-    grabCakeFromPile(RIGHT_ARM, PILE_IDX::RIGHT_FRONT, false);
+    grabCakeFromPile(RIGHT_ARM, PILE_IDX::RIGHT_FRONT, true);
     dumbCakeToPile(RIGHT_ARM, PILE_IDX::MIDDLE);
     runActionBlock();
-
+    adjustRobotPosition();
+    
     // Block 3
     // Left arm grabs ganache from middle and dumbs it to side
     // Right arm goes over ganache
@@ -366,6 +385,7 @@ void Strategy::buildCakes()
     dumbCakeToPile(LEFT_ARM, PILE_IDX::MIDDLE);
     dumbCakeToPile(RIGHT_ARM, PILE_IDX::RIGHT_SIDE);
     runActionBlock();
+    adjustRobotPosition();
     
     // Block 6
     // Left arm takes cream from front pile and rises it up
@@ -380,17 +400,23 @@ void Strategy::buildCakes()
     dumbCakeToPile(LEFT_ARM, PILE_IDX::MIDDLE);
     dumbCakeToPile(RIGHT_ARM, PILE_IDX::RIGHT_SIDE);
     runActionBlock();
+    adjustRobotPosition();
     
     // Block 8
     // Left arm goes from the middle pile to its side pile
     // Right arms takes ganache from front pile and delivers it to middle pile
-    // Right arms takes ganache from front pile and delivers it to side pile
     setTargetPosition(LEFT_ARM, REL, 0, REL, sidePile.theta_, REL, 0);
     grabCakeFromPile(RIGHT_ARM, PILE_IDX::RIGHT_FRONT, false);
     dumbCakeToPile(RIGHT_ARM, PILE_IDX::MIDDLE);
+    runActionBlock();
+    adjustRobotPosition();
+    
+    // Block 9
+    // Right arms takes ganache from front pile and delivers it to side pile
     grabCakeFromPile(RIGHT_ARM, PILE_IDX::RIGHT_FRONT, false);
     dumbCakeToPile(RIGHT_ARM, PILE_IDX::RIGHT_SIDE);
     runActionBlock();
+    while(true);;
 }
 
 //--------------------------------------------------------------------------------------------------

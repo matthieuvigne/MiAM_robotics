@@ -59,7 +59,6 @@ namespace main_robot
   static int const VALVE_RIGHT = 24;
   static int const VALVE_LEFT = 26;
 
-
   class Strategy : public AbstractStrategy
   {
     public:
@@ -108,6 +107,28 @@ namespace main_robot
       ArmPosition last_left_position;
       ArmPosition last_right_position;
 
+      // Common cake dimensions
+      double const cake_radius = 60; // [mm]
+      double const robot_chassis_front = 90.0;
+
+      // Initial positions of the genoeses
+      RobotPosition const genoese_top_left{725,1875,0};
+      RobotPosition const genoese_top_right{1275,1875,0};
+      RobotPosition const genoese_bottom_left{725,1125,0};
+      RobotPosition const genoese_bottom_right{1275,1125,0};
+
+      // Initial barycenters of the cream/ganache couples
+      RobotPosition const cream_ganache_top_left{225,2325,0};
+      RobotPosition const cream_ganache_top_right{1775,2325,0};
+      RobotPosition const cream_ganache_bottom_left{225,675+30,0};
+      RobotPosition const cream_ganache_bottom_right{1775,675+30,0};
+
+      // Arm positions ; r theta z
+      ArmPosition left_arm_center_up{100, 0, 250};
+      ArmPosition left_arm_left_down{100, M_PI_4, 10};
+      ArmPosition right_arm_center_up{100, 0, 250};
+      ArmPosition right_arm_right_down{100, -M_PI_4, 10};
+
       void addPositionToQueue_Right(ArmPosition target);
       void addPositionToQueue_Left(ArmPosition target);
 
@@ -124,6 +145,7 @@ namespace main_robot
       void oscillate(int arm_idx, double amplitude_rad);
       void wait(int arm_idx, double duration);
       void pump(int arm_idx, bool activate);
+      void adjustRobotPosition();
       void runActionBlock();
       void clearActionSequence();
 
