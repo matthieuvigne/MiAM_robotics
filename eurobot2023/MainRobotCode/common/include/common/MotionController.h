@@ -81,6 +81,9 @@
       double const yfar_max_avoidance = 300;
 
       double const mpc_obstacle_size = 380;
+
+      // for ending trajectory...
+      double const x_max_ending = 150;
     }
 
     // Dimensions of the table

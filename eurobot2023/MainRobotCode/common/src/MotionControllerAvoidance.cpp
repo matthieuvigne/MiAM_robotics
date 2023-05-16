@@ -10,6 +10,11 @@ void MotionController::setAvoidanceMode(AvoidanceMode avoidanceMode)
 
 bool MotionController::performAvoidance()
 {
+    if (!currentTrajectories_.front()->isAvoidanceEnabled())
+    {
+        textlog << "[MotionController] Avoidance is disabled for this traj" << std::endl;
+    }
+
     RobotPosition targetPosition = currentTargetEndPosition_;
     bool forward = currentTrajectories_.front()->getCurrentPoint(curvilinearAbscissa_).linearVelocity >= 0;
     std::vector<Obstacle> detectedObstacles = getDetectedObstacles();

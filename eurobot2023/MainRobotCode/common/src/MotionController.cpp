@@ -212,7 +212,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
                     timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
                     avoidanceCount_++;
-                }
+                }                
             }
         }
     }

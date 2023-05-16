@@ -46,7 +46,7 @@ double getTime()
 }
 
 
-Strategy::Strategy()
+Strategy::Strategy(): isAtBase_(false)
 {
 
 }
@@ -513,20 +513,23 @@ void Strategy::match()
 
 void Strategy::goBackToBase()
 {
+    if (isAtBase_)
+    {
+        textlog << "[Strategy] already at base" << std::endl;
+        return;
+    }
+
     TrajectoryVector traj;
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
 
     RobotPosition position = motionController->getCurrentPosition();
-    // positions.push_back(position);
     position.x = 680;
-    position.y = 130;
+    position.y = 500;
     position.theta = -M_PI_2;
 
     if ((motionController->getCurrentPosition() - position).norm() > 100)
     {
-        // positions.push_back(position);
-        // go_to_rounded_corner(positions);
         traj = robot->getMotionController()->computeMPCTrajectory(
             position, 
             robot->getMotionController()->getDetectedObstacles(), 
@@ -541,7 +544,30 @@ void Strategy::goBackToBase()
         go_to_straight_line(position);
     }
 
-    // rail doit etre en position basse en position tractopelle
-    // todo
+    position.x = 680;
+    position.y = 100;
+    position.theta = -M_PI_2;
+
+    TrajectoryConfig trajconf = robot->getParameters().getTrajConf();
+    trajconf.maxWheelVelocity = 200;
+
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
+        trajconf,
+        motionController->getCurrentPosition(), // start
+        position, // end
+        0.0, // no velocity at end point
+        false // backward
+    );
+
+    for (auto subtraj : traj)
+    {
+        subtraj->setAvoidanceEnabled(true);
+    }
+
+    robot->getMotionController()->setTrajectoryToFollow(traj);
+    robot->getMotionController()->waitForTrajectoryFinished();
+
+    isAtBase_ = true;
+
 }
 }
