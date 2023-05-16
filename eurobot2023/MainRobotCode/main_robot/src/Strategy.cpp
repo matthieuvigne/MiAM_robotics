@@ -292,6 +292,22 @@ void Strategy::match_impl()
     go_to_straight_line(targetPosition);
     #endif
     
+    //~ // Funny action
+    //~ for (int i = 0; i < 4; i++)
+    //~ {
+        //~ servo->setTargetPosition(RIGHT_ARM + i, 2048);
+        //~ servo->setTargetPosition(LEFT_ARM + i, 2048);
+    //~ }
+    //~ servo->setTargetPosition(RIGHT_ARM , STS::radToServoValue(-25*arm::RAD));
+    //~ servo->setTargetPosition(RIGHT_ARM + 1, STS::radToServoValue(M_PI_2));
+    //~ servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(25*arm::RAD));
+    //~ servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
+    //~ RPi_setupGPIO(25, PiGPIOMode::PI_GPIO_OUTPUT);
+    //~ RPi_writeGPIO(25, true);
+    //~ sleep(100000);
+    //~ RPi_writeGPIO(25, false);
+    //~ while(true);;
+    
     // Build the cakes
     buildCakes();
     while(true);;

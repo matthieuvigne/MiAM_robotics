@@ -89,6 +89,20 @@ namespace main_robot
       std::mutex pileLock;
       std::array<int, 5> pileHeight;
       enum PILE_IDX {LEFT_SIDE = 0,LEFT_FRONT = 1, MIDDLE = 2, RIGHT_FRONT = 3, RIGHT_SIDE = 4};
+      
+      // Right arm has inverted angles!
+      ArmPosition middlePile{
+        arm::CAKES_FRONT_DISTANCE + 10e-3,
+        arm::MIDDLE_PILE_ANGLE,
+        arm::GROUND_HEIGHT + 60e-3};
+      ArmPosition frontPile{
+        arm::CAKES_FRONT_DISTANCE,
+        arm::FRONT_PILE_ANGLE,
+        arm::GROUND_HEIGHT + 60e-3};
+      ArmPosition sidePile{
+        arm::CAKES_SIDE_DISTANCE,
+        arm::SIDE_PILE_ANGLE,
+        arm::GROUND_HEIGHT + 40e-3};
 
       ArmPosition last_left_position;
       ArmPosition last_right_position;
@@ -102,6 +116,10 @@ namespace main_robot
         int absrel_r, double r,
         int absrel_theta, double theta_rad,
         int absrel_z, double z);
+      ArmPosition getPileFromIndex(int pile_idx);
+      void grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate = false);
+      void dumbCakeToPile(int arm_idx, int pile_idx);
+      void resetPileHeights();
       void oscillate(int arm_idx, double amplitude_rad);
       void wait(int arm_idx, double duration);
       void pump(int arm_idx, bool activate);

@@ -225,6 +225,77 @@ void Strategy::oscillate(int arm_idx, double amplitude_rad)
 
 //--------------------------------------------------------------------------------------------------
 
+void Strategy::resetPileHeights()
+{
+  pileLock.lock();
+  pileHeight[PILE_IDX::LEFT_SIDE] = 0;
+  pileHeight[PILE_IDX::LEFT_FRONT] = 3;
+  pileHeight[PILE_IDX::MIDDLE] = 3;
+  pileHeight[PILE_IDX::RIGHT_FRONT] = 3;
+  pileHeight[PILE_IDX::RIGHT_SIDE] = 0;
+  pileLock.unlock();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+ArmPosition Strategy::getPileFromIndex(int pile_idx)
+{
+  ArmPosition pile;
+  switch(pile_idx)
+  {
+    case PILE_IDX::LEFT_SIDE:
+    case PILE_IDX::RIGHT_SIDE:
+      pile = sidePile;
+      break;
+    case PILE_IDX::LEFT_FRONT:
+    case PILE_IDX::RIGHT_FRONT:
+      pile = frontPile;
+      break;
+    case PILE_IDX::MIDDLE:
+      pile = middlePile;
+      break;
+    default:
+      throw std::runtime_error("Unknown pile");
+  }
+  return pile;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Strategy::grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate)
+{
+  // Go the target pile (initially, we assume Z = PILE_CLEAR_HEIGHT)
+  ArmPosition const pile = getPileFromIndex(pile_idx);
+  setTargetPosition(arm_idx, ABS, pile.r_ + 10e-3, ABS, pile.theta_, ABS, PILE_CLEAR_HEIGHT);
+  pump(LEFT_ARM, true);
+  setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) + 5e-3);
+  setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) - 3e-3);
+  setTargetPosition(arm_idx, REL, -10e-3, REL, 0, REL, 0);
+  if(oscillate) this->oscillate(arm_idx, 3*arm::RAD);
+  wait(arm_idx, 1.0);
+  changePileHeight(pile_idx, -1);
+  setTargetPosition(arm_idx, REL, -4e-3, REL, 0, REL, 2e-3);
+  setTargetPosition(arm_idx, REL, -4e-3, REL, 0, REL, 5e-3);
+  setTargetPosition(arm_idx, REL, -3e-3, REL, 0, REL, 10e-3);
+  setTargetPosition(arm_idx, REL, -3e-3, REL, 0, ABS, PILE_CLEAR_HEIGHT + 10e-3);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Strategy::dumbCakeToPile(int arm_idx, int pile_idx)
+{
+  ArmPosition const pile = getPileFromIndex(pile_idx);
+  setTargetPosition(arm_idx, REL, 0, ABS, pile.theta_-8*arm::RAD, REL, 0);
+  setTargetPosition(arm_idx, ABS, pile.r_, REL, 0, REL, 0);
+  setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) + LAYER_HEIGHT + 2e-2);
+  pump(arm_idx, false);
+  wait(arm_idx, 1.0);
+  changePileHeight(pile_idx, 1);
+  setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::buildCakes()
 {
 #ifdef SIMULATION
@@ -235,18 +306,21 @@ void Strategy::buildCakes()
     std::cout << "Building cakes" << std::endl;
     
     // Right arm has inverted angles!
-    ArmPosition middlePile(arm::CAKES_FRONT_DISTANCE + 1e-2, arm::MIDDLE_PILE_ANGLE, arm::GROUND_HEIGHT + 60e-3);
-    ArmPosition frontPile(arm::CAKES_FRONT_DISTANCE, arm::FRONT_PILE_ANGLE, arm::GROUND_HEIGHT + 60e-3);
-    ArmPosition sidePile(arm::CAKES_SIDE_DISTANCE, arm::SIDE_PILE_ANGLE, arm::GROUND_HEIGHT + 40e-3);
+    ArmPosition middlePile(
+      arm::CAKES_FRONT_DISTANCE + 10e-3, 
+      arm::MIDDLE_PILE_ANGLE,
+      arm::GROUND_HEIGHT + 60e-3);
+    ArmPosition frontPile(
+      arm::CAKES_FRONT_DISTANCE,
+      arm::FRONT_PILE_ANGLE,
+      arm::GROUND_HEIGHT + 60e-3);
+    ArmPosition sidePile(
+      arm::CAKES_SIDE_DISTANCE,
+      arm::SIDE_PILE_ANGLE,
+      arm::GROUND_HEIGHT + 40e-3);
 
     // Reset piles heights
-    pileLock.lock();
-    pileHeight[PILE_IDX::LEFT_SIDE] = 0;
-    pileHeight[PILE_IDX::LEFT_FRONT] = 3;
-    pileHeight[PILE_IDX::MIDDLE] = 3;
-    pileHeight[PILE_IDX::RIGHT_FRONT] = 3;
-    pileHeight[PILE_IDX::RIGHT_SIDE] = 0;
-    pileLock.unlock();
+    resetPileHeights();
     
     // Get the current position of both arms
     last_left_position = getArmPosition(LEFT_ARM);
@@ -256,256 +330,67 @@ void Strategy::buildCakes()
     initPosition(LEFT_ARM, last_left_position);
     initPosition(RIGHT_ARM, last_right_position);
         
-    // First synchronize block
-    // -----------------------
-    // Left arm turns its pump on, and goes down to take a genoese and goes up
-    std::cout << ">>>>>>>>>>>>>>>>> First block  <<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    setTargetPosition(LEFT_ARM, ABS, middlePile.r_ + 10e-3, ABS, middlePile.theta_, ABS, PILE_CLEAR_HEIGHT);
-    pump(LEFT_ARM, true);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) + 5e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) - 3e-3);
-    setTargetPosition(LEFT_ARM, REL, -10e-3, REL, 0, REL, 0);
-    oscillate(LEFT_ARM, 3*arm::RAD);
-    wait(LEFT_ARM, 1.0);
-    changePileHeight(PILE_IDX::MIDDLE, -1);
-    setTargetPosition(LEFT_ARM, REL, -4e-3, REL, 0, REL, 2e-3);
-    setTargetPosition(LEFT_ARM, REL, -4e-3, REL, 0, REL, 5e-3);
-    setTargetPosition(LEFT_ARM, REL, -3e-3, REL, 0, REL, 10e-3);
-    setTargetPosition(LEFT_ARM, REL, -3e-3, REL, 0, ABS, PILE_CLEAR_HEIGHT + 10e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, ABS, sidePile.theta_, REL, 0);
-    setTargetPosition(LEFT_ARM, ABS, sidePile.r_, REL, 0, REL, 0);
-    // Left arm goes to side pile and delivers its genoese
-    changePileHeight(PILE_IDX::LEFT_SIDE, 1);
-    setTargetPosition(LEFT_ARM, ABS, sidePile.r_, ABS, sidePile.theta_, REL, 0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_SIDE) + 2e-2);
-    pump(LEFT_ARM, false);
-    wait(LEFT_ARM, 1.0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, PILE_CLEAR_HEIGHT);
+    // Block 1
+    // Left arm grabs genoese from middle pile and dumbs it to its side pile
+    grabCakeFromPile(LEFT_ARM, PILE_IDX::MIDDLE, true);
+    dumbCakeToPile(LEFT_ARM, PILE_IDX::LEFT_SIDE);
     runActionBlock();
-        
-    // Second synchronize block
-    // ------------------------
-    std::cout << ">>>>>>>>>>>>>>>>> Second block <<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+    
+    // Block 2
     // Left arm takes cream from its front pile and delivers it to its side pile
-    setTargetPosition(LEFT_ARM, ABS, frontPile.r_ + 10e-3, ABS, frontPile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
-    pump(LEFT_ARM, true);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_FRONT) + 3e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_FRONT) + 1e-3);
-    setTargetPosition(LEFT_ARM, REL, -10e-3, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_FRONT));
-    changePileHeight(PILE_IDX::LEFT_FRONT, -1);
-    wait(LEFT_ARM, 1.0);
-    changePileHeight(PILE_IDX::LEFT_SIDE, 1);
-    setTargetPosition(LEFT_ARM, REL, -4e-3, REL, 0, REL, 2e-3);
-    setTargetPosition(LEFT_ARM, REL, -4e-3, REL, 0, REL, 5e-3);
-    setTargetPosition(LEFT_ARM, REL, -3e-3, REL, 0, REL, 10e-3);
-    setTargetPosition(LEFT_ARM, REL, -3e-3, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT + 5e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, ABS, sidePile.theta_-8*arm::RAD, REL, 0);
-    setTargetPosition(LEFT_ARM, ABS, sidePile.r_, REL, 0, REL, 0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_SIDE) + 2e-2);
-    pump(LEFT_ARM, false);
-    wait(LEFT_ARM, 1.0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, PILE_CLEAR_HEIGHT);
     // Right arm takes ganache from its front pile and delivers it to the middle pile
-    setTargetPosition(RIGHT_ARM, ABS, frontPile.r_ + 10e-3, ABS, frontPile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
-    pump(RIGHT_ARM, true);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_FRONT) + 3e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_FRONT) + 1e-3);
-    setTargetPosition(RIGHT_ARM, REL, -10e-3, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_FRONT));
-    changePileHeight(PILE_IDX::RIGHT_FRONT, -1);
-    wait(RIGHT_ARM, 1.0);
-    changePileHeight(PILE_IDX::MIDDLE, 1);
-    setTargetPosition(RIGHT_ARM, REL, -4e-3, REL, 0, REL, 2e-3);
-    setTargetPosition(RIGHT_ARM, REL, -4e-3, REL, 0, REL, 5e-3);
-    setTargetPosition(RIGHT_ARM, REL, -3e-3, REL, 0, REL, 10e-3);
-    setTargetPosition(RIGHT_ARM, REL, -3e-3, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT + 5e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, ABS, middlePile.theta_, REL, 0);
-    setTargetPosition(RIGHT_ARM, ABS, middlePile.r_ + 5e-3, REL, 0, REL, 0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) + 2e-2);
-    pump(RIGHT_ARM, false);
-    wait(RIGHT_ARM, 1.0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, PILE_CLEAR_HEIGHT);
-    // Run the block
+    grabCakeFromPile(LEFT_ARM, PILE_IDX::LEFT_FRONT, false);
+    dumbCakeToPile(LEFT_ARM, PILE_IDX::LEFT_SIDE);
+    grabCakeFromPile(RIGHT_ARM, PILE_IDX::RIGHT_FRONT, false);
+    dumbCakeToPile(RIGHT_ARM, PILE_IDX::MIDDLE);
     runActionBlock();
-    
-    // Third synchronize block
-    // -----------------------
-    std::cout << ">>>>>>>>>>>>>>>>> Third block <<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    // Left arm takes the ganache from the middle pile
-    setTargetPosition(LEFT_ARM, ABS, middlePile.r_ + 10e-3, ABS, middlePile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
-    pump(LEFT_ARM, true);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) + 5e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) - 3e-3);
-    setTargetPosition(LEFT_ARM, REL, -10e-3, REL, 0, REL, 0);
-    wait(LEFT_ARM, 1.0);
-    changePileHeight(PILE_IDX::MIDDLE, -1);
-    setTargetPosition(LEFT_ARM, REL, -4e-3, REL, 0, REL, 2e-3);
-    setTargetPosition(LEFT_ARM, REL, -4e-3, REL, 0, REL, 5e-3);
-    setTargetPosition(LEFT_ARM, REL, -3e-3, REL, 0, REL, 10e-3);
-    setTargetPosition(LEFT_ARM, REL, -3e-3, REL, 0, REL, PILE_CLEAR_HEIGHT); // [PROBLEM]
-    setTargetPosition(LEFT_ARM, REL, 0, ABS, sidePile.theta_-8*arm::RAD, REL, 0);
-    setTargetPosition(LEFT_ARM, ABS, sidePile.r_, REL, 0, REL, 0);
-    // Left arm delivers it to its side pile
-    changePileHeight(PILE_IDX::LEFT_SIDE, 1);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_SIDE) + 2e-2);
-    pump(LEFT_ARM, false);
-    wait(LEFT_ARM, 1.0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, PILE_CLEAR_HEIGHT);
-    // Right arm goes over the ganache
+
+    // Block 3
+    // Left arm grabs ganache from middle and dumbs it to side
+    // Right arm goes over ganache
+    grabCakeFromPile(LEFT_ARM, PILE_IDX::MIDDLE, false);
+    dumbCakeToPile(LEFT_ARM, PILE_IDX::LEFT_SIDE);
     setTargetPosition(RIGHT_ARM, REL, 0, ABS, frontPile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
-    // Synchronize
     runActionBlock();
-    std::cout << "END OF BLOCK" << std::endl;
-    while(true);;
     
-    // Fourth synchronize block
-    // ------------------------
-    std::cout << ">>>>>>>>>>>>>>>>> Fourth block  <<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+    // Block 4
+    // Left arm takes cream from front pile and rises it up
     // Right arm takes genoese from middle pile and rises it up
-    setTargetPosition(RIGHT_ARM, ABS, middlePile.r_ + 10e-3, ABS, middlePile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
-    pump(RIGHT_ARM, true);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) + 3e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) + 1e-3);
-    setTargetPosition(RIGHT_ARM, REL, -10e-3, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE));
-    changePileHeight(PILE_IDX::MIDDLE, -1);
-    oscillate(RIGHT_ARM, 3*arm::RAD);
-    wait(RIGHT_ARM, 1.0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 2e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 5e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 10e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT + 7e-3);
-    // Left arm takes cream from front pile and rises it up
-    setTargetPosition(LEFT_ARM, ABS, frontPile.r_ + 10e-3, ABS, frontPile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
-    pump(LEFT_ARM, true);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_FRONT) + 3e-3);
-    wait(LEFT_ARM, 3.0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_FRONT) + 1e-3);
-    setTargetPosition(LEFT_ARM, REL, -10e-3, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_FRONT));
-    changePileHeight(PILE_IDX::LEFT_FRONT, -1);
-    wait(LEFT_ARM, 1.0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, REL, 2e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, REL, 5e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, REL, 10e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT + 7e-3);
-    // Synchronize
+    grabCakeFromPile(LEFT_ARM, PILE_IDX::LEFT_FRONT, false);
+    grabCakeFromPile(RIGHT_ARM, PILE_IDX::MIDDLE, true);
     runActionBlock();
     
-    // Fifth synchronize block
-    // -----------------------
-    std::cout << ">>>>>>>>>>>>>>>>> Fifth block  <<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+    // Block 5
     // Left arm delivers the cream to the middle pile
-    changePileHeight(PILE_IDX::MIDDLE, 1);
-    setTargetPosition(LEFT_ARM, ABS, middlePile.r_, ABS, middlePile.theta_, REL, 0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) + 2e-2);
-    pump(LEFT_ARM, false);
-    wait(LEFT_ARM, 1.0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, PILE_CLEAR_HEIGHT + 5e-3);
     // Right arm delivers the genoese to the side pile
-    changePileHeight(PILE_IDX::RIGHT_SIDE, 1);
-    setTargetPosition(RIGHT_ARM, ABS, sidePile.r_, ABS, sidePile.theta_, REL, 0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_SIDE) + 2e-2);
-    pump(RIGHT_ARM, false);
-    wait(RIGHT_ARM, 1.0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, PILE_CLEAR_HEIGHT + 5e-3);
-    // Synchronize
-    runActionBlock();
-
-    // Sixth synchronize block
-    // -----------------------
-    std::cout << ">>>>>>>>>>>>>>>>> Sixth block  <<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    // Right arm takes cream from middle pile and rises it up
-    setTargetPosition(RIGHT_ARM, ABS, middlePile.r_ + 10e-3, ABS, middlePile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
-    pump(RIGHT_ARM, true);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) + 3e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) + 1e-3);
-    setTargetPosition(RIGHT_ARM, REL, -10e-3, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE));
-    changePileHeight(PILE_IDX::MIDDLE, -1);
-    oscillate(RIGHT_ARM, 3*arm::RAD);
-    wait(RIGHT_ARM, 1.0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 2e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 5e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 10e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT + 5e-3);
-    // Left arm takes cream from front pile and rises it up
-    setTargetPosition(LEFT_ARM, ABS, frontPile.r_ + 10e-3, ABS, frontPile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
-    pump(LEFT_ARM, true);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_FRONT) + 3e-3);
-    wait(LEFT_ARM, 3.0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_FRONT) + 1e-3);
-    setTargetPosition(LEFT_ARM, REL, -10e-3, REL, 0, ABS, getPileZ(PILE_IDX::LEFT_FRONT));
-    changePileHeight(PILE_IDX::LEFT_FRONT, -1);
-    wait(LEFT_ARM, 1.0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, REL, 2e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, REL, 5e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, REL, 10e-3);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT + 5e-3);
-    // Synchronize
-    runActionBlock();
-
-    // Seventh synchronize block
-    // -------------------------
-    std::cout << ">>>>>>>>>>>>>>>>> Sventh block <<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    // Right arm delivers cream to its side pile
-    changePileHeight(PILE_IDX::RIGHT_SIDE, 1);
-    setTargetPosition(RIGHT_ARM, ABS, sidePile.r_, ABS, sidePile.theta_, REL, 0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_SIDE) + 2e-2);
-    pump(RIGHT_ARM, false);
-    wait(RIGHT_ARM, 1.0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, PILE_CLEAR_HEIGHT + 5e-3);
-    // Left arm delivers cream to the middle pile
-    changePileHeight(PILE_IDX::MIDDLE, 1);
-    setTargetPosition(LEFT_ARM, ABS, middlePile.r_, ABS, middlePile.theta_, REL, 0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) + 2e-2);
-    pump(LEFT_ARM, false);
-    wait(LEFT_ARM, 1.0);
-    setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, PILE_CLEAR_HEIGHT + 5e-3);
-    // Synchronize
+    dumbCakeToPile(LEFT_ARM, PILE_IDX::MIDDLE);
+    dumbCakeToPile(RIGHT_ARM, PILE_IDX::RIGHT_SIDE);
     runActionBlock();
     
-    // Eighth synchronize block
-    // ------------------------
-    std::cout << ">>>>>>>>>>>>>>>>> Eighth block <<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    // Left arm goes from the middle pile to its side pile
-    setTargetPosition(LEFT_ARM, REL, 0, REL, sidePile.theta_, REL, 0);
-    // Right arms takes ganache from front pile and delivers it to middle pile
-    setTargetPosition(RIGHT_ARM, ABS, frontPile.r_ + 10e-3, ABS, frontPile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
-    pump(RIGHT_ARM, true);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_FRONT) + 3e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_FRONT) + 1e-3);
-    setTargetPosition(RIGHT_ARM, REL, -10e-3, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_FRONT));
-    changePileHeight(PILE_IDX::RIGHT_FRONT, -1);
-    wait(RIGHT_ARM, 1.0);
-    changePileHeight(PILE_IDX::MIDDLE, 1);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 2e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 5e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 10e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT + 5e-3);
-    setTargetPosition(RIGHT_ARM, ABS, middlePile.r_ + 5e-3, ABS, middlePile.theta_, REL, 0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::MIDDLE) + 2e-2);
-    pump(RIGHT_ARM, false);
-    wait(RIGHT_ARM, 1.0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, PILE_CLEAR_HEIGHT + 5e-3);
-    // Right arms takes ganache from front pile and delivers it to side pile
-    setTargetPosition(RIGHT_ARM, ABS, frontPile.r_ + 10e-3, ABS, frontPile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
-    pump(RIGHT_ARM, true);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_FRONT) + 3e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_FRONT) + 1e-3);
-    setTargetPosition(RIGHT_ARM, REL, -10e-3, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_FRONT));
-    changePileHeight(PILE_IDX::RIGHT_FRONT, -1);
-    wait(RIGHT_ARM, 1.0);
-    changePileHeight(PILE_IDX::RIGHT_SIDE, 1);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 2e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 5e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, REL, 10e-3);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT + 5e-3);
-    setTargetPosition(RIGHT_ARM, ABS, sidePile.r_ + 5e-3, ABS, sidePile.theta_, REL, 0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, getPileZ(PILE_IDX::RIGHT_SIDE) + 2e-2);
-    pump(RIGHT_ARM, false);
-    wait(RIGHT_ARM, 1.0);
-    setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, PILE_CLEAR_HEIGHT + 5e-3);
-    // Synchronize
+    // Block 6
+    // Left arm takes cream from front pile and rises it up
+    // Right arm takes cream from middle pile and rises it up
+    grabCakeFromPile(LEFT_ARM, PILE_IDX::LEFT_FRONT, true);
+    grabCakeFromPile(RIGHT_ARM, PILE_IDX::MIDDLE, false);
     runActionBlock();
-    std::cout << "END OF BLOCK" << std::endl;
-    while(true);;
+    
+    // Block 7
+    // Left arm delivers cream to the middle pile
+    // Right arm delivers cream to its side pile
+    dumbCakeToPile(LEFT_ARM, PILE_IDX::MIDDLE);
+    dumbCakeToPile(RIGHT_ARM, PILE_IDX::RIGHT_SIDE);
+    runActionBlock();
+    
+    // Block 8
+    // Left arm goes from the middle pile to its side pile
+    // Right arms takes ganache from front pile and delivers it to middle pile
+    // Right arms takes ganache from front pile and delivers it to side pile
+    setTargetPosition(LEFT_ARM, REL, 0, REL, sidePile.theta_, REL, 0);
+    grabCakeFromPile(RIGHT_ARM, PILE_IDX::RIGHT_FRONT, false);
+    dumbCakeToPile(RIGHT_ARM, PILE_IDX::MIDDLE);
+    grabCakeFromPile(RIGHT_ARM, PILE_IDX::RIGHT_FRONT, false);
+    dumbCakeToPile(RIGHT_ARM, PILE_IDX::RIGHT_SIDE);
+    runActionBlock();
 }
 
 //--------------------------------------------------------------------------------------------------
