@@ -116,7 +116,7 @@ TrajectoryVector MotionController::computeBasicAvoidanceTrajectory(RobotPosition
 
 
 TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles,
-    bool forward, bool avoidanceEnabled)
+    bool forward, bool avoidanceEnabled, bool ensureEndAngle)
 {
     TrajectoryVector traj;
     RobotPosition currentPosition = getCurrentPosition();
@@ -139,8 +139,8 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
         textlog << "[MotionController] " << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
 
         TrajectoryConfig tc_pt = robotParams_.getTrajConf();
-        tc_pt.maxWheelVelocity *= 0.1;
-        tc_pt.maxWheelAcceleration *= 0.1;
+        tc_pt.maxWheelVelocity *= 0.3;
+        tc_pt.maxWheelAcceleration *= 0.3;
 
         // add a point turn to keep the end angle info
         std::shared_ptr<PointTurn > pt_sub_end(
@@ -216,7 +216,8 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
     newStartPoint.theta = currentPosition.theta;
     TrajectoryVector traj2 = motionPlanner_->planMotion(
         newStartPoint,
-        targetPosition
+        targetPosition,
+        ensureEndAngle
     );
 
     // if motion planning failed, plan a straight line in order to go back anyway
@@ -230,15 +231,18 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
         );
 
         TrajectoryConfig tc_pt = robotParams_.getTrajConf();
-        tc_pt.maxWheelVelocity *= 0.1;
-        tc_pt.maxWheelAcceleration *= 0.1;
+        tc_pt.maxWheelVelocity *= 0.3;
+        tc_pt.maxWheelAcceleration *= 0.3;
 
-        // add a point turn to keep the end angle info
-        std::shared_ptr<PointTurn > pt_sub_end(
-            new PointTurn(tc_pt,
-            traj2.getEndPoint().position, targetPosition.theta)
-        );
-        traj2.push_back(pt_sub_end);
+        if (ensureEndAngle)
+        {
+            // add a point turn to keep the end angle info
+            std::shared_ptr<PointTurn > pt_sub_end(
+                new PointTurn(tc_pt,
+                traj2.getEndPoint().position, targetPosition.theta)
+            );
+            traj2.push_back(pt_sub_end);
+        }
 
         // tags trajectory to be replanned
         for (auto& subtraj : traj2)
@@ -266,9 +270,9 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
     }
     traj.insert( traj.end(), traj2.begin(), traj2.end() );
 
-    std::cout << "MPC trajectory: " << std::endl;
-    for (double t = 0; t <= traj.getDuration(); t+=0.2)
-        std::cout << traj.getCurrentPoint(t) << std::endl;
+    // textlog << "[MotionControllerAvoidance] MPC trajectory: " << std::endl;
+    // for (double t = 0; t <= traj.getDuration(); t+=0.2)
+    //     textlog << "[MotionControllerAvoidance] " << traj.getCurrentPoint(t) << std::endl;
 
     return traj;
 }

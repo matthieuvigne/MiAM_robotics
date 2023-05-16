@@ -75,7 +75,8 @@ MotionPlanner::MotionPlanner(RobotParameters const& robotParameters) : robotPara
 
 TrajectoryVector MotionPlanner::planMotion(
             RobotPosition const& currentPosition,
-            RobotPosition const& targetPosition)
+            RobotPosition const& targetPosition,
+            bool ensureEndAngle)
 {
     // pathPlanner_.printMap();
     std::vector<RobotPosition > planned_path = pathPlanner_->planPath(currentPosition, targetPosition);
@@ -94,13 +95,13 @@ TrajectoryVector MotionPlanner::planMotion(
 
     if (st.getDuration() > 0)
     {
-        std::cout << "Solved trajectory: " << std::endl;
+        textlog << "[MotionPlanner] " << "Solved trajectory: " << std::endl;
         // for (double t = 0; t <=st.getDuration(); t += 0.1) {
-        //     std::cout << st.getCurrentPoint(t) << std::endl;
+        //     textlog << "[MotionPlanner] " << st.getCurrentPoint(t) << std::endl;
         // }
-        std::cout << "Duration: " << st.getDuration() << std::endl;
-        std::cout << "Start: " << st.getCurrentPoint(0.0) << std::endl;
-        std::cout << "End: " << st.getEndPoint() << std::endl;
+        textlog << "[MotionPlanner] " << "Duration: " << st.getDuration() << std::endl;
+        textlog << "[MotionPlanner] " << "Start: " << st.getCurrentPoint(0.0) << std::endl;
+        textlog << "[MotionPlanner] " << "End: " << st.getEndPoint() << std::endl;
 
 
         // at start, perform a point turn to get the right angle
@@ -112,16 +113,19 @@ TrajectoryVector MotionPlanner::planMotion(
         // insert solved trajectory
         res.insert( res.end(), st.begin(), st.end() );
 
-        // at end, perform a point turn to get the right angle
-        std::shared_ptr<PointTurn > pt_sub_end(
-            new PointTurn(robotParams_.getTrajConf(), 
-            res.getEndPoint().position, targetPosition.theta)
-        );
-        res.push_back(pt_sub_end);
+        if (ensureEndAngle)
+        {
+            // at end, perform a point turn to get the right angle
+            std::shared_ptr<PointTurn > pt_sub_end(
+                new PointTurn(robotParams_.getTrajConf(), 
+                res.getEndPoint().position, targetPosition.theta)
+            );
+            res.push_back(pt_sub_end);
+        }
     }
     else
     {
-        std::cout << "Solver failed" << std::endl;
+        textlog << "[MotionPlanner] " << "Solver failed" << std::endl;
     }
 
     return res;
@@ -236,9 +240,9 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
     {
         for (double t=0; t <= vector.getDuration(); t+=0.2)
         {
-            std::cout << "t: " << t << " " << vector.getCurrentPoint(t) << std::endl;
+            textlog << "[MotionPlanner] " << "t: " << t << " " << vector.getCurrentPoint(t) << std::endl;
         }
-        std::cout << "t: " << vector.getDuration() << " " << vector.getEndPoint() << std::endl;
+        textlog << "[MotionPlanner] " << "t: " << vector.getDuration() << " " << vector.getEndPoint() << std::endl;
     }
     
     return vector;
@@ -330,7 +334,7 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
 
             // if (VERBOSE)
             // {
-            //     std::cout << "true: " << "t=" << t << " --- " << tp.position.x << "\t" << tp.position.y << "\t" << tp.position.theta << "\t" << tp.linearVelocity << "\t" << tp.angularVelocity << std::endl;
+            //     textlog << "[MotionPlanner] " << "true: " << "t=" << t << " --- " << tp.position.x << "\t" << tp.position.y << "\t" << tp.position.theta << "\t" << tp.linearVelocity << "\t" << tp.angularVelocity << std::endl;
             // }
             
             /* Initialize the states. */        
@@ -390,7 +394,7 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
 
             if (VERBOSE)
             {
-                std::cout << "solved: " << "t=" << t << " --- " << 
+                textlog << "[MotionPlanner] " << "solved: " << "t=" << t << " --- " << 
                     tp.position.x << "\t" << 
                     tp.position.y << "\t" << 
                     tp.position.theta << "\t" << 

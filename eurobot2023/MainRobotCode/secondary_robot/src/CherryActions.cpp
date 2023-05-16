@@ -107,8 +107,8 @@ void Strategy::put_cherries_in_the_basket()
     waitForRail();
 
     // go front
-    // go_to_straight_line(motionController->getCurrentPosition() + RobotPosition(150, 0, 0));
-    go_forward(100);
+    // very far
+    go_forward(190);
 
     // tilt and push cherries
     set_reservoir_tilt(ReservoirTilt::DOWN);
@@ -122,7 +122,7 @@ void Strategy::put_cherries_in_the_basket()
     set_reservoir_tilt(ReservoirTilt::HORIZONTAL);
     set_brush_move(BrushDirection::OFF);
 
-    go_forward(-100);
+    go_forward(-130);
     moveRail(rail::MIDDLE);
     robot->wait(2.0);
     set_reservoir_tilt(ReservoirTilt::UP);

@@ -297,6 +297,7 @@ void Robot::lowLevelLoop()
                 measurements.motorSpeed(0) = 0.0;
                 leftController_.stop();
                 measurements.motorSpeed(1) = 0.0;
+                motionController_.log("MotorController.status", 0);
             }
             else
             {
@@ -307,6 +308,7 @@ void Robot::lowLevelLoop()
                 measurements.motorSpeed(0) = sign * rightController_.sendTarget(sign * target.motorSpeed[0], dt);
                 sign = motionController_.robotParams_.leftMotorDirection;
                 measurements.motorSpeed(1) = sign * leftController_.sendTarget(sign * target.motorSpeed[1], dt);
+                motionController_.log("MotorController.status", 1);
             }
         }
         motionController_.log("MotorController.right.current", rightController_.current_);

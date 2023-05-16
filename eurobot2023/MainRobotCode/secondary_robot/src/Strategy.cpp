@@ -9,6 +9,7 @@
 #include <miam_utils/trajectory/PointTurn.h>
 #include <miam_utils/trajectory/Utilities.h>
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
+#include <miam_utils/TextLogger.h>
 
 #include "secondary_robot/Strategy.h"
 
@@ -96,18 +97,18 @@ bool Strategy::setup(RobotInterface *robot)
         {
             try
             {
-                std::cout << "Trying to connect" << std::endl;
+                textlog << "[Strategy (secondary_robot)] " << "Trying to connect" << std::endl;
                 // args: addr, port, isUDP
                 // address is broadcast address ; UDP = true
                 sock_.connect("192.168.6.255", 37020, true);
-                std::cout << "Connected!" << std::endl;
+                textlog << "[Strategy (secondary_robot)] " << "Connected!" << std::endl;
                 usleep(50000);
                 break;
             }
             catch(network::SocketException const&)
             {
                 usleep(1e6);
-                std::cout << "Failed to connect..." << std::endl;
+                textlog << "[Strategy (secondary_robot)] " << "Failed to connect..." << std::endl;
             }
             attempts++;
         }
@@ -226,9 +227,9 @@ void Strategy::match_impl()
 {
     // Send start message
     if (sock_.send("Match started"))
-        std::cout << "Start message sent" << std::endl;
+        textlog << "[Strategy (secondary_robot)] " << "Start message sent" << std::endl;
     else
-        std::cout << "Start message error! not sent" << std::endl;
+        textlog << "[Strategy (secondary_robot)] " << "Start message error! not sent" << std::endl;
 
     // Create required variables.
     RobotPosition targetPosition;
@@ -291,6 +292,11 @@ void Strategy::match_impl()
     RobotPosition position = motionController->getCurrentPosition();
     position.x = 180; //robotParameters.CHASSIS_WIDTH + 90.0;
     position.y = 3000 - robotParameters.CHASSIS_FRONT - 160;
+    if (!robot->isPlayingRightSide())
+    {
+        // left side: a little more to the left
+        position.x = 150;
+    }
     position.theta = M_PI_2;
 
     // Ajouter un obstacle fictif au niveau des gateaux
@@ -327,8 +333,9 @@ void Strategy::match_impl()
     actions.push_back(PushCakes1to5());
     actions.push_back(PushCakes7to5());
     actions.push_back(PushCakes3to4());
-    // actions.push_back(PushCakes6to10());
     actions.push_back(PushCakes6to4());
+
+    int number_of_unsuccessful_iters = 0;
 
     while (actions.size() > 0)
     {
@@ -343,6 +350,12 @@ void Strategy::match_impl()
         {
 
             PushingCakesAction action = actions.at(i);
+
+            if (!action.activated)
+            {
+                textlog << "[Strategy (secondary_robot)] " << "action " << i << " was deactivated" << std::endl;
+                continue;
+            }
 
             double minDistanceFromObstacle = 10000;
             double minDistanceFromObstacleEnd = 10000;
@@ -365,27 +378,38 @@ void Strategy::match_impl()
             }
 
             // 150 = radius of the robot
-            if (minDistanceFromObstacle > 150 & minDistanceFromObstacleEnd > 70 & distanceToStartPoint < minDistanceToStartPoint)
+            if (minDistanceFromObstacle > 150 & minDistanceFromObstacleEnd > 70 & 
+                distanceToStartPoint < minDistanceToStartPoint)
             {
                 action_index = i;
                 minDistanceToStartPoint = distanceToStartPoint;
             }
 
 
-            std::cout << "action " << i << " start point " << action.start_position << std::endl;
-            std::cout << "   minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceFromObstacleEnd " << minDistanceFromObstacleEnd << " distanceToStartPoint " << distanceToStartPoint << std::endl;
+            textlog << "[Strategy (secondary_robot)] " << "action " << i << " start point " << action.start_position << std::endl;
+            textlog << "[Strategy (secondary_robot)] " << "   minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceFromObstacleEnd " << minDistanceFromObstacleEnd << " distanceToStartPoint " << distanceToStartPoint << std::endl;
 
 
             
         }
 
-        std::cout << "Chosen action: " << action_index << std::endl;
+        textlog << "[Strategy (secondary_robot)] " << "Chosen action: " << action_index << std::endl;
+        if (action_index < 0)
+        {
+            textlog << "[Strategy (secondary_robot)] " << "Reactivating all actions" << std::endl;
+            for (int i = 0; i < actions.size() ; i++)
+            {
+                actions.at(i).activated = true;
+            }
+        }
 
         robot->wait(1);
 
         if (action_index >= 0)
         {
-            std::cout << "####### Performing pushing action: " << action_index << " (" << actions.size() << " remaining)" << std::endl;
+            number_of_unsuccessful_iters = 0;
+
+            textlog << "[Strategy (secondary_robot)] " << "####### Performing pushing action: " << action_index << " (" << actions.size() << " remaining)" << std::endl;
 
             PushingCakesAction action = actions.at(action_index);
 
@@ -405,10 +429,12 @@ void Strategy::match_impl()
 
             if (traj.getDuration() == 0.0)
             {
-                std::cout << "Motion planning to action failed!" << std::endl;
+                textlog << "[Strategy (secondary_robot)] " << "Motion planning to action failed!" << std::endl;
                 continue;
             }
             robot->getMotionController()->setTrajectoryToFollow(traj);
+
+            bool action_successful = true;
 
             if (robot->getMotionController()->waitForTrajectoryFinished())
             {
@@ -425,158 +451,33 @@ void Strategy::match_impl()
                         robot->getMotionController()->addPersistentObstacle(obstacle);
                     }
                 }
+                else
+                {
+                    action_successful = false;
+                }
+            }
+            else
+            {
+                action_successful = false;
+            }
+
+            if (!action_successful)
+            {
+                textlog << "[Strategy (secondary_robot)] " << "Action was not successful: deactivated" << std::endl;
+                actions.at(action_index).activated = false;
             }
         }
+        else
+        {
+            number_of_unsuccessful_iters++;
+        }
+
+        if (number_of_unsuccessful_iters > 10)
+        {
+            textlog << "[Strategy (secondary_robot)] " << "Removing all actions" << std::endl;
+            actions.clear();
+        }
     }
-
-    // // action 1 : pousser les piles
-    // {
-    //     RobotPosition start_position;
-    //     start_position.x = 230;
-    //     start_position.y = 2600;
-    //     start_position.theta = -M_PI_2;
-
-    //     traj = robot->getMotionController()->computeMPCTrajectory(start_position, robot->getMotionController()->getDetectedObstacles(), true);
-    //     robot->getMotionController()->setTrajectoryToFollow(traj);
-
-    //     // rail doit etre en position basse en position tractopelle
-    //     // todo
-
-    //     robot->getMotionController()->waitForTrajectoryFinished();
-
-    //     RobotPosition end_position;
-    //     end_position.x = 230;
-    //     end_position.y = 1270;
-    //     end_position.theta = -M_PI_2;
-
-    //     go_to_straight_line(end_position);
-
-    //     // Ajouter un obstacle fictif au niveau des gateaux
-    //     // x 230, y 2300, radius 200
-    //     RobotPosition obstacle;
-    //     obstacle.x = 230;
-    //     obstacle.y = 1200;
-    //     robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
-
-    // }
-
-    // // action 2 : pousser les piles
-    // {
-    //     RobotPosition start_position;
-    //     start_position.x = 230;
-    //     start_position.y = 209;
-    //     start_position.theta = M_PI_2;
-
-    //     {
-    //         // Ajouter un obstacle fictif au niveau des gateaux
-    //         // x 230, y 2300, radius 200
-    //         RobotPosition obstacle;
-    //         obstacle.x = 230;
-    //         obstacle.y = 670;
-    //         robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
-    //     }
-
-    //     traj = robot->getMotionController()->computeMPCTrajectory(start_position, robot->getMotionController()->getDetectedObstacles(), true);
-    //     robot->getMotionController()->setTrajectoryToFollow(traj);
-
-    //     // rail doit etre en position basse en position tractopelle
-    //     // todo
-
-    //     robot->getMotionController()->waitForTrajectoryFinished();
-
-    //     // retirer l'obstacle
-    //     robot->getMotionController()->popBackPersistentObstacles();
-
-    //     RobotPosition end_position;
-    //     end_position.x = 230;
-    //     end_position.y = 1000;
-    //     end_position.theta = -M_PI_2;
-
-    //     go_to_straight_line(end_position);
-
-    //     // Ajouter un obstacle fictif au niveau des gateaux
-    //     // x 230, y 2300, radius 200
-    //     RobotPosition obstacle;
-    //     obstacle.x = 230;
-    //     obstacle.y = 1200;
-    //     robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
-
-    // }
-
-    // // action 3 : pousser les piles
-    // {
-    //     RobotPosition start_position;
-    //     start_position.x = 446;
-    //     start_position.y = 1890;
-    //     start_position.theta = 0;
-
-    //     {
-    //         // Ajouter un obstacle fictif au niveau des gateaux
-    //         // x 230, y 2300, radius 200
-    //         RobotPosition obstacle;
-    //         obstacle.x = 738;
-    //         obstacle.y = 1890;
-    //         robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 200));
-    //     }
-
-    //     traj = robot->getMotionController()->computeMPCTrajectory(start_position, robot->getMotionController()->getDetectedObstacles(), true);
-    //     robot->getMotionController()->setTrajectoryToFollow(traj);
-
-    //     // rail doit etre en position basse en position tractopelle
-    //     // todo
-
-    //     robot->getMotionController()->waitForTrajectoryFinished();
-
-    //     // retirer l'obstacle
-    //     robot->getMotionController()->popBackPersistentObstacles();
-
-    //     RobotPosition end_position;
-    //     end_position.x = 1592;
-    //     end_position.y = 1890;
-    //     end_position.theta = 0;
-
-    //     go_to_straight_line(end_position);
-
-    //     // Ajouter un obstacle fictif au niveau des gateaux
-    //     // x 230, y 2300, radius 200
-    //     RobotPosition obstacle;
-    //     obstacle.x = 1770;
-    //     obstacle.y = 1890;
-    //     robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
-
-    // }
-
-    // // action 4 : pousser les piles
-    // {
-    //     RobotPosition start_position;
-    //     start_position.x = 1780;
-    //     start_position.y = 1400;
-    //     start_position.theta = -M_PI_2;
-
-    //     traj = robot->getMotionController()->computeMPCTrajectory(start_position, robot->getMotionController()->getDetectedObstacles(), true);
-    //     robot->getMotionController()->setTrajectoryToFollow(traj);
-
-    //     // rail doit etre en position basse en position tractopelle
-    //     // todo
-
-    //     robot->getMotionController()->waitForTrajectoryFinished();
-
-    //     RobotPosition end_position;
-    //     end_position.x = 1780;
-    //     end_position.y = 410;
-    //     end_position.theta = 0;
-
-    //     go_to_straight_line(end_position);
-
-    //     // Ajouter un obstacle fictif au niveau des gateaux
-    //     // x 230, y 2300, radius 200
-    //     RobotPosition obstacle;
-    //     obstacle.x = 1770;
-    //     obstacle.y = 200;
-    //     robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
-
-    // }
-
 
     // Match end: go back to base
     goBackToBase();
@@ -584,13 +485,13 @@ void Strategy::match_impl()
 
     while (true) ;;
 
-    std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
+    textlog << "[Strategy (secondary_robot)] " << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }
 
 void Strategy::match()
 {
 
-    std::cout << "Strategy thread started." << std::endl;
+    textlog << "[Strategy (secondary_robot)] " << "Strategy thread started." << std::endl;
 
     std::thread stratMain(&Strategy::match_impl, this);
     pthread_t handle = stratMain.native_handle();
@@ -605,7 +506,7 @@ void Strategy::match()
     robot->wait(0.05);
     if (!MATCH_COMPLETED)
     {
-        std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
+        textlog << "[Strategy (secondary_robot)] " << "Match almost done, auto-triggering fallback strategy" << std::endl;
         goBackToBase();
     }
 }
@@ -618,14 +519,20 @@ void Strategy::goBackToBase()
 
     RobotPosition position = motionController->getCurrentPosition();
     // positions.push_back(position);
-    position.x = 600;
-    position.y = 400;
+    position.x = 680;
+    position.y = 130;
+    position.theta = -M_PI_2;
 
     if ((motionController->getCurrentPosition() - position).norm() > 100)
     {
         // positions.push_back(position);
         // go_to_rounded_corner(positions);
-        traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
+        traj = robot->getMotionController()->computeMPCTrajectory(
+            position, 
+            robot->getMotionController()->getDetectedObstacles(), 
+            false,   // is forward
+            true,   // is an avoidance traj
+            true); // ensure end angle
         robot->getMotionController()->setTrajectoryToFollow(traj);
         robot->getMotionController()->waitForTrajectoryFinished();
     }

@@ -186,15 +186,15 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
             // if stopped for longer than a threshold, perform avoidance every 1 second
             if (durationSinceLastAvoidance >= 1000)
             {
-                std::cout << "Duration since first stopped (ms): " << static_cast<double>(durationSinceFirstStopped) << std::endl;
-                std::cout << "Duration since last avoidance (ms): " << static_cast<double>(durationSinceLastAvoidance) << std::endl;
-                std::cout << "Number of avoidance attempts (ms): " << avoidanceCount_ << std::endl;
+                textlog << "[MotionController] " << "Duration since first stopped (ms): " << static_cast<double>(durationSinceFirstStopped) << std::endl;
+                textlog << "[MotionController] " << "Duration since last avoidance (ms): " << static_cast<double>(durationSinceLastAvoidance) << std::endl;
+                textlog << "[MotionController] " << "Number of avoidance attempts (ms): " << avoidanceCount_ << std::endl;
 
                 // if avoided too much (or stucked for too long TODO), deem trajectory failed
                 if (avoidanceCount_ > maxAvoidanceAttempts_)
                 {
-                    std::cout << "Trajectory failed: attempted " << avoidanceCount_ << " avoidance" << std::endl;
-                    std::cout << "Obstacle still present, canceling trajectory" << std::endl;
+                    textlog << "[MotionController] " << "Trajectory failed: attempted " << avoidanceCount_ << " avoidance" << std::endl;
+                    textlog << "[MotionController] " << "Obstacle still present, canceling trajectory" << std::endl;
                     // Failed to perform avoidance.
                     // Raise flag and end trajectory following.
                     wasTrajectoryFollowingSuccessful_ = false;
@@ -206,9 +206,9 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
                     bool avoid = performAvoidance();
 
                     if (avoid)
-                        std::cout << "Performing avoidance" << std::endl;
+                        textlog << "[MotionController] " << "Performing avoidance" << std::endl;
                     else
-                        std::cout << "Avoidance failed" << std::endl;
+                        textlog << "[MotionController] " << "Avoidance failed" << std::endl;
 
                     timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
                     avoidanceCount_++;

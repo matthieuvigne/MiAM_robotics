@@ -1,6 +1,7 @@
 #include <miam_utils/trajectory/Utilities.h>
 #include <miam_utils/trajectory/SampledTrajectory.h>
 #include <miam_utils/trajectory/PathPlanner.h>
+#include <miam_utils/TextLogger.h>
 #include "common/RobotParameters.h"
 
 #ifndef MOTION_PLANNING_H
@@ -18,7 +19,8 @@ class MotionPlanner{
 
         TrajectoryVector planMotion(
             RobotPosition const& currentPosition,
-            RobotPosition const& targetPosition);
+            RobotPosition const& targetPosition,
+            bool ensureEndAngle);
 
 
         TrajectoryVector computeTraj(TrajectoryConfig const& config, RobotPosition start, RobotPosition end)
