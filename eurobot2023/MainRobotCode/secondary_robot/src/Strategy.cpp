@@ -297,7 +297,7 @@ void Strategy::match_impl()
 
     // cible
     RobotPosition position = motionController->getCurrentPosition();
-    position.x = 210; //robotParameters.CHASSIS_WIDTH + 90.0;
+    position.x = 180; //robotParameters.CHASSIS_WIDTH + 90.0;
     position.y = 3000 - robotParameters.CHASSIS_FRONT - 160;
     position.theta = M_PI_2;
 
@@ -352,28 +352,38 @@ void Strategy::match_impl()
             PushingCakesAction action = actions.at(i);
 
             double minDistanceFromObstacle = 10000;
+            double minDistanceFromObstacleEnd = 10000;
             double distanceToStartPoint = (action.start_position - currentPosition).norm();
 
             for (auto obstacle : robot->getMotionController()->getDetectedObstacles())
             {
+
+                double tmpMin = (std::get<0>(obstacle) - action.start_position).norm() - std::get<1>(obstacle);
+                double tmpMinEnd = (std::get<0>(obstacle) - action.end_position).norm() - std::get<1>(obstacle);
+
                 // distance to center of obstacle minus size of the obstacle
                 minDistanceFromObstacle = std::min(
-                    minDistanceFromObstacle,
-                    (std::get<0>(obstacle) - action.start_position).norm() - std::get<1>(obstacle));
-                // // distance to center of obstacle minus size of the obstacle
-                // minDistanceFromObstacle = std::min(
-                //     minDistanceFromObstacle,
-                //     (std::get<0>(obstacle) - action.end_position).norm() - std::get<1>(obstacle));
+                    minDistanceFromObstacle, 
+                    tmpMin);
+                // distance to center of obstacle minus size of the obstacle
+                minDistanceFromObstacleEnd = std::min(
+                    minDistanceFromObstacleEnd, 
+                    tmpMinEnd);
             }
 
             // 150 = radius of the robot
-            if (minDistanceFromObstacle > 150 &  distanceToStartPoint < minDistanceToStartPoint)
+            if (minDistanceFromObstacle > 150 & minDistanceFromObstacleEnd > 70 & distanceToStartPoint < minDistanceToStartPoint)
             {
                 action_index = i;
                 minDistanceToStartPoint = distanceToStartPoint;
             }
 
-            std::cout << "action " << i << " start point " << action.start_position << " minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceToStartPoint " << minDistanceToStartPoint << std::endl;
+
+            std::cout << "action " << i << " start point " << action.start_position << std::endl;
+            std::cout << "   minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceFromObstacleEnd " << minDistanceFromObstacleEnd << " distanceToStartPoint " << distanceToStartPoint << std::endl;
+
+
+            
         }
 
         std::cout << "Chosen action: " << action_index << std::endl;
