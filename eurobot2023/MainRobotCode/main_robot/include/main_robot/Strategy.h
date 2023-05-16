@@ -27,7 +27,7 @@ namespace main_robot
 
     // Reference angles for left arm
     double constexpr RAD = M_PI/180.;
-    double const MIDDLE_PILE_ANGLE = -35.0*RAD; //-0.27;
+    double const MIDDLE_PILE_ANGLE = -30.0*RAD; //-35.0*RAD; //-0.27;
     double const FRONT_PILE_ANGLE = 15.5*RAD;
     double const SIDE_PILE_ANGLE = 95*RAD;
 

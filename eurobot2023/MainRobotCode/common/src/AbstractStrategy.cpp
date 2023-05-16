@@ -15,20 +15,23 @@ using namespace miam::trajectory;
 
 //--------------------------------------------------------------------------------------------------
 
-bool AbstractStrategy::go_to_straight_line(RobotPosition position, bool backward)
+bool AbstractStrategy::go_to_straight_line(RobotPosition position, double factor, bool backward)
 {
-    RobotPosition currentPosition = motionController->getCurrentPosition();
-    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
-        robot->getParameters().getTrajConf(),
-        currentPosition, // start
-        position, // end
-        0.0, // no velocity at end point
-        backward // or forward
-    );
+  miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
+  conf.maxWheelVelocity *= factor;
+  conf.maxWheelAcceleration *= factor;
+  RobotPosition currentPosition = motionController->getCurrentPosition();
+  TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
+      conf,
+      currentPosition, // start
+      position, // end
+      0.0, // no velocity at end point
+      backward // or forward
+  );
 
-    motionController->setTrajectoryToFollow(traj);
+  motionController->setTrajectoryToFollow(traj);
 
-    return motionController->waitForTrajectoryFinished();
+  return motionController->waitForTrajectoryFinished();
 }
 
 //--------------------------------------------------------------------------------------------------

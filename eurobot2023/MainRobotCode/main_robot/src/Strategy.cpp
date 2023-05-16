@@ -27,7 +27,7 @@ using namespace kinematics;
 #define FUNNY_ACTION_LEFT_SERVO_ID 6
 #define FUNNY_ACTION_RIGHT_SERVO_ID 7
 
-#define TEST_CAKE 1
+#define TEST_CAKE 0
 #define USE_CAMERA 1
 #define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
 #define TEST_MPC_PLANNER 0
@@ -110,11 +110,16 @@ bool Strategy::setup(RobotInterface *robot)
     }
     servo->setTargetPosition(RIGHT_ARM + 1, STS::radToServoValue(M_PI_2));
     servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
+    setTargetPosition(LEFT_ARM, ABS, 0.15, ABS, 10*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
+    setTargetPosition(RIGHT_ARM, ABS, 0.15, ABS, 10*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
+    runActionBlock();
 #endif
 
     std::cout << "End of the setup" << std::endl;
     return true;
 }
+
+//--------------------------------------------------------------------------------------------------
 
 void Strategy::funnyAction()
 {
@@ -214,115 +219,43 @@ namespace arm_positions{
 
 void Strategy::match_impl()
 {
-    // Initialize arm positions
-    ArmPosition sidePile(
-      arm_positions::CAKES_SIDE_DISTANCE,
-      arm_positions::SIDE_ANGLE,
-      arm_positions::GROUND_HEIGHT + 0.070);
-    setArmPosition(RIGHT_ARM_FIRST_SERVO_ID, sidePile);
-    setArmPosition(LEFT_ARM_FIRST_SERVO_ID, sidePile);
-
     // Create required variables.
     RobotPosition targetPosition;
     TrajectoryVector traj;
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
-
-    // Create brain
     MotionPlanner* motionPlanner = motionController->motionPlanner_;
     std::vector<Action> actionVector;
-
     RobotParameters const robotParameters = robot->getParameters();
-
-    //~ // Common cake dimensions
-    //~ double const cake_radius = 60; // [mm]
-    //~ double const robot_chassis_front = robot->getParameters().CHASSIS_FRONT;
-
-    //~ // Initial positions of the genoeses
-    //~ RobotPosition const genoese_top_left(725,1875,0);
-    //~ RobotPosition const genoese_top_right(1275,1875,0);
-    //~ RobotPosition const genoese_bottom_left(725,1125,0);
-    //~ RobotPosition const genoese_bottom_right(1275,1125,0);
-
-    //~ // Initial barycenters of the cream/ganache couples
-    //~ RobotPosition const cream_ganache_top_left(225,2325,0);
-    //~ RobotPosition const cream_ganache_top_right(1775,2325,0);
-    //~ RobotPosition const cream_ganache_bottom_left(225,675+30,0);
-    //~ RobotPosition const cream_ganache_bottom_right(1775,675+30,0);
-
-    //~ // Arm positions ; r theta z
-    //~ ArmPosition left_arm_center_up(100, 0, 250);
-    //~ ArmPosition left_arm_left_down(100, M_PI_4, 10);
-    //~ ArmPosition right_arm_center_up(100, 0, 250);
-    //~ ArmPosition right_arm_right_down(100, -M_PI_4, 10);
-
     RobotPosition tmp_position;
     RobotPosition current_position = motionController->getCurrentPosition();
-
-    // Initialization -> open arms
-    //~ servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(0.5));
-    //~ servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-0.5));
-
+    
     // Grab first genoise with the arms aside
-    #if 0
     clearActionSequence();
     targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
-    go_to_straight_line(targetPosition);
-    setTargetPosition(LEFT_ARM, ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::PILE_CLEAR_HEIGHT);
-    setTargetPosition(LEFT_ARM, REL, 0.00, REL, 0, ABS, arm::GROUND_HEIGHT + 1e-2);
-    setTargetPosition(LEFT_ARM, REL, 0.00, REL, -30*arm::RAD, REL, 0);
-    setTargetPosition(RIGHT_ARM, ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::PILE_CLEAR_HEIGHT);
-    setTargetPosition(RIGHT_ARM, REL, 0.00, REL, 0, ABS, arm::GROUND_HEIGHT + 1e-2);
-    setTargetPosition(RIGHT_ARM, REL, 0.00, REL, -30*arm::RAD, REL, 0);
-    runActionBlock();
-    robot->wait(0.25);
-
+    go_to_straight_line(targetPosition, 1.5);
     // Go between the next two cakes, stop just before them.
     targetPosition = cream_ganache_bottom_right + RobotPosition(-600,0,0);
-    go_to_straight_line(targetPosition);
-    robot->wait(0.25);
+    go_to_straight_line(targetPosition, 1.5);
     targetPosition = cream_ganache_bottom_right + RobotPosition(-300,0,0);
-    go_to_straight_line(targetPosition);
+    go_to_straight_line(targetPosition, 1.5);
     turn_around_point(5*arm::RAD);
     motionController->resetPosition(targetPosition,true,true,true);
-    robot->wait(0.25);
     setTargetPosition(LEFT_ARM, REL, 0.00, ABS, 70*arm::RAD, REL, 0);
     setTargetPosition(RIGHT_ARM, REL, 0.00, ABS, 70*arm::RAD, REL, 0);
     runActionBlock();
-    targetPosition = cream_ganache_bottom_right - RobotPosition(robotParameters.CHASSIS_FRONT+50,0,0);
-    go_to_straight_line(targetPosition);
-    robot->wait(0.25);
     targetPosition.x = 2000 - cake_radius - robotParameters.CHASSIS_FRONT;
     go_to_straight_line(targetPosition);
     targetPosition.x = targetPosition.x - 100;
-    go_to_straight_line(targetPosition, true);
+    go_to_straight_line(targetPosition, 1.5, true);
     setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
     setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
     runActionBlock();
-    robot->wait(1.00);
-    targetPosition.x += 30;
-    go_to_straight_line(targetPosition);
-    #endif
-
-    //~ // Funny action
-    //~ for (int i = 0; i < 4; i++)
-    //~ {
-        //~ servo->setTargetPosition(RIGHT_ARM + i, 2048);
-        //~ servo->setTargetPosition(LEFT_ARM + i, 2048);
-    //~ }
-    //~ servo->setTargetPosition(RIGHT_ARM , STS::radToServoValue(-25*arm::RAD));
-    //~ servo->setTargetPosition(RIGHT_ARM + 1, STS::radToServoValue(M_PI_2));
-    //~ servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(25*arm::RAD));
-    //~ servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
-    //~ RPi_setupGPIO(25, PiGPIOMode::PI_GPIO_OUTPUT);
-    //~ funnyAction();
-    //~ while(true);;
+    targetPosition.x += 40;
+    go_to_straight_line(targetPosition, 1.5);
 
     // Build the cakes
-    //~ buildCakes();
-    //~ takeCherry();
-    //~ while(true);;
-
+    buildCakes();
 
     // Push the cakes to safe space
     clearActionSequence();
@@ -347,30 +280,6 @@ void Strategy::match_impl()
     setTargetPosition(RIGHT_ARM, ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
     runActionBlock();
     go_forward(80);
-    //~ turn_around_point(-30*arm::RAD,0.4);
-    //~ setTargetPosition(LEFT_ARM, REL, 0.00, ABS, 90*arm::RAD, REL, 0.00);
-    //~ runActionBlock();
-    while(true);;
-
-    //~ targetPosition = targetPosition + RobotPosition(cake_radius,0,0);
-    //~ // Go back, set arms and fuck the cakes
-    //~ targetPosition = targetPosition + RobotPosition(-200,0,0);
-    //~ go_to_straight_line(targetPosition, true);
-    //~ setTargetPosition(LEFT_ARM, REL, 0, ABS, 10*arm::RAD, REL, 0);
-    //~ setTargetPosition(RIGHT_ARM, REL, 0, ABS, 10*arm::RAD, REL, 0);
-    //~ runActionBlock();
-    //~ targetPosition = targetPosition + RobotPosition(140,0,0);
-    //~ go_to_straight_line(targetPosition);
-
-    //~ // Build the cakes
-    //~ targetPosition = targetPosition + RobotPosition(-30,0,0);
-    //~ go_to_straight_line(targetPosition,true);
-    //~ setTargetPosition(LEFT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
-    //~ setTargetPosition(RIGHT_ARM, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
-    //~ runActionBlock();
-    //~ targetPosition = targetPosition + RobotPosition(100,0,0);
-    //~ go_to_straight_line(targetPosition);
-    //~ buildCakes();
 
     std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }
