@@ -12,6 +12,7 @@ namespace miam{
             double duration
             ) : Trajectory(config)
         {
+            description_ = "SampledTrajectory";
             duration_ = duration;
             sampledTrajectory_ = sampledTrajectory;
         }
@@ -81,11 +82,11 @@ namespace miam{
             int newN = newDuration / sampling_time + 1;
 
             std::vector<TrajectoryPoint > newSampledTrajectory;
-            for (int i = 0; i < newN; i++) 
+            for (int i = 0; i < newN; i++)
             {
                 newSampledTrajectory.push_back(getCurrentPoint(replanificationTime + i * sampling_time));
             }
-            
+
             // modify object
             duration_ = newDuration;
             sampledTrajectory_ = newSampledTrajectory;
@@ -97,8 +98,8 @@ namespace miam{
             {
                 return;
             }
-            
-            if (sampledTrajectory_.size() - n <= 0) 
+
+            if (sampledTrajectory_.size() - n <= 0)
             {
                 sampledTrajectory_.clear();
                 duration_ = 0.0;

@@ -1,5 +1,6 @@
 #include <common/MotionController.h>
 #include <miam_utils/trajectory/Utilities.h>
+#include <miam_utils/TextLogger.h>
 
 double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const &detectedRobots, bool const &hasMatchStarted)
 {
@@ -78,7 +79,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
                     }
                 }
             }
-            
+
         }
     }
 
@@ -90,7 +91,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
         {
             currentTrajectories_.at(0)->replanify(curvilinearAbscissa_);
             curvilinearAbscissa_ = 0;
-            std::cout << "Continue trajectory; replan" << std::endl;
+            textlog << "[MotionController] "  << "Continue trajectory; replan" << std::endl;
         }
     }
     numStopIters_ = 0;
@@ -111,8 +112,8 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
         return 0.0;
     }
 
-    //   std::cout << "numStopIters_ " << numStopIters_ << std::endl;
-    //   std::cout << "avoidanceCount_ " << avoidanceCount_ << std::endl;
+    //   textlog << "[MotionController] "  << "numStopIters_ " << numStopIters_ << std::endl;
+    //   textlog << "[MotionController] "  << "avoidanceCount_ " << avoidanceCount_ << std::endl;
 
     return coeff;
 }

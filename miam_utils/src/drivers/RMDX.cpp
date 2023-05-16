@@ -1,4 +1,5 @@
 #include "miam_utils/drivers/RMDX.h"
+#include "miam_utils/TextLogger.h"
 
 #include <math.h>
 #include <unistd.h>
@@ -190,7 +191,7 @@ int RMDX::canReadWrite(CANMessage& message, bool const& waitForReply)
             canDriver_->readAvailableMessage(message);
             if (message.data[0] != originalCode)
             {
-                std::cout << "[RMDX] Error: motor " << originalId << ", unexpected reply to command" << static_cast<int>(originalCode) << ": " << static_cast<int>(message.data[0]) << std::endl;
+                texterror << "[RMDX] Error: motor " << originalId << ", unexpected reply to command" << static_cast<int>(originalCode) << ": " << static_cast<int>(message.data[0]) << std::endl;
                 lastError_ = ErrorCode::BAD_REPLY;
                 return -1;
             }
@@ -199,7 +200,7 @@ int RMDX::canReadWrite(CANMessage& message, bool const& waitForReply)
         else
         {
             lastError_ = ErrorCode::TIMEOUT;
-            std::cout << "[RMDX] Error: motor " << static_cast<int>(message.id - 0x140) << ": timeout on message listening" << std::endl;
+            texterror << "[RMDX] Error: motor " << static_cast<int>(message.id - 0x140) << ": timeout on message listening" << std::endl;
             return -2;
         }
     }

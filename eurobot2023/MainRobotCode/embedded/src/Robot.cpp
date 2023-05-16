@@ -8,6 +8,7 @@
 
 #include "Robot.h"
 #include "common/RobotGUI.h"
+#include <miam_utils/TextLogger.h>
 
 // Update loop frequency
 const double LOOP_PERIOD = 0.010;
@@ -177,8 +178,6 @@ bool Robot::setupBeforeMatchStart()
     }
     else if (guiState_.state == robotstate::WAITING_FOR_START)
     {
-        // TODO initial config
-
         // If start button is pressed, return true to end startup.
         if (currentTime_ - matchStartTime_ > 1.5 && (RPi_readGPIO(START_SWITCH) == 1))
             return true;
@@ -188,7 +187,8 @@ bool Robot::setupBeforeMatchStart()
 
 void Robot::lowLevelLoop()
 {
-    std::cout << "Low-level loop started." << std::endl;
+    textlogger::setStartTime();
+    textlog << "Low-level loop started." << std::endl;
 
     // Create metronome
     Metronome metronome(LOOP_PERIOD * 1e9);
@@ -272,6 +272,7 @@ void Robot::lowLevelLoop()
         DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
 
         // Apply target
+        static bool wasRunning = false;
         if (!hasMatchStarted_)
         {
             leftController_.stop();
@@ -281,6 +282,9 @@ void Robot::lowLevelLoop()
         {
             if (std::abs(target.motorSpeed[0]) < 0.001 && std::abs(target.motorSpeed[1]) < 0.001 )
             {
+                if (wasRunning)
+                    textlog << "[Robot] Motors stopping" << std::endl;
+                wasRunning = false;
                 rightController_.stop();
                 measurements.motorSpeed(0) = 0.0;
                 leftController_.stop();
@@ -288,18 +292,27 @@ void Robot::lowLevelLoop()
             }
             else
             {
+                if (!wasRunning)
+                    textlog << "[Robot] Motors running" << std::endl;
+                wasRunning = true;
                 int sign = motionController_.robotParams_.rightMotorDirection;
                 measurements.motorSpeed(0) = sign * rightController_.sendTarget(sign * target.motorSpeed[0], dt);
                 sign = motionController_.robotParams_.leftMotorDirection;
                 measurements.motorSpeed(1) = sign * leftController_.sendTarget(sign * target.motorSpeed[1], dt);
             }
-            motionController_.log("rightMotorCurrent", rightController_.current_);
-            motionController_.log("rightMotorTargetCurrent", rightController_.targetCurrent_);
-            motionController_.log("leftMotorCurrent", leftController_.current_);
-            motionController_.log("leftMotorTargetCurrent", leftController_.targetCurrent_);
-            motionController_.log("rightMotorClampedVelocity", motionController_.robotParams_.rightMotorDirection * rightController_.clampedTargetVelocity_);
-            motionController_.log("leftMotorClampedVelocity", motionController_.robotParams_.leftMotorDirection * leftController_.clampedTargetVelocity_);
         }
+        motionController_.log("MotorController.right.current", rightController_.current_);
+        motionController_.log("MotorController.right.targetCurrent", rightController_.targetCurrent_);
+        motionController_.log("MotorController.right.position", rightController_.position_);
+        motionController_.log("MotorController.right.velocity", rightController_.velocity_);
+        motionController_.log("MotorController.right.targetVelocity", rightController_.clampedTargetVelocity_);
+
+        motionController_.log("MotorController.left.current", leftController_.current_);
+        motionController_.log("MotorController.left.targetCurrent", leftController_.targetCurrent_);
+        motionController_.log("MotorController.left.position", leftController_.position_);
+        motionController_.log("MotorController.left.velocity", leftController_.velocity_);
+        motionController_.log("MotorController.left.targetVelocity", leftController_.clampedTargetVelocity_);
+
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;
         guiState_.currentPosition = motionController_.getCurrentPosition();

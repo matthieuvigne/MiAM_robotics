@@ -3,6 +3,7 @@
 #include "miam_utils/drivers/UART-Wrapper.h"
 #include "miam_utils/raspberry_pi/RPiGPIO.h"
 #include "miam_utils/drivers/STSServoDriver.h"
+#include "miam_utils/TextLogger.h"
 
 #include <math.h>
 #include <fcntl.h>
@@ -209,8 +210,6 @@ bool STSServoDriver::isMoving(unsigned char const& servoId)
     // Try a second time on failure
     if (returnCode_ < 0)
         result = readRegister(servoId, STS::registers::MOVING_STATUS);
-    if (returnCode_ < 0)
-        std::cout << "isMoving: read fail" << std::endl;
     return result > 0;
 }
 
@@ -228,7 +227,6 @@ void STSServoDriver::setPIDGains(unsigned char const& servoId, unsigned char con
 void STSServoDriver::setTorqueLimit(unsigned char const& servoId, double const& torqueLimit)
 {
     writeRegister(servoId, STS::registers::WRITE_LOCK, 0);
-    std::cout << static_cast<int>(1000 * std::clamp(torqueLimit, 0.0, 1.0)) << std::endl;
     writeRegister(servoId, STS::registers::TORQUE_LIMIT, static_cast<int>(1000 * std::clamp(torqueLimit, 0.0, 1.0)));
     writeRegister(servoId, STS::registers::MAXIMUM_TORQUE, static_cast<int>(1000 * std::clamp(torqueLimit, 0.0, 1.0)));
     writeRegister(servoId, STS::registers::WRITE_LOCK, 1);
@@ -400,7 +398,7 @@ int STSServoDriver::readRegisters(unsigned char const& servoId,
         return 0;
     }
     fail ++;
-    std::cout << "[STS servo] Failed to read register " << success << " " << fail << std::endl;
+    texterror << "[STS servo] Failed to read register " << success << " " << fail << std::endl;
     mutex_.unlock();
     return -1;
 }

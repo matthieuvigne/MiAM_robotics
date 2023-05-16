@@ -14,6 +14,7 @@ namespace miam{
             Trajectory(config),
             endAngle_(endAngle)
         {
+            description_ = "PointTurn";
             make(startPoint);
         }
 

@@ -18,6 +18,7 @@ namespace miam{
             endVelocity_(endVelocity),
             backward_(backward)
         {
+            description_ = "StraightLine";
             make(startPoint, startVelocity);
         }
 

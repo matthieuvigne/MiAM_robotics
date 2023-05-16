@@ -23,6 +23,7 @@ namespace miam{
             endAngle_(endAngle),
             endVelocity_(endVelocity)
         {
+            description_ = "ArcCircle";
             if (backward)
                 movingBackward_ = -1.0;
             make(startPoint, startVelocity);

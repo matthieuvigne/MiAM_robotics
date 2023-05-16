@@ -71,6 +71,7 @@
                         return(avoidanceEnabled_);
                     };
 
+                    std::string description_ = "AbstractTrajectory";
                     bool isAvoidanceTrajectory_;
                     bool needReplanning_;
                 protected:

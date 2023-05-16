@@ -1,6 +1,7 @@
 #include <common/MotionController.h>
 #include <miam_utils/trajectory/Utilities.h>
 #include <filesystem>
+#include <miam_utils/TextLogger.h>
 
 MotionController::MotionController(RobotParameters const &robotParameters) : currentPosition_(),
                                                                              newTrajectories_(),
@@ -201,17 +202,17 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
                 }
                 else
                 {
-                    bool avoid = performAvoidance(); 
-                
+                    bool avoid = performAvoidance();
+
                     if (avoid)
                         std::cout << "Performing avoidance" << std::endl;
                     else
                         std::cout << "Avoidance failed" << std::endl;
-                    
+
                     timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
                     avoidanceCount_++;
                 }
-            }     
+            }
         }
     }
 
@@ -225,7 +226,8 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         currentTrajectories_ = newTrajectories_;
         curvilinearAbscissa_ = 0;
         newTrajectories_.clear();
-        std::cout << "Received new trajectory" << std::endl;
+        textlog << "[MotionController] Recieved " << currentTrajectories_.size() << " new trajectories from strategy" << std::endl;
+        textlog << "[MotionController] Now tracking: " << currentTrajectories_.at(0)->description_ << std::endl;
     }
     newTrajectoryMutex_.unlock();
 
@@ -248,7 +250,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
                 currentTrajectories_.erase(currentTrajectories_.begin());
                 traj = currentTrajectories_.at(0).get();
                 curvilinearAbscissa_ = 0.0;
-                std::cout << "Trajectory done, going to next one" << std::endl;
+                textlog << "[MotionController] Now tracking: " << traj->description_ << std::endl;
             }
         }
 
@@ -256,7 +258,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         // We hope to have servoed the robot is less than that anyway.
         if (curvilinearAbscissa_ - trajectoryTimeout_ > traj->getDuration())
         {
-            std::cout << "Timeout on trajectory following" << std::endl;
+            textlog << "[MotionController] Timeout on trajectory following" << std::endl;
             currentTrajectories_.erase(currentTrajectories_.begin());
             curvilinearAbscissa_ = 0.;
         }
@@ -267,6 +269,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
             // If we finished the last trajectory, we can just end it straight away.
             if (trajectoryDone && currentTrajectories_.size() == 1)
             {
+                textlog << "[MotionController] Trajectory tracking performed successfully" << std::endl;
                 currentTrajectories_.erase(currentTrajectories_.begin());
                 target.motorSpeed[0] = 0.0;
                 target.motorSpeed[1] = 0.0;
