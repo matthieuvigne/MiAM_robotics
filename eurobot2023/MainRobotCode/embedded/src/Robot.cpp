@@ -271,6 +271,14 @@ void Robot::lowLevelLoop()
         // Compute motion target.
         DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
 
+        // Symmeterize motors for right side
+        if (isPlayingRightSide_)
+        {
+            double tmp = target.motorSpeed[side::LEFT];
+            target.motorSpeed[side::LEFT] = target.motorSpeed[side::RIGHT]; 
+            target.motorSpeed[side::RIGHT] = tmp;
+        }
+
         // Apply target
         static bool wasRunning = false;
         if (!hasMatchStarted_)
