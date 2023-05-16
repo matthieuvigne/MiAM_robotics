@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <cmath>
 
 
 RMDXController::RMDXController(RMDX *driver,
@@ -23,13 +24,11 @@ RMDXController::RMDXController(RMDX *driver,
     Ki_(Ki),
     integralValue_(0),
     maxOutput_(maxOutput),
-    isStopped_(true),
+    isStopped_(false),
     lowPass_(filterCutoff),
     maxFeedforward_(maxFeedforward),
     maxAcceleration_(maxAcceleration)
 {
-    std::cout << maxAcceleration_ << std::endl;
-
 }
 
 double RMDXController::sendTarget(double const& targetVelocity, double const& dt)

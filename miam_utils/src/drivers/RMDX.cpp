@@ -92,6 +92,19 @@ double RMDX::setSpeed(unsigned char const& motorId, double const& targetSpeed, d
     return targetSpeed;
 }
 
+double RMDX::setPosition(unsigned char const& motorId, double const& targetPosition, double const& reductionRatio)
+{
+    int32_t positionCount = static_cast<int32_t>(targetPosition * RAD_TO_DEG * reductionRatio * 100);
+    CANMessage message = createMessage(motorId, MyActuator::commands::ABS_POS_COMMAND, positionCount);
+    if (canReadWrite(message) >= 0)
+    {
+        int16_t data = message.data[4] + (message.data[5] << 8);
+        return static_cast<double>(data) / RAD_TO_DEG / reductionRatio;
+    }
+    // If no reply could be obtained, return target speed.
+    return targetPosition;
+}
+
 double RMDX::setCurrent(unsigned char const& motorId, double const& targetCurrent)
 {
 

@@ -309,7 +309,8 @@ void Strategy::match_impl()
 
     go_forward(100);
     put_cherries_in_the_basket();
-
+    // Estimate: 15 cherries in basket
+    robot->updateScore(15);
     // go_forward(-50);
     // traj.clear();
     // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(robot->getParameters().getTrajConf(), robot->getMotionController()->getCurrentPosition(), -M_PI_2)));

@@ -55,6 +55,8 @@ class RMDXController{
         miam::LowPass lowPass_;
         double maxFeedforward_;
         double maxAcceleration_;
+
+        double stopPosition_ = 0.0;
 };
 
 

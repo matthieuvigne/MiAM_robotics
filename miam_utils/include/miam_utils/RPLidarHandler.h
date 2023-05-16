@@ -22,7 +22,6 @@
     // Constant parameters.
     #define DEBUGGING_BUFFER_LENGTH 2000
 
-    const double LIDAR_POINTS_PER_TURN = 800;// Lidar: number of points per turn.
 
     const double MAX_DISTANCE = 1700.0; ///< Maximum distance for processing, in mm: points above that distance are discarded.
     const double MIN_DISTANCE = 50.0; ///< Minimum distance for processing, in mm: points below that distance are discarded.
@@ -115,8 +114,13 @@
             /// \details This function initialises communication with the RPLidar, and starts scan mode.
             ///
             /// \param[in] portNameIn Name of the port to use.
+            /// @param nPoints Number of lidar point per turn.
             /// \return True on successful sensor initialization.
-            bool init(std::string const& portNameIn);
+            bool init(std::string const& portNameIn, unsigned int const& nPoints = 800);
+
+            /// @brief Set rotation speed based on desired number of points per turn.
+            /// @param nPoints Number of point per turn.
+            void setPointsPerTurn(unsigned int const& nPoints);
 
             /// \brief Stop the lidar (motor and scanning core).
             void stop();
@@ -156,5 +160,7 @@
             double mountingOffset_; ///< Lidar mounting offset.
 
             Metronome timeHandler_; ///< Metronome - for getting relative time.
+
+            float fastestModeTime_ = 100000.0;
     };
 #endif

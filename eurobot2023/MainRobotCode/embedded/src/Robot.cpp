@@ -18,7 +18,7 @@ double const UNDERVOLTAGE_LEVEL = 19.5;
 // Motor control parameters
 double const Kp = 0.7;
 double const Ki = 0.9;
-double const maxOutput = 5.0;
+double const maxOutput = 2.5;
 double const filterCutoff = 10.0;
 double const maxFeedforward = 0.4;
 
@@ -98,7 +98,7 @@ bool Robot::initSystem()
 
     if (!isLidarInit_ && !disableLidar_)
     {
-        isLidarInit_ = lidar_.init("/dev/RPLIDAR");
+        isLidarInit_ = lidar_.init("/dev/RPLIDAR", motionController_.robotParams_.lidarNPointsPerTurn);
         if (!isLidarInit_)
             guiState_.debugStatus += "Lidar init failed\n";
     }
@@ -279,7 +279,7 @@ void Robot::lowLevelLoop()
         }
         else
         {
-            if (std::abs(target.motorSpeed[0]) < 0.001 && std::abs(target.motorSpeed[1]))
+            if (std::abs(target.motorSpeed[0]) < 0.001 && std::abs(target.motorSpeed[1]) < 0.001 )
             {
                 rightController_.stop();
                 measurements.motorSpeed(0) = 0.0;

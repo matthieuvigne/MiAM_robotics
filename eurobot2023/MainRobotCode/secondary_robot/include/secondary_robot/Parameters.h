@@ -56,6 +56,7 @@
                 param.leftEncoderDirection = -1;
 
                 param.lidarOffset = -M_PI_4;
+                param.lidarNPointsPerTurn = 1200;
 
                 return param;
             }
