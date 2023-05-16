@@ -30,325 +30,10 @@ bool MotionController::performAvoidance()
     {
         currentTrajectories_.clear();
         currentTrajectories_ = traj;
+        curvilinearAbscissa_ = 0.0;
     }
 
     return traj.getDuration() > 0;
-
-    // // if trajectory is tagged as needing replanning, do that
-    // if (!currentTrajectories_.empty() && currentTrajectories_.front()->needReplanning_)
-    // {
-    //     coeff = 0.0;
-    //     is_robot_stopped = true;
-
-    //     RobotPosition targetPosition = currentTrajectories_.back()->getEndPoint().position;
-
-    //     TrajectoryVector traj = computeMPCTrajectory(targetPosition, getDetectedObstacles(), forward);
-    //     if (traj.getDuration() > 0 & !traj.front()->needReplanning_) {
-    //         textlog << "[MotionController] " << "Setting avoidance trajectory" << std::endl;
-    //         currentTrajectories_.clear();
-    //         currentTrajectories_ = traj;
-    //     }
-    //     else
-    //     {
-    //         textlog << "[MotionController] " << "Replanning failed" << std::endl;
-    //         avoidanceCount_++;
-    //         if (avoidanceCount_ > maxAvoidanceAttempts_)
-    //         {
-    //             // Failed to perform avoidance.
-    //             // Raise flag and end trajectory following.
-    //             wasTrajectoryFollowingSuccessful_ = false;
-    //             currentTrajectories_.clear();
-    //             textlog << "[MotionController] " << "Obstacle still present, canceling trajectory" << std::endl;
-    //             avoidanceCount_ = 0;
-    //         }
-    //     }
-    // }
-
-    // // if robot was stopped for long enough do avoidance
-    // if (is_robot_stopped)
-    // {
-    //     numStopIters_++;
-    //     if (numStopIters_ < minStopIters_)
-    //     {
-    //         // Not enough time spend, just slow down.
-    //         coeff = 0.2;
-    //     }
-    //     else if (numStopIters_ > maxStopIters_)
-    //     {
-    //         // if stopped for a long time, try to perform avoidance
-    //         avoidanceCount_++;
-    //         textlog << "[MotionController] " << "avoidanceCount_ " << avoidanceCount_ << std::endl;
-
-    //         // if many avoidance was tried before or the trajectory was tagged not to trigger avoidance
-    //         if (avoidanceCount_ > maxAvoidanceAttempts_ || !currentTrajectories_.front()->isAvoidanceEnabled())
-    //         {
-    //             // then declare trajectory failed
-    //             if (!currentTrajectories_.front()->isAvoidanceEnabled())
-    //             {
-    //                 textlog << "[MotionController] " << ">> MotionControllerAvoidance : Avoidance is disabled on this trajectory" << std::endl;
-    //             }
-    //             // Failed to perform avoidance.
-    //             // Raise flag and end trajectory following.
-    //             wasTrajectoryFollowingSuccessful_ = false;
-    //             currentTrajectories_.clear();
-    //             textlog << "[MotionController] " << "Obstacle still present, canceling trajectory" << std::endl;
-    //             avoidanceCount_ = 0;
-    //         }
-    //         else
-    //         {
-    //             // Proceed avoidance
-
-    //             // try to compute a basic avoidance path and follow if succeeded
-    //             RobotPosition targetPosition = currentTrajectories_.back()->getEndPoint().position;
-
-    //             TrajectoryVector traj = computeMPCTrajectory(targetPosition, getDetectedObstacles(), forward);
-    //             if (traj.getDuration() > 0) {
-    //                 textlog << "[MotionController] " << "Setting avoidance trajectory" << std::endl;
-    //                 currentTrajectories_.clear();
-    //                 currentTrajectories_ = traj;
-    //                 coeff = 1.0;
-    //                 numStopIters_ = 0;
-    //             }
-
-    //         }
-
-    //     }
-    // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // double coeff = 1.0;
-    // bool is_robot_stopped = false;
-
-    // LidarPoint detected_point;
-    // detected_point.r = 1e6;
-    // detected_point.theta = 0.;
-
-    // // Update trajectory.
-    // bool forward = true;
-    // if (!currentTrajectories_.empty())
-    // {
-    //     miam::trajectory::TrajectoryPoint trajectoryPoint = currentTrajectories_.at(0)->getCurrentPoint(curvilinearAbscissa_);
-    //     forward = (trajectoryPoint.linearVelocity >= 0);
-    // }
-
-    // int nPointsInTable = 0;
-
-    // // if trajectory is tagged as needing replanning, do that
-    // if (!currentTrajectories_.empty() && currentTrajectories_.front()->needReplanning_)
-    // {
-    //     coeff = 0.0;
-    //     is_robot_stopped = true;
-
-    //     RobotPosition targetPosition = currentTrajectories_.back()->getEndPoint().position;
-
-    //     TrajectoryVector traj = computeMPCTrajectory(targetPosition, getDetectedObstacles(), forward);
-    //     if (traj.getDuration() > 0 & !traj.front()->needReplanning_) {
-    //         textlog << "[MotionController] " << "Setting avoidance trajectory" << std::endl;
-    //         currentTrajectories_.clear();
-    //         currentTrajectories_ = traj;
-    //     }
-    //     else
-    //     {
-    //         textlog << "[MotionController] " << "Replanning failed" << std::endl;
-    //         avoidanceCount_++;
-    //         if (avoidanceCount_ > maxAvoidanceAttempts_)
-    //         {
-    //             // Failed to perform avoidance.
-    //             // Raise flag and end trajectory following.
-    //             wasTrajectoryFollowingSuccessful_ = false;
-    //             currentTrajectories_.clear();
-    //             textlog << "[MotionController] " << "Obstacle still present, canceling trajectory" << std::endl;
-    //             avoidanceCount_ = 0;
-    //         }
-    //     }
-    // }
-    // // else do obstacle detection
-    // else
-    // {
-    //     for (const DetectedRobot &robot : detectedRobots)
-    //     {
-    //         // Get the Lidar Point, symeterize it if needed and check its projection
-    //         LidarPoint const point = this->isPlayingRightSide_
-    //                                     ? LidarPoint(robot.point.r, -robot.point.theta)
-    //                                     : LidarPoint(robot.point.r, robot.point.theta);
-
-    //         if (!this->isLidarPointWithinTable(point))
-    //             continue;
-    //         nPointsInTable += 1;
-
-    //         double x = point.r * std::cos(point.theta + (forward ? 0 : M_PI));
-    //         double y = point.r * std::sin(point.theta + (forward ? 0 : M_PI));
-
-    //         // If the current trajectory is a point turn, then do not slow down or stop
-    //         if (currentTrajectories_.size() > 0 && currentTrajectories_.front()->getCurrentPoint(curvilinearAbscissa_).linearVelocity != 0)
-    //         {
-    //             // If currently avoiding, then use less strict thresholds
-    //             if (currentTrajectories_.front()->isAvoidanceTrajectory_) {
-    //                 if (x > 0)
-    //                 {
-    //                     if (x < detection::x_max_avoidance)
-    //                     {
-    //                         if (std::abs(y) < detection::y_max_avoidance)
-    //                         {
-    //                             // Stop robot
-    //                             coeff = 0.0;
-    //                             is_robot_stopped = true;
-    //                             detected_point = point;
-    //                         }
-    //                         else if (std::abs(y) < detection::y_max_avoidance)
-    //                         {
-    //                             // Stop robot
-    //                             coeff = 0.0;
-    //                             is_robot_stopped = true;
-    //                             detected_point = point;
-    //                         }
-    //                     }
-    //                     else if (x < detection::xfar_max_avoidance)
-    //                     {
-    //                         double maximumY = detection::y_max_avoidance + (x - detection::x_max_avoidance) / (detection::xfar_max_avoidance - detection::x_max_avoidance) * (detection::yfar_max_avoidance - detection::y_max_avoidance);
-    //                         if (std::abs(y) < maximumY)
-    //                         {
-    //                             const double current_coeff = std::min(1.0, std::max(0.2, (point.r - detection::r1) / (detection::r2 - detection::r1)));
-    //                             if (current_coeff < coeff)
-    //                             {
-    //                                 coeff = current_coeff;
-    //                                 detected_point = point;
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //             else
-    //             {
-    //                 if (x > 0)
-    //                 {
-    //                     if (x < detection::x_max)
-    //                     {
-    //                         if (std::abs(y) < detection::y_max)
-    //                         {
-    //                             // Stop robot
-    //                             coeff = 0.0;
-    //                             is_robot_stopped = true;
-    //                             detected_point = point;
-    //                         }
-    //                     }
-    //                     else if (x < detection::xfar_max)
-    //                     {
-    //                         double maximumY = detection::y_max + (x - detection::x_max) / (detection::xfar_max - detection::x_max) * (detection::yfar_max - detection::y_max);
-    //                         if (std::abs(y) < maximumY)
-    //                         {
-    //                             const double current_coeff = std::min(1.0, std::max(0.2, (point.r - detection::r1) / (detection::r2 - detection::r1)));
-    //                             if (current_coeff < coeff)
-    //                             {
-    //                                 coeff = current_coeff;
-    //                                 detected_point = point;
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     if (is_robot_stopped)
-    //     {
-    //         numStopIters_++;
-    //         if (numStopIters_ < minStopIters_)
-    //         {
-    //             // Not enough time spend, just slow down.
-    //             coeff = 0.2;
-    //         }
-    //         else if (numStopIters_ > maxStopIters_)
-    //         {
-    //             // if stopped for a long time, try to perform avoidance
-    //             avoidanceCount_++;
-    //             textlog << "[MotionController] " << "avoidanceCount_ " << avoidanceCount_ << std::endl;
-
-    //             // if many avoidance was tried before or the trajectory was tagged not to trigger avoidance
-    //             if (avoidanceCount_ > maxAvoidanceAttempts_ || !currentTrajectories_.front()->isAvoidanceEnabled())
-    //             {
-    //                 // then declare trajectory failed
-    //                 if (!currentTrajectories_.front()->isAvoidanceEnabled())
-    //                 {
-    //                     textlog << "[MotionController] " << ">> MotionControllerAvoidance : Avoidance is disabled on this trajectory" << std::endl;
-    //                 }
-    //                 // Failed to perform avoidance.
-    //                 // Raise flag and end trajectory following.
-    //                 wasTrajectoryFollowingSuccessful_ = false;
-    //                 currentTrajectories_.clear();
-    //                 textlog << "[MotionController] " << "Obstacle still present, canceling trajectory" << std::endl;
-    //                 avoidanceCount_ = 0;
-    //             }
-    //             else
-    //             {
-    //                 // Proceed avoidance
-
-    //                 // try to compute a basic avoidance path and follow if succeeded
-    //                 RobotPosition targetPosition = currentTrajectories_.back()->getEndPoint().position;
-
-    //                 TrajectoryVector traj = computeMPCTrajectory(targetPosition, getDetectedObstacles(), forward);
-    //                 if (traj.getDuration() > 0) {
-    //                     textlog << "[MotionController] " << "Setting avoidance trajectory" << std::endl;
-    //                     currentTrajectories_.clear();
-    //                     currentTrajectories_ = traj;
-    //                     coeff = 1.0;
-    //                     numStopIters_ = 0;
-    //                 }
-
-    //             }
-
-    //         }
-    //     }
-    //     else
-    //     {
-    //         if (numStopIters_ >= minRestartIters_)
-    //         {
-    //             // Robot was stopped and is ready to start again.
-    //             // Replan and retry trajectory.
-    //             if (!currentTrajectories_.empty())
-    //             {
-    //                 currentTrajectories_.at(0)->replanify(curvilinearAbscissa_);
-    //                 curvilinearAbscissa_ = 0;
-    //                 textlog << "[MotionController] " << "Continue trajectory; replan" << std::endl;
-    //             }
-    //         }
-    //         numStopIters_ = 0;
-    //     }
-    // }
-
-    // // Before match: just return coeff, don't trigger memory.
-
-    // // FIXME !
-    // if (!hasMatchStarted || currentTrajectories_.size() == 0)
-    // {
-    //     numStopIters_ = 0;
-    //     return coeff;
-    // }
-
-    // if (numStopIters_ >= minStopIters_ && numStopIters_ < minRestartIters_)
-    // {
-    //     numStopIters_++;
-    //     // Not ready to restart, just stop
-    //     return 0.0;
-    // }
-
-    // //   textlog << "[MotionController] " << "numStopIters_ " << numStopIters_ << std::endl;
-    // //   textlog << "[MotionController] " << "avoidanceCount_ " << avoidanceCount_ << std::endl;
-
-    // return coeff;
-
-    return true;
 }
 
 
@@ -440,7 +125,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
     textlog << "[MotionController] " << ">> MotionControllerAvoidance : target position : " << targetPosition << std::endl;
     textlog << "[MotionController] " << ">> MotionControllerAvoidance : planning MPC" << std::endl;
 
-    if ((currentPosition - targetPosition).norm() < 150)
+    if ((currentPosition - targetPosition).norm() < 400) 
     {
         textlog << "[MotionController] " << "Target too close, doing a straight line to point" << std::endl;
 
@@ -454,7 +139,8 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
         textlog << "[MotionController] " << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
 
         TrajectoryConfig tc_pt = robotParams_.getTrajConf();
-        tc_pt.maxWheelAcceleration *= 0.5;
+        tc_pt.maxWheelVelocity *= 0.1;
+        tc_pt.maxWheelAcceleration *= 0.1;
 
         // add a point turn to keep the end angle info
         std::shared_ptr<PointTurn > pt_sub_end(
@@ -544,7 +230,8 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
         );
 
         TrajectoryConfig tc_pt = robotParams_.getTrajConf();
-        tc_pt.maxWheelAcceleration *= 0.5;
+        tc_pt.maxWheelVelocity *= 0.1;
+        tc_pt.maxWheelAcceleration *= 0.1;
 
         // add a point turn to keep the end angle info
         std::shared_ptr<PointTurn > pt_sub_end(
@@ -578,6 +265,10 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
         traj.insert( traj.end(), traj1.begin(), traj1.end() );
     }
     traj.insert( traj.end(), traj2.begin(), traj2.end() );
+
+    std::cout << "MPC trajectory: " << std::endl;
+    for (double t = 0; t <= traj.getDuration(); t+=0.2)
+        std::cout << traj.getCurrentPoint(t) << std::endl;
 
     return traj;
 }

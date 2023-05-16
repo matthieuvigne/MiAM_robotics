@@ -199,6 +199,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
                     // Raise flag and end trajectory following.
                     wasTrajectoryFollowingSuccessful_ = false;
                     currentTrajectories_.clear();
+                    curvilinearAbscissa_ = 0.0;
                 }
                 else
                 {
