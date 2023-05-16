@@ -17,6 +17,7 @@
     #include "miam_utils/trajectory/DrivetrainKinematics.h"
     #include "miam_utils/trajectory/RobotPosition.h"
     #include "miam_utils/trajectory/Trajectory.h"
+    #include "miam_utils/trajectory/Utilities.h"
     #include "miam_utils/drivers/L6470Driver.h"
     #include "miam_utils/RPLidarHandler.h"
     #include "miam_utils/Types.h"
@@ -26,6 +27,7 @@
     #include <mutex>
 
     #include <common/MotionPlanner.h>
+    #include <chrono>
 
     using miam::RobotPosition;
     using miam::ProtectedPosition;
@@ -123,7 +125,7 @@
             ///          and returns immediately: use waitForTrajectoryFinish
             ///
             /// \param[in] trajectories Vector of trajectory to follow.
-            bool setTrajectoryToFollow(std::vector<std::shared_ptr<Trajectory>> const& trajectories);
+            bool setTrajectoryToFollow(TrajectoryVector const& trajectories);
 
             /// \brief Wait for the current trajectory following to be finished.
             /// \return true if trajectory following was successful, false otherwise.
@@ -175,7 +177,8 @@
             void clearPersistentObstacles();
             void popBackPersistentObstacles();
 
-            TrajectoryVector computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
+            TrajectoryVector computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward, bool avoidanceEnabled = false);
+            TrajectoryVector computeBasicAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
 
             std::vector<miam::RobotPosition> filteredDetectedObstacles_; ///< Detected obstables ; angle is M_PI if outside table else 0.
         private:
@@ -183,10 +186,11 @@
             double currentTime_{0.0};
 
             // Trajectory definition.
-            std::vector<std::shared_ptr<Trajectory>> newTrajectories_; ///< Vector of new trajectories to follow.
-            std::vector<std::shared_ptr<Trajectory>> currentTrajectories_; ///< Current trajectories being followed.
+            TrajectoryVector newTrajectories_; ///< Vector of new trajectories to follow.
+            TrajectoryVector currentTrajectories_; ///< Current trajectories being followed.
             bool wasTrajectoryFollowingSuccessful_; ///< Flag describing the success of the trajectory following process.
             std::mutex newTrajectoryMutex_;
+            RobotPosition currentTargetEndPosition_; // < The current target position (saved for replanning)
 
             double curvilinearAbscissa_; ///< Curvilinear abscissa of the current trajectory.
             DrivetrainKinematics kinematics_;
@@ -215,10 +219,20 @@
             /// \return coefficient for trajectory time increase
             double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
 
+            /// @brief Update trajectory to perform avoidance
+            /// @return avoidance was performed or not
+            bool performAvoidance();
+
             RobotPosition lidarPointToRobotPosition(LidarPoint const &point);
             bool isLidarPointWithinTable(LidarPoint const& point);
 
             // Avoidance functions
+            AvoidanceMode avoidanceMode_;
+            int avoidanceCount_;
+            const int maxAvoidanceAttempts_ = 2;
+            bool isStopped_;
+            std::chrono::steady_clock::time_point timeSinceFirstStopped_;
+            std::chrono::steady_clock::time_point timeSinceLastAvoidance_;
 
 
             // List of obstacles
@@ -234,11 +248,8 @@
             const int minRestartIters_ = 20; // Minimum number of iterations to restart, i.e 10ms.
             int const maxStopIters_ = 50; // Maximum number of iterations until attempting something
 
-            int avoidanceCount_;
-            const int maxAvoidanceAttempts_ = 2;
 
             double trajectoryTimeout_ = 1.0; // Number of seconds after the end of trajectory after which timeout is raised
 
-            AvoidanceMode avoidanceMode_;
     };
  #endif

@@ -105,13 +105,21 @@ class RMDX{
 
         /// \brief Set target speed, joint side.
         /// \param[in] motorId Motor id
-        /// \param[in] targetSpeed Target speed, joint side, in rad/
+        /// \param[in] targetSpeed Target speed, joint side, in rad/s
         /// \param[in] reductionRatio Motor reduction ratio
         /// \note On RMDXV2, speed control behavior is determined by PD gains, but also
         ///       by hidden acceleration limit parameter, only accessible through the debugging
         ///       software (not CAN).
         /// \return Current speed, in rad/s. 0 on failure.
         double setSpeed(unsigned char const& motorId, double const& targetSpeed, double const& reductionRatio = 1.0);
+
+
+        /// \brief Set target position, joint side.
+        /// \param[in] motorId Motor id
+        /// \param[in] targetPosition Target speed, joint side, in rad/
+        /// \param[in] reductionRatio Motor reduction ratio
+        /// \return Current position, in rad. 0 on failure.
+        double setPosition(unsigned char const& motorId, double const& targetPosition, double const& reductionRatio = 1.0);
 
         /// \brief Set target speed, joint side.
         /// \param[in] motorId Motor id

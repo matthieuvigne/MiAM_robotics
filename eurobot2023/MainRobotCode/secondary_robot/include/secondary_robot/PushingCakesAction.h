@@ -11,11 +11,16 @@ using namespace miam;
 class PushingCakesAction
 {
     public:
+
+        PushingCakesAction() : activated(true) {};
+
         RobotPosition start_position;
         RobotPosition end_position;
 
         std::vector<Obstacle > obstacles_on_the_road;
         std::vector<Obstacle > obstacles_in_the_end;
+
+        bool activated;
 };
 
 // Zones :
@@ -30,7 +35,7 @@ class PushingCakesAction
 class PushCakes1to5 : public PushingCakesAction
 {
     public:
-        PushCakes1to5()
+        PushCakes1to5() : PushingCakesAction()
         {
             start_position.x = 230;
             start_position.y = 2650;
@@ -44,7 +49,7 @@ class PushCakes1to5 : public PushingCakesAction
                 RobotPosition obstacle;
                 obstacle.x = 230;
                 obstacle.y = 2300;
-                obstacles_on_the_road.push_back(std::make_tuple(obstacle, 300));
+                obstacles_on_the_road.push_back(std::make_tuple(obstacle, 200));
             }
 
             {
@@ -59,7 +64,7 @@ class PushCakes1to5 : public PushingCakesAction
 class PushCakes7to5 : public PushingCakesAction
 {
     public:
-        PushCakes7to5()
+        PushCakes7to5() : PushingCakesAction()
         {
             start_position.x = 230;
             start_position.y = 300;
@@ -88,7 +93,7 @@ class PushCakes7to5 : public PushingCakesAction
 class PushCakes3to4 : public PushingCakesAction
 {
     public:
-        PushCakes3to4()
+        PushCakes3to4() : PushingCakesAction()
         {
             start_position.x = 446;
             start_position.y = 1890;
@@ -146,7 +151,7 @@ class PushCakes3to4 : public PushingCakesAction
 class PushCakes6to4 : public PushingCakesAction
 {
     public:
-        PushCakes6to4()
+        PushCakes6to4() : PushingCakesAction()
         {
             start_position.x = 1730;
             start_position.y = 790;

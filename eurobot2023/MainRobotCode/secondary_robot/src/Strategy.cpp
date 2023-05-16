@@ -20,13 +20,6 @@ using namespace miam::trajectory;
 using miam::RobotPosition;
 
 
-#define USE_CAMERA 1
-
-#define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
-
-// #define SKIP_TO_GRABBING_SAMPLES 1
-// #define SKIP_TO_PUSHING_SAMPLES 1
-// #define SKIP_TO_GRABBING_SAMPLES_SIDE_DIST 1
 
 // This function is responsible for trying to bring the robot back to base,
 // at the end of the match.
@@ -34,7 +27,6 @@ bool MATCH_COMPLETED = false;
 
 int const BRUSH_MOTOR = 12;
 int const BRUSH_DIR = 16;
-
 
 // Rail
 int const RAIL_SWITCH = 21;
@@ -297,7 +289,7 @@ void Strategy::match_impl()
 
     // cible
     RobotPosition position = motionController->getCurrentPosition();
-    position.x = 210; //robotParameters.CHASSIS_WIDTH + 90.0;
+    position.x = 180; //robotParameters.CHASSIS_WIDTH + 90.0;
     position.y = 3000 - robotParameters.CHASSIS_FRONT - 160;
     position.theta = M_PI_2;
 
@@ -317,7 +309,8 @@ void Strategy::match_impl()
 
     go_forward(100);
     put_cherries_in_the_basket();
-
+    // Estimate: 15 cherries in basket
+    robot->updateScore(15);
     // go_forward(-50);
     // traj.clear();
     // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(robot->getParameters().getTrajConf(), robot->getMotionController()->getCurrentPosition(), -M_PI_2)));
@@ -352,28 +345,38 @@ void Strategy::match_impl()
             PushingCakesAction action = actions.at(i);
 
             double minDistanceFromObstacle = 10000;
+            double minDistanceFromObstacleEnd = 10000;
             double distanceToStartPoint = (action.start_position - currentPosition).norm();
 
             for (auto obstacle : robot->getMotionController()->getDetectedObstacles())
             {
+
+                double tmpMin = (std::get<0>(obstacle) - action.start_position).norm() - std::get<1>(obstacle);
+                double tmpMinEnd = (std::get<0>(obstacle) - action.end_position).norm() - std::get<1>(obstacle);
+
                 // distance to center of obstacle minus size of the obstacle
                 minDistanceFromObstacle = std::min(
-                    minDistanceFromObstacle,
-                    (std::get<0>(obstacle) - action.start_position).norm() - std::get<1>(obstacle));
-                // // distance to center of obstacle minus size of the obstacle
-                // minDistanceFromObstacle = std::min(
-                //     minDistanceFromObstacle,
-                //     (std::get<0>(obstacle) - action.end_position).norm() - std::get<1>(obstacle));
+                    minDistanceFromObstacle, 
+                    tmpMin);
+                // distance to center of obstacle minus size of the obstacle
+                minDistanceFromObstacleEnd = std::min(
+                    minDistanceFromObstacleEnd, 
+                    tmpMinEnd);
             }
 
             // 150 = radius of the robot
-            if (minDistanceFromObstacle > 150 &  distanceToStartPoint < minDistanceToStartPoint)
+            if (minDistanceFromObstacle > 150 & minDistanceFromObstacleEnd > 70 & distanceToStartPoint < minDistanceToStartPoint)
             {
                 action_index = i;
                 minDistanceToStartPoint = distanceToStartPoint;
             }
 
-            std::cout << "action " << i << " start point " << action.start_position << " minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceToStartPoint " << minDistanceToStartPoint << std::endl;
+
+            std::cout << "action " << i << " start point " << action.start_position << std::endl;
+            std::cout << "   minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceFromObstacleEnd " << minDistanceFromObstacleEnd << " distanceToStartPoint " << distanceToStartPoint << std::endl;
+
+
+            
         }
 
         std::cout << "Chosen action: " << action_index << std::endl;
@@ -577,6 +580,7 @@ void Strategy::match_impl()
 
     // Match end: go back to base
     goBackToBase();
+    MATCH_COMPLETED = true;
 
     while (true) ;;
 

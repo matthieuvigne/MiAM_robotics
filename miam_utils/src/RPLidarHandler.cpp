@@ -39,7 +39,7 @@ RPLidarHandler::~RPLidarHandler()
     delete lidar;
 }
 
-bool RPLidarHandler::init(std::string const& portNameIn)
+bool RPLidarHandler::init(std::string const& portNameIn, unsigned int const& nPointsPerTurn)
 {
     isInit_ = false;
     lidar =  RPlidarDriver::CreateDriver(DRIVER_TYPE_SERIALPORT);
@@ -60,20 +60,18 @@ bool RPLidarHandler::init(std::string const& portNameIn)
         return false;
 
     // Find fastest mode.
-    float fastestModeTime = 100000;
+    fastestModeTime_ = 1.0e6;
     for(unsigned int i = 0; i < modes.size(); i++)
     {
-        if (modes.at(i).us_per_sample < fastestModeTime)
+        if (modes.at(i).us_per_sample < fastestModeTime_)
         {
-            fastestModeTime =  modes.at(i).us_per_sample;
+            fastestModeTime_ =  modes.at(i).us_per_sample;
             lidarMode_ = i;
         }
     }
-    // Start scan, at right speed.
+    // Start scan, at default speed.
     isInit_ = true;
-    double const speed = 60 / (LIDAR_POINTS_PER_TURN * fastestModeTime * 1e-6);
-    desiredSpeed_ = static_cast<uint16_t>(speed);
-    robotTimeout_ = 1.2 * 60 / speed;
+    setPointsPerTurn(nPointsPerTurn);
     if(!start())
         isInit_ = false;
     return isInit_;
@@ -194,4 +192,13 @@ bool RPLidarHandler::start()
     lidar->startMotor();
     lidar->setMotorPWM(desiredSpeed_);
     return !IS_FAIL(lidar->startScanExpress(false, lidarMode_));
+}
+
+void RPLidarHandler::setPointsPerTurn(unsigned int const& nPoints)
+{
+    isInit_ = true;
+    double const speed = 60 / (nPoints * fastestModeTime_ * 1e-6);
+    desiredSpeed_ = static_cast<uint16_t>(speed);
+    robotTimeout_ = 1.2 * 60 / speed;
+    lidar->setMotorPWM(desiredSpeed_);
 }

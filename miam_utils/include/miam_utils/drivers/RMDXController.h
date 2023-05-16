@@ -19,13 +19,15 @@ class RMDXController{
         /// @param maxOutput Maximum output (A)
         /// @param filterCutoff Low-pass filter cutoff frequency (Hz).
         /// @param maxFeedforward Maximum feedfoward current (A)
+        /// @param maxAcceleration Maximum wheel acceleration, rad/s (used to clamp target)
         RMDXController(RMDX *driver,
                        unsigned char const& motorId,
                        double const& Kp,
                        double const& Ki,
                        double const& maxOutput,
                        double const& filterCutoff,
-                       double const& maxFeedforward);
+                       double const& maxFeedforward,
+                       double const& maxAcceleration);
 
         /// @brief Compute next output and send it to the motor.
         /// @param targetVelocity Target velocity (rad/s)
@@ -41,6 +43,7 @@ class RMDXController{
         double rawVelocity_; ///< Unfiltered velocity (rad/s)
         double targetCurrent_; ///< Motor target current (A)
         double current_; ///< Motor current (A)
+        double clampedTargetVelocity_ = 0;
     private:
         RMDX *driver_;
         unsigned char motorId_;
@@ -51,6 +54,9 @@ class RMDXController{
         bool isStopped_;
         miam::LowPass lowPass_;
         double maxFeedforward_;
+        double maxAcceleration_;
+
+        double stopPosition_ = 0.0;
 };
 
 

@@ -18,7 +18,7 @@ double const UNDERVOLTAGE_LEVEL = 19.5;
 // Motor control parameters
 double const Kp = 0.7;
 double const Ki = 0.9;
-double const maxOutput = 5.0;
+double const maxOutput = 2.5;
 double const filterCutoff = 10.0;
 double const maxFeedforward = 0.4;
 
@@ -32,8 +32,8 @@ Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, Robo
     spiMotor_(RPI_SPI_00, 1000000),
     mcp_(&spiMotor_),
     motors_(&mcp_),
-    rightController_(&motors_, parameters.rightMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward),
-    leftController_(&motors_, parameters.leftMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward),
+    rightController_(&motors_, parameters.rightMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward, parameters.maxWheelAcceleration / parameters.wheelRadius),
+    leftController_(&motors_, parameters.leftMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward, parameters.maxWheelAcceleration / parameters.wheelRadius),
     spiEncoder_(RPI_SPI_01, 1000000),
     encoders_(&spiEncoder_, 2),
     strategy_(strategy)
@@ -98,7 +98,7 @@ bool Robot::initSystem()
 
     if (!isLidarInit_ && !disableLidar_)
     {
-        isLidarInit_ = lidar_.init("/dev/RPLIDAR");
+        isLidarInit_ = lidar_.init("/dev/RPLIDAR", motionController_.robotParams_.lidarNPointsPerTurn);
         if (!isLidarInit_)
             guiState_.debugStatus += "Lidar init failed\n";
     }
@@ -279,7 +279,7 @@ void Robot::lowLevelLoop()
         }
         else
         {
-            if (std::abs(target.motorSpeed[0]) < 0.001 && std::abs(target.motorSpeed[1]))
+            if (std::abs(target.motorSpeed[0]) < 0.001 && std::abs(target.motorSpeed[1]) < 0.001 )
             {
                 rightController_.stop();
                 measurements.motorSpeed(0) = 0.0;
@@ -297,6 +297,8 @@ void Robot::lowLevelLoop()
             motionController_.log("rightMotorTargetCurrent", rightController_.targetCurrent_);
             motionController_.log("leftMotorCurrent", leftController_.current_);
             motionController_.log("leftMotorTargetCurrent", leftController_.targetCurrent_);
+            motionController_.log("rightMotorClampedVelocity", motionController_.robotParams_.rightMotorDirection * rightController_.clampedTargetVelocity_);
+            motionController_.log("leftMotorClampedVelocity", motionController_.robotParams_.leftMotorDirection * leftController_.clampedTargetVelocity_);
         }
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;

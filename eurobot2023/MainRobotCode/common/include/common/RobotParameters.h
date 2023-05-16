@@ -37,6 +37,9 @@
             double CHASSIS_WIDTH;
             double SUCTION_CENTER;
 
+            // Number of lidar ponts per turn ; 800 is the default for RPLIDAR V2
+            unsigned int lidarNPointsPerTurn = 800;
+
             inline miam::trajectory::TrajectoryConfig getTrajConf()
             {
                 miam::trajectory::TrajectoryConfig c;
