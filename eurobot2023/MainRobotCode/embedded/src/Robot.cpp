@@ -32,8 +32,8 @@ Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, Robo
     spiMotor_(RPI_SPI_00, 1000000),
     mcp_(&spiMotor_),
     motors_(&mcp_),
-    rightController_(&motors_, parameters.rightMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward),
-    leftController_(&motors_, parameters.leftMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward),
+    rightController_(&motors_, parameters.rightMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward, parameters.maxWheelAcceleration / parameters.wheelRadius),
+    leftController_(&motors_, parameters.leftMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward, parameters.maxWheelAcceleration / parameters.wheelRadius),
     spiEncoder_(RPI_SPI_01, 1000000),
     encoders_(&spiEncoder_, 2),
     strategy_(strategy)
@@ -297,6 +297,8 @@ void Robot::lowLevelLoop()
             motionController_.log("rightMotorTargetCurrent", rightController_.targetCurrent_);
             motionController_.log("leftMotorCurrent", leftController_.current_);
             motionController_.log("leftMotorTargetCurrent", leftController_.targetCurrent_);
+            motionController_.log("rightMotorClampedVelocity", motionController_.robotParams_.rightMotorDirection * rightController_.clampedTargetVelocity_);
+            motionController_.log("leftMotorClampedVelocity", motionController_.robotParams_.leftMotorDirection * leftController_.clampedTargetVelocity_);
         }
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;

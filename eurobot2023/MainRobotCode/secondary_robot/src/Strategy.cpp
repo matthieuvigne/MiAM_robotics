@@ -20,13 +20,6 @@ using namespace miam::trajectory;
 using miam::RobotPosition;
 
 
-#define USE_CAMERA 1
-
-#define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
-
-// #define SKIP_TO_GRABBING_SAMPLES 1
-// #define SKIP_TO_PUSHING_SAMPLES 1
-// #define SKIP_TO_GRABBING_SAMPLES_SIDE_DIST 1
 
 // This function is responsible for trying to bring the robot back to base,
 // at the end of the match.
@@ -34,7 +27,6 @@ bool MATCH_COMPLETED = false;
 
 int const BRUSH_MOTOR = 12;
 int const BRUSH_DIR = 16;
-
 
 // Rail
 int const RAIL_SWITCH = 21;
@@ -587,6 +579,7 @@ void Strategy::match_impl()
 
     // Match end: go back to base
     goBackToBase();
+    MATCH_COMPLETED = true;
 
     while (true) ;;
 

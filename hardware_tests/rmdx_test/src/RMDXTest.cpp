@@ -57,9 +57,10 @@ int main (int argc, char *argv[])
     double maxOutput = 5.0;
     double filterCutoff = 10.0;
     double maxFeedforward = 0.4;
+    double maxAcceleration = 2.0;
 
-    RMDXController rightController(&motor, motorRightId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward);
-    RMDXController leftController(&motor, motorLeftId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward);
+    RMDXController rightController(&motor, motorRightId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward, maxAcceleration);
+    RMDXController leftController(&motor, motorLeftId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward, maxAcceleration);
 
     Logger log;
     log.start("test.hdf5");

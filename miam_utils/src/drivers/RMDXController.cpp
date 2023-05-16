@@ -1,6 +1,7 @@
 #include "miam_utils/drivers/RMDXController.h"
 
 #include <iostream>
+#include <algorithm>
 
 
 RMDXController::RMDXController(RMDX *driver,
@@ -9,7 +10,8 @@ RMDXController::RMDXController(RMDX *driver,
                                double const& Ki,
                                double const& maxOutput,
                                double const& filterCutoff,
-                               double const& maxFeedforward):
+                               double const& maxFeedforward,
+                               double const& maxAcceleration):
     position_(0),
     velocity_(0),
     rawVelocity_(0),
@@ -23,8 +25,10 @@ RMDXController::RMDXController(RMDX *driver,
     maxOutput_(maxOutput),
     isStopped_(true),
     lowPass_(filterCutoff),
-    maxFeedforward_(maxFeedforward)
+    maxFeedforward_(maxFeedforward),
+    maxAcceleration_(maxAcceleration)
 {
+    std::cout << maxAcceleration_ << std::endl;
 
 }
 
@@ -36,6 +40,7 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
     {
         position_ = newPos;
         integralValue_ = 0;
+        clampedTargetVelocity_ = 0.0;
     }
 
     // Process only if valid signal is obtained
@@ -50,8 +55,19 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
         }
     }
 
+    // Clamp target to maximum acceleration - but always allow deceleration.
+    if (clampedTargetVelocity_ > 0.01)
+        clampedTargetVelocity_ = std::clamp(targetVelocity, 0.0, std::max(velocity_, clampedTargetVelocity_) + maxAcceleration_ * dt);
+    else if (clampedTargetVelocity_ < -0.01)
+        clampedTargetVelocity_ = std::clamp(targetVelocity, std::min(velocity_, clampedTargetVelocity_) - maxAcceleration_ * dt, 0.0);
+    else
+        clampedTargetVelocity_ = std::clamp(targetVelocity, clampedTargetVelocity_ - maxAcceleration_ * dt, clampedTargetVelocity_ + maxAcceleration_ * dt);
     // Compute PI output, update integral only if not in saturation.
-    double const err = velocity_ - targetVelocity;
+    double err = velocity_ - clampedTargetVelocity_;
+
+    // Clamp error - to avoid discontinuous targets.
+    // err = std::clamp(err, -1.0, 1.0);
+
     targetCurrent_ = - Kp_ * (err + Ki_ * integralValue_);
     if (targetCurrent_ + (-Kp_ * Ki_ * err * dt) < maxOutput_ && targetCurrent_ + (-Kp_ * Ki_ * err * dt) > -maxOutput_)
     {
