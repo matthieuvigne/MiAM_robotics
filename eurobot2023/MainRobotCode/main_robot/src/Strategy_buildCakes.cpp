@@ -23,13 +23,11 @@ using namespace main_robot::arm;
 
 void Strategy::changePileHeight(int pileIndex, int delta)
 {
-    std::cout << "Before mutex" << std::endl;
     pileLock.lock();
     pileHeight[pileIndex] += delta;
     if (pileHeight[pileIndex] < 0)
         std::cout << ">>>>> WARNING pileHeight[pileIndex] is <0 <<<<<" << std::endl;
     pileLock.unlock();
-    std::cout << "After mutex" << std::endl;
 }
 
 //--------------------------------------------------------------------------------------------------
