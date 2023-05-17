@@ -46,7 +46,7 @@ double getTime()
 }
 
 
-Strategy::Strategy(): isAtBase_(false)
+Strategy::Strategy()
 {
 
 }
@@ -62,6 +62,7 @@ enum setupPhase
 
 bool Strategy::setup(RobotInterface *robot)
 {
+    isAtBase_ = false;
     static setupPhase phase = setupPhase::FIRST_CALL;
     static double waitStart = 0;
 #ifdef SIMULATION
@@ -84,7 +85,7 @@ bool Strategy::setup(RobotInterface *robot)
 
         // Set initial position
         motionController->resetPosition(START_POSITION, true, true, true);
-        motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
+        motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_OFF);
 
         RPi_setupGPIO(BRUSH_MOTOR, PiGPIOMode::PI_GPIO_OUTPUT);
         RPi_writeGPIO(BRUSH_MOTOR, false);

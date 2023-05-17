@@ -31,7 +31,7 @@ MotionController::MotionController(RobotParameters const &robotParameters) : cur
 
     // Default avoidance mode
     // avoidanceMode_ = AvoidanceMode::AVOIDANCE_BASIC;
-    avoidanceMode_ = AvoidanceMode::AVOIDANCE_MPC;
+    avoidanceMode_ = AvoidanceMode::AVOIDANCE_OFF;
     avoidanceCount_ = 0;
     isStopped_ = false;
 }
