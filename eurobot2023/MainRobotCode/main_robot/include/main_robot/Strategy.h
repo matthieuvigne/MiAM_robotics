@@ -148,6 +148,7 @@ namespace main_robot
       void takeCherry();
       int switch_arm(int arm_idx);
       int switch_pile(int pile_idx);
+      double switch_angle(double angle);
 
       void addSyncToQueue();
       void changePileHeight(int pileIndex, int delta);
@@ -180,6 +181,9 @@ namespace main_robot
 
       /// @brief Execute the cake building sequence
       void buildCakes();
+      
+      void goBackToBase();
+      bool isAtBase_;
   };
 
 

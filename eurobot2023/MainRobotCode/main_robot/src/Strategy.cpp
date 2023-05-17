@@ -21,6 +21,8 @@ using namespace miam::trajectory;
 using miam::RobotPosition;
 using namespace kinematics;
 
+#define HOMOLOGATION 1
+
 #define RIGHT_ARM_FIRST_SERVO_ID 10
 #define LEFT_ARM_FIRST_SERVO_ID 20
 
@@ -49,7 +51,7 @@ RobotPosition START_POSITION(0, 1125, 0);
 
 Strategy::Strategy()
 {
-    // Empty on purpose
+    // Empty on purpose*
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -111,6 +113,7 @@ bool Strategy::setup(RobotInterface *robot)
     setTargetPosition(RIGHT_ARM, ABS, 0.15, ABS, 10*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
     runActionBlock();
 #endif
+    isAtBase_ = false;
 
     std::cout << "End of the setup" << std::endl;
     return true;
@@ -266,108 +269,200 @@ int Strategy::switch_pile(int pile_idx)
 
 //--------------------------------------------------------------------------------------------------
 
+double Strategy::switch_angle(double angle)
+{
+  if(robot->isPlayingRightSide())
+    angle = - angle;
+  return angle;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::match_impl()
 {
-    // Create required variables.
-    RobotPosition targetPosition;
-    TrajectoryVector traj;
-    RobotPosition endPosition;
-    std::vector<RobotPosition> positions;
-    MotionPlanner* motionPlanner = motionController->motionPlanner_;
-    std::vector<Action> actionVector;
-    RobotParameters const robotParameters = robot->getParameters();
-    RobotPosition tmp_position;
-    RobotPosition current_position = motionController->getCurrentPosition();
-    
-    // Grab first genoise with the arms aside
-    clearActionSequence();
-    targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
-    go_to_straight_line(targetPosition, 1.5);
-    // Go between the next two cakes, stop just before them.
-    targetPosition = cream_ganache_bottom_right + RobotPosition(-600,0,0);
-    go_to_straight_line(targetPosition, 1.5);
-    targetPosition = cream_ganache_bottom_right + RobotPosition(-300,0,0);
-    go_to_straight_line(targetPosition, 1.5);
-    turn_around_point(5*arm::RAD);
-    motionController->resetPosition(targetPosition,true,true,true);
-    setTargetPosition(switch_arm(LEFT_ARM), REL, 0.00, ABS, 70*arm::RAD, REL, 0);
-    setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, ABS, 70*arm::RAD, REL, 0);
-    runActionBlock();
-    targetPosition.x = 2000 - cake_radius - robotParameters.CHASSIS_FRONT;
-    go_to_straight_line(targetPosition);
-    targetPosition.x = targetPosition.x - 100;
-    go_to_straight_line(targetPosition, 1.5, true);
-    setTargetPosition(switch_arm(LEFT_ARM), REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
-    setTargetPosition(switch_arm(RIGHT_ARM), REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
-    runActionBlock();
-    targetPosition.x += 40;
-    go_to_straight_line(targetPosition, 1.5);
+  // Create required variables.
+  RobotPosition targetPosition;
+  TrajectoryVector traj;
+  RobotPosition endPosition;
+  std::vector<RobotPosition> positions;
+  MotionPlanner* motionPlanner = motionController->motionPlanner_;
+  std::vector<Action> actionVector;
+  RobotParameters const robotParameters = robot->getParameters();
+  RobotPosition tmp_position;
+  RobotPosition current_position = motionController->getCurrentPosition();
+  
+  
+  #if HOMOLOGATION
+  // Grab first genoise with the arms aside
+  clearActionSequence();
+  targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
+  go_to_straight_line(targetPosition, 1.5);
+  // Go between the next two cakes, stop just before them.
+  targetPosition = RobotPosition(2000-400,400,0);
+  go_to_straight_line(targetPosition, 1.5);
+  runActionBlock();
+  robot->wait(10.0);
+  go_forward(-1000);
+  targetPosition = RobotPosition{750,750,0};
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS, 0, REL, 0.);
+  runActionBlock();
+  //~ goBackToBase();
+  targetPosition = RobotPosition{750,robotParameters.CHASSIS_FRONT + 150,0};
+  go_to_straight_line(targetPosition, 1.5);
+  funnyAction();
+  #else
+  // Grab first genoise with the arms aside
+  clearActionSequence();
+  targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
+  go_to_straight_line(targetPosition, 1.5);
+  // Go between the next two cakes, stop just before them.
+  targetPosition = cream_ganache_bottom_right + RobotPosition(-600,0,0);
+  go_to_straight_line(targetPosition, 1.5);
+  targetPosition = cream_ganache_bottom_right + RobotPosition(-300,0,0);
+  go_to_straight_line(targetPosition, 1.5);
+  turn_around_point(switch_angle(5*arm::RAD));
+  motionController->resetPosition(targetPosition,true,true,true);
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0.00, ABS, 70*arm::RAD, REL, 0);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, ABS, 70*arm::RAD, REL, 0);
+  runActionBlock();
+  targetPosition.x = 2000 - cake_radius - robotParameters.CHASSIS_FRONT;
+  go_to_straight_line(targetPosition);
+  targetPosition.x = targetPosition.x - 100;
+  go_to_straight_line(targetPosition, 1.5, true);
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
+  runActionBlock();
+  targetPosition.x += 40;
+  go_to_straight_line(targetPosition, 1.5);
+  // Build the cakes
+  buildCakes();
+  // Push the cakes to safe space
+  clearActionSequence();
+  go_forward(-150);
+  turn_around_point(switch_angle(55*arm::RAD));
+  go_forward(160);
+  setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
+  setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
+  runActionBlock();
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 1e-2, REL, -30*arm::RAD, REL, 0.00);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, REL, -30*arm::RAD, REL, 0.00);
+  runActionBlock();
+  turn_around_point(switch_angle(-90*arm::RAD),0.4);
+  turn_around_point(switch_angle(-30*arm::RAD),0.4);
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
+  runActionBlock();
+  go_forward(180);
+  turn_around_point(switch_angle(-20*arm::RAD),0.4);
+  go_forward(380);
+  setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
+  setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
+  runActionBlock();
+  go_forward(80);
+  // Go back to the final zone
+  go_forward(-500);
+  targetPosition = RobotPosition{750,750,0};
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS, 0, REL, 0.);
+  runActionBlock();
+  go_to_straight_line(targetPosition, 1.5, false);
+  targetPosition.y -= 500;
+  go_to_straight_line(targetPosition, 1.5, false);
+  //~ goBackToBase();
+  #endif
+  
+  //~ goBackToBase();
 
-    // Build the cakes
-    buildCakes();
-
-    // Push the cakes to safe space
-    clearActionSequence();
-    go_forward(-150);
-    turn_around_point(55*arm::RAD);
-    go_forward(160);
-    setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
-    setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
-    runActionBlock();
-    setTargetPosition(switch_arm(LEFT_ARM), REL, 1e-2, REL, -30*arm::RAD, REL, 0.00);
-    setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, REL, -30*arm::RAD, REL, 0.00);
-    runActionBlock();
-    turn_around_point(-90*arm::RAD,0.4);
-    turn_around_point(-30*arm::RAD,0.4);
-    setTargetPosition(switch_arm(LEFT_ARM), REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
-    setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
-    runActionBlock();
-    go_forward(180);
-    turn_around_point(-20*arm::RAD,0.4);
-    go_forward(380);
-    setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
-    setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
-    runActionBlock();
-    go_forward(80);
-
-    // Go back to the final zone
-    go_forward(-500);
-    targetPosition = RobotPosition{750,750,0};
-    setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
-    setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS, 0, REL, 0.);
-    runActionBlock();
-    go_to_straight_line(targetPosition, 1.5, false);
-    targetPosition.y -= 500;
-    go_to_straight_line(targetPosition, 1.5, false);
-
-    std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
+  std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }
 
 //--------------------------------------------------------------------------------------------------
 
 void Strategy::match()
 {
+  std::cout << "Strategy thread started." << std::endl;
 
-    std::cout << "Strategy thread started." << std::endl;
+  std::thread stratMain(&Strategy::match_impl, this);
+  pthread_t handle = stratMain.native_handle();
+  createdThreads_.push_back(handle);
+  stratMain.detach();
 
-    std::thread stratMain(&Strategy::match_impl, this);
-    pthread_t handle = stratMain.native_handle();
-    createdThreads_.push_back(handle);
-    stratMain.detach();
-
-    double const FALLBACK_TIME = 95.0;
-    robot->wait(FALLBACK_TIME);
-    if (!MATCH_COMPLETED)
-        pthread_cancel(handle);
-    createdThreads_.clear();
-    usleep(50000);
-    if (!MATCH_COMPLETED)
-    {
-        std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
-    }
-    funnyAction();
+  double const FALLBACK_TIME = 95.0;
+  robot->wait(FALLBACK_TIME);
+  if (!MATCH_COMPLETED)
+      pthread_cancel(handle);
+  createdThreads_.clear();
+  usleep(50000);
+  if (!MATCH_COMPLETED)
+  {
+      std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
+  }
+  funnyAction();
 }
 
 //--------------------------------------------------------------------------------------------------
+
+
+
+void Strategy::goBackToBase()
+{
+    if (isAtBase_)
+    {
+        textlog << "[Strategy] already at base" << std::endl;
+        return;
+    }
+
+    TrajectoryVector traj;
+    RobotPosition endPosition;
+    std::vector<RobotPosition> positions;
+
+    RobotPosition position = motionController->getCurrentPosition();
+    position.x = 680;
+    position.y = 500;
+    position.theta = -M_PI_2;
+
+    if ((motionController->getCurrentPosition() - position).norm() > 100)
+    {
+        traj = robot->getMotionController()->computeMPCTrajectory(
+            position,
+            robot->getMotionController()->getDetectedObstacles(),
+            false,   // is forward
+            true,   // is an avoidance traj
+            true); // ensure end angle
+        robot->getMotionController()->setTrajectoryToFollow(traj);
+        robot->getMotionController()->waitForTrajectoryFinished();
+    }
+    else
+    {
+        go_to_straight_line(position);
+    }
+
+    position.x = 680;
+    position.y = 100;
+    position.theta = -M_PI_2;
+
+    TrajectoryConfig trajconf = robot->getParameters().getTrajConf();
+    trajconf.maxWheelVelocity = 200;
+
+    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
+        trajconf,
+        motionController->getCurrentPosition(), // start
+        position, // end
+        0.0, // no velocity at end point
+        false // backward
+    );
+
+    for (auto subtraj : traj)
+    {
+        subtraj->setAvoidanceEnabled(true);
+    }
+
+    robot->getMotionController()->setTrajectoryToFollow(traj);
+    robot->getMotionController()->waitForTrajectoryFinished();
+
+    isAtBase_ = true;
+
+}
 
 }
