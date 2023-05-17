@@ -163,9 +163,12 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
     // Compute slowdown
     double slowDownCoeff = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
+    static double clampedSlowDownCoeff = 1.0;
     log("detectionCoeff",slowDownCoeff);
+    clampedSlowDownCoeff = std::min(slowDownCoeff, clampedSlowDownCoeff + 0.05);
+    log("clampedDetectionCoeff", clampedSlowDownCoeff);
 
-    if (slowDownCoeff > 0)
+    if (clampedSlowDownCoeff > 0)
     {
         isStopped_ = false;
     }
@@ -239,8 +242,8 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         Trajectory *traj = currentTrajectories_.at(0).get();
         // No avoidance if point turn.
         if (traj->getCurrentPoint(curvilinearAbscissa_).linearVelocity == 0)
-            slowDownCoeff = 1.0;
-        curvilinearAbscissa_ += slowDownCoeff * dt;
+            clampedSlowDownCoeff = 1.0;
+        curvilinearAbscissa_ += clampedSlowDownCoeff * dt;
 
         if (curvilinearAbscissa_ > traj->getDuration())
         {
@@ -266,7 +269,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         else
         {
             // Servo robot on current trajectory.
-            bool trajectoryDone = computeMotorTarget(traj, curvilinearAbscissa_, dt, slowDownCoeff, measurements, target);
+            bool trajectoryDone = computeMotorTarget(traj, curvilinearAbscissa_, dt, clampedSlowDownCoeff, measurements, target);
             // If we finished the last trajectory, we can just end it straight away.
             if (trajectoryDone && currentTrajectories_.size() == 1)
             {

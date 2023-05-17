@@ -136,7 +136,6 @@
             AbstractStrategy *strategy_;
 
             bool hasMatchStarted_{false};
-            bool isPlayingRightSide_{false};
             double matchStartTime_{0.0};
             double currentTime_{0.0};
     };

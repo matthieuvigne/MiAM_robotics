@@ -226,8 +226,6 @@ void Strategy::shutdown()
 
 void Strategy::match_impl()
 {
-  
-    while(true) ;;
     // Send start message
     if (sock_.send("Match started"))
         textlog << "[Strategy (secondary_robot)] " << "Start message sent" << std::endl;
