@@ -46,6 +46,12 @@
         AVOIDANCE_OFF
     };
 
+    enum MotionControllerState {
+        CONTROLLER_STOP,
+        CONTROLLER_TRAJECTORY_TRACKING,
+        CONTROLLER_WAIT_FOR_AVOIDANCE,
+        CONTROLLER_WAIT_FOR_TRAJECTORY
+    };
 
     typedef struct {
         Vector2 motorSpeed = Vector2::Zero(); ///<< Target motor speed, in rad/s
@@ -223,8 +229,8 @@
             double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
 
             /// @brief Update trajectory to perform avoidance
-            /// @return avoidance was performed or not
-            bool performAvoidance();
+            /// @return avoidance traj
+            TrajectoryVector performAvoidance();
 
             RobotPosition lidarPointToRobotPosition(LidarPoint const &point);
             bool isLidarPointWithinTable(LidarPoint const& point);
@@ -234,9 +240,19 @@
             int avoidanceCount_;
             const int maxAvoidanceAttempts_ = 2;
             bool isStopped_;
+
+            double slowDownCoeff_;
+            double clampedSlowDownCoeff_;
+
             std::chrono::steady_clock::time_point timeSinceFirstStopped_;
             std::chrono::steady_clock::time_point timeSinceLastAvoidance_;
 
+            std::mutex avoidanceComputationMutex_;
+            bool avoidanceComputationScheduled_;
+            bool avoidanceComputationEnded_;
+            TrajectoryVector avoidanceComputationResult_;
+            void loopOnAvoidanceComputation();
+            std::vector<pthread_t> createdThreads_;
 
             // List of obstacles
             std::vector<Obstacle> detectedObstacles_;
@@ -253,6 +269,13 @@
 
 
             double trajectoryTimeout_ = 1.0; // Number of seconds after the end of trajectory after which timeout is raised
+
+            // Motion controller state
+            MotionControllerState motionControllerState_;
+            void changeMotionControllerState();
+            DrivetrainTarget resolveMotionControllerState(DrivetrainMeasurements const &measurements, 
+                                                           double const &dt,
+                                                           bool const &hasMatchStarted);
 
     };
  #endif

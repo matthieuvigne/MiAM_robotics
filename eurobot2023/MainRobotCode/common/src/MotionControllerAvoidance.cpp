@@ -8,8 +8,10 @@ void MotionController::setAvoidanceMode(AvoidanceMode avoidanceMode)
     avoidanceMode_ = avoidanceMode;
 }
 
-bool MotionController::performAvoidance()
+TrajectoryVector MotionController::performAvoidance()
 {
+    TrajectoryVector traj;
+
     if (!currentTrajectories_.front()->isAvoidanceEnabled())
     {
         textlog << "[MotionController] Avoidance is disabled for this traj" << std::endl;
@@ -22,24 +24,42 @@ bool MotionController::performAvoidance()
     if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_OFF)
     {
         textlog << "[MotionController] " << "Avoidance disabled" << std::endl;
-        return false;
+        return traj;
     }
 
-    TrajectoryVector traj;
     if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_BASIC)
         traj = computeBasicAvoidanceTrajectory(targetPosition, detectedObstacles, forward);
     else if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_MPC)
         traj = computeMPCTrajectory(targetPosition, detectedObstacles, forward, true);
 
-    if (traj.getDuration() > 0)
-    {
-        currentTrajectories_.clear();
-        currentTrajectories_ = traj;
-        curvilinearAbscissa_ = 0.0;
-    }
-
-    return traj.getDuration() > 0;
+    return traj;
 }
+
+
+void MotionController::loopOnAvoidanceComputation()
+{
+    while (true)
+    {
+        avoidanceComputationMutex_.lock();
+        bool needRecomputing = avoidanceComputationScheduled_ & !avoidanceComputationEnded_;
+        avoidanceComputationMutex_.unlock();
+
+        if (needRecomputing)
+        {
+            textlog << "[MotionControllerAvoidance] recomputing avoidace" << std::endl;
+            TrajectoryVector res = performAvoidance();
+            textlog << "[MotionControllerAvoidance] loopOnAvoidanceComputation ended" << std::endl;
+            avoidanceComputationMutex_.lock();
+            avoidanceComputationResult_.clear();
+            avoidanceComputationResult_ = res;
+            avoidanceComputationEnded_ = true;
+            avoidanceComputationMutex_.unlock();
+        }
+
+        usleep(50000);
+    }
+}
+
 
 
 TrajectoryVector MotionController::computeBasicAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward)
