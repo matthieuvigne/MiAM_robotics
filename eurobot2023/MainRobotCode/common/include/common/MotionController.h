@@ -47,6 +47,12 @@
     };
 
 
+    enum MotionControllerState {
+        CONTROLLER_STOP,
+        CONTROLLER_TRAJECTORY_TRACKING,
+        CONTROLLER_WAIT_FOR_AVOIDANCE
+    };
+
     typedef struct {
         Vector2 motorSpeed = Vector2::Zero(); ///<< Target motor speed, in rad/s
     }DrivetrainTarget;
@@ -223,8 +229,8 @@
             double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
 
             /// @brief Update trajectory to perform avoidance
-            /// @return avoidance was performed or not
-            bool performAvoidance();
+            /// @return avoidance traj
+            TrajectoryVector performAvoidance();
 
             RobotPosition lidarPointToRobotPosition(LidarPoint const &point);
             bool isLidarPointWithinTable(LidarPoint const& point);
@@ -237,6 +243,12 @@
             std::chrono::steady_clock::time_point timeSinceFirstStopped_;
             std::chrono::steady_clock::time_point timeSinceLastAvoidance_;
 
+            std::mutex avoidanceComputationMutex_;
+            bool avoidanceComputationScheduled_;
+            bool avoidanceComputationEnded_;
+            TrajectoryVector avoidanceComputationResult_;
+            void loopOnAvoidanceComputation();
+            std::vector<pthread_t> createdThreads_;
 
             // List of obstacles
             std::vector<Obstacle> detectedObstacles_;
@@ -253,6 +265,8 @@
 
 
             double trajectoryTimeout_ = 1.0; // Number of seconds after the end of trajectory after which timeout is raised
+
+            MotionControllerState motionControllerState_;
 
     };
  #endif

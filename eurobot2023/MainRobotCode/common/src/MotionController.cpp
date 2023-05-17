@@ -34,6 +34,17 @@ MotionController::MotionController(RobotParameters const &robotParameters) : cur
     avoidanceMode_ = AvoidanceMode::AVOIDANCE_MPC;
     avoidanceCount_ = 0;
     isStopped_ = false;
+    motionControllerState_ = MotionControllerState::CONTROLLER_STOP;
+
+    // Create solver thread
+
+    avoidanceComputationScheduled_ = false;
+    avoidanceComputationEnded_ = false;
+
+    std::thread stratSolver(&MotionController::loopOnAvoidanceComputation, this);
+    pthread_t handle = stratSolver.native_handle();
+    createdThreads_.push_back(handle);
+    stratSolver.detach();
 }
 
 void MotionController::init(RobotPosition const& startPosition, std::string const& teleplotPrefix)
@@ -159,63 +170,133 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
     detectedObstaclesMutex_.unlock();
 
+    // apply state
+
+    if 
+
+
+    log("detectionCoeff",slowDownCoeff);
+    log("commandVelocityRight",target.motorSpeed[side::RIGHT]);
+    log("commandVelocityLeft",target.motorSpeed[side::LEFT]);
+
+
+    // handle changing state
+
+
+
+
+
+
     //////////// Avoidance and slowdown
 
-    // Compute slowdown
-    double slowDownCoeff = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
-    log("detectionCoeff",slowDownCoeff);
+    double slowDownCoeff = 0.0;
 
-    if (slowDownCoeff > 0)
+    if (!avoidanceComputationScheduled_)
     {
-        isStopped_ = false;
-    }
-    else
-    {
-        // if previously not stopped, then register the time
-        if (!isStopped_)
+        // Compute slowdown
+        slowDownCoeff = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
+
+        if (slowDownCoeff > 0)
         {
-            isStopped_ = true;
-            timeSinceFirstStopped_ = std::chrono::steady_clock::now();
-            timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
+            isStopped_ = false;
         }
         else
         {
-            double durationSinceFirstStopped = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceFirstStopped_).count();
-            double durationSinceLastAvoidance = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceLastAvoidance_).count();
-
-            // if stopped for longer than a threshold, perform avoidance every 1 second
-            if (durationSinceLastAvoidance >= 1000)
+            // if previously not stopped, then register the time
+            if (!isStopped_)
             {
-                textlog << "[MotionController] " << "Duration since first stopped (ms): " << static_cast<double>(durationSinceFirstStopped) << std::endl;
-                textlog << "[MotionController] " << "Duration since last avoidance (ms): " << static_cast<double>(durationSinceLastAvoidance) << std::endl;
-                textlog << "[MotionController] " << "Number of avoidance attempts (ms): " << avoidanceCount_ << std::endl;
+                isStopped_ = true;
+                timeSinceFirstStopped_ = std::chrono::steady_clock::now();
+                timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
+            }
+            else
+            {
+                double durationSinceFirstStopped = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceFirstStopped_).count();
+                double durationSinceLastAvoidance = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceLastAvoidance_).count();
 
-                // if avoided too much (or stucked for too long TODO), deem trajectory failed
-                if (avoidanceCount_ > maxAvoidanceAttempts_)
+                // if stopped for longer than a threshold, perform avoidance every 1 second
+                if (durationSinceLastAvoidance >= 1000)
                 {
-                    textlog << "[MotionController] " << "Trajectory failed: attempted " << avoidanceCount_ << " avoidance" << std::endl;
-                    textlog << "[MotionController] " << "Obstacle still present, canceling trajectory" << std::endl;
-                    // Failed to perform avoidance.
-                    // Raise flag and end trajectory following.
-                    wasTrajectoryFollowingSuccessful_ = false;
-                    currentTrajectories_.clear();
-                    curvilinearAbscissa_ = 0.0;
-                }
-                else
-                {
-                    bool avoid = performAvoidance();
+                    textlog << "[MotionController] " << "Duration since first stopped (ms): " << static_cast<double>(durationSinceFirstStopped) << std::endl;
+                    textlog << "[MotionController] " << "Duration since last avoidance (ms): " << static_cast<double>(durationSinceLastAvoidance) << std::endl;
+                    textlog << "[MotionController] " << "Number of avoidance attempts (ms): " << avoidanceCount_ << std::endl;
 
-                    if (avoid)
-                        textlog << "[MotionController] " << "Performing avoidance" << std::endl;
+                    // if avoided too much (or stucked for too long TODO), deem trajectory failed
+                    if (avoidanceCount_ > maxAvoidanceAttempts_)
+                    {
+                        textlog << "[MotionController] " << "Trajectory failed: attempted " << avoidanceCount_ << " avoidance" << std::endl;
+                        textlog << "[MotionController] " << "Obstacle still present, canceling trajectory" << std::endl;
+                        // Failed to perform avoidance.
+                        // Raise flag and end trajectory following.
+                        wasTrajectoryFollowingSuccessful_ = false;
+                        currentTrajectories_.clear();
+                        curvilinearAbscissa_ = 0.0;
+                    }
                     else
-                        textlog << "[MotionController] " << "Avoidance failed" << std::endl;
+                    {
 
-                    timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
-                    avoidanceCount_++;
-                }                
+                        textlog << "[MotionController] " << "Scheduling avoidance" << std::endl;
+
+                        avoidanceComputationMutex_.lock();
+                        avoidanceComputationScheduled_ = true;
+                        avoidanceComputationEnded_ = false;
+                        avoidanceComputationMutex_.unlock();
+
+                        // bool avoid = performAvoidance();
+
+                        // if (avoid)
+                        //     textlog << "[MotionController] " << "Performing avoidance" << std::endl;
+                        // else
+                        //     textlog << "[MotionController] " << "Avoidance failed" << std::endl;
+
+                        timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
+                        avoidanceCount_++;
+                        target.motorSpeed[0] = 0.0;
+                        target.motorSpeed[1] = 0.0;
+                        log("commandVelocityRight",target.motorSpeed[side::RIGHT]);
+                        log("commandVelocityLeft",target.motorSpeed[side::LEFT]);
+                        
+                        return target;
+                    }                
+                }
             }
         }
     }
+    else
+    {
+        if (avoidanceComputationEnded_)
+        {
+            if (avoidanceComputationResult_.getDuration() > 0)
+            {
+                textlog << "[MotionController] " << "Performing avoidance" << std::endl;
+                
+                currentTrajectories_.clear();
+                avoidanceComputationMutex_.lock();
+                currentTrajectories_ = avoidanceComputationResult_;
+                avoidanceComputationMutex_.unlock();
+                curvilinearAbscissa_ = 0.0;
+            }
+            else
+            {
+                textlog << "[MotionController] " << "Avoidance failed" << std::endl;
+            }
+            avoidanceComputationMutex_.lock();
+            avoidanceComputationScheduled_ = false;
+            avoidanceComputationEnded_ = false;
+            avoidanceComputationMutex_.unlock();
+        }
+        else
+        {
+            target.motorSpeed[0] = 0.0;
+            target.motorSpeed[1] = 0.0;
+            log("commandVelocityRight",target.motorSpeed[side::RIGHT]);
+            log("commandVelocityLeft",target.motorSpeed[side::LEFT]);
+            
+            return target;
+        }
+        
+    }
+    
 
     //////////// End of avoidance and slowdown
 
@@ -294,8 +375,6 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         PIDAngular_.resetIntegral(0.0);
     }
 
-    log("commandVelocityRight",target.motorSpeed[side::RIGHT]);
-    log("commandVelocityLeft",target.motorSpeed[side::LEFT]);
 
     return target;
 }
