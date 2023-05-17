@@ -17,8 +17,6 @@
 #include <mutex>
 #include <array>
 
-#define USE_SWITCH_CASE 0
-
 namespace main_robot
 {
   namespace arm{
@@ -49,21 +47,12 @@ namespace main_robot
   static int const REL = 1;
 
   // Reference indexes
-  #if USE_SWITCH_CASE
   static int const RIGHT_ARM = 10;
   static int const LEFT_ARM = 20;
   static int const PUMP_RIGHT = 12;
   static int const PUMP_LEFT = 13;
   static int const VALVE_RIGHT = 24;
   static int const VALVE_LEFT = 26;
-  #else
-  static int RIGHT_ARM = 10;
-  static int LEFT_ARM = 20;
-  static int PUMP_RIGHT = 12;
-  static int PUMP_LEFT = 13;
-  static int VALVE_RIGHT = 24;
-  static int VALVE_LEFT = 26;
-  #endif
   
   class Strategy : public AbstractStrategy
   {
@@ -157,6 +146,8 @@ namespace main_robot
       void runActionBlock();
       void clearActionSequence();
       void takeCherry();
+      int switch_arm(int arm_idx);
+      int switch_pile(int pile_idx);
 
       void addSyncToQueue();
       void changePileHeight(int pileIndex, int delta);
