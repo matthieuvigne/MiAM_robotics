@@ -296,12 +296,17 @@ void Strategy::match_impl()
   // Grab first genoise with the arms aside
   clearActionSequence();
   targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
-  go_to_straight_line(targetPosition, 1.5);
+  go_to_straight_line(targetPosition, 1.0);
   // Go between the next two cakes, stop just before them.
   targetPosition = RobotPosition(2000-400,400,0);
-  go_to_straight_line(targetPosition, 1.5);
+  go_to_straight_line(targetPosition, 1.0);
   runActionBlock();
-  robot->wait(10.0);
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0., REL, 30*arm::RAD, REL, 0.);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., REL, 30*arm::RAD, REL, 0.);
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0., REL, -30*arm::RAD, REL, 0.);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., REL, -30*arm::RAD, REL, 0.);
+  runActionBlock();
+  robot->wait(7.0);
   go_forward(-1000);
   targetPosition = RobotPosition{750,750,0};
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
@@ -309,7 +314,7 @@ void Strategy::match_impl()
   runActionBlock();
   //~ goBackToBase();
   targetPosition = RobotPosition{750,robotParameters.CHASSIS_FRONT + 150,0};
-  go_to_straight_line(targetPosition, 1.5);
+  go_to_straight_line(targetPosition, 1.0);
   funnyAction();
   #else
   // Grab first genoise with the arms aside
