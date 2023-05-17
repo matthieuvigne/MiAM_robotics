@@ -267,6 +267,7 @@
             double trajectoryTimeout_ = 1.0; // Number of seconds after the end of trajectory after which timeout is raised
 
             MotionControllerState motionControllerState_;
+            void setMotionControllerState(MotionControllerState motionControllerState);
 
     };
  #endif
