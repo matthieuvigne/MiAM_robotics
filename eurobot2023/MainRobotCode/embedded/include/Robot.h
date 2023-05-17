@@ -67,7 +67,7 @@
 
             bool isPlayingRightSide() const override
             {
-                return isPlayingRightSide_;
+                return motionController_.isPlayingRightSide_;
             }
 
             /// \brief Get time in current match.

@@ -147,10 +147,7 @@ bool Robot::setupBeforeMatchStart()
         if (isSetup)
         {
             if (testMode_)
-            {
                 matchStartTime_ = -1;
-                isPlayingRightSide_ = true;
-            }
             guiState_.state = robotstate::WAITING_FOR_CABLE;
         }
     }
@@ -171,7 +168,7 @@ bool Robot::setupBeforeMatchStart()
             {
                 // Store plug time in matchStartTime_ to prevent false start due to switch bounce.
                 matchStartTime_ = currentTime_;
-                isPlayingRightSide_ = false;
+                motionController_.isPlayingRightSide_ = false;
                 guiState_.state = robotstate::WAITING_FOR_START;
             }
         }
@@ -219,7 +216,8 @@ void Robot::lowLevelLoop()
             if (hasMatchStarted_)
             {
                 matchStartTime_ = currentTime_;
-                isPlayingRightSide_ = gui_->getIsPlayingRightSide();
+                motionController_.isPlayingRightSide_ = gui_->getIsPlayingRightSide();
+                textlog << "[Robot] Starting match, isPlayingRightSide_" << motionController_.isPlayingRightSide_ << std::endl;
                 guiState_.state = robotstate::MATCH;
                 metronome.resetLag();
                 // Start strategy thread.
@@ -242,7 +240,7 @@ void Robot::lowLevelLoop()
         lastEncoderPosition_ = encoderPosition;
 
         // If playing side::RIGHT side: invert side::RIGHT/side::LEFT encoders.
-        if (isPlayingRightSide_)
+        if (motionController_.isPlayingRightSide_)
         {
             double temp = measurements.encoderSpeed.right;
             measurements.encoderSpeed.right = measurements.encoderSpeed.left;
@@ -270,14 +268,6 @@ void Robot::lowLevelLoop()
 
         // Compute motion target.
         DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
-
-        // Symmeterize motors for right side
-        if (isPlayingRightSide_)
-        {
-            double tmp = target.motorSpeed[side::LEFT];
-            target.motorSpeed[side::LEFT] = target.motorSpeed[side::RIGHT]; 
-            target.motorSpeed[side::RIGHT] = tmp;
-        }
 
         // Apply target
         static bool wasRunning = false;
@@ -315,13 +305,15 @@ void Robot::lowLevelLoop()
         motionController_.log("MotorController.right.targetCurrent", rightController_.targetCurrent_);
         motionController_.log("MotorController.right.position", rightController_.position_);
         motionController_.log("MotorController.right.velocity", rightController_.velocity_);
-        motionController_.log("MotorController.right.targetVelocity", rightController_.clampedTargetVelocity_);
+        motionController_.log("MotorController.right.clampedTargetVelocity", rightController_.clampedTargetVelocity_);
+        motionController_.log("MotorController.right.targetVelocity", rightController_.targetVelocity_);
 
         motionController_.log("MotorController.left.current", leftController_.current_);
         motionController_.log("MotorController.left.targetCurrent", leftController_.targetCurrent_);
         motionController_.log("MotorController.left.position", leftController_.position_);
         motionController_.log("MotorController.left.velocity", leftController_.velocity_);
-        motionController_.log("MotorController.left.targetVelocity", leftController_.clampedTargetVelocity_);
+        motionController_.log("MotorController.left.clampedTargetVelocity", leftController_.clampedTargetVelocity_);
+        motionController_.log("MotorController.left.targetVelocity", leftController_.targetVelocity_);
 
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;

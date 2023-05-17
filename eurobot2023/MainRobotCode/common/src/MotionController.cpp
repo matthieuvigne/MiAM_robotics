@@ -212,7 +212,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
                     timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
                     avoidanceCount_++;
-                }                
+                }
             }
         }
     }
@@ -281,10 +281,6 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
             }
         }
     }
-
-    // Force robot to stop if too close
-    if (slowDownCoeff == 0)
-        return target;
 
     if (!hasMatchStarted)
     {

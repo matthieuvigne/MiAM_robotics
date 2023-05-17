@@ -20,18 +20,35 @@
 Robot *robotPtr;
 
 
+std::string const lockFile = "/tmp/miam_lock";
+
+bool checkLockFile()
+{
+    if (std::filesystem::exists(lockFile))
+        return false;
+    std::ofstream file(lockFile);
+    return true;
+}
+
 // Stop motor before exit.
 void killCode(int x)
 {
+    std::filesystem::remove(lockFile);
     robotPtr->shutdown();
     exit(0);
 }
+
 
 
 int main(int argc, char **argv)
 {
     setpriority(PRIO_PROCESS, 0, -20);
 
+    if (!checkLockFile())
+    {
+        std::cout << "Could not start: lock file " << lockFile << " already exists. Is another code running?" << std::endl;
+        return -1;
+    }
     // Parse input
     bool testMode = false;
     bool noLidar = false;
