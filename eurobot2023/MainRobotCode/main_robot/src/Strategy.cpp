@@ -385,49 +385,30 @@ void Strategy::match_impl()
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
   runActionBlock();
   
-  // [MODIFIED] go_forward(180);
   targetPosition = motionController->getCurrentPosition();
-  targetPosition.x += 180*std::cos(targetPosition.theta); // [MODIFIED]
-  targetPosition.y += 180*std::sin(targetPosition.theta); // [MODIFIED]
-  go_to_straight_line(targetPosition, 1.0, false); // [MODIFIED] go_forward(180);
+  targetPosition.x += 180*std::cos(targetPosition.theta);
+  targetPosition.y += 180*std::sin(targetPosition.theta);
+  go_to_straight_line(targetPosition, 1.0, false);
   
   turn_around_point(switch_angle(-20*arm::RAD),0.4);
   
-  // [MODIFIED] go_forward(380);
   targetPosition = motionController->getCurrentPosition();
-  targetPosition.x += 380*std::cos(targetPosition.theta); // [MODIFIED]
-  targetPosition.y += 380*std::sin(targetPosition.theta); // [MODIFIED]
-  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(380);
+  targetPosition.x += 380*std::cos(targetPosition.theta);
+  targetPosition.y += 380*std::sin(targetPosition.theta);
+  go_to_straight_line(targetPosition);
   
   setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
   setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
   runActionBlock();
   
-  // [MODIFIED] go_forward(80);
   targetPosition = motionController->getCurrentPosition();
-  targetPosition.x += 80*std::cos(targetPosition.theta); // [MODIFIED]
-  targetPosition.y += 80*std::sin(targetPosition.theta); // [MODIFIED]
-  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(380);
+  targetPosition.x += 80*std::cos(targetPosition.theta);
+  targetPosition.y += 80*std::sin(targetPosition.theta);
+  go_to_straight_line(targetPosition);
   
   // Go back to the final zone
-  
-  // [MODIFIED] go_forward(-500);
-  targetPosition = motionController->getCurrentPosition();
-  targetPosition.x += -500*std::cos(targetPosition.theta); // [MODIFIED]
-  targetPosition.y += -500*std::sin(targetPosition.theta); // [MODIFIED]
-  go_to_straight_line(targetPosition, 1.0, true); // [MODIFIED] go_forward(380);
-  
-  targetPosition = RobotPosition{750,750,0};
-  setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
-  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS, 0, REL, 0.);
-  runActionBlock();
-  go_to_straight_line(targetPosition, 1.5, false);
-  targetPosition.y -= 500;
-  go_to_straight_line(targetPosition, 1.5, false);
-  //~ // goBackToBase();
+  goBackToBase();
   #endif
-
-  //~ goBackToBase();
 
   std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
 }
@@ -458,66 +439,20 @@ void Strategy::match()
 
 //--------------------------------------------------------------------------------------------------
 
-
-
 void Strategy::goBackToBase()
 {
-    if (isAtBase_)
-    {
-        textlog << "[Strategy] already at base" << std::endl;
-        return;
-    }
-
-    TrajectoryVector traj;
-    RobotPosition endPosition;
-    std::vector<RobotPosition> positions;
-
-    RobotPosition position = motionController->getCurrentPosition();
-    position.x = 680;
-    position.y = 500;
-    position.theta = -M_PI_2;
-
-    if ((motionController->getCurrentPosition() - position).norm() > 100)
-    {
-        traj = robot->getMotionController()->computeMPCTrajectory(
-            position,
-            robot->getMotionController()->getDetectedObstacles(),
-            false,   // is forward
-            true,   // is an avoidance traj
-            true); // ensure end angle
-        robot->getMotionController()->setTrajectoryToFollow(traj);
-        robot->getMotionController()->waitForTrajectoryFinished();
-    }
-    else
-    {
-        go_to_straight_line(position);
-    }
-
-    position.x = 680;
-    position.y = 100;
-    position.theta = -M_PI_2;
-
-    TrajectoryConfig trajconf = robot->getParameters().getTrajConf();
-    trajconf.maxWheelVelocity = 200;
-
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
-        trajconf,
-        motionController->getCurrentPosition(), // start
-        position, // end
-        0.0, // no velocity at end point
-        false // backward
-    );
-
-    for (auto subtraj : traj)
-    {
-        subtraj->setAvoidanceEnabled(false);
-    }
-
-    robot->getMotionController()->setTrajectoryToFollow(traj);
-    robot->getMotionController()->waitForTrajectoryFinished();
-
-    isAtBase_ = true;
-
+  targetPosition = motionController->getCurrentPosition();
+  targetPosition.x += -500*std::cos(targetPosition.theta);
+  targetPosition.y += -500*std::sin(targetPosition.theta);
+  go_to_straight_line(targetPosition, 1.0, true);
+  
+  targetPosition = RobotPosition{750,750,0};
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS, 0, REL, 0.);
+  runActionBlock();
+  go_to_straight_line(targetPosition, 1.5, false);
+  targetPosition.y -= 500;
+  go_to_straight_line(targetPosition, 1.5, false);
 }
 
 }
