@@ -12,6 +12,7 @@
 #include "common/MotionPlanner.h"
 #include "miam_utils/network/client_socket.hpp"
 #include "miam_utils/network/socket_exception.hpp"
+#include "secondary_robot/PushingCakesAction.h"
 
 namespace secondary_robot
 {
@@ -97,6 +98,12 @@ namespace secondary_robot
         /// @param reservoirTilt up or down
         void set_reservoir_tilt(ReservoirTilt reservoirTilt);
 
+
+        void startSequenceTop();
+        void startSequenceBottom();
+
+        bool performSecondaryRobotAction(SecondaryRobotAction* action);
+
         /// @brief Execute the sequence to grab cherries: set rail position, brush and reservoir tilt, go forward 150mm, wait, then back 150mm
         void grab_cherries();
 
@@ -117,6 +124,8 @@ namespace secondary_robot
         void goBackToBase();
         bool checkIfBackToBase();
         bool countedPointsForGoingBackToBase_;
+
+        bool startingTop_;
     };
 }
 

@@ -169,4 +169,30 @@ class PushCakes6to4 : public PushingCakesAction
         }
 };
 
+class PushCakes3to1 : public PushingCakesAction
+{
+    public:
+        PushCakes3to1() : PushingCakesAction()
+        {
+            start_position.x = 222;
+            start_position.y = 1552;
+            start_position.theta = M_PI_2;
+
+            end_position.x = 222;
+            end_position.y = 2513;
+            end_position.theta = M_PI_2;
+
+            {
+                RobotPosition obstacle;
+                obstacle.x = 222.0;
+                obstacle.y = 2304.0;
+                obstacles_on_the_road.push_back(std::make_tuple(obstacle, 300));
+                obstacle.x = 222.0;
+                obstacle.y = 1990.0;
+                obstacles_on_the_road.push_back(std::make_tuple(obstacle, 300));
+            }
+        }
+};
+
+
 #endif
