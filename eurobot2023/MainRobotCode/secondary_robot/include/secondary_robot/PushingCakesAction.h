@@ -1,30 +1,18 @@
 #ifndef PUSHING_CAKES_ACTION_H
 #define PUSHING_CAKES_ACTION_H
 
-#include "miam_utils/trajectory/RobotPosition.h"
-#include "miam_utils/trajectory/Trajectory.h"
-#include "common/RobotInterface.h"
-#include "common/AbstractStrategy.h"
+#include "secondary_robot/SecondaryRobotAction.h"
 
 using namespace miam;
 
-class PushingCakesAction
+class PushingCakesAction : public SecondaryRobotAction
 {
     public:
 
-        PushingCakesAction() : activated(true) {};
-
-        RobotPosition start_position;
-        RobotPosition end_position;
-
-        std::vector<Obstacle > obstacles_on_the_road;
-        std::vector<Obstacle > obstacles_in_the_end;
-
-        bool activated;
-
-        int score_ = 3;
+        PushingCakesAction() : SecondaryRobotAction() {};
 
         bool performAction(RobotInterface* robot);
+        int getScore() { return 3; }
 };
 
 // Zones :
