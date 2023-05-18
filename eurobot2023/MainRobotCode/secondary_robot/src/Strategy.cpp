@@ -280,6 +280,9 @@ void Strategy::match_impl()
     grab_cherries();
 
     // Put the cherries in the basket
+
+    moveRail(rail::TOP);
+
     // targetPositions.clear();
     // RobotPosition position = motionController->getCurrentPosition();
     // targetPositions.push_back(position);
@@ -442,10 +445,13 @@ void Strategy::match_impl()
             if (robot->getMotionController()->waitForTrajectoryFinished())
             {
                 // perform action
+                // action was successful
                 if (go_to_straight_line(action.end_position))
                 {
+                    // update score
+                    robot->updateScore(actions.at(action_index).score_);
+                    // go back
                     go_forward(-100);
-
                     // remove action from vector
                     actions.erase( actions.begin() + action_index);
                     // add obstacle in the end
@@ -454,24 +460,18 @@ void Strategy::match_impl()
                         robot->getMotionController()->addPersistentObstacle(obstacle);
                     }
                 }
+                // action was not successful
                 else
                 {
-                    action_successful = false;
+                    textlog << "[Strategy (secondary_robot)] " << "Action was not successful: deactivated" << std::endl;
+                    actions.at(action_index).activated = false;
                 }
-            }
+            } 
             else
-            {
-                action_successful = false;
-            }
-
-            if (!action_successful)
+            // action was not successful
             {
                 textlog << "[Strategy (secondary_robot)] " << "Action was not successful: deactivated" << std::endl;
                 actions.at(action_index).activated = false;
-            }
-            else
-            {
-                robot->updateScore(actions.at(action_index).score_);
             }
         }
         else
