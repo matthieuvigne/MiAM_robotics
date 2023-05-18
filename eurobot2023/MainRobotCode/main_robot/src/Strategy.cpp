@@ -21,7 +21,7 @@ using namespace miam::trajectory;
 using miam::RobotPosition;
 using namespace kinematics;
 
-#define HOMOLOGATION 1
+#define HOMOLOGATION 0
 
 #define RIGHT_ARM_FIRST_SERVO_ID 10
 #define LEFT_ARM_FIRST_SERVO_ID 20
