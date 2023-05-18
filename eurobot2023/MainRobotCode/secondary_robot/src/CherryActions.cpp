@@ -61,7 +61,7 @@ void Strategy::set_reservoir_tilt(ReservoirTilt reservoirTilt)
 
 void Strategy::grab_cherries()
 {
-
+    textlog << "[CherryActions] grab_cherries" << std::endl;
     set_reservoir_tilt(ReservoirTilt::GRAB);
     moveRail(rail::CHERRY_GRAB);
     // Wait for rail to start moving.
@@ -100,6 +100,7 @@ void Strategy::grab_cherries()
 
 void Strategy::put_cherries_in_the_basket()
 {
+    textlog << "[CherryActions] put_cherries_in_the_basket" << std::endl;
     // put rail in the right height
     set_reservoir_tilt(ReservoirTilt::HORIZONTAL);
     moveRail(rail::TOP);

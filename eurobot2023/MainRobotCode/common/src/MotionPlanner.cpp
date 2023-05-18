@@ -89,6 +89,7 @@ TrajectoryVector MotionPlanner::planMotion(
     }
 
     TrajectoryVector res;
+    textlog << "[MotionPlanner] " << "Start solving..." << std::endl;
 
     // compute the trajectory from the waypoints
     TrajectoryVector st = solveTrajectoryFromWaypoints(planned_path);

@@ -23,6 +23,8 @@ class PushingCakesAction
         bool activated;
 
         int score_ = 3;
+
+        bool performAction(RobotInterface* robot);
 };
 
 // Zones :

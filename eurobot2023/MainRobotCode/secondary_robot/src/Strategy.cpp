@@ -273,7 +273,10 @@ void Strategy::match_impl()
     targetPositions.push_back(cherryDistributorBottom);
     go_to_rounded_corner(targetPositions);
 
-    grab_cherries();
+    if ((motionController->getCurrentPosition() - cherryDistributorBottom).norm() < 100)
+    {
+        grab_cherries();
+    }
 
     // Go to the left cherries, grab them
     targetPositions.clear();
@@ -281,7 +284,11 @@ void Strategy::match_impl()
     targetPositions.push_back(cherryDistributorLeft + RobotPosition(300, 0, 0));
     targetPositions.push_back(cherryDistributorLeft+ RobotPosition(10, 0, 0));
     go_to_rounded_corner(targetPositions);
-    grab_cherries();
+
+    if ((motionController->getCurrentPosition() - (cherryDistributorLeft+ RobotPosition(10, 0, 0))).norm() < 100)
+    {
+        grab_cherries();
+    }
 
     // Put the cherries in the basket
 
@@ -323,10 +330,15 @@ void Strategy::match_impl()
     // retirer l'obstacle
     robot->getMotionController()->popBackPersistentObstacles();
 
-    go_forward(100);
-    put_cherries_in_the_basket();
-    // Estimate: 18 cherries in basket
-    robot->updateScore(18);
+
+    if ((motionController->getCurrentPosition() - position).norm() < 100)
+    {
+        put_cherries_in_the_basket();
+        go_forward(100);
+        // Estimate: 18 cherries in basket
+        robot->updateScore(18);
+    }
+
     // go_forward(-50);
     // traj.clear();
     // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(robot->getParameters().getTrajConf(), robot->getMotionController()->getCurrentPosition(), -M_PI_2)));
@@ -444,18 +456,14 @@ void Strategy::match_impl()
             }
             robot->getMotionController()->setTrajectoryToFollow(traj);
 
-            bool action_successful = true;
-
             if (robot->getMotionController()->waitForTrajectoryFinished())
             {
                 // perform action
                 // action was successful
-                if (go_to_straight_line(action.end_position))
+                if (action.performAction(robot))
                 {
                     // update score
                     robot->updateScore(actions.at(action_index).score_);
-                    // go back
-                    go_forward(-100);
                     // remove action from vector
                     actions.erase( actions.begin() + action_index);
                     // add obstacle in the end
@@ -519,6 +527,10 @@ void Strategy::match()
     {
         textlog << "[Strategy (secondary_robot)] " << "Match almost done, auto-triggering fallback strategy" << std::endl;
         goBackToBase();
+    }
+    else
+    {
+        textlog << "[Strategy (secondary_robot)] " << "Match almost done, strategy already complete" << std::endl;
     }
 }
 
