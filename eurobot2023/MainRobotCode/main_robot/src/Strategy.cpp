@@ -315,7 +315,6 @@ void Strategy::match_impl()
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS, 0, REL, 0.);
   runActionBlock();
-  //~ goBackToBase();
   targetPosition = RobotPosition{750,robotParameters.CHASSIS_FRONT + 150,0};
   go_to_straight_line(targetPosition, 1.0);
   funnyAction();
@@ -364,7 +363,10 @@ void Strategy::match_impl()
   targetPosition.x += -150*std::sin(targetPosition.theta);
   go_to_straight_line(targetPosition, 1.0, true);
   
-  turn_around_point(switch_angle(55*arm::RAD));
+  //~ turn_around_point(switch_angle(25*arm::RAD));
+  //~ turn_around_point(switch_angle(30*arm::RAD));
+  turn_around_point(25*arm::RAD);
+  turn_around_point(30*arm::RAD);
   
   targetPosition = motionController->getCurrentPosition();
   targetPosition.x += 160*std::cos(targetPosition.theta);
@@ -374,11 +376,15 @@ void Strategy::match_impl()
   setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
   setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
   runActionBlock();
-  setTargetPosition(switch_arm(LEFT_ARM), REL, 1e-2, REL, -30*arm::RAD, REL, 0.00);
-  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, REL, -30*arm::RAD, REL, 0.00);
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 1e-2, REL, 0, REL, 0.00);
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0, REL, -30*arm::RAD, REL, 0.00);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 1e-2, REL, 0, REL, 0.00);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0, REL, -30*arm::RAD, REL, 0.00);
   runActionBlock();
-  turn_around_point(switch_angle(-90*arm::RAD),0.4);
-  turn_around_point(switch_angle(-30*arm::RAD),0.4);
+  //~ turn_around_point(switch_angle(-90*arm::RAD),0.4);
+  //~ turn_around_point(switch_angle(-30*arm::RAD),0.4);
+  turn_around_point(-90*arm::RAD,0.4);
+  turn_around_point(-30*arm::RAD,0.4);
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
   runActionBlock();
@@ -388,15 +394,16 @@ void Strategy::match_impl()
   targetPosition.y += 180*std::sin(targetPosition.theta);
   go_to_straight_line(targetPosition, 1.0, false);
   
-  turn_around_point(switch_angle(-20*arm::RAD),0.4);
+  //~ turn_around_point(switch_angle(-20*arm::RAD),0.4);
+  turn_around_point(-20*arm::RAD,0.4);
   
   targetPosition = motionController->getCurrentPosition();
   targetPosition.x += 380*std::cos(targetPosition.theta);
   targetPosition.y += 380*std::sin(targetPosition.theta);
   go_to_straight_line(targetPosition);
   
-  setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
-  setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
+  setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.15, ABS, 90*arm::RAD, REL, 0.00);
+  setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.15, ABS, 90*arm::RAD, REL, 0.00);
   runActionBlock();
   
   targetPosition = motionController->getCurrentPosition();

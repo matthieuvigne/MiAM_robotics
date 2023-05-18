@@ -299,15 +299,19 @@ void Strategy::grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate)
   arm_idx = switch_arm(arm_idx);
   pile_idx = switch_pile(pile_idx);
   
-  // Perform requested action
-  ArmPosition const pile = getPileFromIndex(pile_idx);
+  // Get specific corrections
   double delta_r = (getPileHeight(pile_idx)==1) ? 10e-3 : 0.; // before 5e-3
+  delta_r = (getPileHeight(pile_idx)==2) ? 5e-3 : delta_r; // [ADDED]
   double delta_theta1 = (getPileHeight(pile_idx)==1) ? 20*arm::RAD : 0.;
   double delta_theta2 = (getPileHeight(pile_idx)==1) ? 10*arm::RAD : 0.;
+  double delta_z = (getPileHeight(pile_idx)==1) ? 2e-3 : 0.; // [ADDED]
+  
+  // Perform requested action
+  ArmPosition const pile = getPileFromIndex(pile_idx);
   setTargetPosition(arm_idx, ABS, pile.r_ + 10e-3 + delta_r, ABS, pile.theta_ + delta_theta2, ABS, PILE_CLEAR_HEIGHT);
   pump(arm_idx, true);
   setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) + 5e-3);
-  setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) - 3e-3);
+  setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, getPileZ(pile_idx) - 3e-3 + delta_z);
   setTargetPosition(arm_idx, REL, -10e-3, REL, delta_theta1, REL, 0);
   if(oscillate) this->oscillate(arm_idx, 3*arm::RAD);
   wait(arm_idx, 0.250);
