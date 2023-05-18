@@ -160,9 +160,15 @@ void Strategy::calibrateRail()
 
 void Strategy::updateRailHeight()
 {
-    int currentCount = servo->getCurrentPosition(RAIL_SERVO_ID);
-    while (currentCount == 0)
+    int currentCount = 0;
+
+    for (int i = 0; i < 5; i++)
+    {
+        // Retry up to 5 times.
         currentCount = servo->getCurrentPosition(RAIL_SERVO_ID);
+        if (currentCount != 0)
+            break;
+    }
     int delta = currentCount - currentRailMeasurements.lastEncoderMeasurement_;
     currentRailMeasurements.lastEncoderMeasurement_ = currentCount;
     while (delta > 2048)

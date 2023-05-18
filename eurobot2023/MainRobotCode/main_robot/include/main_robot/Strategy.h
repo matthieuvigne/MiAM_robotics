@@ -7,7 +7,6 @@
 #define MAIN_ROBOT_STRATEGY_H
 
 #include "common/RobotInterface.h"
-#include "common/ServoHandler.h"
 #include "common/AbstractAction.h"
 #include "common/AbstractStrategy.h"
 #include "common/MotionPlanner.h"
@@ -53,7 +52,7 @@ namespace main_robot
   static int const PUMP_LEFT = 13;
   static int const VALVE_RIGHT = 24;
   static int const VALVE_LEFT = 26;
-  
+
   class Strategy : public AbstractStrategy
   {
     public:
@@ -84,7 +83,7 @@ namespace main_robot
       std::mutex pileLock;
       std::array<int, 5> pileHeight;
       enum PILE_IDX {LEFT_SIDE = 0,LEFT_FRONT = 1, MIDDLE = 2, RIGHT_FRONT = 3, RIGHT_SIDE = 4};
-      
+
       // Right arm has inverted angles!
       ArmPosition middlePile{
         arm::CAKES_FRONT_DISTANCE + 10e-3,
@@ -133,7 +132,7 @@ namespace main_robot
         int absrel_r, double r,
         int absrel_theta, double theta_rad,
         int absrel_z, double z);
-      void setTargetPositionTicks(int arm_idx, 
+      void setTargetPositionTicks(int arm_idx,
         int16_t tick0, int16_t tick1, int16_t tick2, int16_t tick3);
       ArmPosition getPileFromIndex(int pile_idx);
       void grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate = false);
@@ -181,10 +180,10 @@ namespace main_robot
 
       /// @brief Execute the cake building sequence
       void buildCakes();
-      
+
       void goBackToBase();
       bool isAtBase_;
-      
+
       // Moving average of the servo current
       std::deque<double> left_arm_current_;
       std::deque<double> right_arm_current_;

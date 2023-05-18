@@ -15,7 +15,6 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/time.h>
-#include <sys/resource.h>
 
 #include <filesystem>
 #include <fstream>
@@ -44,8 +43,6 @@ void killCode(int x)
 
 int main(int argc, char **argv)
 {
-    setpriority(PRIO_PROCESS, 0, -20);
-
     if (!checkLockFile())
     {
         std::cout << "Could not start: lock file " << lockFile << " already exists. Is another code running?" << std::endl;

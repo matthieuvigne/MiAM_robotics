@@ -12,7 +12,6 @@
     #include <unistd.h>
     #include "common/RobotParameters.h"
     #include "common/MotionController.h"
-    #include "common/ServoHandler.h"
     #include "common/Types.h"
     #include <miam_utils/drivers/STSServoDriver.h>
 

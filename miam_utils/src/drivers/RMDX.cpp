@@ -189,7 +189,7 @@ int RMDX::canReadWrite(CANMessage& message, bool const& waitForReply)
         {
             usleep(20);
             clock_gettime(CLOCK_MONOTONIC, &currentTime);
-            double const elapsed = currentTime.tv_sec - startTime.tv_sec + (currentTime.tv_nsec - startTime.tv_nsec) / 1e9;
+            double const elapsed = currentTime.tv_sec - startTime.tv_sec + static_cast<double>(currentTime.tv_nsec - startTime.tv_nsec) / 1.0e9;
             if (elapsed > timeout_)
                 break;
         }
