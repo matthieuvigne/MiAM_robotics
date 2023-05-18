@@ -360,18 +360,16 @@ void Strategy::match_impl()
   // Push the cakes to safe space
   clearActionSequence();
   
-  // [MODIFIED] go_forward(-150);
-  targetPosition.x += -150*std::cos(targetPosition.theta); // [MODIFIED]
-  targetPosition.x += -150*std::sin(targetPosition.theta); // [MODIFIED]
-  go_to_straight_line(targetPosition, 1.0, true); // [MODIFIED] go_forward(-150);
+  targetPosition.x += -150*std::cos(targetPosition.theta);
+  targetPosition.x += -150*std::sin(targetPosition.theta);
+  go_to_straight_line(targetPosition, 1.0, true);
   
   turn_around_point(switch_angle(55*arm::RAD));
   
-  // [MODIFIED] go_forward(160);
   targetPosition = motionController->getCurrentPosition();
-  targetPosition.x += 160*std::cos(targetPosition.theta); // [MODIFIED]
-  targetPosition.y += 160*std::sin(targetPosition.theta); // [MODIFIED]
-  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(160);
+  targetPosition.x += 160*std::cos(targetPosition.theta);
+  targetPosition.y += 160*std::sin(targetPosition.theta);
+  go_to_straight_line(targetPosition);
   
   setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
   setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
@@ -405,6 +403,11 @@ void Strategy::match_impl()
   targetPosition.x += 80*std::cos(targetPosition.theta);
   targetPosition.y += 80*std::sin(targetPosition.theta);
   go_to_straight_line(targetPosition);
+
+  targetPosition = motionController->getCurrentPosition();
+  targetPosition.x += -500*std::cos(targetPosition.theta);
+  targetPosition.y += -500*std::sin(targetPosition.theta);
+  go_to_straight_line(targetPosition, 1.0, true);
   
   // Go back to the final zone
   goBackToBase();
@@ -441,12 +444,7 @@ void Strategy::match()
 
 void Strategy::goBackToBase()
 {
-  targetPosition = motionController->getCurrentPosition();
-  targetPosition.x += -500*std::cos(targetPosition.theta);
-  targetPosition.y += -500*std::sin(targetPosition.theta);
-  go_to_straight_line(targetPosition, 1.0, true);
-  
-  targetPosition = RobotPosition{750,750,0};
+  RobotPosition targetPosition{750,750,0};
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS, 0, REL, 0.);
   runActionBlock();
