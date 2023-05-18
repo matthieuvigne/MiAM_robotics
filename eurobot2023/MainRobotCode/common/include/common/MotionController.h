@@ -183,13 +183,14 @@
 
 
             // void setDetectedObstacles(std::vector<RobotPosition> detectedObstacles);
-            std::vector<Obstacle> getDetectedObstacles();
+            std::vector<Obstacle> getDetectedObstacles(bool withPersistentObstacles = true);
             std::vector<Obstacle> getPersistentObstacles();
             void addPersistentObstacle(Obstacle obstacle);
             void clearPersistentObstacles();
             void popBackPersistentObstacles();
 
-            TrajectoryVector computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward, bool avoidanceEnabled = false, bool ensureEndAngle = true);
+            TrajectoryVector computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward = true);
+            TrajectoryVector computeMPCAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward, bool avoidanceEnabled = false, bool ensureEndAngle = true);
             TrajectoryVector computeBasicAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
 
             std::vector<miam::RobotPosition> filteredDetectedObstacles_; ///< Detected obstables ; angle is M_PI if outside table else 0.
@@ -197,6 +198,12 @@
             // low avoidance : during which avoidance is very low
             void setLowAvoidanceZone(RobotPosition lowAvoidanceCenter, double lowAvoidanceRadius);
             void disableLowAvoidanceZone();
+
+            // a robot was present for more than 8s
+            // each iteration = 10 ms
+            // so a threshold of 800 iterations
+            bool wasLeftDistributorVisited();
+            bool wasRightDistributorVisited();
         private:
             ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
             double currentTime_{0.0};
@@ -286,7 +293,10 @@
             // In this zone avoidance should be low
             bool lowAvoidanceZoneEnabled_;
             Obstacle lowAvoidanceZone_;
-            
+
+            // Monitor the distributor areas for robots
+            int numberOfDetectionsLeftDistributor_ = 0;
+            int numberOfDetectionsRightDistributor_ = 0;
 
     };
  #endif

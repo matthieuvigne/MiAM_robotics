@@ -171,6 +171,16 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         filteredDetectedObstacles_.push_back(obspos);
         detectedObstacles_.push_back(std::make_tuple(obspos, detection::mpc_obstacle_size));
         nObstaclesOnTable += 1;
+
+        // monitor the zones close to the cherry distributors
+        if (obspos.x < 250 && obspos.y > 1300 && obspos.y < 1650)
+        {
+            numberOfDetectionsLeftDistributor_++;
+        }
+        if (obspos.x > 2000 - 250 && obspos.y > 1300 && obspos.y < 1650)
+        {
+            numberOfDetectionsRightDistributor_++;
+        }
     }
     log("lidarNumberOfObstacles", nObstaclesOnTable);
 
@@ -439,3 +449,13 @@ void MotionController::disableLowAvoidanceZone()
 {
     lowAvoidanceZoneEnabled_ = false;
 }
+
+bool MotionController::wasLeftDistributorVisited()
+{
+    return(numberOfDetectionsLeftDistributor_ > 800);
+};
+
+bool MotionController::wasRightDistributorVisited()
+{
+    return(numberOfDetectionsRightDistributor_ > 800);
+};

@@ -13,6 +13,7 @@
 #include "miam_utils/network/client_socket.hpp"
 #include "miam_utils/network/socket_exception.hpp"
 #include "secondary_robot/PushingCakesAction.h"
+#include "secondary_robot/CherryActions.h"
 
 namespace secondary_robot
 {
@@ -76,6 +77,17 @@ namespace secondary_robot
         // socket to send start signal
         network::ClientSocket sock_;
 
+        /// @brief Execute the sequence to grab cherries: set rail position, brush and reservoir tilt, go forward 150mm, wait, then back 150mm
+        void grab_cherries();
+
+        /// @brief Execute the sequence to put cherries in the basket: set rail position, go forward 150mm, tilt and start motor, then de-tilt, stop and go backwards
+        void put_cherries_in_the_basket();
+
+        /// @brief Blocking function for moving the rail to a specified height
+        /// @param railHeight Normalized rail height, between 0 and 1
+        void moveRail(double const& railHeight);
+
+
     private:
         void match_impl(); /// Actual implementation of the match code.
 
@@ -86,9 +98,6 @@ namespace secondary_robot
             RobotPosition currentPosition,
             MotionPlanner &motionPlanner);
 
-        /// @brief Blocking function for moving the rail to a specified height
-        /// @param railHeight Normalized rail height, between 0 and 1
-        void moveRail(double const& railHeight);
 
         /// @brief Set the brush to move either direction or switch it off
         /// @param brushDirection the desired movement or off
@@ -103,13 +112,6 @@ namespace secondary_robot
         void startSequenceBottom();
 
         bool performSecondaryRobotAction(SecondaryRobotAction* action);
-
-        /// @brief Execute the sequence to grab cherries: set rail position, brush and reservoir tilt, go forward 150mm, wait, then back 150mm
-        void grab_cherries();
-
-        /// @brief Execute the sequence to put cherries in the basket: set rail position, go forward 150mm, tilt and start motor, then de-tilt, stop and go backwards
-        void put_cherries_in_the_basket();
-
 
         void calibrateRail();
         void updateRailHeight();

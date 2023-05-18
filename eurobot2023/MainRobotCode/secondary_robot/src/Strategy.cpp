@@ -330,17 +330,17 @@ void Strategy::startSequenceBottom()
         grab_cherries();
     }
 
-    // Go to the left cherries, grab them
-    targetPositions.clear();
-    targetPositions.push_back(motionController->getCurrentPosition());
-    targetPositions.push_back(cherryDistributorLeft + RobotPosition(300, 0, 0));
-    targetPositions.push_back(cherryDistributorLeft);
-    go_to_rounded_corner(targetPositions);
+    // // Go to the left cherries, grab them
+    // targetPositions.clear();
+    // targetPositions.push_back(motionController->getCurrentPosition());
+    // targetPositions.push_back(cherryDistributorLeft + RobotPosition(300, 0, 0));
+    // targetPositions.push_back(cherryDistributorLeft);
+    // go_to_rounded_corner(targetPositions);
 
-    if ((motionController->getCurrentPosition() - cherryDistributorLeft).norm() < 100)
-    {
-        grab_cherries();
-    }
+    // if ((motionController->getCurrentPosition() - cherryDistributorLeft).norm() < 100)
+    // {
+    //     grab_cherries();
+    // }
 
     // Put the cherries in the basket
 
@@ -375,7 +375,7 @@ void Strategy::startSequenceBottom()
     obstacle.y = 2300;
     robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
 
-    traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
+    traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles());
     robot->getMotionController()->setTrajectoryToFollow(traj);
     robot->getMotionController()->waitForTrajectoryFinished();
 
@@ -389,6 +389,8 @@ void Strategy::startSequenceBottom()
         // Estimate: 18 cherries in basket
         robot->updateScore(18);
     }
+
+
 
 }
 
@@ -465,11 +467,20 @@ void Strategy::match_impl()
     actions.push_back(pushCakes7to5ButOnlyPartial);
     std::shared_ptr<SecondaryRobotAction > pushCakes6to5(new PushCakes6to5());
     actions.push_back(pushCakes6to5);
+    std::shared_ptr<SecondaryRobotAction > actionCherryLeft(new GrabCherriesLeft());
+    actions.push_back(actionCherryLeft);
+    // std::shared_ptr<SecondaryRobotAction > actionCherryRight(new GrabCherriesRight());
+    // actions.push_back(actionCherryRight);
+    
 
     int number_of_unsuccessful_iters = 0;
 
     while (actions.size() > 0)
     {
+        
+        textlog << "[Strategy (secondary_robot)] " << "Left distributor was " << (motionController->wasLeftDistributorVisited() ? "!" : "NOT") << " visited" << std::endl;
+        textlog << "[Strategy (secondary_robot)] " << "Right distributor was " << (motionController->wasRightDistributorVisited() ? "!" : "NOT") << " visited" << std::endl;
+
         // which action is :
         // * so that no robot is close
         // * and the closer to the current position
@@ -492,7 +503,7 @@ void Strategy::match_impl()
             double minDistanceFromObstacleEnd = 10000;
             double distanceToStartPoint = (action->start_position - currentPosition).norm();
 
-            for (auto obstacle : robot->getMotionController()->getDetectedObstacles())
+            for (auto obstacle : robot->getMotionController()->getDetectedObstacles(false))
             {
 
                 double tmpMin = (std::get<0>(obstacle) - action->start_position).norm() - std::get<1>(obstacle);
@@ -688,10 +699,7 @@ void Strategy::goBackToBase()
     {
         traj = robot->getMotionController()->computeMPCTrajectory(
             position,
-            detectedObstacles,
-            false,   // is forward
-            true,   // is an avoidance traj
-            true); // ensure end angle
+            detectedObstacles);
 
         if (traj.getDuration() > 0)
         {
@@ -749,7 +757,7 @@ bool Strategy::performSecondaryRobotAction(SecondaryRobotAction* action)
         robot->getMotionController()->addPersistentObstacle(obstacle);
     }
 
-    traj = robot->getMotionController()->computeMPCTrajectory(action->start_position, robot->getMotionController()->getDetectedObstacles(), true);
+    traj = robot->getMotionController()->computeMPCTrajectory(action->start_position, robot->getMotionController()->getDetectedObstacles());
 
     // remove obstacles on the road
     for (auto obstacle : action->obstacles_on_the_road)
@@ -765,7 +773,8 @@ bool Strategy::performSecondaryRobotAction(SecondaryRobotAction* action)
     robot->getMotionController()->setTrajectoryToFollow(traj);
 
     // go to start point and perform action
-    if (robot->getMotionController()->waitForTrajectoryFinished() && action->performAction(robot))
+    if (robot->getMotionController()->waitForTrajectoryFinished() && 
+            action->performAction(this))
     {
         // action was successful
 

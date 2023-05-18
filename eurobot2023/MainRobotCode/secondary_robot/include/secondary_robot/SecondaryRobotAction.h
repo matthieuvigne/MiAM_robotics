@@ -5,6 +5,7 @@
 #include "miam_utils/trajectory/Trajectory.h"
 #include "common/RobotInterface.h"
 #include "common/AbstractStrategy.h"
+#include "common/AbstractStrategy.h"
 
 
 class SecondaryRobotAction
@@ -21,7 +22,7 @@ class SecondaryRobotAction
 
         bool activated;
 
-        virtual bool performAction(RobotInterface* robot) = 0;
+        virtual bool performAction(AbstractStrategy* strategy) = 0;
         virtual int getScore() = 0;
 };
 
