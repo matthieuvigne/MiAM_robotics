@@ -64,6 +64,40 @@ namespace miam{
 
         void SampledTrajectory::replanify(double const& replanificationTime)
         {
+            std::cout << "Called SampledTrajectory::replanify" << std::endl;
+            // make a trapezoid in time in order to replanify the time
+            // scale using a time constant which is the time to go from 0 to max velocity (600) using max acceleration (700)
+            // vfin = integral (amax * dtimeconstant) = amax * timeconstant
+            // timeconstant = vfin / amax
+            double timeconstant = 600.0 / 700.0;
+
+            // suppose the trajectory to be replanified goes at vmax
+            // chercher le temps jusqu'au quel scaler
+            // x parcouru a vmax = integral(vmax * dtime)_{0, t1} = vmax * t1
+
+            // x parcouru avec la rampe d'acceleration = timeconstant * vmax / 2 + integral(vmax * dtime)_{timeconstant, t2}
+            //                                         = timeconstant * vmax / 2 + vmax * (t2 - timeconstant) = vmax * (t2 - timeconstant / 2)
+
+            // t1 = t2 - timeconstant / 2
+            // si t1 = timeconstant : t2 = timeconstant * 1.5
+
+            // resume :
+            // trapezoide en temps montant jusqu'a timeconstant * 1.5
+
+            double timetoincrement = timeconstant * 1.5;
+
+            std::cout << "timetoincrement: " << timetoincrement << std::endl;
+
+            // temps mis pour faire 
+
+
+
+            // distance faite en vmax en timetoincrement : vmax * timetoincrement
+            // distance faite avec le trapeze de vitesse : vmax * timetoincrement / 2
+
+            // donc scaler le temps par 2 sur timetoincrement
+
+
             // get index of replanification
             TrajectoryPoint startPoint = getCurrentPoint(replanificationTime);
 
@@ -78,13 +112,29 @@ namespace miam{
             int N = sampledTrajectory_.size();
             double sampling_time = getDuration() / (N-1);
 
-            double newDuration = getDuration() - replanificationTime;
-            int newN = newDuration / sampling_time + 1;
+            double newDuration = getDuration() - replanificationTime + timetoincrement / 2.0;
+            int newN = ceil(newDuration / sampling_time);
 
             std::vector<TrajectoryPoint > newSampledTrajectory;
             for (int i = 0; i < newN; i++)
             {
-                newSampledTrajectory.push_back(getCurrentPoint(replanificationTime + i * sampling_time));
+                double newTrajTime = i * sampling_time;
+                double oldTrajTime = newTrajTime - timetoincrement / 2.0;
+
+                // get point slower
+                if (newTrajTime < timetoincrement)
+                {
+                    oldTrajTime = newTrajTime / 2;
+                }
+                TrajectoryPoint tp = getCurrentPoint(replanificationTime + oldTrajTime);
+
+                // scale velocity
+                if (newTrajTime < timetoincrement)
+                {
+                    tp.linearVelocity  *= newTrajTime / timetoincrement;
+                    tp.angularVelocity *= newTrajTime / timetoincrement;
+                } 
+                newSampledTrajectory.push_back(tp);
             }
 
             // modify object
