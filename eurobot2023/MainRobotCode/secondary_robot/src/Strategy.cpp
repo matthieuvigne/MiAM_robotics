@@ -334,7 +334,6 @@ void Strategy::match_impl()
     if ((motionController->getCurrentPosition() - position).norm() < 100)
     {
         put_cherries_in_the_basket();
-        go_forward(100);
         // Estimate: 18 cherries in basket
         robot->updateScore(18);
     }

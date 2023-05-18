@@ -76,21 +76,23 @@
       double constexpr theta2 = 0.70;
 
       double const x_max = 430;
-      double const y_max = 300;
+      double const y_max = 400;
       double const xfar_max = 700;
       double const yfar_max = 500;
 
       // during avoidance...
-      double const x_max_avoidance = 380;
-      double const y_max_avoidance = 300;
-      double const xfar_max_avoidance = 380;
-      double const yfar_max_avoidance = 300;
+      double const x_max_avoidance = 430;
+      double const y_max_avoidance = 400;
+      double const xfar_max_avoidance = 700;
+      double const yfar_max_avoidance = 500;
 
-      double const mpc_obstacle_size = 380;
+      double const mpc_obstacle_size = 450;
 
       // for ending trajectory...
-      double const x_max_ending = 150;
+      double const x_max_ending = 200;
       double const y_max_ending = 300;
+      double const xfar_max_ending = 300;
+      double const yfar_max_ending = 400;
     }
 
     // Dimensions of the table

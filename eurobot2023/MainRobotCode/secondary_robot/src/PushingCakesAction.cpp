@@ -22,7 +22,7 @@ bool PushingCakesAction::performAction(RobotInterface* robot)
     traj = miam::trajectory::computeTrajectoryStraightLine(
         robot->getParameters().getTrajConf(),
         currentPosition, // start
-        -100 // back a little
+        -200 // back a lot
     );
 
     robot->getMotionController()->setTrajectoryToFollow(traj);
