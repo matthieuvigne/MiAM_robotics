@@ -280,6 +280,9 @@ void Strategy::match_impl()
     grab_cherries();
 
     // Put the cherries in the basket
+
+    moveRail(rail::TOP);
+
     // targetPositions.clear();
     // RobotPosition position = motionController->getCurrentPosition();
     // targetPositions.push_back(position);
@@ -442,10 +445,13 @@ void Strategy::match_impl()
             if (robot->getMotionController()->waitForTrajectoryFinished())
             {
                 // perform action
+                // action was successful
                 if (go_to_straight_line(action.end_position))
                 {
+                    // update score
+                    robot->updateScore(actions.at(action_index).score_);
+                    // go back
                     go_forward(-100);
-
                     // remove action from vector
                     actions.erase( actions.begin() + action_index);
                     // add obstacle in the end
@@ -454,24 +460,18 @@ void Strategy::match_impl()
                         robot->getMotionController()->addPersistentObstacle(obstacle);
                     }
                 }
+                // action was not successful
                 else
                 {
-                    action_successful = false;
+                    textlog << "[Strategy (secondary_robot)] " << "Action was not successful: deactivated" << std::endl;
+                    actions.at(action_index).activated = false;
                 }
-            }
+            } 
             else
-            {
-                action_successful = false;
-            }
-
-            if (!action_successful)
+            // action was not successful
             {
                 textlog << "[Strategy (secondary_robot)] " << "Action was not successful: deactivated" << std::endl;
                 actions.at(action_index).activated = false;
-            }
-            else
-            {
-                robot->updateScore(actions.at(action_index).score_);
             }
         }
         else
@@ -520,6 +520,13 @@ void Strategy::match()
 
 void Strategy::goBackToBase()
 {
+
+    // set a low avoidance zone for end
+    RobotPosition lowAvoidanceZonePosition;
+    lowAvoidanceZonePosition.x = 750;
+    lowAvoidanceZonePosition.y = 230;
+    robot->getMotionController()->setLowAvoidanceZone(lowAvoidanceZonePosition, 800);
+
     if (isAtBase_)
     {
         textlog << "[Strategy] already at base" << std::endl;
@@ -535,16 +542,58 @@ void Strategy::goBackToBase()
     position.y = 500;
     position.theta = -M_PI_2;
 
+    std::vector<Obstacle > detectedObstacles = robot->getMotionController()->getDetectedObstacles();
+
+    std::cout << "See if obstacles to remove" << std::endl;
+    // remove obstacles which are too close to the position (since we know 
+    // there is an obstacle)
+    bool detectedAnObstacleToRemove = false;
+    bool wasThereAnObstacleInEndZone = false;
+
+    do
+    {
+        detectedAnObstacleToRemove = false;
+        for (int i = 0; i < detectedObstacles.size(); i++)
+        {
+            Obstacle obstacle = detectedObstacles.at(i);
+            if ((std::get<0>(obstacle) - position).norm() < 500 )
+            {
+                std::cout << "Removing an obstacle" << std::endl;
+                detectedObstacles.erase( detectedObstacles.begin() + i);
+                detectedAnObstacleToRemove = true;
+                wasThereAnObstacleInEndZone = true;
+                break;
+            }
+        }
+    } while (detectedAnObstacleToRemove);
+
+    std::cout << "detectedObstacles.size() " << detectedObstacles.size() << std::endl;
+
+    if (wasThereAnObstacleInEndZone)
+        std::cout << "There was an obstacle in end zone" << std::endl;
+    
+    double angleBeforeFinalStraightLine = (wasThereAnObstacleInEndZone ? M_PI_2 : -M_PI_2);
+    position.theta = angleBeforeFinalStraightLine;
+
     if ((motionController->getCurrentPosition() - position).norm() > 100)
     {
         traj = robot->getMotionController()->computeMPCTrajectory(
             position,
-            robot->getMotionController()->getDetectedObstacles(),
+            detectedObstacles,
             false,   // is forward
             true,   // is an avoidance traj
             true); // ensure end angle
-        robot->getMotionController()->setTrajectoryToFollow(traj);
-        robot->getMotionController()->waitForTrajectoryFinished();
+
+        if (traj.getDuration() > 0)
+        {
+            robot->getMotionController()->setTrajectoryToFollow(traj);
+            robot->getMotionController()->waitForTrajectoryFinished();
+        }
+        else
+        {
+            go_forward(-100);
+            go_to_straight_line(position);
+        }
     }
     else
     {
@@ -553,17 +602,19 @@ void Strategy::goBackToBase()
 
     position.x = 680;
     position.y = 100;
-    position.theta = -M_PI_2;
+    position.theta = angleBeforeFinalStraightLine;
 
     TrajectoryConfig trajconf = robot->getParameters().getTrajConf();
     trajconf.maxWheelVelocity = 200;
+
+    std::cout << "Performing a final straight line" << std::endl;
 
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
         trajconf,
         motionController->getCurrentPosition(), // start
         position, // end
         0.0, // no velocity at end point
-        false // backward
+        wasThereAnObstacleInEndZone // backward if there is an obstacle
     );
 
     for (auto subtraj : traj)
@@ -576,6 +627,7 @@ void Strategy::goBackToBase()
 
     isAtBase_ = true;
     robot->updateScore(15);
+    std::cout << "secondary : Is at base" << std::endl;
 
 }
 }
