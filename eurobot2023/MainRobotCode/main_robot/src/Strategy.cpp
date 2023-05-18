@@ -125,8 +125,9 @@ bool Strategy::setup(RobotInterface *robot)
 
 void Strategy::funnyAction()
 {
-    servo->setTargetPosition(FUNNY_ACTION_LEFT_SERVO_ID, 1500);
-    servo->setTargetPosition(FUNNY_ACTION_RIGHT_SERVO_ID, 2500);
+  servo->setTargetPosition(FUNNY_ACTION_LEFT_SERVO_ID, 1500);
+  servo->setTargetPosition(FUNNY_ACTION_RIGHT_SERVO_ID, 2500);
+  robot->updateScore(5);
 }
 
 
@@ -418,7 +419,6 @@ void Strategy::match_impl()
   go_to_straight_line(targetPosition, 1.5, false);
   targetPosition.y -= 500;
   go_to_straight_line(targetPosition, 1.5, false);
-  robot->updateScore(5);
   //~ // goBackToBase();
   #endif
 
