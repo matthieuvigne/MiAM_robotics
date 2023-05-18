@@ -36,7 +36,7 @@ class RMDXController{
         double sendTarget(double const& targetVelocity, double const& dt);
 
         /// @brief Stop the motor, locking it in place.
-        void stop();
+        void stop(double const& dt);
 
         double position_; ///< Motor position (rad)
         double velocity_; ///< Motor velocity (rad/s)
@@ -45,7 +45,10 @@ class RMDXController{
         double current_; ///< Motor current (A)
         double clampedTargetVelocity_ = 0.0;
         double targetVelocity_ = 0.0;
+
+        int nCommunicationErrors_ = 0;
     private:
+        void updateVelocity(double const& dt);
         RMDX *driver_;
         unsigned char motorId_;
         double Kp_;

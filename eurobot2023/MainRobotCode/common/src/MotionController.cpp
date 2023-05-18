@@ -131,8 +131,8 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     log("currentPositionTheta",currentPosition.theta);
 
     BaseSpeed baseSpeed = kinematics_.forwardKinematics(measurements.encoderSpeed, true);
-    log("currentVelocityLinear",baseSpeed.linear);
-    log("currentVelocityAngular",baseSpeed.angular);
+    log("currentVelocityLinear",baseSpeed.linear / dt);
+    log("currentVelocityAngular",baseSpeed.angular / dt);
 
     DrivetrainTarget target;
 
@@ -239,7 +239,7 @@ void MotionController::changeMotionControllerState()
     else if (motionControllerState_ == CONTROLLER_STOP)
     {
         // in seconds
-        double durationSinceFirstStopped = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceFirstStopped_).count() / 1000.0;    
+        double durationSinceFirstStopped = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceFirstStopped_).count() / 1000.0;
         double durationSinceLastAvoidance = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceLastAvoidance_).count() / 1000.0;
 
         // transition to TRAJECTORY_TRACKING
@@ -291,7 +291,7 @@ void MotionController::changeMotionControllerState()
             if (avoidanceComputationResult_.getDuration() > 0)
             {
                 textlog << "[MotionController] " << "Performing avoidance" << std::endl;
-                
+
                 currentTrajectories_.clear();
                 avoidanceComputationMutex_.lock();
                 currentTrajectories_ = avoidanceComputationResult_;
@@ -318,7 +318,7 @@ void MotionController::changeMotionControllerState()
     // print and change
     if (motionControllerState_ != nextMotionControllerState)
     {
-        std::string current; 
+        std::string current;
         if (motionControllerState_ == CONTROLLER_STOP)
         {
             current = "STOP";
@@ -336,7 +336,7 @@ void MotionController::changeMotionControllerState()
             current = "WAIT_FOR_TRAJECTORY";
         }
 
-        std::string next; 
+        std::string next;
         if (nextMotionControllerState == CONTROLLER_STOP)
         {
             next = "STOP";
@@ -361,7 +361,7 @@ void MotionController::changeMotionControllerState()
 }
 
 DrivetrainTarget MotionController::resolveMotionControllerState(
-    DrivetrainMeasurements const &measurements, 
+    DrivetrainMeasurements const &measurements,
     double const &dt,
     bool const &hasMatchStarted
 )
