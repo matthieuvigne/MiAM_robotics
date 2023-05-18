@@ -344,9 +344,19 @@ void Strategy::match_impl()
   buildCakes();
   // Push the cakes to safe space
   clearActionSequence();
-  go_forward(-150);
+  
+  // [MODIFIED] go_forward(-150);
+  targetPosition.x += -150*std::cos(targetPosition.theta); // [MODIFIED]
+  targetPosition.x += -150*std::sin(targetPosition.theta); // [MODIFIED]
+  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(-150);
+  
   turn_around_point(switch_angle(55*arm::RAD));
-  go_forward(160);
+  
+  // [MODIFIED] go_forward(160);
+  targetPosition.x += 160*std::cos(targetPosition.theta); // [MODIFIED]
+  targetPosition.y += 160*std::sin(targetPosition.theta); // [MODIFIED]
+  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(160);
+  
   setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
   setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
   runActionBlock();
@@ -358,15 +368,35 @@ void Strategy::match_impl()
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
   runActionBlock();
-  go_forward(180);
+  
+  // [MODIFIED] go_forward(180);
+  targetPosition.x += 180*std::cos(targetPosition.theta); // [MODIFIED]
+  targetPosition.y += 180*std::sin(targetPosition.theta); // [MODIFIED]
+  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(180);
+  
   turn_around_point(switch_angle(-20*arm::RAD),0.4);
-  go_forward(380);
+  
+  // [MODIFIED] go_forward(380);
+  targetPosition.x += 380*std::cos(targetPosition.theta); // [MODIFIED]
+  targetPosition.y += 380*std::sin(targetPosition.theta); // [MODIFIED]
+  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(380);
+  
   setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
   setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.12, ABS, 90*arm::RAD, REL, 0.00);
   runActionBlock();
-  go_forward(80);
+  
+  // [MODIFIED] go_forward(80);
+  targetPosition.x += 80*std::cos(targetPosition.theta); // [MODIFIED]
+  targetPosition.y += 80*std::sin(targetPosition.theta); // [MODIFIED]
+  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(380);
+  
   // Go back to the final zone
-  go_forward(-500);
+  
+  // [MODIFIED] go_forward(-500);
+  targetPosition.x += -500*std::cos(targetPosition.theta); // [MODIFIED]
+  targetPosition.y += -500*std::sin(targetPosition.theta); // [MODIFIED]
+  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(380);
+  
   targetPosition = RobotPosition{750,750,0};
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS, 0, REL, 0.);

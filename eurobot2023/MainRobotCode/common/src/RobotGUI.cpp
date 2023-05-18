@@ -119,6 +119,7 @@ bool RobotGUI::doUpdate()
         if (robotData.state == robotstate::WAITING_FOR_START)
         {
             box_.pack_start(sideButton_);
+            box_.pack_start(drawingArea_);
         }
         if (robotData.state == robotstate::MATCH)
         {

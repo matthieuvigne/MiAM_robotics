@@ -321,6 +321,7 @@ void Robot::lowLevelLoop()
         guiState_.detectedObstacles = motionController_.filteredDetectedObstacles_;
         gui_->update(guiState_);
     }
+    
     // End of the match.
     std::cout << "Match end" << std::endl;
     guiState_.state = robotstate::MATCH_DONE;
