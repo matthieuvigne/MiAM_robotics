@@ -21,6 +21,8 @@ class PushingCakesAction
         std::vector<Obstacle > obstacles_in_the_end;
 
         bool activated;
+
+        int score_ = 3;
 };
 
 // Zones :
