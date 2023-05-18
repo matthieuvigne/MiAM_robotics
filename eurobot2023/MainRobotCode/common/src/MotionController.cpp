@@ -45,6 +45,8 @@ MotionController::MotionController(RobotParameters const &robotParameters) : cur
     stratSolver.detach();
 
     motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
+    timeSinceFirstStopped_ = std::chrono::steady_clock::now();
+    timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
 }
 
 void MotionController::init(RobotPosition const& startPosition, std::string const& teleplotPrefix)
@@ -179,6 +181,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
     target = resolveMotionControllerState(measurements, dt, hasMatchStarted);
 
+    log("motionControllerState", static_cast<int>(motionControllerState_));
     log("detectionCoeff",slowDownCoeff_);
     log("clampedDetectionCoeff", clampedSlowDownCoeff_);
     log("commandVelocityRight",target.motorSpeed[side::RIGHT]);
@@ -226,7 +229,7 @@ void MotionController::changeMotionControllerState()
             nextMotionControllerState = CONTROLLER_WAIT_FOR_TRAJECTORY;
         }
         // transition to STOP
-        else if (clampedSlowDownCoeff_ == 0.0)
+        else if (clampedSlowDownCoeff_ < 1.0e-6)
         {
             timeSinceFirstStopped_ = std::chrono::steady_clock::now();
 
@@ -284,7 +287,7 @@ void MotionController::changeMotionControllerState()
     {
         if (avoidanceComputationEnded_)
         {
-            // transition to STOP
+            // transition to  TRAJECTORY_TRACKING
             if (avoidanceComputationResult_.getDuration() > 0)
             {
                 textlog << "[MotionController] " << "Performing avoidance" << std::endl;
@@ -297,7 +300,7 @@ void MotionController::changeMotionControllerState()
 
                 nextMotionControllerState = CONTROLLER_TRAJECTORY_TRACKING;
             }
-            // transition to  TRAJECTORY_TRACKING
+            // transition to STOP
             else
             {
                 textlog << "[MotionController] " << "Avoidance failed" << std::endl;
@@ -378,9 +381,6 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
     {
         // Load first trajectory, look if we are done following it.
         Trajectory *traj = currentTrajectories_.at(0).get();
-        // No avoidance if point turn.
-        if (traj->getCurrentPoint(curvilinearAbscissa_).linearVelocity == 0)
-            clampedSlowDownCoeff_ = 1.0;
         curvilinearAbscissa_ += clampedSlowDownCoeff_ * dt;
 
         if (curvilinearAbscissa_ > traj->getDuration())
@@ -406,39 +406,12 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
         }
         else
         {
-
-            // Load first trajectory, look if we are done following it.
-            Trajectory *traj = currentTrajectories_.at(0).get();
-            // No avoidance if point turn.
-            if (traj->getCurrentPoint(curvilinearAbscissa_).linearVelocity == 0)
-                clampedSlowDownCoeff_ = 1.0;
-            curvilinearAbscissa_ += clampedSlowDownCoeff_ * dt;
-
-            ////// TIMEOUT CASES
-            // If we still have a trajectory after that, immediately switch to the next trajectory.
-            if (currentTrajectories_.size() > 1 && curvilinearAbscissa_ > traj->getDuration())
+            // Servo robot on current trajectory.
+            bool trajectoryDone = computeMotorTarget(traj, curvilinearAbscissa_, dt, clampedSlowDownCoeff_, measurements, target);
+            if (trajectoryDone && currentTrajectories_.size() == 1)
             {
+                textlog << "[MotionController] Trajectory tracking performed successfully" << std::endl;
                 currentTrajectories_.erase(currentTrajectories_.begin());
-                traj = currentTrajectories_.at(0).get();
-                curvilinearAbscissa_ = 0.0;
-                textlog << "[MotionController] Now tracking: " << traj->description_ << std::endl;
-            }
-            // If we are more than a specified time  after the end of the trajectory, stop it anyway.
-            // We hope to have servoed the robot is less than that anyway.
-            else if ((currentTrajectories_.size() == 1) && (curvilinearAbscissa_ - trajectoryTimeout_ > traj->getDuration()))
-            {
-                textlog << "[MotionController] Timeout on trajectory following" << std::endl;
-                currentTrajectories_.erase(currentTrajectories_.begin());
-            }
-            else
-            {
-                // Servo robot on current trajectory.
-                bool trajectoryDone = computeMotorTarget(traj, curvilinearAbscissa_, dt, clampedSlowDownCoeff_, measurements, target);
-                if (trajectoryDone && currentTrajectories_.size() == 1)
-                {
-                    textlog << "[MotionController] Trajectory tracking performed successfully" << std::endl;
-                    currentTrajectories_.erase(currentTrajectories_.begin());
-                }
             }
         }
     }
