@@ -242,7 +242,7 @@
             bool isStopped_;
 
             double slowDownCoeff_;
-            double clampedSlowDownCoeff_;
+            double clampedSlowDownCoeff_ = 1.0;
 
             std::chrono::steady_clock::time_point timeSinceFirstStopped_;
             std::chrono::steady_clock::time_point timeSinceLastAvoidance_;

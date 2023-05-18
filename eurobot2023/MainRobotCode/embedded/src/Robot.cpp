@@ -321,6 +321,7 @@ void Robot::lowLevelLoop()
         motionController_.log("MotorController.right.clampedTargetVelocity", rightController_.clampedTargetVelocity_);
         motionController_.log("MotorController.right.targetVelocity", rightController_.targetVelocity_);
         motionController_.log("MotorController.right.communicationErrors", rightController_.nCommunicationErrors_);
+        motionController_.log("MotorController.right.modeOfOperation", rightController_.modeOfOperation_);
 
         motionController_.log("MotorController.left.current", leftController_.current_);
         motionController_.log("MotorController.left.targetCurrent", leftController_.targetCurrent_);
@@ -329,6 +330,7 @@ void Robot::lowLevelLoop()
         motionController_.log("MotorController.left.clampedTargetVelocity", leftController_.clampedTargetVelocity_);
         motionController_.log("MotorController.left.targetVelocity", leftController_.targetVelocity_);
         motionController_.log("MotorController.left.communicationErrors", leftController_.nCommunicationErrors_);
+        motionController_.log("MotorController.left.modeOfOperation", leftController_.modeOfOperation_);
 
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;

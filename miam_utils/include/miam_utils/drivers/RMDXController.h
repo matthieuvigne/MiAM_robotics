@@ -46,6 +46,7 @@ class RMDXController{
         double clampedTargetVelocity_ = 0.0;
         double targetVelocity_ = 0.0;
 
+        int modeOfOperation_ = 0;
         int nCommunicationErrors_ = 0;
     private:
         void updateVelocity(double const& dt);

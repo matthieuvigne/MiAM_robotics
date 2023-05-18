@@ -91,8 +91,8 @@ bool AbstractStrategy::go_forward(double distance)
 void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
 {
     RobotPosition position;
-    position.x = 0;
-    position.y = 0;
+    position.x = 500;
+    position.y = 500;
     position.theta = 0;
     motionController->resetPosition(position, true, true, true);
     double sgn = clockwise ? 1. : -1.;

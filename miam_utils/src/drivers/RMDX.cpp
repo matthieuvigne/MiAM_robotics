@@ -150,6 +150,16 @@ RMDX::Status RMDX::getStatus(unsigned char const& motorId)
     return status;
 }
 
+int RMDX::getCurrentModeOfOperation(unsigned char const& motorId)
+{
+    CANMessage message = createMessage(motorId, MyActuator::commands::READ_OPERATING_MODE);
+    if (canReadWrite(message) > 0)
+    {
+        return message.data[7];
+    }
+    return 0;
+}
+
 bool RMDX::setCommunicationTimeout(unsigned char const& motorId, int32_t const& timeoutMS)
 {
     CANMessage message = createMessage(motorId, MyActuator::commands::COMM_INTERRUPT_TIMEOUT, timeoutMS);

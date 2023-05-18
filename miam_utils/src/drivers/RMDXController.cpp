@@ -46,6 +46,8 @@ void RMDXController::updateVelocity(double const& dt)
     }
     else
         nCommunicationErrors_++;
+    modeOfOperation_ = driver_->getCurrentModeOfOperation(motorId_);
+
 }
 
 double RMDXController::sendTarget(double const& targetVelocity, double const& dt)
@@ -96,6 +98,8 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
 
 void RMDXController::stop(double const& dt)
 {
+    if (!isStopped_)
+        driver_->setCurrent(motorId_, 0.0);
     updateVelocity(dt);
     clampedTargetVelocity_ = 0.0;
     targetVelocity_ = 0.0;
