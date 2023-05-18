@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <thread>
+#include <numeric>
 
 #include <miam_utils/trajectory/ArcCircle.h>
 #include <miam_utils/trajectory/StraightLine.h>
@@ -15,6 +16,8 @@
 #include "common/DH_transform.hpp"
 #include "common/MotionPlanner.h"
 #include "common/ArmInverseKinematics.hpp"
+
+#define CHECK_CURRENT 0
 
 using namespace main_robot::arm;
 
@@ -152,6 +155,13 @@ void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int ar
                 setArmPosition(armServoId, *action);
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 bool done = false;
+                
+                #if CHECK_CURRENT
+                bool abort = false;
+                left_arm_current_.clear();
+                right_arm_current_.clear();
+                #endif
+                
                 while (!done)
                 {
                     done = true;
@@ -161,6 +171,38 @@ void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int ar
                         //~ current[i] = servo->getCurrentCurrent(armServoId + i); // [TO REMOVE]
                         //~ std::cout << "Servo[" << i << "] " << 100*current[i] << std::endl; // [TO REMOVE]
                     }
+                    
+                    #if CHECK_CURRENT
+                    // Update current moving average
+                    double max_current = 50.;
+                    switch(armServoId)
+                    {
+                      case LEFT_ARM:
+                      {
+                        left_arm_current_.push_back(servo->getCurrentCurrent(armServoId+1));
+                        size_t const num_samples = left_arm_current_.size();
+                        if(num_samples>20) left_arm_current_.pop_front();
+                        if(num_samples<20) continue;
+                        double mean = std::accumulate(left_arm_current_.cbegin(), 
+                          left_arm_current_.cend(), 0.) / double(num_samples);
+                        if(mean > max_current) abort = true;
+                        break;
+                      }
+                      case RIGHT_ARM:
+                      {
+                        right_arm_current_.push_back(servo->getCurrentCurrent(armServoId+1));
+                        size_t const num_samples = right_arm_current_.size();
+                        if(num_samples>20) right_arm_current_.pop_front();
+                        if(num_samples<20) continue;
+                        double mean = std::accumulate(right_arm_current_.cbegin(), 
+                          right_arm_current_.cend(), 0.) / double(num_samples);
+                        if(mean > max_current) abort = true;
+                        break;
+                      }
+                    }
+                    if(abort) break;
+                    #endif
+                    
                     std::this_thread::sleep_for(std::chrono::microseconds(2));
                 }
                 actions.pop();

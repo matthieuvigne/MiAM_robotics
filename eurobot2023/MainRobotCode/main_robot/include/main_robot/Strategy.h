@@ -184,6 +184,10 @@ namespace main_robot
       
       void goBackToBase();
       bool isAtBase_;
+      
+      // Moving average of the servo current
+      std::deque<double> left_arm_current_;
+      std::deque<double> right_arm_current_;
   };
 
 
