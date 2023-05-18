@@ -342,6 +342,7 @@ void Strategy::match_impl()
   go_to_straight_line(targetPosition, 1.5);
   // Build the cakes
   buildCakes();
+  robot->updateScore(21);
   // Push the cakes to safe space
   clearActionSequence();
   
@@ -404,6 +405,7 @@ void Strategy::match_impl()
   go_to_straight_line(targetPosition, 1.5, false);
   targetPosition.y -= 500;
   go_to_straight_line(targetPosition, 1.5, false);
+  robot->updateScore(5);
   //~ goBackToBase();
   #endif
   

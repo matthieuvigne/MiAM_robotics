@@ -200,7 +200,11 @@ void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int ar
                         break;
                       }
                     }
-                    if(abort) break;
+                    if(abort)
+                    {
+                      robot->updateScore(-5);
+                      break;
+                    }
                     #endif
                     
                     std::this_thread::sleep_for(std::chrono::microseconds(2));
