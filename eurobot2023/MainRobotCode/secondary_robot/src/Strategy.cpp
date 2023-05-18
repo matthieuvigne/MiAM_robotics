@@ -465,6 +465,10 @@ void Strategy::match_impl()
     actions.push_back(pushCakes3to4);
     std::shared_ptr<SecondaryRobotAction > pushCakes6to4(new PushCakes6to4());
     actions.push_back(pushCakes6to4);
+    std::shared_ptr<SecondaryRobotAction > pushCakes7to5ButOnlyPartial(new PushCakes7to5ButOnlyPartial());
+    actions.push_back(pushCakes7to5ButOnlyPartial);
+    std::shared_ptr<SecondaryRobotAction > pushCakes6to5(new PushCakes6to5());
+    actions.push_back(pushCakes6to5);
 
     int number_of_unsuccessful_iters = 0;
 

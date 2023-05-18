@@ -82,6 +82,29 @@ class PushCakes7to5 : public PushingCakesAction
         }
 };
 
+// a less optimal version of PushCakes7to5 if no room
+class PushCakes7to5ButOnlyPartial : public PushingCakesAction
+{
+    public:
+        PushCakes7to5ButOnlyPartial() : PushingCakesAction()
+        {
+            start_position.x = 367;
+            start_position.y = 686;
+            start_position.theta = M_PI_2+ M_PI_4;
+
+            end_position.x = 160;
+            end_position.y = 980;
+            end_position.theta = M_PI_2 + M_PI_4;
+
+            {
+                RobotPosition obstacle;
+                obstacle.x = 230;
+                obstacle.y = 1200;
+                obstacles_in_the_end.push_back(std::make_tuple(obstacle, 200));
+            }
+        }
+};
+
 class PushCakes3to4 : public PushingCakesAction
 {
     public:
@@ -190,6 +213,35 @@ class PushCakes3to1 : public PushingCakesAction
                 obstacle.x = 222.0;
                 obstacle.y = 1990.0;
                 obstacles_on_the_road.push_back(std::make_tuple(obstacle, 300));
+            }
+        }
+};
+
+class PushCakes6to5 : public PushingCakesAction
+{
+    public:
+        PushCakes6to5() : PushingCakesAction()
+        {
+            start_position.x = 1515;
+            start_position.y = 1125;
+            start_position.theta = M_PI;
+
+            end_position.x = 520;
+            end_position.y = 1125;
+            end_position.theta = M_PI;
+
+            // {
+            //     RobotPosition obstacle;
+            //     obstacle.x = 738;
+            //     obstacle.y = 1890;
+            //     obstacles_on_the_road.push_back(std::make_tuple(obstacle, 300));
+            // }
+
+            {
+                RobotPosition obstacle;
+                obstacle.x = 1276;
+                obstacle.y = 1127;
+                obstacles_in_the_end.push_back(std::make_tuple(obstacle, 200));
             }
         }
 };
