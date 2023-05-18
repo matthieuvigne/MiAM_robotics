@@ -560,7 +560,7 @@ bool Strategy::checkIfBackToBase()
 
         return true;
     }
-    textlog << "[Strategy (secondary robot)] checkIfBackToBase: robot not yet in zone" << std::endl;
+    textlog << "[Strategy (secondary robot)] checkIfBackToBase: robot not yet in zone " << std::endl;
     return false;
 }
 

@@ -201,6 +201,11 @@ namespace miam{
             p1.x = 1000;
             p1.y = 300;
             addCollision(p1, 300);
+
+            // ajouter gros obstacle pour ne jamais aller dans la zone carree adverse
+            p1.x = 2000;
+            p1.y = 3000;
+            addCollision(p1, 600);
         }
 
         std::vector<RobotPosition> PathPlanner::planPath(RobotPosition const& start, RobotPosition const& end)
