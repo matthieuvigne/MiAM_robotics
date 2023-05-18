@@ -107,16 +107,16 @@ namespace main_robot
       double const robot_chassis_front = 90.0;
 
       // Initial positions of the genoeses
-      RobotPosition const genoese_top_left{725,1875,0};
-      RobotPosition const genoese_top_right{1275,1875,0};
-      RobotPosition const genoese_bottom_left{725,1125,0};
-      RobotPosition const genoese_bottom_right{1275,1125,0};
+      RobotPosition genoese_top_left{725,1875,0};
+      RobotPosition genoese_top_right{1275,1875,0};
+      RobotPosition genoese_bottom_left{725,1125,0};
+      RobotPosition genoese_bottom_right{1275,1125,0};
 
       // Initial barycenters of the cream/ganache couples
-      RobotPosition const cream_ganache_top_left{225,2325,0};
-      RobotPosition const cream_ganache_top_right{1775,2325,0};
-      RobotPosition const cream_ganache_bottom_left{225,675+30,0};
-      RobotPosition const cream_ganache_bottom_right{1775,675+30,0};
+      RobotPosition cream_ganache_top_left{225,2325,0};
+      RobotPosition cream_ganache_top_right{1775,2325,0};
+      RobotPosition cream_ganache_bottom_left{225,675+30,0};
+      RobotPosition cream_ganache_bottom_right{1775,675+30,0};
 
       // Arm positions ; r theta z
       ArmPosition left_arm_center_up{100, 0, 250};

@@ -19,7 +19,7 @@ using namespace miam::trajectory;
 bool AbstractStrategy::go_to_straight_line(RobotPosition position, double factor, bool backward)
 {
     // Don't go faster than maximum
-    factor = std::clamp(factor, 0.0, 1.0);
+    factor = std::clamp(factor, 0.0, 1.5);
     miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
     conf.maxWheelVelocity *= factor;
     conf.maxWheelAcceleration *= factor;

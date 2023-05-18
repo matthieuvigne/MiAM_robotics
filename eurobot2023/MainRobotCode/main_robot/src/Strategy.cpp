@@ -321,6 +321,10 @@ void Strategy::match_impl()
   
   #else
   
+  // Cheat: update parameters
+  if(robot->isPlayingRightSide())
+    cream_ganache_bottom_right.y -= 50;
+  
   // Grab first genoise with the arms aside
   clearActionSequence();
   targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
@@ -344,6 +348,11 @@ void Strategy::match_impl()
   runActionBlock();
   targetPosition.x += 40;
   go_to_straight_line(targetPosition, 1.5);
+  if(robot->isPlayingRightSide())
+  {
+    targetPosition.x -= 20;
+    go_to_straight_line(targetPosition, 1.0, true);
+  }
   // Build the cakes
   buildCakes();
   robot->updateScore(21);
@@ -353,7 +362,7 @@ void Strategy::match_impl()
   // [MODIFIED] go_forward(-150);
   targetPosition.x += -150*std::cos(targetPosition.theta); // [MODIFIED]
   targetPosition.x += -150*std::sin(targetPosition.theta); // [MODIFIED]
-  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(-150);
+  go_to_straight_line(targetPosition, 1.0, true); // [MODIFIED] go_forward(-150);
   
   turn_around_point(switch_angle(55*arm::RAD));
   
@@ -377,7 +386,7 @@ void Strategy::match_impl()
   // [MODIFIED] go_forward(180);
   targetPosition.x += 180*std::cos(targetPosition.theta); // [MODIFIED]
   targetPosition.y += 180*std::sin(targetPosition.theta); // [MODIFIED]
-  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(180);
+  go_to_straight_line(targetPosition, 1.0, false); // [MODIFIED] go_forward(180);
   
   turn_around_point(switch_angle(-20*arm::RAD),0.4);
   
@@ -400,7 +409,7 @@ void Strategy::match_impl()
   // [MODIFIED] go_forward(-500);
   targetPosition.x += -500*std::cos(targetPosition.theta); // [MODIFIED]
   targetPosition.y += -500*std::sin(targetPosition.theta); // [MODIFIED]
-  go_to_straight_line(targetPosition); // [MODIFIED] go_forward(380);
+  go_to_straight_line(targetPosition, 1.0, true); // [MODIFIED] go_forward(380);
   
   targetPosition = RobotPosition{750,750,0};
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);

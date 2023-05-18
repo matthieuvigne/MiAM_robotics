@@ -343,11 +343,14 @@ void Strategy::dumbCakeToPile(int arm_idx, int pile_idx)
 void Strategy::adjustRobotPosition()
 {
   RobotPosition pos_before = motionController->getCurrentPosition();
-  go_forward(40);
+  go_to_straight_line(pos_before + RobotPosition(40,0,0));
+  //~ go_forward(40);
   RobotPosition pos_after = motionController->getCurrentPosition();
   double delta_x = pos_after.x - pos_before.x;
   robot->wait(0.100);
-  go_forward(-delta_x);
+  go_to_straight_line(pos_after + RobotPosition(-20,0,0), 1.0, true);
+  //~ go_forward(-delta_x);
+  //~ go_forward(-20);
 }
 
 //--------------------------------------------------------------------------------------------------
