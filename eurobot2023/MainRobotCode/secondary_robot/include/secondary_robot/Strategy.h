@@ -115,7 +115,8 @@ namespace secondary_robot
 
         // Go back to base (at the end of the match)
         void goBackToBase();
-        bool isAtBase_;
+        bool checkIfBackToBase();
+        bool countedPointsForGoingBackToBase_;
     };
 }
 

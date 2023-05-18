@@ -62,9 +62,11 @@ enum setupPhase
 
 bool Strategy::setup(RobotInterface *robot)
 {
-    isAtBase_ = false;
     static setupPhase phase = setupPhase::FIRST_CALL;
     static double waitStart = 0;
+
+    countedPointsForGoingBackToBase_ = false;
+
 #ifdef SIMULATION
     // Always perform setup in simulation
     phase = setupPhase::FIRST_CALL;
@@ -537,20 +539,44 @@ void Strategy::match()
     }
 }
 
+bool Strategy::checkIfBackToBase()
+{
+    // if the robot is already in the end zone, just flush trajectories
+    RobotPosition currentPosition = motionController->getCurrentPosition();
+    if (currentPosition.x > 440.0 && currentPosition.x < 1000.0 && currentPosition.y < 480.0)
+    {
+        textlog << "[Strategy (secondary robot)] checkIfBackToBase: robot is in zone, flushing all trajs" << std::endl;
+        TrajectoryVector emptyTraj;
+        std::shared_ptr<Trajectory > pt(new PointTurn(robot->getParameters().getTrajConf(), currentPosition, currentPosition.theta));
+        emptyTraj.push_back(pt);
+        motionController->setTrajectoryToFollow(emptyTraj);
+
+        if (!countedPointsForGoingBackToBase_)
+        {
+            textlog << "[Strategy (secondary robot)] checkIfBackToBase: counted points for going back to base" << std::endl;
+            countedPointsForGoingBackToBase_ = true;
+            robot->updateScore(15);    
+        }
+
+        return true;
+    }
+    textlog << "[Strategy (secondary robot)] checkIfBackToBase: robot not yet in zone" << std::endl;
+    return false;
+}
+
 void Strategy::goBackToBase()
 {
+    // count points and stop
+    if (checkIfBackToBase())
+    {
+        return;
+    }
 
     // set a low avoidance zone for end
     RobotPosition lowAvoidanceZonePosition;
     lowAvoidanceZonePosition.x = 750;
     lowAvoidanceZonePosition.y = 230;
     robot->getMotionController()->setLowAvoidanceZone(lowAvoidanceZonePosition, 800);
-
-    if (isAtBase_)
-    {
-        textlog << "[Strategy] already at base" << std::endl;
-        return;
-    }
 
     TrajectoryVector traj;
     RobotPosition endPosition;
@@ -626,7 +652,7 @@ void Strategy::goBackToBase()
     TrajectoryConfig trajconf = robot->getParameters().getTrajConf();
     trajconf.maxWheelVelocity = 200;
 
-    std::cout << "Performing a final straight line" << std::endl;
+    textlog << "[Strategy (secondary robot)] goBackToBase: Performing a final straight line" << std::endl;
 
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
         trajconf,
@@ -644,9 +670,8 @@ void Strategy::goBackToBase()
     robot->getMotionController()->setTrajectoryToFollow(traj);
     robot->getMotionController()->waitForTrajectoryFinished();
 
-    isAtBase_ = true;
-    robot->updateScore(15);
-    std::cout << "secondary : Is at base" << std::endl;
-
+    // count points and stop
+    checkIfBackToBase();
+    
 }
 }

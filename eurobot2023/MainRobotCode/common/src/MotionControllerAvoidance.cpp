@@ -15,17 +15,17 @@ TrajectoryVector MotionController::performAvoidance()
     if (!currentTrajectories_.front()->isAvoidanceEnabled())
     {
         textlog << "[MotionController] Avoidance is disabled for this traj" << std::endl;
+        return traj;
+    }
+    else if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_OFF)
+    {
+        textlog << "[MotionController] " << "Avoidance disabled" << std::endl;
+        return traj;
     }
 
     RobotPosition targetPosition = currentTargetEndPosition_;
     bool forward = currentTrajectories_.front()->getCurrentPoint(curvilinearAbscissa_).linearVelocity >= 0;
     std::vector<Obstacle> detectedObstacles = getDetectedObstacles();
-
-    if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_OFF)
-    {
-        textlog << "[MotionController] " << "Avoidance disabled" << std::endl;
-        return traj;
-    }
 
     if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_BASIC)
         traj = computeBasicAvoidanceTrajectory(targetPosition, detectedObstacles, forward);
