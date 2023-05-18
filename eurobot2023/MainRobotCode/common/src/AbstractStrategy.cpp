@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <thread>
+#include <algorithm>
 
 #include <miam_utils/trajectory/Trajectory.h>
 #include <miam_utils/trajectory/ArcCircle.h>
@@ -17,16 +18,18 @@ using namespace miam::trajectory;
 
 bool AbstractStrategy::go_to_straight_line(RobotPosition position, double factor, bool backward)
 {
-  miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
-  conf.maxWheelVelocity *= factor;
-  conf.maxWheelAcceleration *= factor;
-  RobotPosition currentPosition = motionController->getCurrentPosition();
-  TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
-      conf,
-      currentPosition, // start
-      position, // end
-      0.0, // no velocity at end point
-      backward // or forward
+    // Don't go faster than maximum
+    factor = std::clamp(factor, 0.0, 1.0);
+    miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
+    conf.maxWheelVelocity *= factor;
+    conf.maxWheelAcceleration *= factor;
+    RobotPosition currentPosition = motionController->getCurrentPosition();
+    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
+        conf,
+        currentPosition, // start
+        position, // end
+        0.0, // no velocity at end point
+        backward // or forward
   );
 
   motionController->setTrajectoryToFollow(traj);
@@ -88,8 +91,8 @@ bool AbstractStrategy::go_forward(double distance)
 void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
 {
     RobotPosition position;
-    position.x = 0;
-    position.y = 0;
+    position.x = 500;
+    position.y = 500;
     position.theta = 0;
     motionController->resetPosition(position, true, true, true);
     double sgn = clockwise ? 1. : -1.;

@@ -47,10 +47,10 @@
     };
 
     enum MotionControllerState {
-        CONTROLLER_STOP,
-        CONTROLLER_TRAJECTORY_TRACKING,
-        CONTROLLER_WAIT_FOR_AVOIDANCE,
-        CONTROLLER_WAIT_FOR_TRAJECTORY
+        CONTROLLER_STOP                 = 0,
+        CONTROLLER_TRAJECTORY_TRACKING  = 1,
+        CONTROLLER_WAIT_FOR_AVOIDANCE   = 2,
+        CONTROLLER_WAIT_FOR_TRAJECTORY  = 3
     };
 
     typedef struct {
@@ -242,7 +242,7 @@
             bool isStopped_;
 
             double slowDownCoeff_;
-            double clampedSlowDownCoeff_;
+            double clampedSlowDownCoeff_ = 1.0;
 
             std::chrono::steady_clock::time_point timeSinceFirstStopped_;
             std::chrono::steady_clock::time_point timeSinceLastAvoidance_;
@@ -272,7 +272,7 @@
             // Motion controller state
             MotionControllerState motionControllerState_;
             void changeMotionControllerState();
-            DrivetrainTarget resolveMotionControllerState(DrivetrainMeasurements const &measurements, 
+            DrivetrainTarget resolveMotionControllerState(DrivetrainMeasurements const &measurements,
                                                            double const &dt,
                                                            bool const &hasMatchStarted);
 

@@ -232,6 +232,8 @@ void Strategy::match_impl()
     else
         textlog << "[Strategy (secondary_robot)] " << "Start message error! not sent" << std::endl;
 
+    robot->updateScore(5);
+
     // Create required variables.
     RobotPosition targetPosition;
     TrajectoryVector traj;
@@ -316,8 +318,8 @@ void Strategy::match_impl()
 
     go_forward(100);
     put_cherries_in_the_basket();
-    // Estimate: 15 cherries in basket
-    robot->updateScore(15);
+    // Estimate: 18 cherries in basket
+    robot->updateScore(18);
     // go_forward(-50);
     // traj.clear();
     // traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(robot->getParameters().getTrajConf(), robot->getMotionController()->getCurrentPosition(), -M_PI_2)));
@@ -467,6 +469,10 @@ void Strategy::match_impl()
                 textlog << "[Strategy (secondary_robot)] " << "Action was not successful: deactivated" << std::endl;
                 actions.at(action_index).activated = false;
             }
+            else
+            {
+                robot->updateScore(actions.at(action_index).score_);
+            }
         }
         else
         {
@@ -569,6 +575,7 @@ void Strategy::goBackToBase()
     robot->getMotionController()->waitForTrajectoryFinished();
 
     isAtBase_ = true;
+    robot->updateScore(15);
 
 }
 }

@@ -32,28 +32,34 @@ RMDXController::RMDXController(RMDX *driver,
 {
 }
 
-double RMDXController::sendTarget(double const& targetVelocity, double const& dt)
+void RMDXController::updateVelocity(double const& dt)
 {
     // Get position from motor, compute velocity
     double const newPos = driver_->getCurrentPosition(motorId_);
+    if (driver_->lastError_ == RMDX::ErrorCode::OK)
+    {
+        nCommunicationErrors_ = 0;
+        rawVelocity_ = (newPos - position_) / dt;
+        rawVelocity_ = std::clamp(rawVelocity_, -100.0, 100.0);
+        position_ = newPos;
+        velocity_ = lowPass_.filter(rawVelocity_, dt);
+    }
+    else
+        nCommunicationErrors_++;
+    modeOfOperation_ = driver_->getCurrentModeOfOperation(motorId_);
+
+}
+
+double RMDXController::sendTarget(double const& targetVelocity, double const& dt)
+{
+    updateVelocity(dt);
+
+    // Restart if stopped
     if (isStopped_)
     {
-        position_ = newPos;
         integralValue_ = 0;
         clampedTargetVelocity_ = 0.0;
         textlog << static_cast<int>(motorId_) << " stop, resetting target" << std::endl;
-    }
-
-    // Process only if valid signal is obtained
-    if (driver_->lastError_ == RMDX::ErrorCode::OK)
-    {
-        rawVelocity_ = (newPos - position_) / dt;
-        // Handle communication problems: only perform computation when a valid position is returned.
-        if (std::abs(rawVelocity_) < 100)
-        {
-            position_ = newPos;
-            velocity_ = lowPass_.filter(rawVelocity_, dt);
-        }
     }
     targetVelocity_ = targetVelocity;
 
@@ -90,8 +96,11 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
 }
 
 
-void RMDXController::stop()
+void RMDXController::stop(double const& dt)
 {
+    if (!isStopped_)
+        driver_->setCurrent(motorId_, 0.0);
+    updateVelocity(dt);
     clampedTargetVelocity_ = 0.0;
     targetVelocity_ = 0.0;
     driver_->stop(motorId_);

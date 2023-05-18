@@ -149,7 +149,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
     textlog << "[MotionController] " << ">> MotionControllerAvoidance : target position : " << targetPosition << std::endl;
     textlog << "[MotionController] " << ">> MotionControllerAvoidance : planning MPC" << std::endl;
 
-    if ((currentPosition - targetPosition).norm() < 400) 
+    if ((currentPosition - targetPosition).norm() < 400)
     {
         textlog << "[MotionController] " << "Target too close, doing a straight line to point" << std::endl;
 

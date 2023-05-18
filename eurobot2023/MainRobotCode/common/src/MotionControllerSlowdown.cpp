@@ -37,7 +37,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
         double y = point.r * std::sin(point.theta + (forward ? 0 : M_PI));
 
         // If the current trajectory is a point turn, then do not slow down or stop
-        if (currentTrajectories_.size() > 0 && currentTrajectories_.front()->getCurrentPoint(curvilinearAbscissa_).linearVelocity != 0)
+        if (currentTrajectories_.size() > 0 && std::abs(currentTrajectories_.front()->getCurrentPoint(curvilinearAbscissa_).linearVelocity) > 1e-6)
         {
 
             double x_max = detection::x_max;
@@ -46,7 +46,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
             double yfar_max = detection::yfar_max;
 
             // If currently avoiding, then use less strict thresholds
-            if (currentTrajectories_.front()->isAvoidanceTrajectory_) 
+            if (currentTrajectories_.front()->isAvoidanceTrajectory_)
             {
                 x_max = detection::x_max_avoidance;
                 y_max = detection::y_max_avoidance;

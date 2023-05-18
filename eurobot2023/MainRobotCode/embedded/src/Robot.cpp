@@ -269,12 +269,25 @@ void Robot::lowLevelLoop()
         // Compute motion target.
         DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
 
+        static bool panicMode = false;
+        if (hasMatchStarted_)
+            if (dt > 0.100 || rightController_.nCommunicationErrors_ > 20 || leftController_.nCommunicationErrors_ > 20)
+            {
+                textlog << "[Robot] Oh oh, invalid state, entering panic mode!" << std::endl;
+                textlog << "dt " << dt << "comm error" << leftController_.nCommunicationErrors_  << " " << rightController_.nCommunicationErrors_  << std::endl;
+                panicMode = true;
+            }
         // Apply target
         static bool wasRunning = false;
-        if (!hasMatchStarted_)
+        if (panicMode)
         {
-            leftController_.stop();
-            rightController_.stop();
+            textlog << "[Robot] Panic !" << std::endl;
+            stopMotors();
+        }
+        else if (!hasMatchStarted_)
+        {
+            leftController_.stop(dt);
+            rightController_.stop(dt);
         }
         else
         {
@@ -283,9 +296,9 @@ void Robot::lowLevelLoop()
                 if (wasRunning)
                     textlog << "[Robot] Motors stopping" << std::endl;
                 wasRunning = false;
-                rightController_.stop();
+                rightController_.stop(dt);
                 measurements.motorSpeed(0) = 0.0;
-                leftController_.stop();
+                leftController_.stop(dt);
                 measurements.motorSpeed(1) = 0.0;
                 motionController_.log("MotorController.status", 0);
             }
@@ -307,6 +320,8 @@ void Robot::lowLevelLoop()
         motionController_.log("MotorController.right.velocity", rightController_.velocity_);
         motionController_.log("MotorController.right.clampedTargetVelocity", rightController_.clampedTargetVelocity_);
         motionController_.log("MotorController.right.targetVelocity", rightController_.targetVelocity_);
+        motionController_.log("MotorController.right.communicationErrors", rightController_.nCommunicationErrors_);
+        motionController_.log("MotorController.right.modeOfOperation", rightController_.modeOfOperation_);
 
         motionController_.log("MotorController.left.current", leftController_.current_);
         motionController_.log("MotorController.left.targetCurrent", leftController_.targetCurrent_);
@@ -314,6 +329,8 @@ void Robot::lowLevelLoop()
         motionController_.log("MotorController.left.velocity", leftController_.velocity_);
         motionController_.log("MotorController.left.clampedTargetVelocity", leftController_.clampedTargetVelocity_);
         motionController_.log("MotorController.left.targetVelocity", leftController_.targetVelocity_);
+        motionController_.log("MotorController.left.communicationErrors", leftController_.nCommunicationErrors_);
+        motionController_.log("MotorController.left.modeOfOperation", leftController_.modeOfOperation_);
 
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;

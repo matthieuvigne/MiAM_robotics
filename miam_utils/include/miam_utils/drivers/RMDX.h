@@ -139,6 +139,9 @@ class RMDX{
         RMDX::Status getStatus(unsigned char const& motorId);
 
 
+        int getCurrentModeOfOperation(unsigned char const& motorId);
+
+
         /// \brief Turn brake on or off
         /// \param[in] motorId Motor id
         /// \param[in] turnBrakeOn Desired brake status

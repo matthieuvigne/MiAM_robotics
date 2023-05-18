@@ -64,7 +64,7 @@ bool Strategy::setup(RobotInterface *robot)
     this->robot = robot;
     this->servo = robot->getServos();
     this->motionController = robot->getMotionController();
-    
+
     // Setup pumps and valves
     RPi_setupGPIO(PUMP_RIGHT, PiGPIOMode::PI_GPIO_OUTPUT);
     RPi_writeGPIO(PUMP_RIGHT, false);
@@ -78,6 +78,8 @@ bool Strategy::setup(RobotInterface *robot)
     // Set initial position: bottom left
     START_POSITION.x = robot->getParameters().CHASSIS_BACK;
     motionController->resetPosition(START_POSITION, true, true, true);
+
+    motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_OFF);
 
     // Change P gain of the first servos of each arm to prevent vibrations
     servo->setPIDGains(RIGHT_ARM, 25, 15, 0);
@@ -290,8 +292,8 @@ void Strategy::match_impl()
   RobotParameters const robotParameters = robot->getParameters();
   RobotPosition tmp_position;
   RobotPosition current_position = motionController->getCurrentPosition();
-  
-  
+
+
   #if HOMOLOGATION
   // Grab first genoise with the arms aside
   clearActionSequence();
@@ -410,7 +412,7 @@ void Strategy::match_impl()
   robot->updateScore(5);
   //~ // goBackToBase();
   #endif
-  
+
   //~ goBackToBase();
 
   std::cout << "Strategy thread ended" << robot->getMatchTime() << std::endl;
