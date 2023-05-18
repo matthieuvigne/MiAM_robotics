@@ -171,6 +171,12 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     detectedObstaclesMutex_.unlock();
 
     changeMotionControllerState();
+
+    // Compute slowdown
+    slowDownCoeff_ = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
+    clampedSlowDownCoeff_ = 1.0;
+    clampedSlowDownCoeff_ = std::min(slowDownCoeff_, clampedSlowDownCoeff_ + 0.05);
+
     target = resolveMotionControllerState(measurements, dt, hasMatchStarted);
 
     log("detectionCoeff",slowDownCoeff_);
@@ -199,7 +205,6 @@ void MotionController::changeMotionControllerState()
             currentTrajectories_ = newTrajectories_;
             curvilinearAbscissa_ = 0;
             avoidanceCount_ = 0;
-            numStopIters_ = 0;
             newTrajectories_.clear();
             textlog << "[MotionController] Recieved " << currentTrajectories_.size() << " new trajectories from strategy" << std::endl;
             textlog << "[MotionController] Now tracking: " << currentTrajectories_.at(0)->description_ << std::endl;
@@ -230,12 +235,18 @@ void MotionController::changeMotionControllerState()
     }
     else if (motionControllerState_ == CONTROLLER_STOP)
     {
-        double durationSinceFirstStopped = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceFirstStopped_).count();    
-        double durationSinceLastAvoidance = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceLastAvoidance_).count();
+        // in seconds
+        double durationSinceFirstStopped = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceFirstStopped_).count() / 1000.0;    
+        double durationSinceLastAvoidance = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceLastAvoidance_).count() / 1000.0;
 
         // transition to TRAJECTORY_TRACKING
         if (clampedSlowDownCoeff_ > 0.0 && durationSinceFirstStopped > 0.1)
         {
+            // Robot was stopped and is ready to start again.
+            // Replan and retry trajectory.
+            currentTrajectories_.at(0)->replanify(curvilinearAbscissa_);
+            curvilinearAbscissa_ = 0;
+            textlog << "[MotionController] "  << "Continue trajectory; replan" << std::endl;
             nextMotionControllerState = CONTROLLER_TRAJECTORY_TRACKING;
         }
         // transition to WAIT_FOR_TRAJECTORY
@@ -251,7 +262,7 @@ void MotionController::changeMotionControllerState()
             nextMotionControllerState = CONTROLLER_WAIT_FOR_TRAJECTORY;
         }
         // transition to AVOIDANCE
-        else if (durationSinceFirstStopped > 1.0 && durationSinceLastAvoidance >= 1000)
+        else if (durationSinceFirstStopped > 1.0 && durationSinceLastAvoidance > 1.0)
         {
             textlog << "[MotionController] " << "Scheduling avoidance" << std::endl;
 
@@ -262,6 +273,9 @@ void MotionController::changeMotionControllerState()
 
             timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
             avoidanceCount_++;
+            std::cout << "slowDownCoeff_ : " << slowDownCoeff_ << std::endl;
+            std::cout << "clampedSlowDownCoeff_ : " << clampedSlowDownCoeff_ << std::endl;
+            std::cout << "avoidanceCount_ : " << avoidanceCount_ << std::endl;
 
             nextMotionControllerState = CONTROLLER_WAIT_FOR_AVOIDANCE;
         }
@@ -362,13 +376,6 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
     }
     else if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
     {
-        
-        // Compute slowdown
-        slowDownCoeff_ = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
-        clampedSlowDownCoeff_ = 1.0;
-        clampedSlowDownCoeff_ = std::min(slowDownCoeff_, clampedSlowDownCoeff_ + 0.05);
-
-
         // Load first trajectory, look if we are done following it.
         Trajectory *traj = currentTrajectories_.at(0).get();
         // No avoidance if point turn.

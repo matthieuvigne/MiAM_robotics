@@ -261,12 +261,11 @@
             std::mutex persistentObstaclesMutex_;
             std::vector<Obstacle> persistentObstacles_;
 
-            // Handle robot stops
-            int numStopIters_ = 0.;
-            const int minStopIters_ = 12; // Minimum number of iterations to stop, i.e 10ms.
-            const int minRestartIters_ = 20; // Minimum number of iterations to restart, i.e 10ms.
-            int const maxStopIters_ = 50; // Maximum number of iterations until attempting something
-
+            // // Handle robot stops
+            // int numStopIters_ = 0.;
+            // const int minStopIters_ = 12; // Minimum number of iterations to stop, i.e 10ms.
+            // const int minRestartIters_ = 20; // Minimum number of iterations to restart, i.e 10ms.
+            // int const maxStopIters_ = 50; // Maximum number of iterations until attempting something
 
             double trajectoryTimeout_ = 1.0; // Number of seconds after the end of trajectory after which timeout is raised
 

@@ -91,37 +91,5 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
         }
     }
 
-    if (numStopIters_ >= minRestartIters_)
-    {
-        // Robot was stopped and is ready to start again.
-        // Replan and retry trajectory.
-        if (!currentTrajectories_.empty())
-        {
-            currentTrajectories_.at(0)->replanify(curvilinearAbscissa_);
-            curvilinearAbscissa_ = 0;
-            textlog << "[MotionController] "  << "Continue trajectory; replan" << std::endl;
-        }
-    }
-    numStopIters_ = 0;
-
-    // Before match: just return coeff, don't trigger memory.
-
-    // FIXME !
-    if (!hasMatchStarted || currentTrajectories_.size() == 0)
-    {
-        numStopIters_ = 0;
-        return coeff;
-    }
-
-    if (numStopIters_ >= minStopIters_ && numStopIters_ < minRestartIters_)
-    {
-        numStopIters_++;
-        // Not ready to restart, just stop
-        return 0.0;
-    }
-
-    //   textlog << "[MotionController] "  << "numStopIters_ " << numStopIters_ << std::endl;
-    //   textlog << "[MotionController] "  << "avoidanceCount_ " << avoidanceCount_ << std::endl;
-
     return coeff;
 }

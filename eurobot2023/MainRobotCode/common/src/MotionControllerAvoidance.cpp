@@ -74,7 +74,6 @@ TrajectoryVector MotionController::computeBasicAvoidanceTrajectory(RobotPosition
     std::vector<RobotPosition> positions;
     // Set the new trajectory
     textlog << "[MotionController] " << ">> MotionControllerAvoidance : Triggering basic avoidance" << std::endl;
-    numStopIters_ = 0;
 
     RobotPosition currentPositionModified = currentPosition;
 

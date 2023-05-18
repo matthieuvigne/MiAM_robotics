@@ -460,7 +460,7 @@ void Strategy::goBackToBase()
 
     for (auto subtraj : traj)
     {
-        subtraj->setAvoidanceEnabled(true);
+        subtraj->setAvoidanceEnabled(false);
     }
 
     robot->getMotionController()->setTrajectoryToFollow(traj);
