@@ -537,14 +537,48 @@ void Strategy::goBackToBase()
 
     if ((motionController->getCurrentPosition() - position).norm() > 100)
     {
+
+        std::vector<Obstacle > detectedObstacles = robot->getMotionController()->getDetectedObstacles();
+
+        std::cout << "See if obstacles to remove" << std::endl;
+        // remove obstacles which are too close to the position (since we know 
+        // there is an obstacle)
+        bool detectedAnObstacleToRemove = false;
+        do
+        {
+            detectedAnObstacleToRemove = false;
+            for (int i = 0; i < detectedObstacles.size(); i++)
+            {
+                Obstacle obstacle = detectedObstacles.at(i);
+                if ((std::get<0>(obstacle) - position).norm() < 500 )
+                {
+                    std::cout << "Removing an obstacle" << std::endl;
+                    detectedObstacles.erase( detectedObstacles.begin() + i);
+                    detectedAnObstacleToRemove = true;
+                    break;
+                }
+            }
+        } while (detectedAnObstacleToRemove);
+
+        std::cout << "detectedObstacles.size() " << detectedObstacles.size() << std::endl;
+
         traj = robot->getMotionController()->computeMPCTrajectory(
             position,
-            robot->getMotionController()->getDetectedObstacles(),
+            detectedObstacles,
             false,   // is forward
             true,   // is an avoidance traj
             true); // ensure end angle
-        robot->getMotionController()->setTrajectoryToFollow(traj);
-        robot->getMotionController()->waitForTrajectoryFinished();
+
+        if (traj.getDuration() > 0)
+        {
+            robot->getMotionController()->setTrajectoryToFollow(traj);
+            robot->getMotionController()->waitForTrajectoryFinished();
+        }
+        else
+        {
+            go_forward(-100);
+            go_to_straight_line(position);
+        }
     }
     else
     {
@@ -557,6 +591,8 @@ void Strategy::goBackToBase()
 
     TrajectoryConfig trajconf = robot->getParameters().getTrajConf();
     trajconf.maxWheelVelocity = 200;
+
+    std::cout << "Performing a final straight line" << std::endl;
 
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
         trajconf,
@@ -576,6 +612,7 @@ void Strategy::goBackToBase()
 
     isAtBase_ = true;
     robot->updateScore(15);
+    std::cout << "secondary : Is at base" << std::endl;
 
 }
 }

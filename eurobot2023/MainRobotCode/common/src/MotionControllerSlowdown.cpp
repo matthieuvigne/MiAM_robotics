@@ -56,7 +56,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
             else if (!currentTrajectories_.front()->isAvoidanceEnabled())
             {
                 x_max = detection::x_max_ending;
-                y_max = 0.0;
+                y_max = detection::y_max_ending;
                 xfar_max = 0.0;
                 yfar_max = 0.0;
             }

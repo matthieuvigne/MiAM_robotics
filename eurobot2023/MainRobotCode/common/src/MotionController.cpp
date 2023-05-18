@@ -192,28 +192,34 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
 void MotionController::changeMotionControllerState()
 {
+    // in all cases, if new trajectories, reset controller
+    if (!newTrajectories_.empty())
+    {
+        textlog << "[MotionController] New trajectories, reset controller state to WAIT_FOR_TRAJECTORY" << std::endl;
+        motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY; 
+    }
 
     MotionControllerState nextMotionControllerState = motionControllerState_;
 
-    // handle changes depending on the current controller state
+    // transition to CONTROLLER_TRAJECTORY_TRACKING
+    // Load new trajectory, if needed.
+    newTrajectoryMutex_.lock();
+    if (!newTrajectories_.empty())
+    {
+        // We have new trajectories, erase the current trajectories and follow the new one.
+        currentTrajectories_ = newTrajectories_;
+        curvilinearAbscissa_ = 0;
+        avoidanceCount_ = 0;
+        newTrajectories_.clear();
+        textlog << "[MotionController] Recieved " << currentTrajectories_.size() << " new trajectories from strategy" << std::endl;
+        textlog << "[MotionController] Now tracking: " << currentTrajectories_.at(0)->description_ << std::endl;
+
+        nextMotionControllerState = CONTROLLER_TRAJECTORY_TRACKING;
+    }
+    newTrajectoryMutex_.unlock();
+    
     if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
     {
-        // transition to CONTROLLER_TRAJECTORY_TRACKING
-        // Load new trajectory, if needed.
-        newTrajectoryMutex_.lock();
-        if (!newTrajectories_.empty())
-        {
-            // We have new trajectories, erase the current trajectories and follow the new one.
-            currentTrajectories_ = newTrajectories_;
-            curvilinearAbscissa_ = 0;
-            avoidanceCount_ = 0;
-            newTrajectories_.clear();
-            textlog << "[MotionController] Recieved " << currentTrajectories_.size() << " new trajectories from strategy" << std::endl;
-            textlog << "[MotionController] Now tracking: " << currentTrajectories_.at(0)->description_ << std::endl;
-
-            nextMotionControllerState = CONTROLLER_TRAJECTORY_TRACKING;
-        }
-        newTrajectoryMutex_.unlock();
         if (!currentTrajectories_.empty())
         {
             textlog << "[MotionController] Start reading trajectories " << std::endl;

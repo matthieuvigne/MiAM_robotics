@@ -90,6 +90,7 @@
 
       // for ending trajectory...
       double const x_max_ending = 150;
+      double const y_max_ending = 300;
     }
 
     // Dimensions of the table
