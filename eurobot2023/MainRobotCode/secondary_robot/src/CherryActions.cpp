@@ -127,9 +127,8 @@ void Strategy::put_cherries_in_the_basket()
 
     go_forward(-130);
     moveRail(rail::MIDDLE);
-    robot->wait(2.0);
+    robot->wait(0.1);
     set_reservoir_tilt(ReservoirTilt::UP);
-    waitForRail();
 }
 
 

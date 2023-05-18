@@ -779,7 +779,9 @@ bool Strategy::performSecondaryRobotAction(SecondaryRobotAction* action)
         // action was successful
 
         // update score
-        robot->updateScore(action->getScore());
+        int score = action->getScore();
+        textlog << "[Strategy (secondary_robot)] " << "update score: " << score << std::endl;
+        robot->updateScore(score);
 
         // add obstacle in the end
         for (auto obstacle : action->obstacles_in_the_end)
