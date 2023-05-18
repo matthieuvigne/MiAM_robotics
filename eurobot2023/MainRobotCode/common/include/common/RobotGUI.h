@@ -29,9 +29,11 @@
                 void update(RobotGUIData const& robotData);
 
                 bool getIsPlayingRightSide();
+                bool getIsPlayingAlternateStrategy();
 
             protected:
                 void sideButtonClicked();
+                void sideButtonAlternateStrategyClicked();
 
             private:
                 bool doUpdate();
@@ -49,12 +51,14 @@
                 Gtk::Label scoreLabel_;
 
                 Gtk::Button sideButton_;
+                Gtk::Button sideButtonAlternateStrategy_;
 
                 TableDrawing drawingArea_;
 
 
                 RobotGUIData robotData_;
                 bool isPlayingRightSide_ = false;
+                bool isPlayingAlternateStrategy_ = false;
 
                 robotstate lastState_ = robotstate::MATCH_DONE;
                 std::mutex mutex_;

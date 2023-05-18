@@ -48,6 +48,9 @@ RobotGUI::RobotGUI()
     sideButton_ = Gtk::Button("Bleu");
     sideButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::sideButtonClicked));
 
+    sideButtonAlternateStrategy_ = Gtk::Button("Bottom");
+    sideButtonAlternateStrategy_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::sideButtonAlternateStrategyClicked));
+
     scoreLabel_.set_name("score");
     add(box_);
 
@@ -68,6 +71,11 @@ RobotGUI::~RobotGUI()
 bool RobotGUI::getIsPlayingRightSide()
 {
     return isPlayingRightSide_;
+}
+
+bool RobotGUI::getIsPlayingAlternateStrategy()
+{
+    return isPlayingAlternateStrategy_;
 }
 
 bool RobotGUI::doUpdate()
@@ -104,6 +112,20 @@ bool RobotGUI::doUpdate()
         sideButton_.get_child()->set_name("button_text");
     }
 
+
+    if (isPlayingAlternateStrategy_)
+    {
+        sideButton_.set_label("Top");
+        sideButton_.set_name("green");
+        sideButton_.get_child()->set_name("button_text");
+    }
+    else
+    {
+        sideButton_.set_label("Bottom");
+        sideButton_.set_name("blue");
+        sideButton_.get_child()->set_name("button_text");
+    }
+
     if (robotData.state == robotstate::MATCH)
         drawingArea_.queue_draw();
     if (robotData.state != lastState_)
@@ -119,6 +141,7 @@ bool RobotGUI::doUpdate()
         if (robotData.state == robotstate::WAITING_FOR_START)
         {
             box_.pack_start(sideButton_);
+            box_.pack_start(sideButtonAlternateStrategy_);
             box_.pack_start(drawingArea_);
         }
         if (robotData.state == robotstate::MATCH)
@@ -147,6 +170,12 @@ void RobotGUI::update(RobotGUIData const& robotData)
 void RobotGUI::sideButtonClicked()
 {
     isPlayingRightSide_ = !isPlayingRightSide_;
+    doUpdate();
+}
+
+void RobotGUI::sideButtonAlternateStrategyClicked()
+{
+    isPlayingRightSide_ = !isPlayingAlternateStrategy_;
     doUpdate();
 }
 

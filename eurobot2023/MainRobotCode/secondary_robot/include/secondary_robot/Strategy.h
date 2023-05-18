@@ -126,8 +126,6 @@ namespace secondary_robot
         void goBackToBase();
         bool checkIfBackToBase();
         bool countedPointsForGoingBackToBase_;
-
-        bool startingTop_;
     };
 }
 

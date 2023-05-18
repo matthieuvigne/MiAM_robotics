@@ -161,6 +161,7 @@
                                                      bool const& hasMatchStarted);
 
             bool isPlayingRightSide_ = false;
+            bool isPlayingAlternateStrategy_ = false;
 
             DrivetrainKinematics getKinematics()
             {

@@ -217,7 +217,10 @@ void Robot::lowLevelLoop()
             {
                 matchStartTime_ = currentTime_;
                 motionController_.isPlayingRightSide_ = gui_->getIsPlayingRightSide();
+                motionController_.isPlayingAlternateStrategy_ = gui_->getIsPlayingAlternateStrategy();
                 textlog << "[Robot] Starting match, isPlayingRightSide_" << motionController_.isPlayingRightSide_ << std::endl;
+                textlog << "[Robot] Starting match, isPlayingAlternateStrategy_" << motionController_.isPlayingAlternateStrategy_ << std::endl;
+               
                 guiState_.state = robotstate::MATCH;
                 metronome.resetLag();
                 // Start strategy thread.

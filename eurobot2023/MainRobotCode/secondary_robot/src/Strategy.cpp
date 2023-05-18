@@ -64,9 +64,6 @@ bool Strategy::setup(RobotInterface *robot)
 
     countedPointsForGoingBackToBase_ = false;
 
-    // TODO can i be changed during setup with screen?
-    startingTop_ = false;
-
 #ifdef SIMULATION
     // Always perform setup in simulation
     phase = setupPhase::FIRST_CALL;
@@ -86,14 +83,10 @@ bool Strategy::setup(RobotInterface *robot)
         servo->setMode(RAIL_SERVO_ID, STS::Mode::VELOCITY);
 
         // Set initial position
-        if (startingTop_)
-        {
-            motionController->resetPosition(ALTERNATIVE_START_POSITION, true, true, true);
-        }
-        else
-        {
-            motionController->resetPosition(START_POSITION, true, true, true);
-        }
+        // TODO for simulation
+        motionController->resetPosition(START_POSITION, true, true, true);
+        
+        // set avoidance mode
         motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_OFF);
 
         RPi_setupGPIO(BRUSH_MOTOR, PiGPIOMode::PI_GPIO_OUTPUT);
@@ -293,11 +286,11 @@ void Strategy::startSequenceTop()
     }
 
 
-    // Faire une action : aller de 3 vers 1
-    PushingCakesAction action3to1 = PushCakes3to1();
+    // // Faire une action : aller de 3 vers 1
+    // PushingCakesAction action3to1 = PushCakes3to1();
 
-    if (performSecondaryRobotAction(&action3to1))
-        textlog << "[Strategy (secondary robot)] startSequenceTop: PushCakes3to1 succeeded" << std::endl;
+    // if (performSecondaryRobotAction(&action3to1))
+    //     textlog << "[Strategy (secondary robot)] startSequenceTop: PushCakes3to1 succeeded" << std::endl;
     
 
     
@@ -424,13 +417,15 @@ void Strategy::match_impl()
     TrajectoryVector traj;
     std::vector<RobotPosition> targetPositions;
 
-    if (startingTop_)
+    if (motionController->isPlayingAlternateStrategy_)
     {
+        textlog << "[Strategy (secondary_robot)] " << "Starting TOP" << std::endl;
         motionController->resetPosition(ALTERNATIVE_START_POSITION, true, true, true);
         startSequenceTop();
     }
     else
     {
+        textlog << "[Strategy (secondary_robot)] " << "Starting BOTTOM" << std::endl;
         motionController->resetPosition(START_POSITION, true, true, true);
         startSequenceBottom();
     }
@@ -450,12 +445,12 @@ void Strategy::match_impl()
 
     std::vector<std::shared_ptr<SecondaryRobotAction > > actions;
 
-    // if starting top the cakes have already been taken
-    if (!startingTop_)
-    {
+    // // if starting top the cakes have already been taken
+    // if (!motionController->isPlayingAlternateStrategy_)
+    // {
         std::shared_ptr<SecondaryRobotAction > pushCakes1to5(new PushCakes1to5());
         actions.push_back(pushCakes1to5);
-    }
+    // }
 
     std::shared_ptr<SecondaryRobotAction > pushCakes7to5(new PushCakes7to5());
     actions.push_back(pushCakes7to5);
