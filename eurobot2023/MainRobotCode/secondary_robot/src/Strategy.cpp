@@ -282,10 +282,10 @@ void Strategy::match_impl()
     targetPositions.clear();
     targetPositions.push_back(motionController->getCurrentPosition());
     targetPositions.push_back(cherryDistributorLeft + RobotPosition(300, 0, 0));
-    targetPositions.push_back(cherryDistributorLeft+ RobotPosition(10, 0, 0));
+    targetPositions.push_back(cherryDistributorLeft);
     go_to_rounded_corner(targetPositions);
 
-    if ((motionController->getCurrentPosition() - (cherryDistributorLeft+ RobotPosition(10, 0, 0))).norm() < 100)
+    if ((motionController->getCurrentPosition() - cherryDistributorLeft).norm() < 100)
     {
         grab_cherries();
     }
