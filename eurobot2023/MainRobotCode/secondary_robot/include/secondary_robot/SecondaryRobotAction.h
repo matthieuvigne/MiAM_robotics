@@ -11,7 +11,7 @@ class SecondaryRobotAction
 {
     public:
 
-        SecondaryRobotAction() : activated(true), score_(0) {};
+        SecondaryRobotAction() : activated(true) {};
 
         RobotPosition start_position;
         RobotPosition end_position;
@@ -20,8 +20,6 @@ class SecondaryRobotAction
         std::vector<Obstacle > obstacles_in_the_end;
 
         bool activated;
-
-        int score_;
 
         virtual bool performAction(RobotInterface* robot) = 0;
         virtual int getScore() = 0;

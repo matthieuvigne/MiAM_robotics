@@ -351,11 +351,15 @@ void Strategy::match_impl()
     // waitForRail();
     // set_reservoir_tilt(ReservoirTilt::DOWN);
 
-    std::vector<PushingCakesAction > actions;
-    actions.push_back(PushCakes1to5());
-    actions.push_back(PushCakes7to5());
-    actions.push_back(PushCakes3to4());
-    actions.push_back(PushCakes6to4());
+    std::vector<std::shared_ptr<SecondaryRobotAction > > actions;
+    std::shared_ptr<SecondaryRobotAction > pushCakes1to5(new PushCakes1to5());
+    actions.push_back(pushCakes1to5);
+    std::shared_ptr<SecondaryRobotAction > pushCakes7to5(new PushCakes7to5());
+    actions.push_back(pushCakes7to5);
+    std::shared_ptr<SecondaryRobotAction > pushCakes3to4(new PushCakes3to4());
+    actions.push_back(pushCakes3to4);
+    std::shared_ptr<SecondaryRobotAction > pushCakes6to4(new PushCakes6to4());
+    actions.push_back(pushCakes6to4);
 
     int number_of_unsuccessful_iters = 0;
 
@@ -371,9 +375,9 @@ void Strategy::match_impl()
         for (int i = 0; i < actions.size(); i++)
         {
 
-            PushingCakesAction action = actions.at(i);
+            SecondaryRobotAction* action = actions.at(i).get();
 
-            if (!action.activated)
+            if (!action->activated)
             {
                 textlog << "[Strategy (secondary_robot)] " << "action " << i << " was deactivated" << std::endl;
                 continue;
@@ -381,13 +385,13 @@ void Strategy::match_impl()
 
             double minDistanceFromObstacle = 10000;
             double minDistanceFromObstacleEnd = 10000;
-            double distanceToStartPoint = (action.start_position - currentPosition).norm();
+            double distanceToStartPoint = (action->start_position - currentPosition).norm();
 
             for (auto obstacle : robot->getMotionController()->getDetectedObstacles())
             {
 
-                double tmpMin = (std::get<0>(obstacle) - action.start_position).norm() - std::get<1>(obstacle);
-                double tmpMinEnd = (std::get<0>(obstacle) - action.end_position).norm() - std::get<1>(obstacle);
+                double tmpMin = (std::get<0>(obstacle) - action->start_position).norm() - std::get<1>(obstacle);
+                double tmpMinEnd = (std::get<0>(obstacle) - action->end_position).norm() - std::get<1>(obstacle);
 
                 // distance to center of obstacle minus size of the obstacle
                 minDistanceFromObstacle = std::min(
@@ -408,7 +412,7 @@ void Strategy::match_impl()
             }
 
 
-            textlog << "[Strategy (secondary_robot)] " << "action " << i << " start point " << action.start_position << std::endl;
+            textlog << "[Strategy (secondary_robot)] " << "action " << i << " start point " << action->start_position << std::endl;
             textlog << "[Strategy (secondary_robot)] " << "   minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceFromObstacleEnd " << minDistanceFromObstacleEnd << " distanceToStartPoint " << distanceToStartPoint << std::endl;
 
 
@@ -421,7 +425,7 @@ void Strategy::match_impl()
             textlog << "[Strategy (secondary_robot)] " << "Reactivating all actions" << std::endl;
             for (int i = 0; i < actions.size() ; i++)
             {
-                actions.at(i).activated = true;
+                actions.at(i)->activated = true;
             }
         }
 
@@ -433,18 +437,18 @@ void Strategy::match_impl()
 
             textlog << "[Strategy (secondary_robot)] " << "####### Performing pushing action: " << action_index << " (" << actions.size() << " remaining)" << std::endl;
 
-            PushingCakesAction action = actions.at(action_index);
+            SecondaryRobotAction* action = actions.at(action_index).get();
 
             // go to start taking obstacles into account
-            for (auto obstacle : action.obstacles_on_the_road)
+            for (auto obstacle : action->obstacles_on_the_road)
             {
                 robot->getMotionController()->addPersistentObstacle(obstacle);
             }
 
-            traj = robot->getMotionController()->computeMPCTrajectory(action.start_position, robot->getMotionController()->getDetectedObstacles(), true);
+            traj = robot->getMotionController()->computeMPCTrajectory(action->start_position, robot->getMotionController()->getDetectedObstacles(), true);
 
             // remove obstacles on the road
-            for (auto obstacle : action.obstacles_on_the_road)
+            for (auto obstacle : action->obstacles_on_the_road)
             {
                 robot->getMotionController()->popBackPersistentObstacles();
             }
@@ -460,14 +464,14 @@ void Strategy::match_impl()
             {
                 // perform action
                 // action was successful
-                if (action.performAction(robot))
+                if (action->performAction(robot))
                 {
                     // update score
-                    robot->updateScore(actions.at(action_index).score_);
+                    robot->updateScore(action->getScore());
                     // remove action from vector
                     actions.erase( actions.begin() + action_index);
                     // add obstacle in the end
-                    for (auto obstacle : action.obstacles_in_the_end)
+                    for (auto obstacle : action->obstacles_in_the_end)
                     {
                         robot->getMotionController()->addPersistentObstacle(obstacle);
                     }
@@ -476,14 +480,14 @@ void Strategy::match_impl()
                 else
                 {
                     textlog << "[Strategy (secondary_robot)] " << "Action was not successful: deactivated" << std::endl;
-                    actions.at(action_index).activated = false;
+                    action->activated = false;
                 }
             }
             else
             // action was not successful
             {
                 textlog << "[Strategy (secondary_robot)] " << "Action was not successful: deactivated" << std::endl;
-                actions.at(action_index).activated = false;
+                action->activated = false;
             }
         }
         else
