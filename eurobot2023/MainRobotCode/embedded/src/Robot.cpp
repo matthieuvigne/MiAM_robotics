@@ -269,9 +269,22 @@ void Robot::lowLevelLoop()
         // Compute motion target.
         DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
 
+        static bool panicMode = false;
+        if (hasMatchStarted_)
+            if (dt > 0.100 || rightController_.nCommunicationErrors_ > 20 || leftController_.nCommunicationErrors_ > 20)
+            {
+                textlog << "[Robot] Oh oh, invalid state, entering panic mode!" << std::endl;
+                textlog << "dt " << dt << "comm error" << leftController_.nCommunicationErrors_  << " " << rightController_.nCommunicationErrors_  << std::endl;
+                panicMode = true;
+            }
         // Apply target
         static bool wasRunning = false;
-        if (!hasMatchStarted_)
+        if (panicMode)
+        {
+            textlog << "[Robot] Panic !" << std::endl;
+            stopMotors();
+        }
+        else if (!hasMatchStarted_)
         {
             leftController_.stop(dt);
             rightController_.stop(dt);
