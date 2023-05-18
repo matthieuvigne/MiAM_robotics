@@ -264,12 +264,14 @@ void Robot::lowLevelLoop()
         double time3 =  metronome.getElapsedTime() - currentTime_;
 
         static bool panicMode = false;
+        static double panicStartTime = 0.0;
         if (hasMatchStarted_)
             if (dt > 0.100 || rightController_.nCommunicationErrors_ > 20 || leftController_.nCommunicationErrors_ > 20)
             {
                 textlog << "[Robot] Oh oh, invalid state, entering panic mode!" << std::endl;
                 textlog << "dt " << dt << "comm error" << leftController_.nCommunicationErrors_  << " " << rightController_.nCommunicationErrors_  << std::endl;
                 panicMode = true;
+                panicStartTime = currentTime_;
             }
         // Apply target
         static bool wasRunning = false;
@@ -277,6 +279,12 @@ void Robot::lowLevelLoop()
         {
             textlog << "[Robot] Panic !" << std::endl;
             stopMotors();
+            // If naturally stopped, exit panic.
+            if (currentTime_ - panicStartTime > 100.0 && std::abs(target.motorSpeed[0]) < 0.001 && std::abs(target.motorSpeed[1]) < 0.001 )
+            {
+                panicMode = false;
+                textlog << "[Robot] Clearing panic state." << std::endl;
+            }
         }
         else if (!hasMatchStarted_)
         {

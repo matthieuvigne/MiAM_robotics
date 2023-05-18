@@ -150,10 +150,6 @@ bool Strategy::setup(RobotInterface *robot)
 
 void Strategy::periodicAction()
 {
-    updateRailHeight();
-    railState_ = rail::state::IDLE;
-    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
-    return;
 #ifdef SIMULATION
     railState_ = rail::state::IDLE;
     return;
@@ -658,7 +654,7 @@ void Strategy::goBackToBase()
     std::vector<Obstacle > detectedObstacles = robot->getMotionController()->getDetectedObstacles();
 
     std::cout << "See if obstacles to remove" << std::endl;
-    // remove obstacles which are too close to the position (since we know 
+    // remove obstacles which are too close to the position (since we know
     // there is an obstacle)
     bool detectedAnObstacleToRemove = false;
     bool wasThereAnObstacleInEndZone = false;
@@ -684,7 +680,7 @@ void Strategy::goBackToBase()
 
     if (wasThereAnObstacleInEndZone)
         std::cout << "There was an obstacle in end zone" << std::endl;
-    
+
     double angleBeforeFinalStraightLine = (wasThereAnObstacleInEndZone ? M_PI_2 : -M_PI_2);
     position.theta = angleBeforeFinalStraightLine;
 
