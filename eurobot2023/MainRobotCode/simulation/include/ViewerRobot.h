@@ -14,7 +14,6 @@
 
     #include "common/RobotParameters.h"
     #include "common/RobotInterface.h"
-    #include "common/ServoHandler.h"
     #include "common/AbstractStrategy.h"
     #include "common/RobotGUI.h"
 

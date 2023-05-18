@@ -141,6 +141,10 @@ bool Strategy::setup(RobotInterface *robot)
 
 void Strategy::periodicAction()
 {
+    updateRailHeight();
+    railState_ = rail::state::IDLE;
+    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+    return;
 #ifdef SIMULATION
     railState_ = rail::state::IDLE;
     return;
@@ -466,7 +470,7 @@ void Strategy::match_impl()
                     textlog << "[Strategy (secondary_robot)] " << "Action was not successful: deactivated" << std::endl;
                     actions.at(action_index).activated = false;
                 }
-            } 
+            }
             else
             // action was not successful
             {

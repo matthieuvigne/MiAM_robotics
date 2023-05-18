@@ -74,8 +74,8 @@ bool RobotGUI::doUpdate()
 {
     mutex_.lock();
     RobotGUIData robotData = robotData_;
-    drawingArea_.robotData_ = robotData_;
     mutex_.unlock();
+    drawingArea_.robotData_ = robotData;
 
     std::stringstream stream;
     stream << "Battery: " << std::fixed << std::setprecision(1) << robotData.batteryVoltage<< "V";

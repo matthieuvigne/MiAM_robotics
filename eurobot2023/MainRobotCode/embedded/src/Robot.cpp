@@ -239,6 +239,8 @@ void Robot::lowLevelLoop()
         measurements.encoderSpeed.left = encoderPosition[pL] - lastEncoderPosition_[pL];
         lastEncoderPosition_ = encoderPosition;
 
+        double time1 =  metronome.getElapsedTime() - currentTime_;
+
         // If playing side::RIGHT side: invert side::RIGHT/side::LEFT encoders.
         if (motionController_.isPlayingRightSide_)
         {
@@ -254,20 +256,12 @@ void Robot::lowLevelLoop()
             measurements.lidarDetection = lidar_.detectedRobots_;
         }
 
-        // Update leds.
-        // FIXME
-        // int coeff_ = 0;
-        // if (coeff_ == 0)
-        //     screen_.turnOnLED(lcd::LEFT_LED);
-        // else
-        //     screen_.turnOffLED(lcd::LEFT_LED);
-        // if (coeff_ < 1.0)
-        //     screen_.turnOnLED(lcd::MIDDLE_LED);
-        // else
-        //     screen_.turnOffLED(lcd::MIDDLE_LED);
+        double time2 =  metronome.getElapsedTime() - currentTime_;
 
         // Compute motion target.
         DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements, dt, hasMatchStarted_);
+
+        double time3 =  metronome.getElapsedTime() - currentTime_;
 
         static bool panicMode = false;
         if (hasMatchStarted_)
@@ -314,6 +308,8 @@ void Robot::lowLevelLoop()
                 motionController_.log("MotorController.status", 1);
             }
         }
+        double time4 =  metronome.getElapsedTime() - currentTime_;
+
         motionController_.log("MotorController.right.current", rightController_.current_);
         motionController_.log("MotorController.right.targetCurrent", rightController_.targetCurrent_);
         motionController_.log("MotorController.right.position", rightController_.position_);
@@ -332,13 +328,23 @@ void Robot::lowLevelLoop()
         motionController_.log("MotorController.left.communicationErrors", leftController_.nCommunicationErrors_);
         motionController_.log("MotorController.left.modeOfOperation", leftController_.modeOfOperation_);
 
+        double time5 =  metronome.getElapsedTime() - currentTime_;
+
+        motionController_.log("DEBUGencoder", time1);
+        motionController_.log("DEBUGlidar", time2 - time1);
+        motionController_.log("DEBUGmotioncontroller", time3 - time2);
+        motionController_.log("DEBUGrmdx", time4 - time3);
+        motionController_.log("DEBUGlog", time5 - time4);
+
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;
         guiState_.currentPosition = motionController_.getCurrentPosition();
         guiState_.detectedObstacles = motionController_.filteredDetectedObstacles_;
         gui_->update(guiState_);
+        double time6 =  metronome.getElapsedTime() - currentTime_;
+        motionController_.log("DEBUGgui", time6 - time5);
     }
-    
+
     // End of the match.
     std::cout << "Match end" << std::endl;
     guiState_.state = robotstate::MATCH_DONE;
