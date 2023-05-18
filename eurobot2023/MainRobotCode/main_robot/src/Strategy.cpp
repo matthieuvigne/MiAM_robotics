@@ -316,7 +316,9 @@ void Strategy::match_impl()
   targetPosition = RobotPosition{750,robotParameters.CHASSIS_FRONT + 150,0};
   go_to_straight_line(targetPosition, 1.0);
   funnyAction();
+  
   #else
+  
   // Grab first genoise with the arms aside
   clearActionSequence();
   targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
@@ -406,7 +408,7 @@ void Strategy::match_impl()
   targetPosition.y -= 500;
   go_to_straight_line(targetPosition, 1.5, false);
   robot->updateScore(5);
-  //~ goBackToBase();
+  //~ // goBackToBase();
   #endif
   
   //~ goBackToBase();

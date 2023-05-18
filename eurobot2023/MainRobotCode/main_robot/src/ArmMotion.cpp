@@ -172,9 +172,13 @@ void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int ar
                         //~ std::cout << "Servo[" << i << "] " << 100*current[i] << std::endl; // [TO REMOVE]
                     }
                     
+                    //~ double current = servo->getCurrentCurrent(armServoId+1); // [TO REMOVE]
+                    //~ std::cout << "Servo[1] " << 100*current << std::endl; // [TO REMOVE]
+                    
                     #if CHECK_CURRENT
                     // Update current moving average
-                    double max_current = 50.;
+                    double mean = 0.;
+                    double max_current = 10.;
                     switch(armServoId)
                     {
                       case LEFT_ARM:
@@ -183,9 +187,9 @@ void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int ar
                         size_t const num_samples = left_arm_current_.size();
                         if(num_samples>20) left_arm_current_.pop_front();
                         if(num_samples<20) continue;
-                        double mean = std::accumulate(left_arm_current_.cbegin(), 
+                        mean = std::accumulate(left_arm_current_.cbegin(), 
                           left_arm_current_.cend(), 0.) / double(num_samples);
-                        if(mean > max_current) abort = true;
+                        if(100.*mean > max_current) abort = true;
                         break;
                       }
                       case RIGHT_ARM:
@@ -194,15 +198,16 @@ void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int ar
                         size_t const num_samples = right_arm_current_.size();
                         if(num_samples>20) right_arm_current_.pop_front();
                         if(num_samples<20) continue;
-                        double mean = std::accumulate(right_arm_current_.cbegin(), 
+                        mean = std::accumulate(right_arm_current_.cbegin(), 
                           right_arm_current_.cend(), 0.) / double(num_samples);
-                        if(mean > max_current) abort = true;
+                        if(100.*mean > max_current) abort = true;
                         break;
                       }
                     }
                     if(abort)
                     {
                       robot->updateScore(-5);
+                      std::cout << "ABORTED ARM MOTION with mean " << 100*mean << "." << std::endl;
                       break;
                     }
                     #endif
