@@ -520,6 +520,13 @@ void Strategy::match()
 
 void Strategy::goBackToBase()
 {
+
+    // set a low avoidance zone for end
+    RobotPosition lowAvoidanceZonePosition;
+    lowAvoidanceZonePosition.x = 750;
+    lowAvoidanceZonePosition.y = 230;
+    robot->getMotionController()->setLowAvoidanceZone(lowAvoidanceZonePosition, 800);
+
     if (isAtBase_)
     {
         textlog << "[Strategy] already at base" << std::endl;
@@ -535,33 +542,41 @@ void Strategy::goBackToBase()
     position.y = 500;
     position.theta = -M_PI_2;
 
+    std::vector<Obstacle > detectedObstacles = robot->getMotionController()->getDetectedObstacles();
+
+    std::cout << "See if obstacles to remove" << std::endl;
+    // remove obstacles which are too close to the position (since we know 
+    // there is an obstacle)
+    bool detectedAnObstacleToRemove = false;
+    bool wasThereAnObstacleInEndZone = false;
+
+    do
+    {
+        detectedAnObstacleToRemove = false;
+        for (int i = 0; i < detectedObstacles.size(); i++)
+        {
+            Obstacle obstacle = detectedObstacles.at(i);
+            if ((std::get<0>(obstacle) - position).norm() < 500 )
+            {
+                std::cout << "Removing an obstacle" << std::endl;
+                detectedObstacles.erase( detectedObstacles.begin() + i);
+                detectedAnObstacleToRemove = true;
+                wasThereAnObstacleInEndZone = true;
+                break;
+            }
+        }
+    } while (detectedAnObstacleToRemove);
+
+    std::cout << "detectedObstacles.size() " << detectedObstacles.size() << std::endl;
+
+    if (wasThereAnObstacleInEndZone)
+        std::cout << "There was an obstacle in end zone" << std::endl;
+    
+    double angleBeforeFinalStraightLine = (wasThereAnObstacleInEndZone ? M_PI_2 : -M_PI_2);
+    position.theta = angleBeforeFinalStraightLine;
+
     if ((motionController->getCurrentPosition() - position).norm() > 100)
     {
-
-        std::vector<Obstacle > detectedObstacles = robot->getMotionController()->getDetectedObstacles();
-
-        std::cout << "See if obstacles to remove" << std::endl;
-        // remove obstacles which are too close to the position (since we know 
-        // there is an obstacle)
-        bool detectedAnObstacleToRemove = false;
-        do
-        {
-            detectedAnObstacleToRemove = false;
-            for (int i = 0; i < detectedObstacles.size(); i++)
-            {
-                Obstacle obstacle = detectedObstacles.at(i);
-                if ((std::get<0>(obstacle) - position).norm() < 500 )
-                {
-                    std::cout << "Removing an obstacle" << std::endl;
-                    detectedObstacles.erase( detectedObstacles.begin() + i);
-                    detectedAnObstacleToRemove = true;
-                    break;
-                }
-            }
-        } while (detectedAnObstacleToRemove);
-
-        std::cout << "detectedObstacles.size() " << detectedObstacles.size() << std::endl;
-
         traj = robot->getMotionController()->computeMPCTrajectory(
             position,
             detectedObstacles,
@@ -587,7 +602,7 @@ void Strategy::goBackToBase()
 
     position.x = 680;
     position.y = 100;
-    position.theta = -M_PI_2;
+    position.theta = angleBeforeFinalStraightLine;
 
     TrajectoryConfig trajconf = robot->getParameters().getTrajConf();
     trajconf.maxWheelVelocity = 200;
@@ -599,7 +614,7 @@ void Strategy::goBackToBase()
         motionController->getCurrentPosition(), // start
         position, // end
         0.0, // no velocity at end point
-        false // backward
+        wasThereAnObstacleInEndZone // backward if there is an obstacle
     );
 
     for (auto subtraj : traj)

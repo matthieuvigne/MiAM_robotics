@@ -45,20 +45,27 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
             double xfar_max = detection::xfar_max;
             double yfar_max = detection::yfar_max;
 
+            // in low avoidance if norm from current position is less than a value
+            bool isInLowAvoidance = lowAvoidanceZoneEnabled_ && 
+                ((getCurrentPosition() - std::get<0>(lowAvoidanceZone_)).norm() < std::get<1>(lowAvoidanceZone_));
+
+            // if (isInLowAvoidance)
+            //     std::cout << "Low avoidance" << std::endl;
+
             // If currently avoiding, then use less strict thresholds
-            if (currentTrajectories_.front()->isAvoidanceTrajectory_)
-            {
-                x_max = detection::x_max_avoidance;
-                y_max = detection::y_max_avoidance;
-                xfar_max = detection::xfar_max_avoidance;
-                yfar_max = detection::yfar_max_avoidance;
-            }
-            else if (!currentTrajectories_.front()->isAvoidanceEnabled())
+            if (isInLowAvoidance || !currentTrajectories_.front()->isAvoidanceEnabled())
             {
                 x_max = detection::x_max_ending;
                 y_max = detection::y_max_ending;
                 xfar_max = 0.0;
                 yfar_max = 0.0;
+            }
+            else if (currentTrajectories_.front()->isAvoidanceTrajectory_)
+            {
+                x_max = detection::x_max_avoidance;
+                y_max = detection::y_max_avoidance;
+                xfar_max = detection::xfar_max_avoidance;
+                yfar_max = detection::yfar_max_avoidance;
             }
 
             if (x > 0)

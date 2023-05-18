@@ -75,7 +75,7 @@
       double constexpr theta1 = M_PI_2;
       double constexpr theta2 = 0.70;
 
-      double const x_max = 500;
+      double const x_max = 430;
       double const y_max = 300;
       double const xfar_max = 700;
       double const yfar_max = 500;
@@ -191,6 +191,10 @@
             TrajectoryVector computeBasicAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
 
             std::vector<miam::RobotPosition> filteredDetectedObstacles_; ///< Detected obstables ; angle is M_PI if outside table else 0.
+
+            // low avoidance : during which avoidance is very low
+            void setLowAvoidanceZone(RobotPosition lowAvoidanceCenter, double lowAvoidanceRadius);
+            void disableLowAvoidanceZone();
         private:
             ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
             double currentTime_{0.0};
@@ -276,6 +280,11 @@
             DrivetrainTarget resolveMotionControllerState(DrivetrainMeasurements const &measurements,
                                                            double const &dt,
                                                            bool const &hasMatchStarted);
+
+            // In this zone avoidance should be low
+            bool lowAvoidanceZoneEnabled_;
+            Obstacle lowAvoidanceZone_;
+            
 
     };
  #endif

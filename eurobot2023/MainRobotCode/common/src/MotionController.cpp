@@ -44,9 +44,19 @@ MotionController::MotionController(RobotParameters const &robotParameters) : cur
     createdThreads_.push_back(handle);
     stratSolver.detach();
 
+    // Init controller state
     motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
     timeSinceFirstStopped_ = std::chrono::steady_clock::now();
     timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
+
+    // Init low avoidance
+    lowAvoidanceZoneEnabled_ = false;
+
+    RobotPosition endPosition;
+    endPosition.x = 680;
+    endPosition.y = 100;
+    endPosition.theta = -M_PI_2;
+    lowAvoidanceZone_ = std::make_pair(endPosition, 500);
 }
 
 void MotionController::init(RobotPosition const& startPosition, std::string const& teleplotPrefix)
@@ -192,20 +202,14 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
 void MotionController::changeMotionControllerState()
 {
-    // in all cases, if new trajectories, reset controller
-    if (!newTrajectories_.empty())
-    {
-        textlog << "[MotionController] New trajectories, reset controller state to WAIT_FOR_TRAJECTORY" << std::endl;
-        motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY; 
-    }
-
     MotionControllerState nextMotionControllerState = motionControllerState_;
 
-    // transition to CONTROLLER_TRAJECTORY_TRACKING
+    // in all cases, if new trajectories, reset controller
     // Load new trajectory, if needed.
     newTrajectoryMutex_.lock();
     if (!newTrajectories_.empty())
     {
+        textlog << "[MotionController] New trajectories, reset controller state to WAIT_FOR_TRAJECTORY" << std::endl;
         // We have new trajectories, erase the current trajectories and follow the new one.
         currentTrajectories_ = newTrajectories_;
         curvilinearAbscissa_ = 0;
@@ -422,4 +426,16 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
     }
 
     return target;
+}
+
+void MotionController::setLowAvoidanceZone(RobotPosition lowAvoidanceCenter, double lowAvoidanceRadius)
+{
+    lowAvoidanceZone_ = std::make_pair(lowAvoidanceCenter, lowAvoidanceRadius);
+    lowAvoidanceZoneEnabled_ = true;
+    textlog << "[MotionController] Set low avoidance zone around " << lowAvoidanceCenter << " radius " <<  lowAvoidanceRadius << std::endl;
+}
+
+void MotionController::disableLowAvoidanceZone()
+{
+    lowAvoidanceZoneEnabled_ = false;
 }
