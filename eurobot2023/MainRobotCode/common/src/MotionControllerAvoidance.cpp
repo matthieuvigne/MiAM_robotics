@@ -24,7 +24,11 @@ TrajectoryVector MotionController::performAvoidance()
     }
 
     RobotPosition targetPosition = currentTargetEndPosition_;
-    bool forward = currentTrajectories_.front()->getCurrentPoint(curvilinearAbscissa_).linearVelocity >= 0;
+    bool forward = true;
+    if (!currentTrajectories_.empty())
+    {
+        forward = currentTrajectories_.front()->getCurrentPoint(curvilinearAbscissa_).linearVelocity >= 0;
+    }
     std::vector<Obstacle> detectedObstacles = getDetectedObstacles();
 
     if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_BASIC)

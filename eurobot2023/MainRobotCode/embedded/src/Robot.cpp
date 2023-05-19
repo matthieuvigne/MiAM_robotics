@@ -67,12 +67,12 @@ bool Robot::initSystem()
         if (!isMotorsInit_)
         {
             isMotorsInit_ = true;
-            if (!motors_.init(motionController_.robotParams_.rightMotorId))
+            if (!motors_.init(motionController_.robotParams_.rightMotorId, 0.300))
             {
                 guiState_.debugStatus += "Right motor init failed\n";
                 isMotorsInit_ = false;
             }
-            if (!motors_.init(motionController_.robotParams_.leftMotorId))
+            if (!motors_.init(motionController_.robotParams_.leftMotorId, 0.300))
             {
                 guiState_.debugStatus += "Left motor init failed\n";
                 isMotorsInit_ = false;
@@ -206,8 +206,8 @@ void Robot::lowLevelLoop()
         double dt = currentTime_ - lastTime;
 
         // Once init has passed, call strategy update function
-        if (guiState_.state != robotstate::INIT && guiState_.state != robotstate::UNDERVOLTAGE)
-            strategy_->periodicAction();
+        // if (guiState_.state != robotstate::INIT && guiState_.state != robotstate::UNDERVOLTAGE)
+        //     strategy_->periodicAction();
 
         // If match hasn't started, perform setup and wait for switch.
         if (!hasMatchStarted_)
@@ -266,7 +266,7 @@ void Robot::lowLevelLoop()
         static bool panicMode = false;
         static double panicStartTime = 0.0;
         if (hasMatchStarted_)
-            if (dt > 0.100 || rightController_.nCommunicationErrors_ > 20 || leftController_.nCommunicationErrors_ > 20)
+            if (dt > 0.250 || rightController_.nCommunicationErrors_ > 20 || leftController_.nCommunicationErrors_ > 20)
             {
                 textlog << "[Robot] Oh oh, invalid state, entering panic mode!" << std::endl;
                 textlog << "dt " << dt << "comm error" << leftController_.nCommunicationErrors_  << " " << rightController_.nCommunicationErrors_  << std::endl;

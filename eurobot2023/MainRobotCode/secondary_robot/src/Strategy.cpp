@@ -74,6 +74,12 @@ bool Strategy::setup(RobotInterface *robot)
 
     if (phase == setupPhase::FIRST_CALL)
     {
+        // Start rail-listening thread.
+        std::thread railThread(&Strategy::periodicAction, this);
+        pthread_t handle = railThread.native_handle();
+        createdThreads_.push_back(handle);
+        railThread.detach();
+
         phase = setupPhase::CALIBRATING_RAIL;
         this->robot = robot;
         this->servo = robot->getServos();
@@ -154,75 +160,79 @@ void Strategy::periodicAction()
     railState_ = rail::state::IDLE;
     return;
 #endif
-    // Perform calibration if needed.
-    if (railState_ == rail::state::CALIBRATING)
+    while(true)
     {
-        static int phase = 0;
-        // Hit first time, going fast
-        if (phase == 0)
+        usleep(20000);
+        // Perform calibration if needed.
+        if (railState_ == rail::state::CALIBRATING)
         {
-            if (RPi_readGPIO(RAIL_SWITCH) == 0)
+            static int phase = 0;
+            // Hit first time, going fast
+            if (phase == 0)
             {
-                servo->setTargetVelocity(RAIL_SERVO_ID, -4096);
-                phase = 1;
+                if (RPi_readGPIO(RAIL_SWITCH) == 0)
+                {
+                    servo->setTargetVelocity(RAIL_SERVO_ID, -4096);
+                    phase = 1;
+                }
+                else
+                    servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
+            }
+            else if (phase == 1)
+            {
+                // Hit slowly
+                if (RPi_readGPIO(RAIL_SWITCH) == 1)
+                {
+                    servo->setTargetVelocity(RAIL_SERVO_ID, 800);
+                    phase = 2;
+                }
             }
             else
-                servo->setTargetVelocity(RAIL_SERVO_ID, 4095);
-        }
-        else if (phase == 1)
-        {
-            // Hit slowly
-            if (RPi_readGPIO(RAIL_SWITCH) == 1)
             {
-                servo->setTargetVelocity(RAIL_SERVO_ID, 800);
-                phase = 2;
+                if (RPi_readGPIO(RAIL_SWITCH) == 0)
+                {
+                    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+                    currentRailMeasurements.currentPosition_ = 0;
+                    currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
+                    railState_ = rail::state::IDLE;
+                }
             }
         }
         else
         {
-            if (RPi_readGPIO(RAIL_SWITCH) == 0)
-            {
-                servo->setTargetVelocity(RAIL_SERVO_ID, 0);
-                currentRailMeasurements.currentPosition_ = 0;
-                currentRailMeasurements.lastEncoderMeasurement_ = servo->getCurrentPosition(RAIL_SERVO_ID);
-                railState_ = rail::state::IDLE;
-            }
-        }
-    }
-    else
-    {
-        updateRailHeight();
-        if ((railState_ == rail::state::GOING_UP && currentRailMeasurements.currentPosition_ > targetRailValue_) ||
-            (railState_ == rail::state::GOING_DOWN && currentRailMeasurements.currentPosition_ < targetRailValue_))
-        {
-            servo->setTargetVelocity(RAIL_SERVO_ID, 0);
-            railState_ = rail::state::IDLE;
-        }
-        else if (railState_ != rail::state::IDLE)
-        {
-            int targetVelocity = static_cast<int>(1.5 * (targetRailValue_ - currentRailMeasurements.currentPosition_));
-            if (targetVelocity > 4096)
-                targetVelocity = 4096;
-            if (targetVelocity < -4096)
-                targetVelocity = -4096;
-            if (targetVelocity > 0 && targetVelocity < 700)
-                targetVelocity = 700;
-            if (targetVelocity < 0 && targetVelocity > -500)
-                targetVelocity = -500;
-            // Special case: top has a mechanical bound, wait until we touch it.
-            if (currentRailMeasurements.currentPosition_ > 1500 && targetVelocity > 700)
-                targetVelocity = 700;
-            int speed = servo->getCurrentSpeed(RAIL_SERVO_ID);
-            if (targetRailValue_ >  0 && currentRailMeasurements.currentPosition_ > 0 && speed > 0 && speed < 500)
+            updateRailHeight();
+            if ((railState_ == rail::state::GOING_UP && currentRailMeasurements.currentPosition_ > targetRailValue_) ||
+                (railState_ == rail::state::GOING_DOWN && currentRailMeasurements.currentPosition_ < targetRailValue_))
             {
                 servo->setTargetVelocity(RAIL_SERVO_ID, 0);
                 railState_ = rail::state::IDLE;
-                // Reset position to bound
-                currentRailMeasurements.currentPosition_ = 2600;
             }
-            else
+            else if (railState_ != rail::state::IDLE)
             {
-                servo->setTargetVelocity(RAIL_SERVO_ID, targetVelocity);
+                int targetVelocity = static_cast<int>(1.5 * (targetRailValue_ - currentRailMeasurements.currentPosition_));
+                if (targetVelocity > 4096)
+                    targetVelocity = 4096;
+                if (targetVelocity < -4096)
+                    targetVelocity = -4096;
+                if (targetVelocity > 0 && targetVelocity < 700)
+                    targetVelocity = 700;
+                if (targetVelocity < 0 && targetVelocity > -500)
+                    targetVelocity = -500;
+                // Special case: top has a mechanical bound, wait until we touch it.
+                if (currentRailMeasurements.currentPosition_ > 1500 && targetVelocity > 700)
+                    targetVelocity = 700;
+                int speed = servo->getCurrentSpeed(RAIL_SERVO_ID);
+                if (targetRailValue_ >  0 && currentRailMeasurements.currentPosition_ > 0 && speed > 0 && speed < 500)
+                {
+                    servo->setTargetVelocity(RAIL_SERVO_ID, 0);
+                    railState_ = rail::state::IDLE;
+                    // Reset position to bound
+                    currentRailMeasurements.currentPosition_ = 2600;
+                }
+                else
+                {
+                    servo->setTargetVelocity(RAIL_SERVO_ID, targetVelocity);
+                }
             }
         }
     }
@@ -298,14 +308,14 @@ void Strategy::startSequenceTop()
 
     if (performSecondaryRobotAction(&action3to1))
         textlog << "[Strategy (secondary robot)] startSequenceTop: PushCakes3to1 succeeded" << std::endl;
-    
 
-    
+
+
 
 }
 
 void Strategy::startSequenceBottom()
-{    
+{
     RobotParameters const robotParameters = robot->getParameters();
     // Points of interest: points to go to grab the cherries (before the final move action)
     double const distributor_width = 30;
@@ -619,7 +629,7 @@ bool Strategy::checkIfBackToBase()
         {
             textlog << "[Strategy (secondary robot)] checkIfBackToBase: counted points for going back to base" << std::endl;
             countedPointsForGoingBackToBase_ = true;
-            robot->updateScore(15);    
+            robot->updateScore(15);
         }
 
         return true;
@@ -736,7 +746,7 @@ void Strategy::goBackToBase()
 
     // count points and stop
     checkIfBackToBase();
-    
+
 }
 
 bool Strategy::performSecondaryRobotAction(SecondaryRobotAction* action)
@@ -777,7 +787,7 @@ bool Strategy::performSecondaryRobotAction(SecondaryRobotAction* action)
         {
             robot->getMotionController()->addPersistentObstacle(obstacle);
         }
-        
+
         return true;
     }
     else
