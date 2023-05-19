@@ -461,13 +461,16 @@ void Strategy::match_impl()
     TrajectoryVector traj;
     std::vector<RobotPosition> targetPositions;
 
+    startingTop_ = robot->isStrategyTop();
     if (startingTop_)
     {
+        textlog << "[Strategy] Playing from top position" << std::endl;
         motionController->resetPosition(ALTERNATIVE_START_POSITION, true, true, true);
         startSequenceTop();
     }
     else
     {
+        textlog << "[Strategy] Playing from bottom position" << std::endl;
         motionController->resetPosition(START_POSITION, true, true, true);
         startSequenceBottom();
     }

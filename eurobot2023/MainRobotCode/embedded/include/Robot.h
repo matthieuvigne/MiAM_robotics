@@ -70,6 +70,8 @@
                 return motionController_.isPlayingRightSide_;
             }
 
+            bool isStrategyTop() const override;
+
             /// \brief Get time in current match.
             /// \return Time since start of the match, or 0 if not started.
             double getMatchTime();

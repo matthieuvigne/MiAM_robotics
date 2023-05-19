@@ -40,6 +40,11 @@
                 return false;
             }
 
+            virtual bool isStrategyTop() const
+            {
+                return false;
+            }
+
             virtual bool getTestMode() const
             {
                 return false;
