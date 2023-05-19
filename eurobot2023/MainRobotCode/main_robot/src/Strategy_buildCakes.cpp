@@ -404,6 +404,7 @@ void Strategy::buildCakes()
   grabCakeFromPile(LEFT_ARM, PILE_IDX::MIDDLE, true);
   dumbCakeToPile(LEFT_ARM, PILE_IDX::LEFT_SIDE);
   runActionBlock();
+  adjustRobotPosition();
   
   // Block 2
   // Left arm takes cream from its front pile and delivers it to its side pile
@@ -422,13 +423,13 @@ void Strategy::buildCakes()
   dumbCakeToPile(LEFT_ARM, PILE_IDX::LEFT_SIDE);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0, ABS, frontPile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
   runActionBlock();
-  adjustRobotPosition(); // [ADDED ven. 11:58 -> REMOVE ?]
+  //~ adjustRobotPosition(); // [ADDED ven. 11:58 -> REMOVE ?]
   
   // Block 4
   // Left arm takes cream from front pile and rises it up
   // Right arm takes genoese from middle pile and rises it up
   grabCakeFromPile(LEFT_ARM, PILE_IDX::LEFT_FRONT, true);
-  grabCakeFromPile(RIGHT_ARM, PILE_IDX::MIDDLE, true, 1.0);
+  grabCakeFromPile(RIGHT_ARM, PILE_IDX::MIDDLE, true, 0.5);
   runActionBlock();
   
   // Block 5

@@ -20,8 +20,8 @@
                 param.encoderWheelRadius = 26.25; ///< Radius of encoder wheels, in mm.
                 param.encoderWheelSpacing = 116.3; ///< Encoder wheel spacing from robot center, in mm.
 
-                param.maxWheelSpeed = 600.0; ///< Maximum wheel speed, in mm/s.
-                param.maxWheelAcceleration = 700.0; ///< Maximum wheel acceleration, in mm/s^2.
+                param.maxWheelSpeed = 1.2*600.0; ///< Maximum wheel speed, in mm/s.
+                param.maxWheelAcceleration = 1.2*700.0; ///< Maximum wheel acceleration, in mm/s^2.
 
                 param.maxWheelSpeedTrajectory = 300.0; ///< Maximum wheel speed, in mm/s, for trajectory generation.
                 param.maxWheelAccelerationTrajectory = 400.0; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
