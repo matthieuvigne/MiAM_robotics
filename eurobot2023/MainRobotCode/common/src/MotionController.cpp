@@ -218,7 +218,7 @@ void MotionController::changeMotionControllerState()
         textlog << "[MotionController] Recieved " << currentTrajectories_.size() << " new trajectories from strategy" << std::endl;
         textlog << "[MotionController] Now tracking: " << currentTrajectories_.at(0)->description_ << std::endl;
 
-        nextMotionControllerState = CONTROLLER_TRAJECTORY_TRACKING;
+        motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
     }
     newTrajectoryMutex_.unlock();
     
