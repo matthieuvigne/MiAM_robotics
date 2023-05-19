@@ -11,7 +11,7 @@ class PushingCakesAction : public SecondaryRobotAction
 
         PushingCakesAction() : SecondaryRobotAction() {};
 
-        bool performAction(RobotInterface* robot);
+        bool performAction(AbstractStrategy* strategy);
         int getScore() { return 3; }
 };
 

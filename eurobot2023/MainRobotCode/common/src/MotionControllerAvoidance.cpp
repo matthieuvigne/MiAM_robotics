@@ -14,12 +14,12 @@ TrajectoryVector MotionController::performAvoidance()
 
     if (!currentTrajectories_.front()->isAvoidanceEnabled())
     {
-        textlog << "[MotionController] Avoidance is disabled for this traj" << std::endl;
+        textlog << "[MotionController] performAvoidance: Avoidance is disabled for this traj" << std::endl;
         return traj;
     }
     else if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_OFF)
     {
-        textlog << "[MotionController] " << "Avoidance disabled" << std::endl;
+        textlog << "[MotionController] " << "performAvoidance: Avoidance disabled" << std::endl;
         return traj;
     }
 
@@ -29,7 +29,16 @@ TrajectoryVector MotionController::performAvoidance()
     {
         forward = currentTrajectories_.front()->getCurrentPoint(curvilinearAbscissa_).linearVelocity >= 0;
     }
+
     std::vector<Obstacle> detectedObstacles = getDetectedObstacles();
+    textlog << "[MotionController] " << "performAvoidance: Obstacles detected: " << detectedObstacles.size() << std::endl;
+    // if (avoidPersistentObstacles_)
+    // {
+    //     textlog << "[MotionController] " << "performAvoidance: Avoiding also persistent obstacles" << std::endl;
+    //     std::vector<Obstacle> persistentObstacles = getPersistentObstacles();
+    //     copy(persistentObstacles.begin(), persistentObstacles.end(), back_inserter(detectedObstacles));
+    //     textlog << "[MotionController] " << "performAvoidance: New obstacles count: " << detectedObstacles.size() << std::endl;
+    // }
 
     if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_BASIC)
         traj = computeBasicAvoidanceTrajectory(targetPosition, detectedObstacles, forward);
@@ -406,10 +415,10 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
         true
     );
 
-    if (traj2.getDuration() < 1e-9)
+    if (traj2.empty())
     {
         textlog << "[MotionController] " << ">> MPC path planning failed" << std::endl;
-        return traj;
+        return TrajectoryVector();
     }
 
     if (!traj1.empty())

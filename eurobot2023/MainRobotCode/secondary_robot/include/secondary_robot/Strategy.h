@@ -13,6 +13,7 @@
 #include "miam_utils/network/client_socket.hpp"
 #include "miam_utils/network/socket_exception.hpp"
 #include "secondary_robot/PushingCakesAction.h"
+#include "secondary_robot/CherryActions.h"
 
 namespace secondary_robot
 {
@@ -35,6 +36,7 @@ namespace secondary_robot
     namespace rail
     {
         double const TOP = 1.20;
+        double const ANTICIPATING_TOP = 0.9;
         // double const TOP = 1.14;
         double const NOMINAL = 0.15;
         double const CHERRY_GRAB = 0.0;
@@ -76,15 +78,6 @@ namespace secondary_robot
         // socket to send start signal
         network::ClientSocket sock_;
 
-    private:
-        void match_impl(); /// Actual implementation of the match code.
-
-        STSServoDriver *servo;
-
-        Action *chooseNextAction(
-            std::vector<Action> &actions,
-            RobotPosition currentPosition,
-            MotionPlanner &motionPlanner);
 
         /// @brief Blocking function for moving the rail to a specified height
         /// @param railHeight Normalized rail height, between 0 and 1
@@ -99,16 +92,30 @@ namespace secondary_robot
         void set_reservoir_tilt(ReservoirTilt reservoirTilt);
 
 
-        void startSequenceTop();
-        void startSequenceBottom();
-
-        bool performSecondaryRobotAction(SecondaryRobotAction* action);
-
         /// @brief Execute the sequence to grab cherries: set rail position, brush and reservoir tilt, go forward 150mm, wait, then back 150mm
         void grab_cherries();
 
         /// @brief Execute the sequence to put cherries in the basket: set rail position, go forward 150mm, tilt and start motor, then de-tilt, stop and go backwards
         void put_cherries_in_the_basket();
+
+    private:
+        void match_impl(); /// Actual implementation of the match code.
+
+        STSServoDriver *servo;
+
+        Action *chooseNextAction(
+            std::vector<Action> &actions,
+            RobotPosition currentPosition,
+            MotionPlanner &motionPlanner);
+
+
+
+
+        void startSequenceTop();
+        void startSequenceBottom();
+
+        bool performSecondaryRobotAction(SecondaryRobotAction* action);
+
 
 
         void calibrateRail();
@@ -126,6 +133,8 @@ namespace secondary_robot
         bool countedPointsForGoingBackToBase_;
 
         bool startingTop_;
+
+        bool putCherriesIntoBasket_ = false;
     };
 }
 

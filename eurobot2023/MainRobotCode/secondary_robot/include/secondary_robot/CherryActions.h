@@ -52,5 +52,26 @@ class GrabCherriesRight : public CherryAction
         }
 };
 
+class PutCherriesInTheBasket : public SecondaryRobotAction
+{
+    public:
+
+        PutCherriesInTheBasket() : SecondaryRobotAction() {
+            start_position.x = 180; //robotParameters.CHASSIS_WIDTH + 90.0;
+            start_position.y = 3000 - 150 - 160;
+            start_position.theta = M_PI_2;
+
+            RobotPosition obstacle;
+            obstacle.x = 733;
+            obstacle.y = 1882;
+            obstacles_on_the_road.push_back(std::make_tuple(obstacle, 200));
+        };
+
+        bool performAction(AbstractStrategy* strategy);
+        int getScore() { return 10; }
+
+        bool needRailTop() { return true; }
+};
+
 
 #endif

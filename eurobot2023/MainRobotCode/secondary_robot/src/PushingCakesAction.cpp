@@ -1,7 +1,9 @@
 #include <secondary_robot/PushingCakesAction.h>
 
-bool PushingCakesAction::performAction(RobotInterface* robot)
+bool PushingCakesAction::performAction(AbstractStrategy* strategy)
 {
+    RobotInterface* robot = strategy->robot;
+
     RobotPosition currentPosition;
     TrajectoryVector traj;
     miam::trajectory::TrajectoryConfig conf = robot->getMotionController()->robotParams_.getTrajConf();
@@ -18,15 +20,17 @@ bool PushingCakesAction::performAction(RobotInterface* robot)
     robot->getMotionController()->setTrajectoryToFollow(traj);
     bool pushingMoveSucceeded = robot->getMotionController()->waitForTrajectoryFinished();
 
-    currentPosition = robot->getMotionController()->getCurrentPosition();
-    traj = miam::trajectory::computeTrajectoryStraightLine(
-        robot->getParameters().getTrajConf(),
-        currentPosition, // start
-        -200 // back a lot
-    );
 
-    robot->getMotionController()->setTrajectoryToFollow(traj);
-    robot->getMotionController()->waitForTrajectoryFinished();
+    // useless path planner already does that
+    // currentPosition = robot->getMotionController()->getCurrentPosition();
+    // traj = miam::trajectory::computeTrajectoryStraightLine(
+    //     robot->getParameters().getTrajConf(),
+    //     currentPosition, // start
+    //     -200 // back a lot
+    // );
+
+    // robot->getMotionController()->setTrajectoryToFollow(traj);
+    // robot->getMotionController()->waitForTrajectoryFinished();
 
     // perform action
     // action was successful

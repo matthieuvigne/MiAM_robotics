@@ -7,6 +7,7 @@
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
 
 #include "secondary_robot/Strategy.h"
+#include "secondary_robot/CherryActions.h"
 
 
 using namespace miam::trajectory;
@@ -109,7 +110,19 @@ void Strategy::put_cherries_in_the_basket()
 
     // go front
     // very far
-    go_forward(230);
+    // go_forward(230);
+
+
+    RobotPosition position = motionController->getCurrentPosition();
+    position.x = 180;
+    if (!robot->isPlayingRightSide())
+    {
+        // left side: a little more to the left
+        position.x = 150;
+    }
+    position.theta = M_PI_2;
+    position.y = 3000 - 50;
+    go_to_straight_line(position);
 
     // tilt and push cherries
     set_reservoir_tilt(ReservoirTilt::DOWN);
@@ -128,6 +141,8 @@ void Strategy::put_cherries_in_the_basket()
     robot->wait(0.1);
     set_reservoir_tilt(ReservoirTilt::UP);
     // waitForRail();
+
+    putCherriesIntoBasket_ = true;
 }
 
 
@@ -180,4 +195,74 @@ void Strategy::updateRailHeight()
     motionController->log("railPosition", currentRailMeasurements.currentPosition_);
 }
 
+}
+
+
+bool CherryAction::performAction(AbstractStrategy* strategy)
+{
+    textlog << "[CherryAction] performAction" << std::endl; 
+    // RobotPosition currentPosition;
+    secondary_robot::Strategy* strategy_secondary(
+        dynamic_cast<secondary_robot::Strategy*>(strategy));
+    textlog << "[CherryAction] casted ptr" << std::endl; 
+
+    // // refine the position
+    // if ((strategy->motionController->getCurrentPosition() - end_position).norm() > 20)
+    // {
+    //     strategy_secondary->go_to_straight_line(end_position);
+    // }
+    // strategy_secondary->turn_around_point(end_position.theta);
+
+    textlog << "[CherryAction] grab_cherries" << std::endl; 
+    strategy_secondary->grab_cherries();
+
+    // put in the basket
+    strategy_secondary->moveRail(secondary_robot::rail::ANTICIPATING_TOP);
+    TrajectoryVector traj;
+
+    RobotPosition position = strategy_secondary->motionController->getCurrentPosition();
+    position.x = 180;
+    position.y = 3000 - 151 - 160;
+    if (!strategy_secondary->robot->isPlayingRightSide())
+    {
+        // left side: a little more to the left
+        position.x = 150;
+    }
+    position.theta = M_PI_2;
+
+    textlog << "[CherryAction] planning path" << std::endl; 
+    traj = strategy_secondary->robot->getMotionController()->computeMPCTrajectory(
+        position, 
+        strategy_secondary->robot->getMotionController()->getDetectedObstacles(), true);
+    
+    if (traj.getDuration() < 1e-9)
+    {
+        return false;
+    }
+
+    strategy_secondary->robot->getMotionController()->setTrajectoryToFollow(traj);
+
+    textlog << "[CherryAction] go to basket" << std::endl; 
+    if (strategy_secondary->robot->getMotionController()->waitForTrajectoryFinished())
+    {
+        textlog << "[CherryAction] put_cherries_in_the_basket" << std::endl; 
+        strategy_secondary->put_cherries_in_the_basket();
+        return true;
+    }
+    return false;
+}
+
+
+bool PutCherriesInTheBasket::performAction(AbstractStrategy* strategy)
+{
+    textlog << "[PutCherriesInTheBasket] performAction" << std::endl; 
+    // RobotPosition currentPosition;
+    secondary_robot::Strategy* strategy_secondary(
+        dynamic_cast<secondary_robot::Strategy*>(strategy));
+    textlog << "[PutCherriesInTheBasket] casted ptr" << std::endl; 
+
+    textlog << "[CherryAction] put_cherries_in_the_basket" << std::endl; 
+
+    strategy_secondary->put_cherries_in_the_basket();
+    return true;
 }

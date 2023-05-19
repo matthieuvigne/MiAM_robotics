@@ -272,7 +272,7 @@ void Strategy::startSequenceTop()
     }
 
     // Put the cherries in the basket
-    moveRail(rail::TOP);
+    moveRail(rail::ANTICIPATING_TOP);
 
     // cible
     RobotPosition position = motionController->getCurrentPosition();
@@ -354,7 +354,7 @@ void Strategy::startSequenceBottom()
 
     // Put the cherries in the basket
 
-    moveRail(rail::TOP);
+    moveRail(rail::ANTICIPATING_TOP);
 
     // targetPositions.clear();
     // RobotPosition position = motionController->getCurrentPosition();
@@ -384,12 +384,15 @@ void Strategy::startSequenceBottom()
     obstacle.x = 230;
     obstacle.y = 2300;
     robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
+    // le gateau marron sur le chemin
+    obstacle.x = 733;
+    obstacle.y = 1882;
+    robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 200));
 
     traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
-
-    // retirer l'obstacle
-    robot->getMotionController()->popBackPersistentObstacles();
     
+    putCherriesIntoBasket_ = false;
+
     if (!traj.empty())
     {
         textlog << "[Strategy (secondary_robot)] " << "Go to basket path planning" << std::endl;
@@ -401,6 +404,7 @@ void Strategy::startSequenceBottom()
     }
     else
     {
+        // textlog << "[Strategy (secondary_robot)] " << "Failed to go basket" << std::endl;
         textlog << "[Strategy (secondary_robot)] " << "Go to basket rounded corner" << std::endl;
         std::vector<RobotPosition> positions;
         positions.clear();
@@ -425,11 +429,66 @@ void Strategy::startSequenceBottom()
         go_to_rounded_corner(positions);
     }
 
+    // retirer les 2 obstacles persistents
+    robot->getMotionController()->popBackPersistentObstacles();
+    robot->getMotionController()->popBackPersistentObstacles();
+
     if ((motionController->getCurrentPosition() - position).norm() < 100)
     {
         put_cherries_in_the_basket();
         // Estimate: 18 cherries in basket
         robot->updateScore(18);
+    }
+
+    textlog << "[Strategy] putCherriesIntoBasket_: " << putCherriesIntoBasket_ << std::endl;
+
+    // attempt catching cherries on the top distributor
+    if (putCherriesIntoBasket_)
+    {
+        set_reservoir_tilt(ReservoirTilt::GRAB);
+        moveRail(rail::CHERRY_GRAB);
+
+        // Get the top cheeries
+        targetPositions.clear();
+        targetPositions.push_back(motionController->getCurrentPosition());
+        targetPositions.push_back(cherryDistributorTop);
+        go_to_rounded_corner(targetPositions);
+
+        if ((motionController->getCurrentPosition() - cherryDistributorTop).norm() < 100)
+        {
+            grab_cherries();
+        }
+
+        // Put the cherries in the basket
+        moveRail(rail::ANTICIPATING_TOP);
+
+        // cible
+        RobotPosition position = motionController->getCurrentPosition();
+        position.x = 180; //robotParameters.CHASSIS_WIDTH + 90.0;
+        position.y = 3000 - robotParameters.CHASSIS_FRONT - 160;
+        if (!robot->isPlayingRightSide())
+        {
+            // left side: a little more to the left
+            position.x = 150;
+        }
+        position.theta = M_PI_2;
+
+
+        targetPositions.clear();
+        targetPositions.push_back(motionController->getCurrentPosition());
+        position.y = 3000 - robotParameters.CHASSIS_FRONT - 170;
+        targetPositions.push_back(position);
+        position.y = 3000 - robotParameters.CHASSIS_FRONT - 160;
+        targetPositions.push_back(position);
+        go_to_rounded_corner(targetPositions);
+
+
+        if ((motionController->getCurrentPosition() - position).norm() < 100)
+        {
+            put_cherries_in_the_basket();
+            // Estimate: 10 cherries in basket
+            robot->updateScore(10);
+        }
     }
 
 }
@@ -478,6 +537,49 @@ void Strategy::match_impl()
         startSequenceBottom();
     }
 
+    // Si tout s'est bien passé
+    if (putCherriesIntoBasket_)
+    {
+        // Faire une action : aller de 1 vers 5
+        PushingCakesAction pushCakes1to5 = PushCakes1to5();
+        CherryAction actionCherryLeft = GrabCherriesLeft();
+
+        RobotPosition position;
+        position.x = 223;
+        position.y = 1852;
+        double minDistToFirstPlate = motionController->minDistancePositionToObstacle(position, false);
+        position.x = 223;
+        position.y = 1127;
+        double minDistToSecondPlate = motionController->minDistancePositionToObstacle(position, false);
+
+        textlog << "[Strategy (secondary robot)] minDistToFirstPlate: " << minDistToFirstPlate << std::endl;
+        textlog << "[Strategy (secondary robot)] minDistToSecondPlate: " << minDistToSecondPlate << std::endl;
+
+        if (minDistToFirstPlate > 50 && minDistToSecondPlate > 50)
+        {
+            textlog << "[Strategy (secondary robot)] no obstacle detected for sequence" << std::endl;
+            if (performSecondaryRobotAction(&pushCakes1to5))
+            {
+                textlog << "[Strategy (secondary robot)] pushCakes1to5 succeeded" << std::endl;
+                textlog << "[Strategy (secondary robot)] " << motionController->numberOfDetectionsLeftDistributor_ << " detections around left dist" << std::endl;
+                    
+                // si on n'a pas vu trop de robots a cote du distribueur gauche, chercher cerises
+                if (motionController->numberOfDetectionsLeftDistributor_ < 8.0 / 0.010)
+                {
+                    textlog << "[Strategy (secondary robot)] attempting actionCherryLeft" << std::endl;
+                    if (performSecondaryRobotAction(&actionCherryLeft))
+                    {
+                        textlog << "[Strategy (secondary robot)] actionCherryLeft succeeded" << std::endl;
+                    }
+                }
+                
+            }
+        }
+        else
+        {
+            textlog << "[Strategy (secondary robot)] an obstacle was detected: cancelling sequence" << std::endl;
+        }
+    }
 
     // go_forward(-50);
     // traj.clear();
@@ -496,8 +598,10 @@ void Strategy::match_impl()
     // // if starting top the cakes have already been taken
     // if (!startingTop_)
     // {
-        std::shared_ptr<SecondaryRobotAction > pushCakes1to5(new PushCakes1to5());
-        actions.push_back(pushCakes1to5);
+        // std::shared_ptr<SecondaryRobotAction > pushCakes1to5(new PushCakes1to5());
+        // actions.push_back(pushCakes1to5);
+        // std::shared_ptr<SecondaryRobotAction > actionCherryLeft(new GrabCherriesLeft());
+        // actions.push_back(actionCherryLeft);
     // }
 
     std::shared_ptr<SecondaryRobotAction > pushCakes7to5(new PushCakes7to5());
@@ -510,6 +614,17 @@ void Strategy::match_impl()
     // actions.push_back(pushCakes7to5ButOnlyPartial);
     std::shared_ptr<SecondaryRobotAction > pushCakes6to5(new PushCakes6to5());
     actions.push_back(pushCakes6to5);
+
+    if (!putCherriesIntoBasket_)
+    {
+        std::shared_ptr<SecondaryRobotAction > putCherriesIntoBasket(new PutCherriesInTheBasket());
+        if (!robot->isPlayingRightSide())
+        {
+            // left side: a little more to the left
+            putCherriesIntoBasket->start_position.x = 150;
+        }
+        actions.push_back(putCherriesIntoBasket);
+    }
 
     int number_of_unsuccessful_iters = 0;
 
@@ -554,7 +669,7 @@ void Strategy::match_impl()
             }
 
             // 150 = radius of the robot
-            if (minDistanceFromObstacle > 150 & minDistanceFromObstacleEnd > 70 &
+            if (minDistanceFromObstacle > 20 & minDistanceFromObstacleEnd > 20 &
                 distanceToStartPoint < minDistanceToStartPoint)
             {
                 action_index = i;
@@ -565,8 +680,6 @@ void Strategy::match_impl()
             textlog << "[Strategy (secondary_robot)] " << "action " << i << " start point " << action->start_position << std::endl;
             textlog << "[Strategy (secondary_robot)] " << "   minDistanceFromObstacle " << minDistanceFromObstacle << " minDistanceFromObstacleEnd " << minDistanceFromObstacleEnd << " distanceToStartPoint " << distanceToStartPoint << std::endl;
 
-
-
         }
 
         textlog << "[Strategy (secondary_robot)] " << "Chosen action: " << action_index << std::endl;
@@ -575,10 +688,19 @@ void Strategy::match_impl()
             textlog << "[Strategy (secondary_robot)] " << "Reactivating all actions" << std::endl;
             for (int i = 0; i < actions.size() ; i++)
             {
+                textlog << "[Strategy (secondary_robot)] " << "Go back in the middle" << std::endl;
                 actions.at(i)->activated = true;
+
+                RobotPosition position;
+                position.x = 1000;
+                position.y = 1500;
+                position.theta = -M_PI_2;
+                traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
+                robot->getMotionController()->setTrajectoryToFollow(traj);
+                robot->getMotionController()->waitForTrajectoryFinished();
             }
             number_of_unsuccessful_iters++;
-            robot->wait(1);
+            // robot->wait(1);
         }
         else
         {
@@ -801,28 +923,35 @@ bool Strategy::performSecondaryRobotAction(SecondaryRobotAction* action)
         return false;
     }
     robot->getMotionController()->setTrajectoryToFollow(traj);
+    if (action->needRailTop())
+    {
+        moveRail(rail::ANTICIPATING_TOP);
+    }
 
     // go to start point and perform action
-    if (robot->getMotionController()->waitForTrajectoryFinished() && action->performAction(robot))
+    if (!robot->getMotionController()->waitForTrajectoryFinished())
     {
-        // action was successful
-
-        // update score
-        robot->updateScore(action->getScore());
-
-        // add obstacle in the end
-        for (auto obstacle : action->obstacles_in_the_end)
-        {
-            robot->getMotionController()->addPersistentObstacle(obstacle);
-        }
-
-        return true;
-    }
-    else
-    // action was not successful
-    {
+        // action was not successful
         return false;
     }
+    if (!action->performAction(this))
+    {
+        // action was not successful
+        return false;
+    }
+    
+    // action was successful
+    // update score
+    robot->updateScore(action->getScore());
+
+    // add obstacle in the end
+    for (auto obstacle : action->obstacles_in_the_end)
+    {
+        robot->getMotionController()->addPersistentObstacle(obstacle);
+    }
+
+    return true;
+    
 }
 
 }

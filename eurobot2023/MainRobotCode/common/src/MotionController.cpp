@@ -51,6 +51,7 @@ MotionController::MotionController(RobotParameters const &robotParameters) : cur
 
     // Init low avoidance
     lowAvoidanceZoneEnabled_ = false;
+    // avoidPersistentObstacles_ = true;
 
     RobotPosition endPosition;
     endPosition.x = 680;
@@ -171,6 +172,16 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         filteredDetectedObstacles_.push_back(obspos);
         detectedObstacles_.push_back(std::make_tuple(obspos, detection::mpc_obstacle_size));
         nObstaclesOnTable += 1;
+
+        // monitor the zones close to the cherry distributors
+        if (obspos.x < 250 && obspos.y > 1300 && obspos.y < 1650)
+        {
+            numberOfDetectionsLeftDistributor_++;
+        }
+        if (obspos.x > 2000 - 250 && obspos.y > 1300 && obspos.y < 1650)
+        {
+            numberOfDetectionsRightDistributor_++;
+        }
     }
     log("lidarNumberOfObstacles", nObstaclesOnTable);
 
@@ -218,11 +229,17 @@ void MotionController::changeMotionControllerState()
         textlog << "[MotionController] Recieved " << currentTrajectories_.size() << " new trajectories from strategy" << std::endl;
         textlog << "[MotionController] Now tracking: " << currentTrajectories_.at(0)->description_ << std::endl;
 
-        motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
+        motionControllerState_ = CONTROLLER_TRAJECTORY_TRACKING;
     }
     newTrajectoryMutex_.unlock();
     
-    if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
+    if (currentTrajectories_.empty())
+    {
+        // textlog << "[MotionController] currentTrajectories empty, reset controller state to WAIT_FOR_TRAJECTORY" << std::endl;
+        motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
+        nextMotionControllerState = motionControllerState_;
+    }
+    else if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
     {
         if (!currentTrajectories_.empty())
         {
@@ -252,7 +269,7 @@ void MotionController::changeMotionControllerState()
         double durationSinceLastAvoidance = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceLastAvoidance_).count() / 1000.0;
 
         // transition to TRAJECTORY_TRACKING
-        if (clampedSlowDownCoeff_ > 0.0 && durationSinceFirstStopped > 0.1)
+        if (clampedSlowDownCoeff_ > 0.0 && durationSinceFirstStopped > 0.1 && !currentTrajectories_.empty())
         {
             // Robot was stopped and is ready to start again.
             // Replan and retry trajectory.
@@ -386,6 +403,11 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
         PIDLinear_.resetIntegral(0.0);
         PIDAngular_.resetIntegral(0.0);
     }
+    else if (currentTrajectories_.empty())
+    {
+        target.motorSpeed[side::RIGHT] = 0.0;
+        target.motorSpeed[side::LEFT] = 0.0;
+    }
     else if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
     {
         // Load first trajectory, look if we are done following it.
@@ -438,4 +460,29 @@ void MotionController::setLowAvoidanceZone(RobotPosition lowAvoidanceCenter, dou
 void MotionController::disableLowAvoidanceZone()
 {
     lowAvoidanceZoneEnabled_ = false;
+}
+
+// void MotionController::setAvoidPersistentObstacles(bool flag)
+// {
+//     avoidPersistentObstacles_ = flag;
+// }
+
+
+double MotionController::minDistancePositionToObstacle(RobotPosition position, bool includePersistentObstacles)
+{
+    double minDistanceFromObstacle = 10000;
+
+    for (auto obstacle : getDetectedObstacles(includePersistentObstacles))
+    {
+
+        double tmpMin = (std::get<0>(obstacle) - position).norm() - std::get<1>(obstacle);
+        double tmpMinEnd = (std::get<0>(obstacle) - position).norm() - std::get<1>(obstacle);
+
+        // distance to center of obstacle minus size of the obstacle
+        minDistanceFromObstacle = std::min(
+            minDistanceFromObstacle,
+            tmpMin);
+    }
+
+    return minDistanceFromObstacle;
 }

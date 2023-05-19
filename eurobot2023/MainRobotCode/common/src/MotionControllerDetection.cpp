@@ -43,12 +43,15 @@ bool MotionController::isLidarPointWithinTable(LidarPoint const &point)
 //     detectedObstaclesMutex_.unlock();
 // }
 
-std::vector<Obstacle> MotionController::getDetectedObstacles()
+std::vector<Obstacle> MotionController::getDetectedObstacles(bool includePersistentObstacles)
 {
     detectedObstaclesMutex_.lock();
     std::vector<Obstacle> detectedObstacles;
     copy(detectedObstacles_.begin(), detectedObstacles_.end(), back_inserter(detectedObstacles));
-    copy(persistentObstacles_.begin(), persistentObstacles_.end(), back_inserter(detectedObstacles));
+    if (includePersistentObstacles)
+    {
+        copy(persistentObstacles_.begin(), persistentObstacles_.end(), back_inserter(detectedObstacles));
+    }
     detectedObstaclesMutex_.unlock();
     return detectedObstacles;
 }

@@ -183,7 +183,7 @@
 
 
             // void setDetectedObstacles(std::vector<RobotPosition> detectedObstacles);
-            std::vector<Obstacle> getDetectedObstacles();
+            std::vector<Obstacle> getDetectedObstacles(bool includePersistentObstacles = true);
             std::vector<Obstacle> getPersistentObstacles();
             void addPersistentObstacle(Obstacle obstacle);
             void clearPersistentObstacles();
@@ -199,6 +199,15 @@
             // low avoidance : during which avoidance is very low
             void setLowAvoidanceZone(RobotPosition lowAvoidanceCenter, double lowAvoidanceRadius);
             void disableLowAvoidanceZone();
+
+            // bool avoidPersistentObstacles_;
+            // void setAvoidPersistentObstacles(bool flag);
+
+            int numberOfDetectionsLeftDistributor_ = 0;
+            int numberOfDetectionsRightDistributor_ = 0;
+
+            double minDistancePositionToObstacle(RobotPosition position, bool includePersistentObstacles);
+
         private:
             ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
             double currentTime_{0.0};
