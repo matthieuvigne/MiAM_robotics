@@ -93,6 +93,8 @@ namespace miam{
         double moduloTwoPi(double angle)
         {
             angle = std::fmod(angle, 2 * M_PI);
+            if (angle <= -M_PI)
+                angle += 2 * M_PI;
             if (angle > M_PI)
                 angle -= 2 * M_PI;
             return angle;
