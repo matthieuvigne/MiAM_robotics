@@ -329,13 +329,18 @@ void Strategy::match_impl()
   clearActionSequence();
   targetPosition = genoese_bottom_left - RobotPosition(robotParameters.CHASSIS_FRONT + 60, 0, 0);
   go_to_straight_line(targetPosition, 1.5);
+
   // Go between the next two cakes, stop just before them.
   targetPosition = cream_ganache_bottom_right + RobotPosition(-600,0,0);
   go_to_straight_line(targetPosition, 1.5);
   targetPosition = cream_ganache_bottom_right + RobotPosition(-300,0,0);
   go_to_straight_line(targetPosition, 1.5);
-  turn_around_point(switch_angle(5*arm::RAD));
-  motionController->resetPosition(targetPosition,true,true,true);
+  
+  #ifndef SIMULATION
+    turn_around_point(switch_angle(5*arm::RAD));
+    motionController->resetPosition(targetPosition,true,true,true);
+  #endif
+  
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0.00, ABS, 70*arm::RAD, REL, 0);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, ABS, 70*arm::RAD, REL, 0);
   runActionBlock();
@@ -353,9 +358,11 @@ void Strategy::match_impl()
     targetPosition.x -= 20;
     go_to_straight_line(targetPosition, 1.0, true);
   }
+  
   // Build the cakes
   buildCakes();
   robot->updateScore(21);
+  
   // Push the cakes to safe space
   clearActionSequence();
   
@@ -363,8 +370,6 @@ void Strategy::match_impl()
   targetPosition.x += -150*std::sin(targetPosition.theta);
   go_to_straight_line(targetPosition, 1.0, true);
   
-  //~ turn_around_point(switch_angle(25*arm::RAD));
-  //~ turn_around_point(switch_angle(30*arm::RAD));
   turn_around_point(25*arm::RAD);
   turn_around_point(30*arm::RAD);
   
@@ -373,16 +378,20 @@ void Strategy::match_impl()
   targetPosition.y += 160*std::sin(targetPosition.theta);
   go_to_straight_line(targetPosition);
   
-  setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
-  setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.15, ABS, 40*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0.00, ABS, 40*arm::RAD, REL, 0.);
+  setTargetPosition(switch_arm(LEFT_ARM), ABS, 0.15, REL, 0., ABS, arm::GROUND_HEIGHT + 4e-2);
+  setTargetPosition(switch_arm(LEFT_ARM), REL, 0.00, REL, 0., ABS, arm::GROUND_HEIGHT + 1e-2);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS,  40*arm::RAD, REL, 0.);
+  setTargetPosition(switch_arm(RIGHT_ARM), ABS, 0.15, REL, 0., ABS, arm::GROUND_HEIGHT + 4e-2);
+  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0.00, REL, 0., ABS, arm::GROUND_HEIGHT + 1e-2);
   runActionBlock();
+  
   setTargetPosition(switch_arm(LEFT_ARM), REL, 1e-2, REL, 0, REL, 0.00);
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0, REL, -30*arm::RAD, REL, 0.00);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 1e-2, REL, 0, REL, 0.00);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0, REL, -30*arm::RAD, REL, 0.00);
   runActionBlock();
-  //~ turn_around_point(switch_angle(-90*arm::RAD),0.4);
-  //~ turn_around_point(switch_angle(-30*arm::RAD),0.4);
+  
   turn_around_point(-90*arm::RAD,0.4);
   turn_around_point(-30*arm::RAD,0.4);
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0.00, REL, 30*arm::RAD, REL, 0.00);
@@ -394,7 +403,6 @@ void Strategy::match_impl()
   targetPosition.y += 180*std::sin(targetPosition.theta);
   go_to_straight_line(targetPosition, 1.0, false);
   
-  //~ turn_around_point(switch_angle(-20*arm::RAD),0.4);
   turn_around_point(-20*arm::RAD,0.4);
   
   targetPosition = motionController->getCurrentPosition();
@@ -416,7 +424,6 @@ void Strategy::match_impl()
   targetPosition.y += -500*std::sin(targetPosition.theta);
   go_to_straight_line(targetPosition, 1.0, true);
   
-  // Go back to the final zone
   goBackToBase();
   #endif
 
@@ -451,7 +458,7 @@ void Strategy::match()
 
 void Strategy::goBackToBase()
 {
-  RobotPosition targetPosition{750,750,0};
+  RobotPosition targetPosition{825,700,0};
   setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS, 0, REL, 0.);
   runActionBlock();

@@ -135,7 +135,7 @@ namespace main_robot
       void setTargetPositionTicks(int arm_idx,
         int16_t tick0, int16_t tick1, int16_t tick2, int16_t tick3);
       ArmPosition getPileFromIndex(int pile_idx);
-      void grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate = false);
+      void grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate, double wait_sec = 0.);
       void dumbCakeToPile(int arm_idx, int pile_idx);
       void resetPileHeights();
       void oscillate(int arm_idx, double amplitude_rad);

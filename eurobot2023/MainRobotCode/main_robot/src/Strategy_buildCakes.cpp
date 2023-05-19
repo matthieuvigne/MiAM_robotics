@@ -293,7 +293,7 @@ void Strategy::takeCherry()
 
 //--------------------------------------------------------------------------------------------------
 
-void Strategy::grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate)
+void Strategy::grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate, double wait_sec)
 {
   // Update arm and pile according to current playing side
   arm_idx = switch_arm(arm_idx);
@@ -302,9 +302,13 @@ void Strategy::grabCakeFromPile(int arm_idx, int pile_idx, bool oscillate)
   // Get specific corrections
   double delta_r = (getPileHeight(pile_idx)==1) ? 10e-3 : 0.; // before 5e-3
   delta_r = (getPileHeight(pile_idx)==2) ? 5e-3 : delta_r; // [ADDED]
+  //~ delta_r = (pile_idx==PILE_IDX::MIDDLE) ? XX : delta_r;
   double delta_theta1 = (getPileHeight(pile_idx)==1) ? 20*arm::RAD : 0.;
   double delta_theta2 = (getPileHeight(pile_idx)==1) ? 10*arm::RAD : 0.;
   double delta_z = (getPileHeight(pile_idx)==1) ? 2e-3 : 0.; // [ADDED]
+  
+  // Wait if requested
+  if(wait_sec > 0.) wait(arm_idx, wait_sec);
   
   // Perform requested action
   ArmPosition const pile = getPileFromIndex(pile_idx);
@@ -337,7 +341,7 @@ void Strategy::dumbCakeToPile(int arm_idx, int pile_idx)
   setTargetPosition(arm_idx, ABS, pile.r_, REL, 0, REL, 0);
   setTargetPosition(arm_idx, REL, delta_r, REL, 0, ABS, getPileZ(pile_idx) + LAYER_HEIGHT + 2e-2);
   pump(arm_idx, false);
-  wait(arm_idx, 0.150); // BEFORE 0.500
+  wait(arm_idx, 0.150);
   changePileHeight(pile_idx, 1);
   setTargetPosition(arm_idx, REL, 0, REL, 0, ABS, arm::PILE_CLEAR_HEIGHT);
 }
@@ -418,12 +422,13 @@ void Strategy::buildCakes()
   dumbCakeToPile(LEFT_ARM, PILE_IDX::LEFT_SIDE);
   setTargetPosition(switch_arm(RIGHT_ARM), REL, 0, ABS, frontPile.theta_, ABS, arm::PILE_CLEAR_HEIGHT);
   runActionBlock();
+  adjustRobotPosition(); // [ADDED ven. 11:58 -> REMOVE ?]
   
   // Block 4
   // Left arm takes cream from front pile and rises it up
   // Right arm takes genoese from middle pile and rises it up
   grabCakeFromPile(LEFT_ARM, PILE_IDX::LEFT_FRONT, true);
-  grabCakeFromPile(RIGHT_ARM, PILE_IDX::MIDDLE, true);
+  grabCakeFromPile(RIGHT_ARM, PILE_IDX::MIDDLE, true, 1.0);
   runActionBlock();
   
   // Block 5
