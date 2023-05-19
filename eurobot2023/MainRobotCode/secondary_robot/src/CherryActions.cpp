@@ -109,7 +109,7 @@ void Strategy::put_cherries_in_the_basket()
 
     // go front
     // very far
-    go_forward(190);
+    go_forward(230);
 
     // tilt and push cherries
     set_reservoir_tilt(ReservoirTilt::DOWN);
@@ -125,9 +125,9 @@ void Strategy::put_cherries_in_the_basket()
 
     go_forward(-130);
     moveRail(rail::MIDDLE);
-    robot->wait(2.0);
+    robot->wait(0.1);
     set_reservoir_tilt(ReservoirTilt::UP);
-    waitForRail();
+    // waitForRail();
 }
 
 

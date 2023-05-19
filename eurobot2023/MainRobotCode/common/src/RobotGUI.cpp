@@ -48,6 +48,9 @@ RobotGUI::RobotGUI()
     sideButton_ = Gtk::Button("Bleu");
     sideButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::sideButtonClicked));
 
+    strategyButton_ = Gtk::Button("Bottom strategy");
+    strategyButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::strategyButtonClicked));
+
     scoreLabel_.set_name("score");
     add(box_);
 
@@ -68,6 +71,11 @@ RobotGUI::~RobotGUI()
 bool RobotGUI::getIsPlayingRightSide()
 {
     return isPlayingRightSide_;
+}
+
+bool RobotGUI::getIsTopStrategy()
+{
+    return isStrategyTop_;
 }
 
 bool RobotGUI::doUpdate()
@@ -103,15 +111,22 @@ bool RobotGUI::doUpdate()
         sideButton_.set_name("blue");
         sideButton_.get_child()->set_name("button_text");
     }
+    if (isStrategyTop_)
+    {
+        strategyButton_.set_label("Top strategy");
+    }
+    else
+    {
+        strategyButton_.set_label("Bottom strategy");
+    }
 
-    if (robotData.state == robotstate::MATCH)
-        drawingArea_.queue_draw();
+    drawingArea_.queue_draw();
     if (robotData.state != lastState_)
     {
         // Remove second widget, if needed.
         auto childs = box_.get_children();
-        if (childs.size() == 2)
-            box_.remove(*childs.at(1));
+        for (int i = 1; i < childs.size(); i++)
+            box_.remove(*childs.at(i));
         if (robotData.state == robotstate::INIT || robotData.state == robotstate::UNDERVOLTAGE)
         {
             box_.pack_start(debugLabel_);
@@ -119,6 +134,7 @@ bool RobotGUI::doUpdate()
         if (robotData.state == robotstate::WAITING_FOR_START)
         {
             box_.pack_start(sideButton_);
+            box_.pack_start(strategyButton_);
             box_.pack_start(drawingArea_);
         }
         if (robotData.state == robotstate::MATCH)
@@ -147,6 +163,12 @@ void RobotGUI::update(RobotGUIData const& robotData)
 void RobotGUI::sideButtonClicked()
 {
     isPlayingRightSide_ = !isPlayingRightSide_;
+    doUpdate();
+}
+
+void RobotGUI::strategyButtonClicked()
+{
+    isStrategyTop_ = !isStrategyTop_;
     doUpdate();
 }
 

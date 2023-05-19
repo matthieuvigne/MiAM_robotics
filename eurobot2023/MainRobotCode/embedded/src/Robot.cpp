@@ -401,3 +401,9 @@ void Robot::shutdown()
     servos_.disable(0xFE);
     strategy_->shutdown();
 }
+
+
+bool Robot::isStrategyTop() const
+{
+    return gui_->getIsTopStrategy();
+}

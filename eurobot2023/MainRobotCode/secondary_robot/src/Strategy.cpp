@@ -100,7 +100,7 @@ bool Strategy::setup(RobotInterface *robot)
         {
             motionController->resetPosition(START_POSITION, true, true, true);
         }
-        motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_OFF);
+        motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 
         RPi_setupGPIO(BRUSH_MOTOR, PiGPIOMode::PI_GPIO_OUTPUT);
         RPi_writeGPIO(BRUSH_MOTOR, false);
@@ -303,11 +303,11 @@ void Strategy::startSequenceTop()
     }
 
 
-    // Faire une action : aller de 3 vers 1
-    PushingCakesAction action3to1 = PushCakes3to1();
+    // // Faire une action : aller de 3 vers 1
+    // PushingCakesAction action3to1 = PushCakes3to1();
 
-    if (performSecondaryRobotAction(&action3to1))
-        textlog << "[Strategy (secondary robot)] startSequenceTop: PushCakes3to1 succeeded" << std::endl;
+    // if (performSecondaryRobotAction(&action3to1))
+    //     textlog << "[Strategy (secondary robot)] startSequenceTop: PushCakes3to1 succeeded" << std::endl;
 
 
 
@@ -340,17 +340,17 @@ void Strategy::startSequenceBottom()
         grab_cherries();
     }
 
-    // Go to the left cherries, grab them
-    targetPositions.clear();
-    targetPositions.push_back(motionController->getCurrentPosition());
-    targetPositions.push_back(cherryDistributorLeft + RobotPosition(300, 0, 0));
-    targetPositions.push_back(cherryDistributorLeft);
-    go_to_rounded_corner(targetPositions);
+    // // Go to the left cherries, grab them
+    // targetPositions.clear();
+    // targetPositions.push_back(motionController->getCurrentPosition());
+    // targetPositions.push_back(cherryDistributorLeft + RobotPosition(300, 0, 0));
+    // targetPositions.push_back(cherryDistributorLeft);
+    // go_to_rounded_corner(targetPositions);
 
-    if ((motionController->getCurrentPosition() - cherryDistributorLeft).norm() < 100)
-    {
-        grab_cherries();
-    }
+    // if ((motionController->getCurrentPosition() - cherryDistributorLeft).norm() < 100)
+    // {
+    //     grab_cherries();
+    // }
 
     // Put the cherries in the basket
 
@@ -386,12 +386,44 @@ void Strategy::startSequenceBottom()
     robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
 
     traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
-    robot->getMotionController()->setTrajectoryToFollow(traj);
-    robot->getMotionController()->waitForTrajectoryFinished();
 
     // retirer l'obstacle
     robot->getMotionController()->popBackPersistentObstacles();
+    
+    if (!traj.empty())
+    {
+        textlog << "[Strategy (secondary_robot)] " << "Go to basket path planning" << std::endl;
+        robot->getMotionController()->setTrajectoryToFollow(traj);
+        robot->getMotionController()->waitForTrajectoryFinished();
 
+        // go_to_straight_line(position);
+        // turn_around_point(position.theta);
+    }
+    else
+    {
+        textlog << "[Strategy (secondary_robot)] " << "Go to basket rounded corner" << std::endl;
+        std::vector<RobotPosition> positions;
+        positions.clear();
+        position = motionController->getCurrentPosition();
+        positions.push_back(position);
+        position.x = 604;
+        position.y = 1485;
+        positions.push_back(position);
+        position.x = 436;
+        position.y = 2676;
+        positions.push_back(position);
+        position.x = 180;
+        if (!robot->isPlayingRightSide())
+        {
+            // left side: a little more to the left
+            position.x = 150;
+        }
+        position.y = 3000 - robotParameters.CHASSIS_FRONT - 170;
+        positions.push_back(position);
+        position.y = 3000 - robotParameters.CHASSIS_FRONT - 160;
+        positions.push_back(position);
+        go_to_rounded_corner(positions);
+    }
 
     if ((motionController->getCurrentPosition() - position).norm() < 100)
     {
@@ -432,13 +464,16 @@ void Strategy::match_impl()
     TrajectoryVector traj;
     std::vector<RobotPosition> targetPositions;
 
+    startingTop_ = robot->isStrategyTop();
     if (startingTop_)
     {
+        textlog << "[Strategy] Playing from top position" << std::endl;
         motionController->resetPosition(ALTERNATIVE_START_POSITION, true, true, true);
         startSequenceTop();
     }
     else
     {
+        textlog << "[Strategy] Playing from bottom position" << std::endl;
         motionController->resetPosition(START_POSITION, true, true, true);
         startSequenceBottom();
     }
@@ -458,12 +493,12 @@ void Strategy::match_impl()
 
     std::vector<std::shared_ptr<SecondaryRobotAction > > actions;
 
-    // if starting top the cakes have already been taken
-    if (!startingTop_)
-    {
+    // // if starting top the cakes have already been taken
+    // if (!startingTop_)
+    // {
         std::shared_ptr<SecondaryRobotAction > pushCakes1to5(new PushCakes1to5());
         actions.push_back(pushCakes1to5);
-    }
+    // }
 
     std::shared_ptr<SecondaryRobotAction > pushCakes7to5(new PushCakes7to5());
     actions.push_back(pushCakes7to5);
@@ -471,8 +506,8 @@ void Strategy::match_impl()
     actions.push_back(pushCakes3to4);
     std::shared_ptr<SecondaryRobotAction > pushCakes6to4(new PushCakes6to4());
     actions.push_back(pushCakes6to4);
-    std::shared_ptr<SecondaryRobotAction > pushCakes7to5ButOnlyPartial(new PushCakes7to5ButOnlyPartial());
-    actions.push_back(pushCakes7to5ButOnlyPartial);
+    // std::shared_ptr<SecondaryRobotAction > pushCakes7to5ButOnlyPartial(new PushCakes7to5ButOnlyPartial());
+    // actions.push_back(pushCakes7to5ButOnlyPartial);
     std::shared_ptr<SecondaryRobotAction > pushCakes6to5(new PushCakes6to5());
     actions.push_back(pushCakes6to5);
 
@@ -542,11 +577,10 @@ void Strategy::match_impl()
             {
                 actions.at(i)->activated = true;
             }
+            number_of_unsuccessful_iters++;
+            robot->wait(1);
         }
-
-        robot->wait(1);
-
-        if (action_index >= 0)
+        else
         {
             number_of_unsuccessful_iters = 0;
 
@@ -565,11 +599,7 @@ void Strategy::match_impl()
                 action->activated = false;
             }
         }
-        else
-        {
-            number_of_unsuccessful_iters++;
-        }
-
+        
         if (number_of_unsuccessful_iters > 10)
         {
             textlog << "[Strategy (secondary_robot)] " << "Removing all actions" << std::endl;
@@ -658,7 +688,7 @@ void Strategy::goBackToBase()
 
     RobotPosition position = motionController->getCurrentPosition();
     position.x = 680;
-    position.y = 500;
+    position.y = 600;
     position.theta = -M_PI_2;
 
     std::vector<Obstacle > detectedObstacles = robot->getMotionController()->getDetectedObstacles();
@@ -699,11 +729,9 @@ void Strategy::goBackToBase()
         traj = robot->getMotionController()->computeMPCTrajectory(
             position,
             detectedObstacles,
-            false,   // is forward
-            true,   // is an avoidance traj
-            true); // ensure end angle
+            !wasThereAnObstacleInEndZone); // go backwards if there is an obstacle
 
-        if (traj.getDuration() > 0)
+        if (!traj.empty())
         {
             robot->getMotionController()->setTrajectoryToFollow(traj);
             robot->getMotionController()->waitForTrajectoryFinished();
@@ -767,7 +795,7 @@ bool Strategy::performSecondaryRobotAction(SecondaryRobotAction* action)
         robot->getMotionController()->popBackPersistentObstacles();
     }
 
-    if (traj.getDuration() == 0.0)
+    if (traj.empty())
     {
         textlog << "[Strategy (secondary_robot)] " << "Motion planning to action failed!" << std::endl;
         return false;
