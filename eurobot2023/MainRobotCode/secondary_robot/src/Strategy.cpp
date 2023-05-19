@@ -100,7 +100,7 @@ bool Strategy::setup(RobotInterface *robot)
         {
             motionController->resetPosition(START_POSITION, true, true, true);
         }
-        motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_OFF);
+        motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 
         RPi_setupGPIO(BRUSH_MOTOR, PiGPIOMode::PI_GPIO_OUTPUT);
         RPi_writeGPIO(BRUSH_MOTOR, false);

@@ -248,33 +248,39 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
         ensureEndAngle
     );
 
-    // if motion planning failed, plan a straight line in order to go back anyway
-    if (traj2.getDuration() == 0)
+    if (traj2.empty())
     {
-        traj2 = computeTrajectoryStraightLineToPoint(
-            robotParams_.getTrajConf(),
-            currentPosition, // start
-            targetPosition,
-            !forward
-        );
+        textlog << "[MotionController] " << "Avoidance path planning failed" << std::endl;
+        return TrajectoryVector();
 
-        TrajectoryConfig tc_pt = robotParams_.getTrajConf();
-        tc_pt.maxWheelVelocity *= 0.3;
-        tc_pt.maxWheelAcceleration *= 0.3;
 
-        if (ensureEndAngle)
-        {
-            // add a point turn to keep the end angle info
-            std::shared_ptr<PointTurn > pt_sub_end(
-                new PointTurn(tc_pt,
-                traj2.getEndPoint().position, targetPosition.theta)
-            );
-            traj2.push_back(pt_sub_end);
-        }
+        // if motion planning failed, plan a straight line in order to go back anyway
 
-        // tags trajectory to be replanned
-        for (auto& subtraj : traj2)
-            subtraj->needReplanning_ = true;
+        // textlog << "[MotionController] " << "MPC traj failed, planning a dummy straight line" << std::endl;
+        // traj2 = computeTrajectoryStraightLineToPoint(
+        //     robotParams_.getTrajConf(),
+        //     currentPosition, // start
+        //     targetPosition,
+        //     !forward
+        // );
+
+        // TrajectoryConfig tc_pt = robotParams_.getTrajConf();
+        // tc_pt.maxWheelVelocity *= 0.3;
+        // tc_pt.maxWheelAcceleration *= 0.3;
+
+        // if (ensureEndAngle)
+        // {
+        //     // add a point turn to keep the end angle info
+        //     std::shared_ptr<PointTurn > pt_sub_end(
+        //         new PointTurn(tc_pt,
+        //         traj2.getEndPoint().position, targetPosition.theta)
+        //     );
+        //     traj2.push_back(pt_sub_end);
+        // }
+
+        // // tags trajectory to be replanned
+        // for (auto& subtraj : traj2)
+        //     subtraj->needReplanning_ = true;
     }
     else
     {
@@ -359,7 +365,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
     textlog << "[MotionController] " << ">> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
 
     // go back from the obstacle (the more counts the more margin)
-    double distanceToGoBack = std::max(0.0, detection::x_max - minDistanceToObstacle);
+    double distanceToGoBack = std::max(0.0, detection::x_max  + 150 - minDistanceToObstacle);
 
     TrajectoryVector traj1;
     RobotPosition newStartPoint = currentPosition;
