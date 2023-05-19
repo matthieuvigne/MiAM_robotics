@@ -35,6 +35,7 @@ class GrabCherriesLeft : public CherryAction
         {
             start_position = CherryActionConstants::cherryDistributorLeft;
             start_position.theta = M_PI;
+            start_position.x += 20;
 
             // no end position
         }
@@ -47,6 +48,7 @@ class GrabCherriesRight : public CherryAction
         {
             start_position = CherryActionConstants::cherryDistributorRight;
             start_position.theta = 0;
+            start_position.x -= 20;
 
             // no end position
         }

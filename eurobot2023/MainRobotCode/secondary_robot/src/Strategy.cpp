@@ -268,7 +268,9 @@ void Strategy::startSequenceTop()
 
     if ((motionController->getCurrentPosition() - cherryDistributorTop).norm() < 100)
     {
-        grab_cherries();
+        RobotPosition position = cherryDistributorTop;
+        position.theta = 0;
+        grab_cherries(position);
     }
 
     // Put the cherries in the basket
@@ -337,7 +339,9 @@ void Strategy::startSequenceBottom()
 
     if ((motionController->getCurrentPosition() - cherryDistributorBottom).norm() < 100)
     {
-        grab_cherries();
+        RobotPosition position = cherryDistributorBottom;
+        position.theta = 0;
+        grab_cherries(position);
     }
 
     // // Go to the left cherries, grab them
@@ -349,7 +353,8 @@ void Strategy::startSequenceBottom()
 
     // if ((motionController->getCurrentPosition() - cherryDistributorLeft).norm() < 100)
     // {
-    //     grab_cherries();
+    //     cherryDistributorLeft.theta = M_PI;
+    //     grab_cherries(cherryDistributorLeft);
     // }
 
     // Put the cherries in the basket
@@ -456,7 +461,7 @@ void Strategy::startSequenceBottom()
 
         if ((motionController->getCurrentPosition() - cherryDistributorTop).norm() < 100)
         {
-            grab_cherries();
+            grab_cherries(cherryDistributorTop);
         }
 
         // Put the cherries in the basket
@@ -695,9 +700,14 @@ void Strategy::match_impl()
                 position.x = 1000;
                 position.y = 1500;
                 position.theta = -M_PI_2;
-                traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
-                robot->getMotionController()->setTrajectoryToFollow(traj);
-                robot->getMotionController()->waitForTrajectoryFinished();
+                
+                if ((motionController->getCurrentPosition() - position).norm() > 100)
+                {
+                    traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
+                    robot->getMotionController()->setTrajectoryToFollow(traj);
+                    robot->getMotionController()->waitForTrajectoryFinished();
+                }
+
             }
             number_of_unsuccessful_iters++;
             // robot->wait(1);

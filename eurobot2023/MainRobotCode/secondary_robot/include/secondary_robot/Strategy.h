@@ -93,7 +93,7 @@ namespace secondary_robot
 
 
         /// @brief Execute the sequence to grab cherries: set rail position, brush and reservoir tilt, go forward 150mm, wait, then back 150mm
-        void grab_cherries();
+        void grab_cherries(RobotPosition startPosition);
 
         /// @brief Execute the sequence to put cherries in the basket: set rail position, go forward 150mm, tilt and start motor, then de-tilt, stop and go backwards
         void put_cherries_in_the_basket();

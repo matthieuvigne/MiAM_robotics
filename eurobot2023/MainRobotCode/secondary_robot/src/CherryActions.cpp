@@ -60,7 +60,7 @@ void Strategy::set_reservoir_tilt(ReservoirTilt reservoirTilt)
     }
 }
 
-void Strategy::grab_cherries()
+void Strategy::grab_cherries(RobotPosition startPosition)
 {
     textlog << "[CherryActions] grab_cherries" << std::endl;
     set_reservoir_tilt(ReservoirTilt::GRAB);
@@ -75,7 +75,11 @@ void Strategy::grab_cherries()
     miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
     conf.maxWheelVelocity *= 0.4;
     conf.maxWheelAcceleration *= 0.4;
-    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLine(conf, targetPosition, 60);
+
+    RobotPosition distributorPosition = startPosition;
+    distributorPosition.x += abs(startPosition.theta) > M_PI_2 ? -60 : 60;
+    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(conf, targetPosition, distributorPosition);
+
     motionController->setTrajectoryToFollow(traj);
     motionController->waitForTrajectoryFinished();
     // Wait a bit more
@@ -214,7 +218,9 @@ bool CherryAction::performAction(AbstractStrategy* strategy)
     // strategy_secondary->turn_around_point(end_position.theta);
 
     textlog << "[CherryAction] grab_cherries" << std::endl; 
-    strategy_secondary->grab_cherries();
+    RobotPosition start_position_with_offset = start_position;
+    start_position_with_offset.x += abs(start_position_with_offset.theta) > M_PI_2 ? -20 : 20;
+    strategy_secondary->grab_cherries(start_position_with_offset);
 
     // put in the basket
     strategy_secondary->moveRail(secondary_robot::rail::ANTICIPATING_TOP);
