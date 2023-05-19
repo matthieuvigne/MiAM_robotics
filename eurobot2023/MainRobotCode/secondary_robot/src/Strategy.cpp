@@ -386,12 +386,41 @@ void Strategy::startSequenceBottom()
     robot->getMotionController()->addPersistentObstacle(std::make_tuple(obstacle, 300));
 
     traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
-    robot->getMotionController()->setTrajectoryToFollow(traj);
-    robot->getMotionController()->waitForTrajectoryFinished();
 
     // retirer l'obstacle
     robot->getMotionController()->popBackPersistentObstacles();
-
+    
+    if (!traj.empty())
+    {
+        textlog << "[Strategy (secondary_robot)] " << "Go to basket path planning" << std::endl;
+        robot->getMotionController()->setTrajectoryToFollow(traj);
+        robot->getMotionController()->waitForTrajectoryFinished();
+    }
+    else
+    {
+        textlog << "[Strategy (secondary_robot)] " << "Go to basket rounded corner" << std::endl;
+        std::vector<RobotPosition> positions;
+        positions.clear();
+        position = motionController->getCurrentPosition();
+        positions.push_back(position);
+        position.x = 604;
+        position.y = 1485;
+        positions.push_back(position);
+        position.x = 436;
+        position.y = 2676;
+        positions.push_back(position);
+        position.x = 180;
+        if (!robot->isPlayingRightSide())
+        {
+            // left side: a little more to the left
+            position.x = 150;
+        }
+        position.y = 3000 - robotParameters.CHASSIS_FRONT - 170;
+        positions.push_back(position);
+        position.y = 3000 - robotParameters.CHASSIS_FRONT - 160;
+        positions.push_back(position);
+        go_to_rounded_corner(positions);
+    }
 
     if ((motionController->getCurrentPosition() - position).norm() < 100)
     {
@@ -542,11 +571,10 @@ void Strategy::match_impl()
             {
                 actions.at(i)->activated = true;
             }
+            number_of_unsuccessful_iters++;
+            robot->wait(1);
         }
-
-        robot->wait(1);
-
-        if (action_index >= 0)
+        else
         {
             number_of_unsuccessful_iters = 0;
 
@@ -565,11 +593,7 @@ void Strategy::match_impl()
                 action->activated = false;
             }
         }
-        else
-        {
-            number_of_unsuccessful_iters++;
-        }
-
+        
         if (number_of_unsuccessful_iters > 10)
         {
             textlog << "[Strategy (secondary_robot)] " << "Removing all actions" << std::endl;
@@ -658,7 +682,7 @@ void Strategy::goBackToBase()
 
     RobotPosition position = motionController->getCurrentPosition();
     position.x = 680;
-    position.y = 500;
+    position.y = 600;
     position.theta = -M_PI_2;
 
     std::vector<Obstacle > detectedObstacles = robot->getMotionController()->getDetectedObstacles();
@@ -699,11 +723,9 @@ void Strategy::goBackToBase()
         traj = robot->getMotionController()->computeMPCTrajectory(
             position,
             detectedObstacles,
-            false,   // is forward
-            true,   // is an avoidance traj
-            true); // ensure end angle
+            !wasThereAnObstacleInEndZone); // go backwards if there is an obstacle
 
-        if (traj.getDuration() > 0)
+        if (!traj.empty())
         {
             robot->getMotionController()->setTrajectoryToFollow(traj);
             robot->getMotionController()->waitForTrajectoryFinished();
@@ -767,7 +789,7 @@ bool Strategy::performSecondaryRobotAction(SecondaryRobotAction* action)
         robot->getMotionController()->popBackPersistentObstacles();
     }
 
-    if (traj.getDuration() == 0.0)
+    if (traj.empty())
     {
         textlog << "[Strategy (secondary_robot)] " << "Motion planning to action failed!" << std::endl;
         return false;

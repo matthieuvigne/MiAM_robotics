@@ -86,7 +86,7 @@
       double const xfar_max_avoidance = 700;
       double const yfar_max_avoidance = 500;
 
-      double const mpc_obstacle_size = 450;
+      double const mpc_obstacle_size = 475;
 
       // for ending trajectory...
       double const x_max_ending = 200;
@@ -189,7 +189,9 @@
             void clearPersistentObstacles();
             void popBackPersistentObstacles();
 
-            TrajectoryVector computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward, bool avoidanceEnabled = false, bool ensureEndAngle = true);
+            TrajectoryVector computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
+        
+            TrajectoryVector computeMPCAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward, bool avoidanceEnabled = false, bool ensureEndAngle = true);
             TrajectoryVector computeBasicAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
 
             std::vector<miam::RobotPosition> filteredDetectedObstacles_; ///< Detected obstables ; angle is M_PI if outside table else 0.

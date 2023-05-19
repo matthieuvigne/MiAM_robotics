@@ -85,6 +85,7 @@ TrajectoryVector MotionPlanner::planMotion(
     // If path planning failed, return empty traj
     if (planned_path.size() == 0)
     {
+        textlog << "[MotionPlanner] " << "Path planning did not find any path" << std::endl;
         return TrajectoryVector();
     }
 
