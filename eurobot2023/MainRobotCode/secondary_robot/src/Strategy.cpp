@@ -303,11 +303,11 @@ void Strategy::startSequenceTop()
     }
 
 
-    // Faire une action : aller de 3 vers 1
-    PushingCakesAction action3to1 = PushCakes3to1();
+    // // Faire une action : aller de 3 vers 1
+    // PushingCakesAction action3to1 = PushCakes3to1();
 
-    if (performSecondaryRobotAction(&action3to1))
-        textlog << "[Strategy (secondary robot)] startSequenceTop: PushCakes3to1 succeeded" << std::endl;
+    // if (performSecondaryRobotAction(&action3to1))
+    //     textlog << "[Strategy (secondary robot)] startSequenceTop: PushCakes3to1 succeeded" << std::endl;
 
 
 
@@ -340,17 +340,17 @@ void Strategy::startSequenceBottom()
         grab_cherries();
     }
 
-    // Go to the left cherries, grab them
-    targetPositions.clear();
-    targetPositions.push_back(motionController->getCurrentPosition());
-    targetPositions.push_back(cherryDistributorLeft + RobotPosition(300, 0, 0));
-    targetPositions.push_back(cherryDistributorLeft);
-    go_to_rounded_corner(targetPositions);
+    // // Go to the left cherries, grab them
+    // targetPositions.clear();
+    // targetPositions.push_back(motionController->getCurrentPosition());
+    // targetPositions.push_back(cherryDistributorLeft + RobotPosition(300, 0, 0));
+    // targetPositions.push_back(cherryDistributorLeft);
+    // go_to_rounded_corner(targetPositions);
 
-    if ((motionController->getCurrentPosition() - cherryDistributorLeft).norm() < 100)
-    {
-        grab_cherries();
-    }
+    // if ((motionController->getCurrentPosition() - cherryDistributorLeft).norm() < 100)
+    // {
+    //     grab_cherries();
+    // }
 
     // Put the cherries in the basket
 
@@ -395,6 +395,9 @@ void Strategy::startSequenceBottom()
         textlog << "[Strategy (secondary_robot)] " << "Go to basket path planning" << std::endl;
         robot->getMotionController()->setTrajectoryToFollow(traj);
         robot->getMotionController()->waitForTrajectoryFinished();
+
+        // go_to_straight_line(position);
+        // turn_around_point(position.theta);
     }
     else
     {
@@ -490,12 +493,12 @@ void Strategy::match_impl()
 
     std::vector<std::shared_ptr<SecondaryRobotAction > > actions;
 
-    // if starting top the cakes have already been taken
-    if (!startingTop_)
-    {
+    // // if starting top the cakes have already been taken
+    // if (!startingTop_)
+    // {
         std::shared_ptr<SecondaryRobotAction > pushCakes1to5(new PushCakes1to5());
         actions.push_back(pushCakes1to5);
-    }
+    // }
 
     std::shared_ptr<SecondaryRobotAction > pushCakes7to5(new PushCakes7to5());
     actions.push_back(pushCakes7to5);
@@ -503,8 +506,8 @@ void Strategy::match_impl()
     actions.push_back(pushCakes3to4);
     std::shared_ptr<SecondaryRobotAction > pushCakes6to4(new PushCakes6to4());
     actions.push_back(pushCakes6to4);
-    std::shared_ptr<SecondaryRobotAction > pushCakes7to5ButOnlyPartial(new PushCakes7to5ButOnlyPartial());
-    actions.push_back(pushCakes7to5ButOnlyPartial);
+    // std::shared_ptr<SecondaryRobotAction > pushCakes7to5ButOnlyPartial(new PushCakes7to5ButOnlyPartial());
+    // actions.push_back(pushCakes7to5ButOnlyPartial);
     std::shared_ptr<SecondaryRobotAction > pushCakes6to5(new PushCakes6to5());
     actions.push_back(pushCakes6to5);
 
