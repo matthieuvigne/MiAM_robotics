@@ -219,7 +219,7 @@ bool CherryAction::performAction(AbstractStrategy* strategy)
 
     textlog << "[CherryAction] grab_cherries" << std::endl; 
     RobotPosition start_position_with_offset = start_position;
-    start_position_with_offset.x += abs(start_position_with_offset.theta) > M_PI_2 ? -20 : 20;
+    start_position_with_offset.x += abs(start_position_with_offset.theta) > M_PI_2 ? -50 : 50;
     strategy_secondary->grab_cherries(start_position_with_offset);
 
     // put in the basket
@@ -241,7 +241,7 @@ bool CherryAction::performAction(AbstractStrategy* strategy)
         position, 
         strategy_secondary->robot->getMotionController()->getDetectedObstacles(), true);
     
-    if (traj.getDuration() < 1e-9)
+    if (traj.empty())
     {
         return false;
     }

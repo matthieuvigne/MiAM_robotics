@@ -704,8 +704,11 @@ void Strategy::match_impl()
                 if ((motionController->getCurrentPosition() - position).norm() > 100)
                 {
                     traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
-                    robot->getMotionController()->setTrajectoryToFollow(traj);
-                    robot->getMotionController()->waitForTrajectoryFinished();
+                    if (!traj.empty())
+                    {
+                        robot->getMotionController()->setTrajectoryToFollow(traj);
+                        robot->getMotionController()->waitForTrajectoryFinished();
+                    }
                 }
 
             }

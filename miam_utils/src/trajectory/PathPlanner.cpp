@@ -165,11 +165,15 @@ namespace miam{
             for (int i = 0; i < config_.astar_grid_size_x; i++) 
             {
                 generator_.addCollision({i, 0});
+                generator_.addCollision({i, 1});
+                generator_.addCollision({i, config_.astar_grid_size_y-2});
                 generator_.addCollision({i, config_.astar_grid_size_y-1});
             }
             for (int j = 0; j < config_.astar_grid_size_y; j++) 
             {
                 generator_.addCollision({0, j});
+                generator_.addCollision({1, j});
+                generator_.addCollision({config_.astar_grid_size_x-2, j});
                 generator_.addCollision({config_.astar_grid_size_x-1, j});
             }
 

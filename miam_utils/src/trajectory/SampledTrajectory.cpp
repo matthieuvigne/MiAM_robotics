@@ -100,8 +100,9 @@ namespace miam{
 
             // get index of replanification
             TrajectoryPoint startPoint = getCurrentPoint(replanificationTime);
+            int N = sampledTrajectory_.size();
 
-            if (replanificationTime >= getDuration())
+            if (replanificationTime >= getDuration() || N == 1)
             {
                 sampledTrajectory_.clear();
                 sampledTrajectory_.push_back(startPoint);
@@ -109,7 +110,6 @@ namespace miam{
                 return;
             }
 
-            int N = sampledTrajectory_.size();
             double sampling_time = getDuration() / (N-1);
 
             double newDuration = getDuration() - replanificationTime + timetoincrement / 2.0;
