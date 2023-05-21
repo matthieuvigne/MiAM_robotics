@@ -76,7 +76,8 @@ MotionPlanner::MotionPlanner(RobotParameters const& robotParameters) : robotPara
 TrajectoryVector MotionPlanner::planMotion(
             RobotPosition const& currentPosition,
             RobotPosition const& targetPosition,
-            bool ensureEndAngle)
+            bool ensureEndAngle,
+            bool useTrajectoryRoundedCorners)
 {
     // pathPlanner_.printMap();
     std::vector<RobotPosition > planned_path = pathPlanner_->planPath(currentPosition, targetPosition);
@@ -93,7 +94,25 @@ TrajectoryVector MotionPlanner::planMotion(
     textlog << "[MotionPlanner] " << "Start solving..." << std::endl;
 
     // compute the trajectory from the waypoints
-    TrajectoryVector st = solveTrajectoryFromWaypoints(planned_path);
+    TrajectoryVector st;
+    
+    if (useTrajectoryRoundedCorners)
+    {
+        textlog << "[MotionPlanner] " << "Solving trajectory rounded corners " << std::endl;
+       
+        miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
+        cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
+
+        st = computeTrajectoryRoundedCorner(
+            cplan,
+            planned_path,
+            200
+        );
+    }
+    else
+    {
+        st = solveTrajectoryFromWaypoints(planned_path);
+    }
 
     if (st.getDuration() > 0)
     {

@@ -20,7 +20,8 @@ class MotionPlanner{
         TrajectoryVector planMotion(
             RobotPosition const& currentPosition,
             RobotPosition const& targetPosition,
-            bool ensureEndAngle);
+            bool ensureEndAngle,
+            bool useTrajectoryRoundedCorners = false);
 
 
         TrajectoryVector computeTraj(TrajectoryConfig const& config, RobotPosition start, RobotPosition end)
