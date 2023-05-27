@@ -56,9 +56,9 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     {
         if (trackingLongitudinalError < 2 && trackingAngleError < 0.01 && measurements.encoderSpeed.right < 0.5 && measurements.encoderSpeed.left < 0.5)
         {
-            // Just stop the robot.
-            target.motorSpeed[0] = 0.0;
-            target.motorSpeed[1] = 0.0;
+            // // Just stop the robot.
+            // target.motorSpeed[0] = 0.0;
+            // target.motorSpeed[1] = 0.0;
             return true;
         }
     }

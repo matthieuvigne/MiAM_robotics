@@ -191,13 +191,14 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         detectedObstacles_.push_back(obstacle);
     }
 
-    detectedObstaclesMutex_.unlock();
 
-    changeMotionControllerState();
+    detectedObstaclesMutex_.unlock();
 
     // Compute slowdown
     slowDownCoeff_ = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
     clampedSlowDownCoeff_ = std::min(slowDownCoeff_, clampedSlowDownCoeff_ + 0.05);
+
+    changeMotionControllerState();
 
     target = resolveMotionControllerState(measurements, dt, hasMatchStarted);
 
@@ -213,7 +214,6 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
 void MotionController::changeMotionControllerState()
 {
-    MotionControllerState nextMotionControllerState = motionControllerState_;
 
     // in all cases, if new trajectories, reset controller
     // Load new trajectory, if needed.
@@ -221,45 +221,74 @@ void MotionController::changeMotionControllerState()
     if (!newTrajectories_.empty())
     {
         textlog << "[MotionController] New trajectories, reset controller state to WAIT_FOR_TRAJECTORY" << std::endl;
-        // We have new trajectories, erase the current trajectories and follow the new one.
-        currentTrajectories_ = newTrajectories_;
-        curvilinearAbscissa_ = 0;
-        avoidanceCount_ = 0;
-        newTrajectories_.clear();
-        textlog << "[MotionController] Recieved " << currentTrajectories_.size() << " new trajectories from strategy" << std::endl;
-        textlog << "[MotionController] Now tracking: " << currentTrajectories_.at(0)->description_ << std::endl;
-
-        motionControllerState_ = CONTROLLER_TRAJECTORY_TRACKING;
-    }
-    newTrajectoryMutex_.unlock();
-    
-    if (currentTrajectories_.empty())
-    {
-        // textlog << "[MotionController] currentTrajectories empty, reset controller state to WAIT_FOR_TRAJECTORY" << std::endl;
         motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
-        nextMotionControllerState = motionControllerState_;
     }
-    else if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
+
+    MotionControllerState nextMotionControllerState = motionControllerState_;
+    
+    if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
     {
-        if (!currentTrajectories_.empty())
+        if (!newTrajectories_.empty())
         {
             textlog << "[MotionController] Start reading trajectories " << std::endl;
+            // We have new trajectories, erase the current trajectories and follow the new one.
+            currentTrajectories_ = newTrajectories_;
+            curvilinearAbscissa_ = 0;
+            avoidanceCount_ = 0;
+            trajectoryDone_ = false;
+            newTrajectories_.clear();
+            textlog << "[MotionController] Recieved " << currentTrajectories_.size() << " new trajectories from strategy" << std::endl;
+            textlog << "[MotionController] Now tracking: " << currentTrajectories_.at(0)->description_ << std::endl;
+
             nextMotionControllerState = CONTROLLER_TRAJECTORY_TRACKING;
         }
     }
     else if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
     {
-        // transition to WAIT_FOR_TRAJECTORY
-        if (currentTrajectories_.empty())
-        {
-            nextMotionControllerState = CONTROLLER_WAIT_FOR_TRAJECTORY;
-        }
+
         // transition to STOP
-        else if (clampedSlowDownCoeff_ < 1.0e-6)
+        if (clampedSlowDownCoeff_ < 1.0e-6)
         {
             timeSinceFirstStopped_ = std::chrono::steady_clock::now();
 
             nextMotionControllerState = CONTROLLER_STOP;
+        }
+        else
+        {
+            // Load first trajectory, look if we are done following it.
+            Trajectory *traj = currentTrajectories_.at(0).get();
+
+            if (curvilinearAbscissa_ > traj->getDuration() || trajectoryDone_)
+            {
+                currentTrajectories_.erase(currentTrajectories_.begin());
+                // If we still have a trajectory after that, immediately switch to the next trajectory.
+                if (currentTrajectories_.size() > 0)
+                {
+                    // Not optimal, could be improved.
+                    traj = currentTrajectories_.at(0).get();
+                    curvilinearAbscissa_ = 0.0;
+                    textlog << "[MotionController] Now tracking: " << traj->description_ << std::endl;
+                }
+                else
+                {
+                    textlog << "[MotionController] Trajectory tracking performed successfully" << std::endl;
+                }
+            }
+
+            // If we are more than a specified time  after the end of the trajectory, stop it anyway.
+            // We hope to have servoed the robot is less than that anyway.
+            else if (curvilinearAbscissa_ - trajectoryTimeout_ > traj->getDuration())
+            {
+                textlog << "[MotionController] Timeout on trajectory following" << std::endl;
+                currentTrajectories_.erase(currentTrajectories_.begin());
+                curvilinearAbscissa_ = 0.;
+            }
+        }
+
+        // transition to WAIT_FOR_TRAJECTORY
+        if (currentTrajectories_.empty())
+        {
+            nextMotionControllerState = CONTROLLER_WAIT_FOR_TRAJECTORY;
         }
     }
     else if (motionControllerState_ == CONTROLLER_STOP)
@@ -269,7 +298,7 @@ void MotionController::changeMotionControllerState()
         double durationSinceLastAvoidance = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceLastAvoidance_).count() / 1000.0;
 
         // transition to TRAJECTORY_TRACKING
-        if (clampedSlowDownCoeff_ > 0.0 && durationSinceFirstStopped > 0.1 && !currentTrajectories_.empty())
+        if (clampedSlowDownCoeff_ > 0.0 && durationSinceFirstStopped > 0.1)
         {
             // Robot was stopped and is ready to start again.
             // Replan and retry trajectory.
@@ -278,35 +307,37 @@ void MotionController::changeMotionControllerState()
             textlog << "[MotionController] "  << "Continue trajectory; replan" << std::endl;
             nextMotionControllerState = CONTROLLER_TRAJECTORY_TRACKING;
         }
-        // transition to WAIT_FOR_TRAJECTORY
-        else if (avoidanceCount_ > maxAvoidanceAttempts_)
-        {
-            textlog << "[MotionController] " << "Trajectory failed: attempted " << avoidanceCount_ << " avoidance" << std::endl;
-            textlog << "[MotionController] " << "Obstacle still present, canceling trajectory" << std::endl;
-            // Failed to perform avoidance.
-            // Raise flag and end trajectory following.
-            wasTrajectoryFollowingSuccessful_ = false;
-            currentTrajectories_.clear();
-            curvilinearAbscissa_ = 0.0;
-            nextMotionControllerState = CONTROLLER_WAIT_FOR_TRAJECTORY;
-        }
-        // transition to AVOIDANCE
         else if (durationSinceFirstStopped > 1.0 && durationSinceLastAvoidance > 1.0)
         {
-            textlog << "[MotionController] " << "Scheduling avoidance" << std::endl;
-
-            avoidanceComputationMutex_.lock();
-            avoidanceComputationScheduled_ = true;
-            avoidanceComputationEnded_ = false;
-            avoidanceComputationMutex_.unlock();
-
-            timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
             avoidanceCount_++;
-            std::cout << "slowDownCoeff_ : " << slowDownCoeff_ << std::endl;
-            std::cout << "clampedSlowDownCoeff_ : " << clampedSlowDownCoeff_ << std::endl;
-            std::cout << "avoidanceCount_ : " << avoidanceCount_ << std::endl;
+            // transition to WAIT_FOR_TRAJECTORY
+            if (avoidanceCount_ > maxAvoidanceAttempts_)
+            {
+                textlog << "[MotionController] " << "Trajectory failed: attempted " << avoidanceCount_ << " avoidance" << std::endl;
+                textlog << "[MotionController] " << "Obstacle still present, canceling trajectory" << std::endl;
+                // Failed to perform avoidance.
+                // Raise flag and end trajectory following.
+                wasTrajectoryFollowingSuccessful_ = false;
+                currentTrajectories_.clear();
+                nextMotionControllerState = CONTROLLER_WAIT_FOR_TRAJECTORY;
+            }
+            // transition to AVOIDANCE
+            else 
+            {
+                textlog << "[MotionController] " << "Scheduling avoidance" << std::endl;
 
-            nextMotionControllerState = CONTROLLER_WAIT_FOR_AVOIDANCE;
+                avoidanceComputationMutex_.lock();
+                avoidanceComputationScheduled_ = true;
+                avoidanceComputationEnded_ = false;
+                avoidanceComputationMutex_.unlock();
+
+                timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
+                std::cout << "slowDownCoeff_ : " << slowDownCoeff_ << std::endl;
+                std::cout << "clampedSlowDownCoeff_ : " << clampedSlowDownCoeff_ << std::endl;
+                std::cout << "avoidanceCount_ : " << avoidanceCount_ << std::endl;
+
+                nextMotionControllerState = CONTROLLER_WAIT_FOR_AVOIDANCE;
+            }
         }
     }
     else if (motionControllerState_ == CONTROLLER_WAIT_FOR_AVOIDANCE)
@@ -340,6 +371,9 @@ void MotionController::changeMotionControllerState()
 
         }
     }
+
+    newTrajectoryMutex_.unlock();
+
 
     // print and change
     if (motionControllerState_ != nextMotionControllerState)
@@ -398,15 +432,8 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
 
     if (!hasMatchStarted)
     {
-        target.motorSpeed[side::RIGHT] = 0.0;
-        target.motorSpeed[side::LEFT] = 0.0;
         PIDLinear_.resetIntegral(0.0);
         PIDAngular_.resetIntegral(0.0);
-    }
-    else if (currentTrajectories_.empty())
-    {
-        target.motorSpeed[side::RIGHT] = 0.0;
-        target.motorSpeed[side::LEFT] = 0.0;
     }
     else if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
     {
@@ -414,37 +441,13 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
         Trajectory *traj = currentTrajectories_.at(0).get();
         curvilinearAbscissa_ += clampedSlowDownCoeff_ * dt;
 
-        if (curvilinearAbscissa_ > traj->getDuration())
-        {
-            // If we still have a trajectory after that, immediately switch to the next trajectory.
-            if (currentTrajectories_.size() > 1)
-            {
-                // Not optimal, could be improved.
-                currentTrajectories_.erase(currentTrajectories_.begin());
-                traj = currentTrajectories_.at(0).get();
-                curvilinearAbscissa_ = 0.0;
-                textlog << "[MotionController] Now tracking: " << traj->description_ << std::endl;
-            }
-        }
-
-        // If we are more than a specified time  after the end of the trajectory, stop it anyway.
-        // We hope to have servoed the robot is less than that anyway.
-        if (curvilinearAbscissa_ - trajectoryTimeout_ > traj->getDuration())
-        {
-            textlog << "[MotionController] Timeout on trajectory following" << std::endl;
-            currentTrajectories_.erase(currentTrajectories_.begin());
-            curvilinearAbscissa_ = 0.;
-        }
-        else
-        {
-            // Servo robot on current trajectory.
-            bool trajectoryDone = computeMotorTarget(traj, curvilinearAbscissa_, dt, clampedSlowDownCoeff_, measurements, target);
-            if (trajectoryDone && currentTrajectories_.size() == 1)
-            {
-                textlog << "[MotionController] Trajectory tracking performed successfully" << std::endl;
-                currentTrajectories_.erase(currentTrajectories_.begin());
-            }
-        }
+        // Servo robot on current trajectory.
+        trajectoryDone_ = computeMotorTarget(traj, curvilinearAbscissa_, dt, clampedSlowDownCoeff_, measurements, target);
+        // if (trajectoryDone && currentTrajectories_.size() == 1)
+        // {
+        //     textlog << "[MotionController] Trajectory tracking performed successfully" << std::endl;
+        //     currentTrajectories_.erase(currentTrajectories_.begin());
+        // }
     }
 
     return target;

@@ -258,6 +258,7 @@
             int avoidanceCount_;
             const int maxAvoidanceAttempts_ = 2;
             bool isStopped_;
+            bool trajectoryDone_;
 
             double slowDownCoeff_;
             double clampedSlowDownCoeff_ = 1.0;
