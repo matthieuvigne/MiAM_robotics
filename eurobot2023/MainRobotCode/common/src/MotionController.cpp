@@ -349,7 +349,6 @@ void MotionController::changeMotionControllerState()
             {
                 textlog << "[MotionController] " << "Performing avoidance" << std::endl;
 
-                currentTrajectories_.clear();
                 avoidanceComputationMutex_.lock();
                 currentTrajectories_ = avoidanceComputationResult_;
                 avoidanceComputationMutex_.unlock();
