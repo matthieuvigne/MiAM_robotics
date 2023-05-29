@@ -268,7 +268,6 @@
 
             std::mutex avoidanceComputationMutex_;
             bool avoidanceComputationScheduled_;
-            bool avoidanceComputationEnded_;
             TrajectoryVector avoidanceComputationResult_;
             void loopOnAvoidanceComputation();
             std::vector<pthread_t> createdThreads_;

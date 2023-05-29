@@ -202,7 +202,7 @@ void Strategy::updateRailHeight()
 }
 
 
-bool CherryAction::performAction(AbstractStrategy* strategy)
+bool CherryAction::performAction()
 {
     textlog << "[CherryAction] performAction" << std::endl; 
     // RobotPosition currentPosition;
@@ -259,7 +259,7 @@ bool CherryAction::performAction(AbstractStrategy* strategy)
 }
 
 
-bool PutCherriesInTheBasket::performAction(AbstractStrategy* strategy)
+bool PutCherriesInTheBasket::performAction()
 {
     textlog << "[PutCherriesInTheBasket] performAction" << std::endl; 
     // RobotPosition currentPosition;

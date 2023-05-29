@@ -1,6 +1,6 @@
 #include <secondary_robot/PushingCakesAction.h>
 
-bool PushingCakesAction::performAction(AbstractStrategy* strategy)
+bool PushingCakesAction::performAction()
 {
     RobotInterface* robot = strategy->robot;
 

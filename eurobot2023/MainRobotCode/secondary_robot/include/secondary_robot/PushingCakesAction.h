@@ -9,9 +9,9 @@ class PushingCakesAction : public SecondaryRobotAction
 {
     public:
 
-        PushingCakesAction() : SecondaryRobotAction() {};
+        PushingCakesAction(AbstractStrategy* inStrategy) : SecondaryRobotAction(inStrategy) {};
 
-        bool performAction(AbstractStrategy* strategy);
+        bool performAction();
         int getScore() { return 3; }
 };
 
@@ -27,7 +27,7 @@ class PushingCakesAction : public SecondaryRobotAction
 class PushCakes1to5 : public PushingCakesAction
 {
     public:
-        PushCakes1to5() : PushingCakesAction()
+        PushCakes1to5(AbstractStrategy* inStrategy) : PushingCakesAction(inStrategy)
         {
             start_position.x = 230;
             start_position.y = 2650;
@@ -56,7 +56,7 @@ class PushCakes1to5 : public PushingCakesAction
 class PushCakes7to5 : public PushingCakesAction
 {
     public:
-        PushCakes7to5() : PushingCakesAction()
+        PushCakes7to5(AbstractStrategy* inStrategy) : PushingCakesAction(inStrategy)
         {
             start_position.x = 230;
             start_position.y = 300;
@@ -86,7 +86,7 @@ class PushCakes7to5 : public PushingCakesAction
 class PushCakes7to5ButOnlyPartial : public PushingCakesAction
 {
     public:
-        PushCakes7to5ButOnlyPartial() : PushingCakesAction()
+        PushCakes7to5ButOnlyPartial(AbstractStrategy* inStrategy) : PushingCakesAction(inStrategy)
         {
             start_position.x = 367;
             start_position.y = 686;
@@ -108,7 +108,7 @@ class PushCakes7to5ButOnlyPartial : public PushingCakesAction
 class PushCakes3to4 : public PushingCakesAction
 {
     public:
-        PushCakes3to4() : PushingCakesAction()
+        PushCakes3to4(AbstractStrategy* inStrategy) : PushingCakesAction(inStrategy)
         {
             start_position.x = 446;
             start_position.y = 1890;
@@ -166,7 +166,7 @@ class PushCakes3to4 : public PushingCakesAction
 class PushCakes6to4 : public PushingCakesAction
 {
     public:
-        PushCakes6to4() : PushingCakesAction()
+        PushCakes6to4(AbstractStrategy* inStrategy) : PushingCakesAction(inStrategy)
         {
             start_position.x = 1730;
             start_position.y = 790;
@@ -195,7 +195,7 @@ class PushCakes6to4 : public PushingCakesAction
 class PushCakes3to1 : public PushingCakesAction
 {
     public:
-        PushCakes3to1() : PushingCakesAction()
+        PushCakes3to1(AbstractStrategy* inStrategy) : PushingCakesAction(inStrategy)
         {
             start_position.x = 222;
             start_position.y = 1552;
@@ -220,7 +220,7 @@ class PushCakes3to1 : public PushingCakesAction
 class PushCakes6to5 : public PushingCakesAction
 {
     public:
-        PushCakes6to5() : PushingCakesAction()
+        PushCakes6to5(AbstractStrategy* inStrategy) : PushingCakesAction(inStrategy)
         {
             start_position.x = 1515;
             start_position.y = 1125;

@@ -11,7 +11,7 @@ class SecondaryRobotAction
 {
     public:
 
-        SecondaryRobotAction() : activated(true) {};
+        SecondaryRobotAction(AbstractStrategy* inStrategy) : activated(true), strategy(inStrategy) {};
 
         RobotPosition start_position;
         RobotPosition end_position;
@@ -21,7 +21,9 @@ class SecondaryRobotAction
 
         bool activated;
 
-        virtual bool performAction(AbstractStrategy* strategy) = 0;
+        AbstractStrategy* strategy;
+
+        virtual bool performAction() = 0;
         virtual int getScore() = 0;
         bool needRailTop() { return false; }
 };

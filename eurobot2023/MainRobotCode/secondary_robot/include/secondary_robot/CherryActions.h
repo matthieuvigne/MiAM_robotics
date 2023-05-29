@@ -21,9 +21,9 @@ class CherryAction : public SecondaryRobotAction
 {
     public:
 
-        CherryAction() : SecondaryRobotAction() {};
+        CherryAction(AbstractStrategy* inStrategy) : SecondaryRobotAction(inStrategy) {};
 
-        bool performAction(AbstractStrategy* strategy);
+        bool performAction();
         int getScore() { return 10; }
 };
 
@@ -31,7 +31,7 @@ class CherryAction : public SecondaryRobotAction
 class GrabCherriesLeft : public CherryAction
 {
     public:
-        GrabCherriesLeft() : CherryAction()
+        GrabCherriesLeft(AbstractStrategy* inStrategy) : CherryAction(inStrategy)
         {
             start_position = CherryActionConstants::cherryDistributorLeft;
             start_position.theta = M_PI;
@@ -44,7 +44,7 @@ class GrabCherriesLeft : public CherryAction
 class GrabCherriesRight : public CherryAction
 {
     public:
-        GrabCherriesRight() : CherryAction()
+        GrabCherriesRight(AbstractStrategy* inStrategy) : CherryAction(inStrategy)
         {
             start_position = CherryActionConstants::cherryDistributorRight;
             start_position.theta = 0;
@@ -58,7 +58,7 @@ class PutCherriesInTheBasket : public SecondaryRobotAction
 {
     public:
 
-        PutCherriesInTheBasket() : SecondaryRobotAction() {
+        PutCherriesInTheBasket(AbstractStrategy* inStrategy) : SecondaryRobotAction(inStrategy) {
             start_position.x = 180; //robotParameters.CHASSIS_WIDTH + 90.0;
             start_position.y = 3000 - 150 - 160;
             start_position.theta = M_PI_2;
@@ -69,7 +69,7 @@ class PutCherriesInTheBasket : public SecondaryRobotAction
             obstacles_on_the_road.push_back(std::make_tuple(obstacle, 200));
         };
 
-        bool performAction(AbstractStrategy* strategy);
+        bool performAction();
         int getScore() { return 10; }
 
         bool needRailTop() { return true; }

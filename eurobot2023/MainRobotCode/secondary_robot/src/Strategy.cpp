@@ -546,8 +546,8 @@ void Strategy::match_impl()
     if (putCherriesIntoBasket_)
     {
         // Faire une action : aller de 1 vers 5
-        PushingCakesAction pushCakes1to5 = PushCakes1to5();
-        CherryAction actionCherryLeft = GrabCherriesLeft();
+        PushingCakesAction pushCakes1to5 = PushCakes1to5(this);
+        CherryAction actionCherryLeft = GrabCherriesLeft(this);
 
         RobotPosition position;
         position.x = 223;
@@ -609,20 +609,20 @@ void Strategy::match_impl()
         // actions.push_back(actionCherryLeft);
     // }
 
-    std::shared_ptr<SecondaryRobotAction > pushCakes7to5(new PushCakes7to5());
+    std::shared_ptr<SecondaryRobotAction > pushCakes7to5(new PushCakes7to5(this));
     actions.push_back(pushCakes7to5);
-    std::shared_ptr<SecondaryRobotAction > pushCakes3to4(new PushCakes3to4());
+    std::shared_ptr<SecondaryRobotAction > pushCakes3to4(new PushCakes3to4(this));
     actions.push_back(pushCakes3to4);
-    std::shared_ptr<SecondaryRobotAction > pushCakes6to4(new PushCakes6to4());
+    std::shared_ptr<SecondaryRobotAction > pushCakes6to4(new PushCakes6to4(this));
     actions.push_back(pushCakes6to4);
-    // std::shared_ptr<SecondaryRobotAction > pushCakes7to5ButOnlyPartial(new PushCakes7to5ButOnlyPartial());
+    // std::shared_ptr<SecondaryRobotAction > pushCakes7to5ButOnlyPartial(new PushCakes7to5ButOnlyPartial(this));
     // actions.push_back(pushCakes7to5ButOnlyPartial);
-    std::shared_ptr<SecondaryRobotAction > pushCakes6to5(new PushCakes6to5());
+    std::shared_ptr<SecondaryRobotAction > pushCakes6to5(new PushCakes6to5(this));
     actions.push_back(pushCakes6to5);
 
     if (!putCherriesIntoBasket_)
     {
-        std::shared_ptr<SecondaryRobotAction > putCherriesIntoBasket(new PutCherriesInTheBasket());
+        std::shared_ptr<SecondaryRobotAction > putCherriesIntoBasket(new PutCherriesInTheBasket(this));
         if (!robot->isPlayingRightSide())
         {
             // left side: a little more to the left
@@ -947,7 +947,7 @@ bool Strategy::performSecondaryRobotAction(SecondaryRobotAction* action)
         // action was not successful
         return false;
     }
-    if (!action->performAction(this))
+    if (!action->performAction())
     {
         // action was not successful
         return false;
