@@ -54,7 +54,7 @@ void MotionController::loopOnAvoidanceComputation()
     while (true)
     {
         avoidanceComputationMutex_.lock();
-        bool needRecomputing = avoidanceComputationScheduled_ & !avoidanceComputationEnded_;
+        bool needRecomputing = avoidanceComputationScheduled_;
         avoidanceComputationMutex_.unlock();
 
         if (needRecomputing)
@@ -65,7 +65,7 @@ void MotionController::loopOnAvoidanceComputation()
             avoidanceComputationMutex_.lock();
             avoidanceComputationResult_.clear();
             avoidanceComputationResult_ = res;
-            avoidanceComputationEnded_ = true;
+            avoidanceComputationScheduled_ = false;
             avoidanceComputationMutex_.unlock();
         }
 

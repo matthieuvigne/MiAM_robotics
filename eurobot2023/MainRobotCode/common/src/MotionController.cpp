@@ -37,7 +37,6 @@ MotionController::MotionController(RobotParameters const &robotParameters) : cur
 
     // Create solver thread
     avoidanceComputationScheduled_ = false;
-    avoidanceComputationEnded_ = false;
 
     std::thread stratSolver(&MotionController::loopOnAvoidanceComputation, this);
     pthread_t handle = stratSolver.native_handle();
@@ -328,7 +327,6 @@ void MotionController::changeMotionControllerState()
 
                 avoidanceComputationMutex_.lock();
                 avoidanceComputationScheduled_ = true;
-                avoidanceComputationEnded_ = false;
                 avoidanceComputationMutex_.unlock();
 
                 timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
@@ -342,7 +340,7 @@ void MotionController::changeMotionControllerState()
     }
     else if (motionControllerState_ == CONTROLLER_WAIT_FOR_AVOIDANCE)
     {
-        if (avoidanceComputationEnded_)
+        if (!avoidanceComputationScheduled_)
         {
             // transition to  TRAJECTORY_TRACKING
             if (avoidanceComputationResult_.getDuration() > 0)
@@ -365,7 +363,6 @@ void MotionController::changeMotionControllerState()
             }
             avoidanceComputationMutex_.lock();
             avoidanceComputationScheduled_ = false;
-            avoidanceComputationEnded_ = false;
             avoidanceComputationMutex_.unlock();
 
         }
