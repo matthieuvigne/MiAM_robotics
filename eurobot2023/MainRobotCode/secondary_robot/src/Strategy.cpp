@@ -690,29 +690,12 @@ void Strategy::match_impl()
         textlog << "[Strategy (secondary_robot)] " << "Chosen action: " << action_index << std::endl;
         if (action_index < 0)
         {
+            number_of_unsuccessful_iters++;
             textlog << "[Strategy (secondary_robot)] " << "Reactivating all actions" << std::endl;
             for (int i = 0; i < actions.size() ; i++)
             {
-                textlog << "[Strategy (secondary_robot)] " << "Go back in the middle" << std::endl;
                 actions.at(i)->activated = true;
-
-                RobotPosition position;
-                position.x = 1000;
-                position.y = 1500;
-                position.theta = -M_PI_2;
-                
-                if ((motionController->getCurrentPosition() - position).norm() > 100)
-                {
-                    traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
-                    if (!traj.empty())
-                    {
-                        robot->getMotionController()->setTrajectoryToFollow(traj);
-                        robot->getMotionController()->waitForTrajectoryFinished();
-                    }
-                }
-
             }
-            number_of_unsuccessful_iters++;
             // robot->wait(1);
         }
         else
@@ -737,8 +720,23 @@ void Strategy::match_impl()
         
         if (number_of_unsuccessful_iters > 10)
         {
-            textlog << "[Strategy (secondary_robot)] " << "Removing all actions" << std::endl;
-            actions.clear();
+            // textlog << "[Strategy (secondary_robot)] " << "Removing all actions" << std::endl;
+            // actions.clear();
+            textlog << "[Strategy (secondary_robot)] " << "Go back in the middle" << std::endl;
+            RobotPosition position;
+            position.x = 1000;
+            position.y = 1500;
+            position.theta = -M_PI_2;
+            
+            if ((motionController->getCurrentPosition() - position).norm() > 100)
+            {
+                traj = robot->getMotionController()->computeMPCTrajectory(position, robot->getMotionController()->getDetectedObstacles(), true);
+                if (!traj.empty())
+                {
+                    robot->getMotionController()->setTrajectoryToFollow(traj);
+                    robot->getMotionController()->waitForTrajectoryFinished();
+                }
+            }
         }
     }
 
