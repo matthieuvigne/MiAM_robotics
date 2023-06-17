@@ -65,80 +65,47 @@ namespace miam{
         void SampledTrajectory::replanify(double const& replanificationTime)
         {
             std::cout << "Called SampledTrajectory::replanify" << std::endl;
-            // make a trapezoid in time in order to replanify the time
-            // scale using a time constant which is the time to go from 0 to max velocity (600) using max acceleration (700)
-            // vfin = integral (amax * dtimeconstant) = amax * timeconstant
-            // timeconstant = vfin / amax
-            double timeconstant = 600.0 / 700.0;
 
-            // suppose the trajectory to be replanified goes at vmax
-            // chercher le temps jusqu'au quel scaler
-            // x parcouru a vmax = integral(vmax * dtime)_{0, t1} = vmax * t1
-
-            // x parcouru avec la rampe d'acceleration = timeconstant * vmax / 2 + integral(vmax * dtime)_{timeconstant, t2}
-            //                                         = timeconstant * vmax / 2 + vmax * (t2 - timeconstant) = vmax * (t2 - timeconstant / 2)
-
-            // t1 = t2 - timeconstant / 2
-            // si t1 = timeconstant : t2 = timeconstant * 1.5
-
-            // resume :
-            // trapezoide en temps montant jusqu'a timeconstant * 1.5
-
-            double timetoincrement = timeconstant * 1.5;
-
-            std::cout << "timetoincrement: " << timetoincrement << std::endl;
-
-            // temps mis pour faire 
-
-
-
-            // distance faite en vmax en timetoincrement : vmax * timetoincrement
-            // distance faite avec le trapeze de vitesse : vmax * timetoincrement / 2
-
-            // donc scaler le temps par 2 sur timetoincrement
-
-
-            // get index of replanification
-            TrajectoryPoint startPoint = getCurrentPoint(replanificationTime);
             int N = sampledTrajectory_.size();
 
+            // case trajectory is finished
             if (replanificationTime >= getDuration() || N == 1)
             {
                 sampledTrajectory_.clear();
-                sampledTrajectory_.push_back(startPoint);
+                sampledTrajectory_.push_back(getCurrentPoint(replanificationTime));
                 duration_ = 0.0;
                 return;
             }
 
             double sampling_time = getDuration() / (N-1);
+            double currentMaxLinearVelocity = 0.0; // maximum theoretical velocity that could be obtained
+            double currentCurvilinearAbscissa = replanificationTime; // time in the old traj
+            double currentScalingFactor = 0.0; // factor by which to slowdown the traj
 
-            double newDuration = getDuration() - replanificationTime + timetoincrement / 2.0;
-            int newN = ceil(newDuration / sampling_time);
-
+            TrajectoryPoint tp;
             std::vector<TrajectoryPoint > newSampledTrajectory;
-            for (int i = 0; i < newN; i++)
+            
+            while (currentCurvilinearAbscissa < getDuration())
             {
-                double newTrajTime = i * sampling_time;
-                double oldTrajTime = newTrajTime - timetoincrement / 2.0;
-
-                // get point slower
-                if (newTrajTime < timetoincrement)
-                {
-                    oldTrajTime = newTrajTime / 2;
-                }
-                TrajectoryPoint tp = getCurrentPoint(replanificationTime + oldTrajTime);
-
-                // scale velocity
-                if (newTrajTime < timetoincrement)
-                {
-                    tp.linearVelocity  *= newTrajTime / timetoincrement;
-                    tp.angularVelocity *= newTrajTime / timetoincrement;
-                } 
+                // compute new trajectory point, scaling velocities
+                tp = getCurrentPoint(currentCurvilinearAbscissa);
+                tp.linearVelocity *= currentScalingFactor;
+                tp.angularVelocity *= currentScalingFactor;
                 newSampledTrajectory.push_back(tp);
+
+                // prepare next point
+                currentMaxLinearVelocity = std::min(
+                    config_.maxWheelVelocity,
+                    currentMaxLinearVelocity + config_.maxWheelAcceleration * sampling_time
+                );
+                currentScalingFactor = currentMaxLinearVelocity / config_.maxWheelVelocity;
+                currentCurvilinearAbscissa += sampling_time * std::pow(currentScalingFactor, 2);
             }
 
-            // modify object
-            duration_ = newDuration;
+            // finally, add last point to end trajectory properly
+            newSampledTrajectory.push_back(getEndPoint());
+
+            duration_ = (newSampledTrajectory.size() - 1) * sampling_time;
             sampledTrajectory_ = newSampledTrajectory;
         }
 
