@@ -83,6 +83,16 @@ miam::RobotPosition MotionController::getCurrentPosition()
     return currentPosition_.get();
 }
 
+miam::trajectory::TrajectoryVector MotionController::getCurrentTrajectories()
+{
+    return currentTrajectories_;
+}
+
+double MotionController::getCurvilinearAbscissa()
+{
+    return curvilinearAbscissa_;
+}
+
 void MotionController::resetPosition(miam::RobotPosition const &resetPosition, bool const &resetX, bool const &resetY, bool const &resetTheta)
 {
     miam::RobotPosition position = currentPosition_.get();

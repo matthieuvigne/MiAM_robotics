@@ -96,6 +96,7 @@
         private:
             AbstractStrategy *strategy_;
             std::vector<ViewerTrajectoryPoint> trajectory_;
+            std::vector<ViewerTrajectoryPoint> currentTrajectory_;
             RobotPosition simulationPosition_;
             DrivetrainMeasurements measurements_;
             DrivetrainTarget motionTarget_;

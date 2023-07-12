@@ -61,6 +61,30 @@ void ViewerRobot::draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mm
     cr->set_source_rgb(r_, g_, b_);
     cr->set_line_width(2.0);
     cr->stroke();
+
+        // Draw robot target trajectory.
+    if (!currentTrajectory_.empty())
+    {
+        double pointX =  mmToCairo * currentTrajectory_.at(0).position.x;
+        double pointY =  mmToCairo * (TABLE_HEIGHT_MM - currentTrajectory_.at(0).position.y);
+
+        cr->move_to(pointX, pointY);
+        for(unsigned long i = 0; i < currentTrajectory_.size(); i+=10)
+        {
+            pointX =  mmToCairo * currentTrajectory_.at(i).position.x;
+            pointY =  mmToCairo * (TABLE_HEIGHT_MM - currentTrajectory_.at(i).position.y);
+            cr->line_to(pointX, pointY);
+        }
+        cr->set_source_rgb(1.0, 1.0, 1.0);
+        cr->set_line_width(5.0);
+        cr->stroke_preserve();
+        cr->set_source_rgb(1.0-r_, 1.0-g_, 1.0-b_);
+        cr->set_line_width(2.0);
+        // std::vector<double> dashed3({1.0});
+        // cr ->set_dash(dashed3, 1.0);
+        cr->stroke();
+    }
+    
 }
 
 
@@ -132,6 +156,22 @@ void ViewerRobot::tick(double const& dt, double const& simulationTime, std::vect
         p.position.theta = M_PI - p.position.theta;
     }
     trajectory_.push_back(p);
+
+    // Current trajectory
+    currentTrajectory_.clear();
+    for (int i = 0; i < motionController_.getCurrentTrajectories().size(); i++)
+    {
+        Trajectory* traj = motionController_.getCurrentTrajectories().at(i).get();
+        double startAbscissa = (i == 0) ? motionController_.getCurvilinearAbscissa() : 0.0;
+        for (double t = startAbscissa ; t < traj->getDuration(); t += 0.01)
+        {
+            ViewerTrajectoryPoint p;
+            p.time = 0;
+            p.position = traj->getCurrentPoint(t).position;
+            p.score = 0;
+            currentTrajectory_.push_back(p);
+        }
+    }
 
     // Update gui
     RobotGUIData data;

@@ -208,6 +208,9 @@
 
             double minDistancePositionToObstacle(RobotPosition position, bool includePersistentObstacles);
 
+            TrajectoryVector getCurrentTrajectories();
+            double getCurvilinearAbscissa();
+
         private:
             ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
             double currentTime_{0.0};
