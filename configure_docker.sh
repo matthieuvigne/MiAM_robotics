@@ -15,6 +15,7 @@ mkdir -p build/miam_utils
 mkdir -p build/vision
 mkdir -p build/eurobot2023/embedded
 mkdir -p build/eurobot2023/simulation
+mkdir -p build/eurobot2023/simulation/logs
 mkdir install
 
 # Compile and install rplidar
