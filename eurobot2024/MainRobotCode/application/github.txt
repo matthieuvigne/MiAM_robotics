@@ -1,0 +1,10 @@
+Create the SSH-key for Github:
+- ssh-keygen -t ed25519 -C "rdubois555@gmail.com"
+- connect to Github and add the key by copying the content of the ed25519.pub file
+Activate the SSH key:
+- eval "$(ssh-agent -s)'
+- ssh-add ~/.ssh/id_ed25519
+- git config --global --add safe.directory /miam_workspace/src/MiAM_robotics (if necessary)
+- ssh -T git@github.com (to authentificate)
+- git remote set-url origin git@github.com:matthieuvigne/MiAM_robotics.git (if necessary)
+After that "git push" should work well without asking for any further authentification.
