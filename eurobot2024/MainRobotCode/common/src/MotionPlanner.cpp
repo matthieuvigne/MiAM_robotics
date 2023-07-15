@@ -61,9 +61,9 @@ std::mutex acado_mutex;
 
 TrajectoryConfig MotionPlanner::getMPCTrajectoryConfig() {
     TrajectoryConfig c;
-    c.maxWheelVelocity = 500;
-    c.maxWheelAcceleration = 600;
-    c.robotWheelSpacing = 100.5;
+    c.maxWheelVelocity = 400.0;
+    c.maxWheelAcceleration = 400.0;
+    c.robotWheelSpacing = 85.0;
     return c;
 };
 
@@ -101,7 +101,7 @@ TrajectoryVector MotionPlanner::planMotion(
         textlog << "[MotionPlanner] " << "Solving trajectory rounded corners " << std::endl;
        
         miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
-        cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
+        cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 10% overhead to the controller
 
         st = computeTrajectoryRoundedCorner(
             cplan,
