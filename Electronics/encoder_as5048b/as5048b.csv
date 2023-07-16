@@ -1,0 +1,18 @@
+"Source:","/home/matthieu/miam_workspace/src/MiAM_robotics/Electronics/encoder_as5048b/as5048b.kicad_sch"
+"Date:","Sun 16 Jul 2023 07:19:11 PM CEST"
+"Tool:","Eeschema 7.0.5-1.fc38"
+"Generator:","/usr/share/kicad/plugins/bom_csv_grouped_by_value.py"
+"Component Count:","16"
+
+"Collated Components:"
+
+"Item","Qty","Reference(s)","Value","LibPart","Footprint","Datasheet","DNP","Arrow Part Number","Arrow Price/Stock","Datasheet_1","Footprint_1","Height","Manufacturer_Name","Manufacturer_Part_Number","Mouser Part Number","Mouser Price/Stock","RS","Reference_1","Value_1"
+"1","1","C1","100nF","Device:C","Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder","~","","","","","","","","","","","    464-6688","",""
+"2","1","C2","10uF","Device:C","Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder","~","","","","","","","","","","","    198-8179","",""
+"3","4","H1, H2, H3, H4","MountingHole","Mechanical:MountingHole","MountingHole:MountingHole_3.2mm_M3","~","","","","","","","","","","","","",""
+"4","1","IC1","AS5048B-HTSP","AS5048B-HTSP:AS5048B-HTSP","Package_SO:TSSOP-14_4.4x5mm_P0.65mm","","","AS5048B-HTSP","https://www.arrow.com/en/products/as5048b-htsp/ams-ag?region=nac","https://ams.com/documents/20143/36005/AS5048_DS000298_4-00.pdf/910aef1f-6cd3-cbda-9d09-41f152104832","SOP65P640X120-14N","1.2","ams","AS5048B-HTSP","985-AS5048B-HTSP","https://www.mouser.co.uk/ProductDetail/ams/AS5048B-HTSP?qs=eSfX1CQlHqrQ5nbzjAB0gA%3D%3D"," 201-8313","IC","AS5048B-HTSP"
+"5","2","J1, J2","Conn_01x04_Male","Connector:Conn_01x04_Male","Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal","~","","","","","","","","","","","    515-1513","",""
+"6","2","JP1, JP2","SolderJumper_2_Open","Jumper:SolderJumper_2_Open","Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm","~","","","","","","","","","","","","",""
+"7","2","R1, R2","75k","Device:R","Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder","~","","","","","","","","","","","","",""
+"8","2","R3, R4","4.7k","Device:R","Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder","~","","","","","","","","","","","","",""
+"9","1","TP1","TestPoint","Connector:TestPoint","TestPoint:TestPoint_Pad_1.0x1.0mm","~","","","","","","","","","","","","",""

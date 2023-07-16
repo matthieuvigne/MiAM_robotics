@@ -1,0 +1,37 @@
+EESchema-LIBRARY Version 2.3
+#encoding utf-8
+#SamacSys ECAD Model AS5048B-HTSP
+#/662602/29867/2.50/14/3/Integrated Circuit
+DEF AS5048B-HTSP IC 0 30 Y Y 1 F N
+F0 "IC" 1150 300 50 H V L CNN
+F1 "AS5048B-HTSP" 1150 200 50 H V L CNN
+F2 "SOP65P640X120-14N" 1150 100 50 H I L CNN
+F3 "https://ams.com/documents/20143/36005/AS5048_DS000298_4-00.pdf/910aef1f-6cd3-cbda-9d09-41f152104832" 1150 0 50 H I L CNN
+F4 "Board Mount Hall Effect / Magnetic Sensors 14-Bit Rotary Pos Sensor Dig Int PWM" 1150 -100 50 H I L CNN "Description"
+F5 "1.2" 1150 -200 50 H I L CNN "Height"
+F6 "ams" 1150 -300 50 H I L CNN "Manufacturer_Name"
+F7 "AS5048B-HTSP" 1150 -400 50 H I L CNN "Manufacturer_Part_Number"
+F8 "985-AS5048B-HTSP" 1150 -500 50 H I L CNN "Mouser Part Number"
+F9 "https://www.mouser.co.uk/ProductDetail/ams/AS5048B-HTSP?qs=eSfX1CQlHqrQ5nbzjAB0gA%3D%3D" 1150 -600 50 H I L CNN "Mouser Price/Stock"
+F10 "AS5048B-HTSP" 1150 -700 50 H I L CNN "Arrow Part Number"
+F11 "https://www.arrow.com/en/products/as5048b-htsp/ams-ag?region=nac" 1150 -800 50 H I L CNN "Arrow Price/Stock"
+DRAW
+X SDA 1 0 0 200 R 50 50 0 0 P
+X SCL 2 0 -100 200 R 50 50 0 0 P
+X A2 3 0 -200 200 R 50 50 0 0 P
+X A1 4 0 -300 200 R 50 50 0 0 P
+X TEST_1 5 0 -400 200 R 50 50 0 0 P
+X TEST_2 6 0 -500 200 R 50 50 0 0 P
+X TEST_3 7 0 -600 200 R 50 50 0 0 P
+X PWM 14 1300 0 200 L 50 50 0 0 P
+X GND 13 1300 -100 200 L 50 50 0 0 P
+X VDD3V 12 1300 -200 200 L 50 50 0 0 P
+X VDD5V 11 1300 -300 200 L 50 50 0 0 P
+X TEST_6 10 1300 -400 200 L 50 50 0 0 P
+X TEST_5 9 1300 -500 200 L 50 50 0 0 P
+X TEST_4 8 1300 -600 200 L 50 50 0 0 P
+P 5 0 1 6 200 100 1100 100 1100 -700 200 -700 200 100 N
+ENDDRAW
+ENDDEF
+#
+#End Library

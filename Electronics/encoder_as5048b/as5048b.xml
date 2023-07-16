@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="E">
+  <design>
+    <source>/home/matthieu/miam_workspace/src/MiAM_robotics/Electronics/encoder_as5048b/as5048b.kicad_sch</source>
+    <date>Sun 16 Jul 2023 07:19:11 PM CEST</date>
+    <tool>Eeschema 7.0.5-1.fc38</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>as5048b.kicad_sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+        <comment number="5" value=""/>
+        <comment number="6" value=""/>
+        <comment number="7" value=""/>
+        <comment number="8" value=""/>
+        <comment number="9" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="C1">
+      <value>100nF</value>
+      <footprint>Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder</footprint>
+      <fields>
+        <field name="RS">    464-6688</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="RS" value="    464-6688"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Unpolarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0287ca99-b047-44da-9a60-ccc882691f32</tstamps>
+    </comp>
+    <comp ref="C2">
+      <value>10uF</value>
+      <footprint>Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder</footprint>
+      <fields>
+        <field name="RS">    198-8179</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="RS" value="    198-8179"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Unpolarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>862ca577-c23e-4d0b-b8d5-c31ceba0c94f</tstamps>
+    </comp>
+    <comp ref="H1">
+      <value>MountingHole</value>
+      <footprint>MountingHole:MountingHole_3.2mm_M3</footprint>
+      <libsource lib="Mechanical" part="MountingHole" description="Mounting Hole without connection"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Mounting Hole without connection"/>
+      <property name="ki_keywords" value="mounting hole"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1bd6d6ee-e1b7-44f9-b658-27c0a8f03ee4</tstamps>
+    </comp>
+    <comp ref="H2">
+      <value>MountingHole</value>
+      <footprint>MountingHole:MountingHole_3.2mm_M3</footprint>
+      <libsource lib="Mechanical" part="MountingHole" description="Mounting Hole without connection"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Mounting Hole without connection"/>
+      <property name="ki_keywords" value="mounting hole"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9134cdc6-d22e-47f0-a772-714130ea3928</tstamps>
+    </comp>
+    <comp ref="H3">
+      <value>MountingHole</value>
+      <footprint>MountingHole:MountingHole_3.2mm_M3</footprint>
+      <libsource lib="Mechanical" part="MountingHole" description="Mounting Hole without connection"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Mounting Hole without connection"/>
+      <property name="ki_keywords" value="mounting hole"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>44331c2f-0b5e-4281-9fbf-3a0f5a39617d</tstamps>
+    </comp>
+    <comp ref="H4">
+      <value>MountingHole</value>
+      <footprint>MountingHole:MountingHole_3.2mm_M3</footprint>
+      <libsource lib="Mechanical" part="MountingHole" description="Mounting Hole without connection"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Mounting Hole without connection"/>
+      <property name="ki_keywords" value="mounting hole"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>dc9b7323-0c9f-490a-b8a3-c1740deb18a0</tstamps>
+    </comp>
+    <comp ref="IC1">
+      <value>AS5048B-HTSP</value>
+      <footprint>Package_SO:TSSOP-14_4.4x5mm_P0.65mm</footprint>
+      <fields>
+        <field name="Arrow Part Number">AS5048B-HTSP</field>
+        <field name="Arrow Price/Stock">https://www.arrow.com/en/products/as5048b-htsp/ams-ag?region=nac</field>
+        <field name="Datasheet_1">https://ams.com/documents/20143/36005/AS5048_DS000298_4-00.pdf/910aef1f-6cd3-cbda-9d09-41f152104832</field>
+        <field name="Footprint_1">SOP65P640X120-14N</field>
+        <field name="Height">1.2</field>
+        <field name="Manufacturer_Name">ams</field>
+        <field name="Manufacturer_Part_Number">AS5048B-HTSP</field>
+        <field name="Mouser Part Number">985-AS5048B-HTSP</field>
+        <field name="Mouser Price/Stock">https://www.mouser.co.uk/ProductDetail/ams/AS5048B-HTSP?qs=eSfX1CQlHqrQ5nbzjAB0gA%3D%3D</field>
+        <field name="RS"> 201-8313</field>
+        <field name="Reference_1">IC</field>
+        <field name="Value_1">AS5048B-HTSP</field>
+      </fields>
+      <libsource lib="AS5048B-HTSP" part="AS5048B-HTSP" description="Board Mount Hall Effect / Magnetic Sensors 14-Bit Rotary Pos Sensor Dig Int PWM"/>
+      <property name="Reference_1" value="IC"/>
+      <property name="Value_1" value="AS5048B-HTSP"/>
+      <property name="Footprint_1" value="SOP65P640X120-14N"/>
+      <property name="Datasheet_1" value="https://ams.com/documents/20143/36005/AS5048_DS000298_4-00.pdf/910aef1f-6cd3-cbda-9d09-41f152104832"/>
+      <property name="Height" value="1.2"/>
+      <property name="Manufacturer_Name" value="ams"/>
+      <property name="Manufacturer_Part_Number" value="AS5048B-HTSP"/>
+      <property name="Mouser Part Number" value="985-AS5048B-HTSP"/>
+      <property name="Mouser Price/Stock" value="https://www.mouser.co.uk/ProductDetail/ams/AS5048B-HTSP?qs=eSfX1CQlHqrQ5nbzjAB0gA%3D%3D"/>
+      <property name="Arrow Part Number" value="AS5048B-HTSP"/>
+      <property name="Arrow Price/Stock" value="https://www.arrow.com/en/products/as5048b-htsp/ams-ag?region=nac"/>
+      <property name="RS" value=" 201-8313"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Board Mount Hall Effect / Magnetic Sensors 14-Bit Rotary Pos Sensor Dig Int PWM"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>569d5692-f69d-4b66-8aba-c24ab5e3303b</tstamps>
+    </comp>
+    <comp ref="J1">
+      <value>Conn_01x04_Male</value>
+      <footprint>Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal</footprint>
+      <fields>
+        <field name="RS">    515-1513</field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="RS" value="    515-1513"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>abf3080c-afc6-468a-b1c2-e411185ffe1d</tstamps>
+    </comp>
+    <comp ref="J2">
+      <value>Conn_01x04_Male</value>
+      <footprint>Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal</footprint>
+      <fields>
+        <field name="RS">    515-1513</field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="RS" value="    515-1513"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>14564fa7-cbfc-4790-a76b-6ff5dfc714c3</tstamps>
+    </comp>
+    <comp ref="JP1">
+      <value>SolderJumper_2_Open</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm</footprint>
+      <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0363e712-855c-405a-b6d6-c87fee7d270c</tstamps>
+    </comp>
+    <comp ref="JP2">
+      <value>SolderJumper_2_Open</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm</footprint>
+      <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>7a0cd058-ab00-400f-b287-27a0ab47217d</tstamps>
+    </comp>
+    <comp ref="R1">
+      <value>75k</value>
+      <footprint>Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="RS" value=""/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b2e72ebc-63b9-4077-b6ab-c3aa287a48ef</tstamps>
+    </comp>
+    <comp ref="R2">
+      <value>75k</value>
+      <footprint>Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="RS" value=""/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>07818e37-6582-4168-a49b-a75b8cb2e979</tstamps>
+    </comp>
+    <comp ref="R3">
+      <value>4.7k</value>
+      <footprint>Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="RS" value=""/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f8b15c2c-e9d5-42f3-afe6-3509bfec9b18</tstamps>
+    </comp>
+    <comp ref="R4">
+      <value>4.7k</value>
+      <footprint>Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="RS" value=""/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>7e12ea10-7f18-4e6a-9666-cd1f761f9df4</tstamps>
+    </comp>
+    <comp ref="TP1">
+      <value>TestPoint</value>
+      <footprint>TestPoint:TestPoint_Pad_1.0x1.0mm</footprint>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="as5048b.kicad_sch"/>
+      <property name="ki_description" value="test point"/>
+      <property name="ki_keywords" value="test point tp"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8c810ad9-36a5-49a8-9306-f5f2585c44dc</tstamps>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="AS5048B-HTSP" part="AS5048B-HTSP">
+      <description>Board Mount Hall Effect / Magnetic Sensors 14-Bit Rotary Pos Sensor Dig Int PWM</description>
+      <fields>
+        <field name="Value">AS5048B-HTSP</field>
+        <field name="Reference_1">IC</field>
+        <field name="Value_1">AS5048B-HTSP</field>
+        <field name="Footprint_1">SOP65P640X120-14N</field>
+        <field name="Datasheet_1">https://ams.com/documents/20143/36005/AS5048_DS000298_4-00.pdf/910aef1f-6cd3-cbda-9d09-41f152104832</field>
+        <field name="Height">1.2</field>
+        <field name="Manufacturer_Name">ams</field>
+        <field name="Manufacturer_Part_Number">AS5048B-HTSP</field>
+        <field name="Mouser Part Number">985-AS5048B-HTSP</field>
+        <field name="Mouser Price/Stock">https://www.mouser.co.uk/ProductDetail/ams/AS5048B-HTSP?qs=eSfX1CQlHqrQ5nbzjAB0gA%3D%3D</field>
+        <field name="Arrow Part Number">AS5048B-HTSP</field>
+        <field name="Arrow Price/Stock">https://www.arrow.com/en/products/as5048b-htsp/ams-ag?region=nac</field>
+      </fields>
+      <pins>
+        <pin num="1" name="SDA" type="passive"/>
+        <pin num="2" name="SCL" type="passive"/>
+        <pin num="3" name="A2" type="passive"/>
+        <pin num="4" name="A1" type="passive"/>
+        <pin num="5" name="TEST_1" type="passive"/>
+        <pin num="6" name="TEST_2" type="passive"/>
+        <pin num="7" name="TEST_3" type="passive"/>
+        <pin num="8" name="TEST_4" type="passive"/>
+        <pin num="9" name="TEST_5" type="passive"/>
+        <pin num="10" name="TEST_6" type="passive"/>
+        <pin num="11" name="VDD5V" type="passive"/>
+        <pin num="12" name="VDD3V" type="passive"/>
+        <pin num="13" name="GND" type="passive"/>
+        <pin num="14" name="PWM" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector" part="Conn_01x04_Male">
+      <description>Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x04_Male</field>
+        <field name="Datasheet">~</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector" part="TestPoint">
+      <description>test point</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Pin*</fp>
+        <fp>Test*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">TP</field>
+        <field name="Value">TestPoint</field>
+        <field name="Datasheet">~</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C">
+      <description>Unpolarized capacitor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C</field>
+        <field name="Datasheet">~</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="R">
+      <description>Resistor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>R_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R</field>
+        <field name="Datasheet">~</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Jumper" part="SolderJumper_2_Open">
+      <description>Solder Jumper, 2-pole, open</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>SolderJumper*Open*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">SolderJumper_2_Open</field>
+        <field name="Datasheet">~</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="B" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Mechanical" part="MountingHole">
+      <description>Mounting Hole without connection</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>MountingHole*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">H</field>
+        <field name="Value">MountingHole</field>
+        <field name="Datasheet">~</field>
+      </fields>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="AS5048B-HTSP">
+      <uri>/home/matthieu/miam_workspace/src/MiAM_robotics/Electronics/encoder_as5048b/libraries/AS5048B-HTSP/AS5048B-HTSP.kicad_sym</uri>
+    </library>
+    <library logical="Connector">
+      <uri>/usr/share/kicad/symbols//Connector.kicad_sym</uri>
+    </library>
+    <library logical="Device">
+      <uri>/usr/share/kicad/symbols//Device.kicad_sym</uri>
+    </library>
+    <library logical="Jumper">
+      <uri>/usr/share/kicad/symbols//Jumper.kicad_sym</uri>
+    </library>
+    <library logical="Mechanical">
+      <uri>/usr/share/kicad/symbols//Mechanical.kicad_sym</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="+3.3V">
+      <node ref="C1" pin="1" pintype="passive"/>
+      <node ref="C2" pin="1" pintype="passive"/>
+      <node ref="IC1" pin="11" pinfunction="VDD5V" pintype="passive"/>
+      <node ref="IC1" pin="12" pinfunction="VDD3V" pintype="passive"/>
+      <node ref="J1" pin="2" pinfunction="Pin_2" pintype="passive"/>
+      <node ref="J2" pin="2" pinfunction="Pin_2" pintype="passive"/>
+      <node ref="JP1" pin="2" pinfunction="B" pintype="passive"/>
+      <node ref="JP2" pin="1" pinfunction="A" pintype="passive"/>
+      <node ref="R3" pin="1" pintype="passive"/>
+      <node ref="R4" pin="1" pintype="passive"/>
+    </net>
+    <net code="2" name="GND">
+      <node ref="C1" pin="2" pintype="passive"/>
+      <node ref="C2" pin="2" pintype="passive"/>
+      <node ref="IC1" pin="13" pinfunction="GND" pintype="passive"/>
+      <node ref="IC1" pin="9" pinfunction="TEST_5" pintype="passive"/>
+      <node ref="J1" pin="1" pinfunction="Pin_1" pintype="passive"/>
+      <node ref="J2" pin="1" pinfunction="Pin_1" pintype="passive"/>
+      <node ref="R1" pin="2" pintype="passive"/>
+      <node ref="R2" pin="2" pintype="passive"/>
+    </net>
+    <net code="3" name="Net-(IC1-A1)">
+      <node ref="IC1" pin="4" pinfunction="A1" pintype="passive"/>
+      <node ref="JP1" pin="1" pinfunction="A" pintype="passive"/>
+      <node ref="R2" pin="1" pintype="passive"/>
+    </net>
+    <net code="4" name="Net-(IC1-A2)">
+      <node ref="IC1" pin="3" pinfunction="A2" pintype="passive"/>
+      <node ref="JP2" pin="2" pinfunction="B" pintype="passive"/>
+      <node ref="R1" pin="1" pintype="passive"/>
+    </net>
+    <net code="5" name="Net-(IC1-PWM)">
+      <node ref="IC1" pin="14" pinfunction="PWM" pintype="passive"/>
+      <node ref="TP1" pin="1" pinfunction="1" pintype="passive"/>
+    </net>
+    <net code="6" name="Net-(IC1-SCL)">
+      <node ref="IC1" pin="2" pinfunction="SCL" pintype="passive"/>
+      <node ref="J1" pin="4" pinfunction="Pin_4" pintype="passive"/>
+      <node ref="J2" pin="4" pinfunction="Pin_4" pintype="passive"/>
+      <node ref="R4" pin="2" pintype="passive"/>
+    </net>
+    <net code="7" name="Net-(IC1-SDA)">
+      <node ref="IC1" pin="1" pinfunction="SDA" pintype="passive"/>
+      <node ref="J1" pin="3" pinfunction="Pin_3" pintype="passive"/>
+      <node ref="J2" pin="3" pinfunction="Pin_3" pintype="passive"/>
+      <node ref="R3" pin="2" pintype="passive"/>
+    </net>
+    <net code="8" name="unconnected-(IC1-TEST_1-Pad5)">
+      <node ref="IC1" pin="5" pinfunction="TEST_1" pintype="passive"/>
+    </net>
+    <net code="9" name="unconnected-(IC1-TEST_2-Pad6)">
+      <node ref="IC1" pin="6" pinfunction="TEST_2" pintype="passive"/>
+    </net>
+    <net code="10" name="unconnected-(IC1-TEST_3-Pad7)">
+      <node ref="IC1" pin="7" pinfunction="TEST_3" pintype="passive"/>
+    </net>
+    <net code="11" name="unconnected-(IC1-TEST_4-Pad8)">
+      <node ref="IC1" pin="8" pinfunction="TEST_4" pintype="passive"/>
+    </net>
+    <net code="12" name="unconnected-(IC1-TEST_6-Pad10)">
+      <node ref="IC1" pin="10" pinfunction="TEST_6" pintype="passive"/>
+    </net>
+  </nets>
+</export>
