@@ -18,7 +18,7 @@ endif()
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 # Add googletest directly to our build. This defines
-# the gtest and gtest_main targets.
+# the gtest and gtest_main targets.main
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
@@ -30,10 +30,12 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
   include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
+include_directories(${RPLIDARLIB_INCLUDE_DIRS} ${HDF5LIB_INCLUDE_DIRS})
+link_directories(${RPLIDARLIB_LIBRARY_DIRS} ${HDF5LIB_LIBRARY_DIRS})
+
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(unit unit.cc kinematicsTest.cc)
 include_directories("../include")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${RPLIDARLIB_LIBRARY_DIRS}")
-target_link_libraries(unit gtest_main miam_utils ${RPLIDARLIB_LIBRARIES})
+target_link_libraries(unit gtest_main miam_utils ${RPLIDARLIB_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar)
 add_test(NAME unit COMMAND unit)

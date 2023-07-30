@@ -1,0 +1,43 @@
+name: CI
+
+on:
+    push
+
+# Jobs section
+jobs:
+    test:
+      runs-on: ubuntu-latest
+      container:
+          image: ghcr.io/matthieuvigne/miam:latest
+          credentials:
+             username: matthieuvigne
+             password: ${{  secrets.DOCKER_CONTAINER_REGISTRY_TOKEN }}
+      steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: build miam_utils
+        run: |
+          # Build everything, for both PC and robot
+          mkdir -p /miam_workspace/install/ &&\
+          export PATH=/miam_workspace/install/bin:$PATH &&\
+          export PKG_CONFIG_PATH=/miam_workspace/install/lib/pkgconfig:$PKG_CONFIG_PATH &&\
+          export LD_LIBRARY_PATH=/miam_workspace/install/lib:$LD_LIBRARY_PATH &&\
+          mkdir build &&\
+          cd build &&\
+          mkdir rplidar && cd rplidar && cmake ../../rplidar_sdk -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=ON && make -j4 install && cmake . -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=OFF && make -j4 install && cd ../ &&\
+          mkdir miam_utils && cd miam_utils && cmake ../../miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=ON -DUNIT_TESTS=OFF && make -j4 install && cmake . -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=OFF -DUNIT_TESTS=ON && cmake . && make install && cd ../ &&\
+          mkdir miam_vision && cd miam_vision && cmake ../../vision -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=ON && make -j4 install && cmake . -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=OFF && make -j4 install && cd ../
+      - name: build robot code
+        run: |
+          export PATH=/miam_workspace/install/bin:$PATH &&\
+          export PKG_CONFIG_PATH=/miam_workspace/install/lib/pkgconfig:$PKG_CONFIG_PATH &&\
+          export LD_LIBRARY_PATH=/miam_workspace/install/lib:$LD_LIBRARY_PATH &&\
+          cd build &&\
+          mkdir eurobot2023 && cd eurobot2023 &&\
+          mkdir embedded && cd embedded && cmake ../../../eurobot2023/MainRobotCode/embedded && make -j4 && cd .. &&\
+          mkdir simulation && cd simulation && cmake ../../../eurobot2023/MainRobotCode/simulation && make -j4 && cd ..
+      - name: miam_utils test
+        run: |
+          cd build/miam_utils &&\
+          ./unit/unit
