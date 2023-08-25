@@ -42,8 +42,10 @@
             /// @param value Value
             void log(std::string const& name, double const& time, double const& value);
 
-            /// @brief Flush contents to disk.
-            void flush();
+            /// @brief Flush and close the file.
+            ///
+            /// @details This function is blocking and only returns once the write operation is complete.
+            void close();
 
         private:
             void loggerThread(std::string const& filename);
@@ -56,7 +58,7 @@
 
             std::mutex mutex_;
             std::thread thread_;
-            bool askForTerminate_;
+            bool askForTerminate_{false};
     };
 
 #endif

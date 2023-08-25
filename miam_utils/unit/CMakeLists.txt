@@ -34,8 +34,10 @@ include_directories(${RPLIDARLIB_INCLUDE_DIRS} ${HDF5LIB_INCLUDE_DIRS})
 link_directories(${RPLIDARLIB_LIBRARY_DIRS} ${HDF5LIB_LIBRARY_DIRS})
 
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(unit unit.cc kinematicsTest.cc)
+file(GLOB_RECURSE SOURCES "*.cc")
+add_executable(unit ${SOURCES})
 include_directories("../include")
 
-target_link_libraries(unit gtest_main miam_utils ${RPLIDARLIB_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar)
+message(${HDF5LIB_LIBRARIES})
+target_link_libraries(unit gtest_main miam_utils ${RPLIDARLIB_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar hdf5_cpp)
 add_test(NAME unit COMMAND unit)

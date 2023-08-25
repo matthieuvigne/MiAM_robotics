@@ -28,11 +28,7 @@ Logger::~Logger()
 void Logger::start(std::string const& filename, std::string const& teleplotPrefix)
 {
     teleplotPrefix_ = teleplotPrefix;
-    askForTerminate_ = true;
-    // Wait for thread to finish
-    if (thread_.joinable())
-        thread_.join();
-    askForTerminate_ = false;
+    close(); // Close possibly existing log.
     thread_ = std::thread(&Logger::loggerThread, this, filename);
 }
 
@@ -40,7 +36,7 @@ void Logger::loggerThread(std::string const& filename)
 {
     H5::H5File file(filename, H5F_ACC_TRUNC);
 
-    while (!askForTerminate_)
+    while (!askForTerminate_ || queuedDatapoints_.size() > 0)
     {
         std::vector<Datapoint> newDataPoints;
 
@@ -76,6 +72,8 @@ void Logger::loggerThread(std::string const& filename)
         }
         usleep(1000);
     }
+    for (auto d : datasets_)
+        d.flush();
     file.close();
 }
 
@@ -88,8 +86,11 @@ void Logger::log(std::string const& name, double const& time, double const& valu
     mutex_.unlock();
 }
 
-void Logger::flush()
+void Logger::close()
 {
-
+    askForTerminate_ = true;
+    if (thread_.joinable())
+        thread_.join();
+    askForTerminate_ = false;
 }
 
