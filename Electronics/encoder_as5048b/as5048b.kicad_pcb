@@ -405,7 +405,7 @@
     (path "/dc9b7323-0c9f-490a-b8a3-c1740deb18a0")
     (clearance 1)
     (attr exclude_from_pos_files)
-    (fp_text reference "H4" (at 0 -4.2) (layer "F.SilkS")
+    (fp_text reference "H4" (at 0 -4.2) (layer "F.SilkS") hide
         (effects (font (size 1 1) (thickness 0.15)))
       (tstamp 3a2a8ba8-8106-4925-907b-d281a1cfd547)
     )
