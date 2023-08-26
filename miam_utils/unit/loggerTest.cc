@@ -54,5 +54,81 @@ TEST(Logger, LogData)
         ASSERT_FLOAT_EQ(dataOut[0][i], i);
         ASSERT_FLOAT_EQ(dataOut[1][i], i*i);
     }
+}
 
+
+TEST(Logger, TextLog)
+{
+    Logger logger;
+    logger.start(FILENAME);
+    logger << "Hello world !" << std::endl;
+    logger << "Data: " << 42 << " " << 10.25 << std::endl;
+    for (int i = 0; i < 20; i++)
+    {
+        usleep(1000);
+        logger << "Data: " << i << std::endl;
+    }
+    logger.close();
+
+    // Read and check file content
+    H5::H5File file(FILENAME, H5F_ACC_RDONLY);
+
+    H5::DataSet textData = file.openGroup("textLog").openDataSet("log");
+
+    hsize_t dims_out[1];
+    int ndims = textData.getSpace().getSimpleExtentDims(dims_out, NULL);
+    ASSERT_EQ(ndims, 1);
+    ASSERT_EQ(dims_out[0], 22);
+
+
+    std::string dataOut[22];
+    hsize_t dimsm[1] = {1};
+    H5::DataSpace memspace(1, dimsm);
+    H5::DataSpace fspace = textData.getSpace();
+    hsize_t offset[1] = {0};
+    for (int i = 0; i < 22; i++)
+    {
+        fspace.selectHyperslab(H5S_SELECT_SET, dimsm, offset);
+        std::string str;
+        textData.read(dataOut[i], textData.getStrType(), memspace, fspace);
+        offset[0] += 1;
+    }
+
+    // Check content: all strings are formated [0.0TIMESTAMP] Data
+    // Check that timestamp are increasing
+    std::string expectedStrings[22] = {
+        "Hello world !",
+        "Data: 42 10.25",
+        "Data: 0",
+        "Data: 1",
+        "Data: 2",
+        "Data: 3",
+        "Data: 4",
+        "Data: 5",
+        "Data: 6",
+        "Data: 7",
+        "Data: 8",
+        "Data: 9",
+        "Data: 10",
+        "Data: 11",
+        "Data: 12",
+        "Data: 13",
+        "Data: 14",
+        "Data: 15",
+        "Data: 16",
+        "Data: 17",
+        "Data: 18",
+        "Data: 19",
+    };
+
+    double lastTime = 0;
+    for (int i = 0; i < 22; i++)
+    {
+        ASSERT_EQ(dataOut[i].substr(0, 4), "[0.0");
+        double time = std::stof(dataOut[i].substr(1, 8));
+        ASSERT_GT(time, lastTime);
+        lastTime = time;
+        ASSERT_EQ(dataOut[i].substr(9), "] " + expectedStrings[i]);
+    }
+    ASSERT_GT(lastTime, 0.020);
 }

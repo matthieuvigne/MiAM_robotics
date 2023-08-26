@@ -5,6 +5,7 @@
 #include <string>
 #include <algorithm>
 
+double const FLUSH_INTERVAL = 1.0;
 
 Logger::Logger():
     teleplot_(Teleplot::localhost()),
@@ -15,7 +16,6 @@ Logger::Logger():
     mutex_()
 {
 }
-
 
 Logger::~Logger()
 {
@@ -29,24 +29,41 @@ void Logger::start(std::string const& filename, std::string const& teleplotPrefi
 {
     teleplotPrefix_ = teleplotPrefix;
     close(); // Close possibly existing log.
+    clock_gettime(CLOCK_MONOTONIC, &timeOrigin_);
     thread_ = std::thread(&Logger::loggerThread, this, filename);
+}
+
+void Logger::setTimeOrigin(timespec const& origin)
+{
+    timeOrigin_ = origin;
+}
+
+double Logger::getElapsedTime()
+{
+    struct timespec currentTime;
+    clock_gettime(CLOCK_MONOTONIC, &currentTime);
+    return currentTime.tv_sec - timeOrigin_.tv_sec + (currentTime.tv_nsec - timeOrigin_.tv_nsec) / 1e9;
 }
 
 void Logger::loggerThread(std::string const& filename)
 {
     H5::H5File file(filename, H5F_ACC_TRUNC);
+    TextLogHandler textHandler(file);
+    double lastFlush = 0.0;
 
-    while (!askForTerminate_ || queuedDatapoints_.size() > 0)
+    while (!askForTerminate_ || queuedDatapoints_.size() > 0 || queuedText_.size() > 0)
     {
         std::vector<Datapoint> newDataPoints;
+        std::vector<std::string> newStrings;
 
         mutex_.lock();
         newDataPoints = queuedDatapoints_;
         queuedDatapoints_.clear();
+        newStrings = queuedText_;
+        queuedText_.clear();
         mutex_.unlock();
 
         // Process data points
-        bool hasFlush = false;
         for (auto p : newDataPoints)
         {
             // Lookup name - if it doesn't exist, add a new entry.
@@ -61,22 +78,27 @@ void Logger::loggerThread(std::string const& filename)
             else
                 id = itr - names_.begin();
 
-            hasFlush |= datasets_.at(id).addPoint(p.timestamp, p.value);
+            datasets_.at(id).addPoint(p.timestamp, p.value);
             teleplot_.update(teleplotPrefix_ + p.name, p.value);
         }
-        // Flush everything if at least one buffer was full
-        if (hasFlush)
+        for (auto s : newStrings)
+            textHandler.append(s);
+
+        // Flush everything at least at the specified time interval.
+        if (getElapsedTime() - lastFlush > FLUSH_INTERVAL)
         {
             for (auto d : datasets_)
                 d.flush();
+            textHandler.flush();
+            lastFlush = getElapsedTime();
         }
         usleep(1000);
     }
     for (auto d : datasets_)
         d.flush();
+    textHandler.flush();
     file.close();
 }
-
 
 
 void Logger::log(std::string const& name, double const& time, double const& value)
@@ -94,3 +116,14 @@ void Logger::close()
     askForTerminate_ = false;
 }
 
+Logger& Logger::operator<<(StandardEndLine manip)
+{
+    std::stringstream time;
+    time << "[" << std::fixed << std::setprecision(6) << getElapsedTime() << "] " << textData_.str();
+    std::cout << time.str() << std::endl;
+    textData_.str("");
+    mutex_.lock();
+    queuedText_.push_back(time.str());
+    mutex_.unlock();
+    return *this;
+}

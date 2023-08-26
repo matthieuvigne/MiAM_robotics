@@ -13,6 +13,7 @@ setup(
     package_dir={'': 'src'},
     scripts=["scripts/miam_plot",
              "scripts/miam_merge",
+             "scripts/miam_extract_text",
              "scripts/miam_get_latest_log",
              "scripts/miam_analyse_tracking",],
     data_files=[('images', ['images/table.png'])],

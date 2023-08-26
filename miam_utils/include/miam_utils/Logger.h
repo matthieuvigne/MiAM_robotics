@@ -36,6 +36,10 @@
             ///                           where several robots are logging.
             void start(std::string const& filename, std::string const& teleplotPrefix = "");
 
+            /// @brief Set the origin of time, used on text log line.
+            /// @param origin Time origin.
+            void setTimeOrigin(timespec const& origin);
+
             /// @brief  Log a variable value
             /// @param name Variable name
             /// @param time Timestamp (s)
@@ -47,18 +51,36 @@
             /// @details This function is blocking and only returns once the write operation is complete.
             void close();
 
+            /// @brief Log text data ; this data will also be printed in the terminal.
+            template<typename T>
+            Logger& operator<< (const T& data)
+            {
+                textData_ << data;
+                return *this;
+            }
+
+            // Handling of std::endl, see https://stackoverflow.com/questions/1134388/stdendl-is-of-unknown-type-when-overloading-operator
+            typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
+            typedef CoutType& (*StandardEndLine)(CoutType&);
+            Logger& operator<<(StandardEndLine manip);
+
         private:
             void loggerThread(std::string const& filename);
+            double getElapsedTime();
 
             Teleplot teleplot_;
             std::string teleplotPrefix_;
             std::vector<DatasetHandler> datasets_;
             std::vector<std::string> names_;
             std::vector<Datapoint> queuedDatapoints_;
+            std::vector<std::string> queuedText_;
 
             std::mutex mutex_;
             std::thread thread_;
             bool askForTerminate_{false};
-    };
 
+            std::stringstream textData_;
+
+            timespec timeOrigin_;
+    };
 #endif

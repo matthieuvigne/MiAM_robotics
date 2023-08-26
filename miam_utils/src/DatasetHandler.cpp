@@ -26,17 +26,13 @@ DatasetHandler::DatasetHandler(H5File &file, std::string const& datasetName)
     }
 }
 
-bool DatasetHandler::addPoint(double const& time, double const& value)
+void DatasetHandler::addPoint(double const& time, double const& value)
 {
     data_[0][pos_] = time;
     data_[1][pos_] = value;
     pos_++;
     if (pos_ == BUFFER_SIZE)
-    {
         flush();
-        return true;
-    }
-    return false;
 }
 
 void DatasetHandler::flush()
@@ -54,8 +50,58 @@ void DatasetHandler::flush()
 
     DataSpace mspace2(2, dims);
     dataset_.write(data_, PredType::NATIVE_DOUBLE, mspace2, fspace);
-    dataset_.flush(H5F_SCOPE_GLOBAL);
 
     datasetOffset_ += pos_;
     pos_ = 0;
+    dataset_.flush(H5F_SCOPE_LOCAL);
+}
+
+H5::StrType STRING_TYPE(H5::PredType::C_S1, H5T_VARIABLE);
+
+TextLogHandler::TextLogHandler(H5File &file)
+{
+    // Create extensible dataset.
+    hsize_t   dims[1]    = {0}; // dataset dimensions at creation
+    hsize_t   maxdims[1] = {H5S_UNLIMITED};
+    DataSpace mspace1(1, dims, maxdims);
+
+    DSetCreatPropList cparms;
+    hsize_t chunk_dims[1] = {BUFFER_SIZE};
+    cparms.setChunk(1, chunk_dims);
+
+    H5::Group group = file.createGroup("textLog");
+    dataset_ = group.createDataSet("log", STRING_TYPE, mspace1, cparms);
+}
+
+void TextLogHandler::append(std::string const& message)
+{
+    data_[pos_] = message;
+    pos_++;
+    if (pos_ == BUFFER_SIZE)
+        flush();
+}
+
+void TextLogHandler::flush()
+{
+    // Nothing to do on empty data.
+    if (pos_ == 0)
+        return;
+    hsize_t size[1] = {datasetOffset_ + pos_};
+    dataset_.extend(size);
+
+    DataSpace fspace = dataset_.getSpace();
+    hsize_t offset[1] = {datasetOffset_};
+    hsize_t dims[1] = {1};
+    DataSpace mspace2(1, dims);
+    for (int i = 0; i < pos_; i++)
+    {
+        fspace.selectHyperslab(H5S_SELECT_SET, dims, offset);
+        dataset_.write(&data_[i], STRING_TYPE, mspace2, fspace);
+        offset[0] += 1;
+    }
+
+    datasetOffset_ += pos_;
+    pos_ = 0;
+
+    dataset_.flush(H5F_SCOPE_GLOBAL);
 }

@@ -25,6 +25,8 @@ class LogLoader:
             self.data = {}
             # self.time = {}
             for n in f:
+                if n == "textLog":
+                    continue
                 val = np.array(f[n])
                 self.data[n] = (val[0], val[1])
         self.variables = list(self.data.keys())
