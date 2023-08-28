@@ -28,6 +28,11 @@ Logger::~Logger()
 void Logger::start(std::string const& filename, std::string const& teleplotPrefix)
 {
     teleplotPrefix_ = teleplotPrefix;
+    cliPrefix_ = "";
+    if (teleplotPrefix_.length() > 0)
+    {
+        cliPrefix_ = "[" + teleplotPrefix_ + "] ";
+    }
     close(); // Close possibly existing log.
     clock_gettime(CLOCK_MONOTONIC, &timeOrigin_);
     thread_ = std::thread(&Logger::loggerThread, this, filename);
@@ -120,7 +125,7 @@ Logger& Logger::operator<<(StandardEndLine manip)
 {
     std::stringstream time;
     time << "[" << std::fixed << std::setprecision(6) << getElapsedTime() << "] " << textData_.str();
-    std::cout << time.str() << std::endl;
+    std::cout << cliPrefix_ << time.str() << std::endl;
     textData_.str("");
     mutex_.lock();
     queuedText_.push_back(time.str());

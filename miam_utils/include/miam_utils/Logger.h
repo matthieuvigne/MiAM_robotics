@@ -32,7 +32,7 @@
 
             /// \brief Start logging thread.
             /// \param[in] filename Output filename
-            /// \param[in] teleplotPrefix Optional prefix for variables in teleplot: used in simulation
+            /// \param[in] teleplotPrefix Optional prefix for variables in teleplot / stdout: used in simulation
             ///                           where several robots are logging.
             void start(std::string const& filename, std::string const& teleplotPrefix = "");
 
@@ -70,6 +70,7 @@
 
             Teleplot teleplot_;
             std::string teleplotPrefix_;
+            std::string cliPrefix_;
             std::vector<DatasetHandler> datasets_;
             std::vector<std::string> names_;
             std::vector<Datapoint> queuedDatapoints_;

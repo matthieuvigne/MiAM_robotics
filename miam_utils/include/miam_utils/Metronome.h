@@ -26,19 +26,21 @@
             /// \details This funciton sleeps until the duration nPeriod has elapsed since the last call to metronome_wait or
             /// metronome_create. Possibly this will not sleep at all, if the CPU is running late; it will sleep no more than
             /// no more than nPeriod (granted no modification to targetTime is done by the user).
-            void wait();
+            virtual void wait();
 
             /// \brief Get the time elapsed since startTime.
             ///
             /// \return Time since startTime, in seconds.
-            double getElapsedTime();
+            virtual double getElapsedTime();
 
             /// \brief Reset the time target to remove delay catchup.
-            void resetLag();
+            virtual void resetLag();
+
+        protected:
+            int nPeriod_; ///< Metronome period, in nanoseconds.
 
         private:
             struct timespec startTime_; ///< The start time of the metronome (i.e. time when init was called).
             struct timespec targetTime_; ///< The target time to stop sleep: this is equal to startTime + n_iterations * nPeriod
-            int nPeriod_; ///< Metronome period, in nanoseconds.
     };
 #endif

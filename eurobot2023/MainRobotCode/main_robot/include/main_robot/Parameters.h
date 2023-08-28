@@ -27,12 +27,12 @@
                 param.maxWheelAccelerationTrajectory = 400.0; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
 
-                param.linearKp = 3.5;
-                param.linearKd = 0.01;
+                param.linearKp = 0.0;
+                param.linearKd = 0.0;
                 param.linearKi = 0.0;
-                param.transverseKp = 0.005;
-                param.rotationKp = 7.0;
-                param.rotationKd = 0.01;
+                param.transverseKp = 0.0;
+                param.rotationKp = 0.0;
+                param.rotationKd = 0.00;
                 param.rotationKi = 0.0;
 
 

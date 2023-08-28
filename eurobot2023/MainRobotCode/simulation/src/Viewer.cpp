@@ -72,7 +72,7 @@ bool Viewer::runSimulation()
             std::vector<Vector2 > obstaclesPosition;
             for (int j = 0; j < robots_.size(); j++)
             {
-                if (j != i) 
+                if (j != i)
                 {
                     Vector2 v;
                     v << robots_.at(j)->getPosition().x, robots_.at(j)->getPosition().y;
@@ -85,7 +85,6 @@ bool Viewer::runSimulation()
 
             r->tick(ROBOT_DT, simulationTime_, obstaclesPosition);
         }
-            
         realElapsedTime -= ROBOT_DT / simulationTimeRatio_;
         lastTime_ += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(ROBOT_DT / simulationTimeRatio_));
         if (simulationTime_ > MATCH_TIME)

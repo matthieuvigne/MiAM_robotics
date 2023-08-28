@@ -34,9 +34,9 @@ jobs:
           export PKG_CONFIG_PATH=/miam_workspace/install/lib/pkgconfig:$PKG_CONFIG_PATH &&\
           export LD_LIBRARY_PATH=/miam_workspace/install/lib:$LD_LIBRARY_PATH &&\
           cd build &&\
-          mkdir eurobot2023 && cd eurobot2023 &&\
-          mkdir embedded && cd embedded && cmake ../../../eurobot2023/MainRobotCode/embedded && make -j4 && cd .. &&\
-          mkdir simulation && cd simulation && cmake ../../../eurobot2023/MainRobotCode/simulation && make -j4 && cd ..
+          mkdir eurobot2024 && cd eurobot2024 &&\
+          mkdir embedded && cd embedded && cmake ../../../eurobot2024/MainRobotCode/embedded && make -j4 && cd .. &&\
+          mkdir simulation && cd simulation && cmake ../../../eurobot2024/MainRobotCode/simulation && make -j4 && cd ..
       - name: miam_utils test
         run: |
           cd build/miam_utils &&\

@@ -38,8 +38,8 @@ int main (int argc, char *argv[])
     }
 
     RMDX motor(&mcp);
-    int const motorRightId = 1;
-    int const motorLeftId = 2;
+    int const motorRightId = 3;
+    int const motorLeftId = 4;
 
     while (!motor.init(motorRightId))
     {
@@ -134,8 +134,8 @@ int main (int argc, char *argv[])
     }
 
     // Stop
-    rightController.stop();
-    leftController.stop();
+    // rightController.stop();
+    // leftController.stop();
 
     // Time it.
     // while (true)

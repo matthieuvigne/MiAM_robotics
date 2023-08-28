@@ -20,6 +20,7 @@
     #include <miam_utils/drivers/RMDX.h>
     #include <miam_utils/drivers/RMDXController.h>
     #include <miam_utils/drivers/AS5045Driver.h>
+    #include <miam_utils/drivers/INA226Driver.h>
     #include <miam_utils/trajectory/PointTurn.h>
     #include <miam_utils/trajectory/Utilities.h>
     #include <miam_utils/trajectory/DrivetrainKinematics.h>
@@ -124,6 +125,8 @@
 
             SPIWrapper spiEncoder_;
             AS5045 encoders_;
+
+            INA226 ina226_;
 
             bool isMCPInit_ = false;
             bool isMotorsInit_ = false;

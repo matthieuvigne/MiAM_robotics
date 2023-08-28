@@ -19,7 +19,7 @@ double const UNDERVOLTAGE_LEVEL = 19.5;
 // Motor control parameters
 double const Kp = 0.7;
 double const Ki = 0.9;
-double const maxOutput = 2.5;
+double const maxOutput = 20;
 double const filterCutoff = 10.0;
 double const maxFeedforward = 0.4;
 
@@ -83,7 +83,9 @@ bool Robot::initSystem()
     // Encoder init
     if (!isEncodersInit_)
     {
-        isEncodersInit_ = encoders_.init();
+        bool inaInit = ina226_.init(&RPI_I2C);
+
+        isEncodersInit_ = encoders_.init() & inaInit;
         if (!isEncodersInit_)
             guiState_.debugStatus += "Encoders init failed\n";
         else
@@ -132,11 +134,11 @@ bool Robot::setupBeforeMatchStart()
                 guiState_.debugStatus = "Waiting for battery voltage from motors";
                 return false;
             }
-            if ((batteryVoltageRight + batteryVoltageLeft) / 2.0 < UNDERVOLTAGE_LEVEL)
-            {
-                guiState_.state = robotstate::UNDERVOLTAGE;
-                return false;
-            }
+            // if ((batteryVoltageRight + batteryVoltageLeft) / 2.0 < UNDERVOLTAGE_LEVEL)
+            // {
+            //     guiState_.state = robotstate::UNDERVOLTAGE;
+            //     return false;
+            // }
             gui_->update(guiState_);
             guiState_.state = robotstate::STRATEGY_SETUP;
         }
@@ -317,6 +319,11 @@ void Robot::lowLevelLoop()
             }
         }
         double time4 =  metronome.getElapsedTime() - currentTime_;
+
+        INA226Reading power = ina226_.read();
+        motionController_.log("INA226.voltage", power.voltage);
+        motionController_.log("INA226.current", power.current);
+        motionController_.log("INA226.power", power.power);
 
         motionController_.log("MotorController.right.current", rightController_.current_);
         motionController_.log("MotorController.right.targetCurrent", rightController_.targetCurrent_);
