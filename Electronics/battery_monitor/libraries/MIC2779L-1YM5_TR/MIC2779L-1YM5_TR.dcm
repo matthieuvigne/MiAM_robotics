@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP MIC2779L-1YM5_TR
+D Voltage Monitor 5-Pin SOT-23 T/R
+K
+F https://ww1.microchip.com/downloads/en/DeviceDoc/MIC2779-Voltage-Monitor-with-Adjustable-Hysteresis-DS20006116A.pdf
+$ENDCMP
+#
+#End Doc Library
