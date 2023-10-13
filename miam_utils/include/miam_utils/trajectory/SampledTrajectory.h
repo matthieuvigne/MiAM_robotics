@@ -30,6 +30,10 @@
 
                     void removePoints(int n);
 
+                    /// @brief Rescale the trajectory by a time scale factor
+                    /// @param scaling_factor time scaling : new time / old time
+                    void rescale(double scaling_factor);
+
                 private:
                     std::vector<TrajectoryPoint > sampledTrajectory_; ///< Vector of trajectory waypoints.
             };

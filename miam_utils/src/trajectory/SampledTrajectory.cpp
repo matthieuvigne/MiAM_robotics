@@ -129,5 +129,16 @@ namespace miam{
             }
             duration_ = std::max(0.0, duration_ - n * dt);
         }
+
+        void SampledTrajectory::rescale(double scaling_factor)
+        {
+            std::cout << "[SampledTrajectory] rescaling by " << scaling_factor << std::endl;
+            for (auto tp : sampledTrajectory_)
+            {
+                tp.linearVelocity *= scaling_factor;
+                tp.angularVelocity *= scaling_factor;
+            }
+            duration_ /= scaling_factor;
+        }
     }
 }
