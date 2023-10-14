@@ -78,7 +78,7 @@ bool Strategy::setup(RobotInterface *robot)
     START_POSITION.x = robot->getParameters().CHASSIS_BACK;
     motionController->resetPosition(START_POSITION, true, true, true);
 
-    motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_OFF);
+    motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 
     // Change P gain of the first servos of each arm to prevent vibrations
     servo->setPIDGains(RIGHT_ARM, 25, 15, 0);
@@ -291,6 +291,18 @@ void Strategy::match_impl()
   RobotParameters const robotParameters = robot->getParameters();
   RobotPosition tmp_position;
   RobotPosition current_position = motionController->getCurrentPosition();
+
+  // go_forward(1000);
+
+  endPosition.x = 2287;
+  endPosition.y = 1189;
+  endPosition.theta = M_PI_2;
+  traj = robot->getMotionController()->computeMPCTrajectory(endPosition, robot->getMotionController()->getDetectedObstacles(), true);
+
+  robot->getMotionController()->setTrajectoryToFollow(traj);
+  robot->getMotionController()->waitForTrajectoryFinished();
+
+  return;
 
 
   #if HOMOLOGATION

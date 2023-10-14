@@ -176,40 +176,6 @@ namespace miam{
                 generator_.addCollision({config_.astar_grid_size_x-2, j});
                 generator_.addCollision({config_.astar_grid_size_x-1, j});
             }
-
-            // distributeurs de cerises
-            // for (int j = 0; j < 4; j++) 
-            // {
-            //     generator_.addCollision({8, j});
-            //     generator_.addCollision({9, j});
-            //     generator_.addCollision({10, j});
-            //     generator_.addCollision({11, j});
-            // }
-            // for (int j = config_.astar_grid_size_y-1-4; j < config_.astar_grid_size_y; j++) 
-            // {
-            //     generator_.addCollision({8, j});
-            //     generator_.addCollision({9, j});
-            //     generator_.addCollision({10, j});
-            //     generator_.addCollision({11, j});
-            // }
-            RobotPosition p1;
-            p1.x = 1000;
-            p1.y = 3000;
-            addCollision(p1, 300);
-            p1.x = 1000;
-            p1.y = 2700;
-            addCollision(p1, 300);
-            p1.x = 1000;
-            p1.y = 0;
-            addCollision(p1, 300);
-            p1.x = 1000;
-            p1.y = 300;
-            addCollision(p1, 300);
-
-            // ajouter gros obstacle pour ne jamais aller dans la zone carree adverse
-            p1.x = 2000;
-            p1.y = 3000;
-            addCollision(p1, 600);
         }
 
         std::vector<RobotPosition> PathPlanner::planPath(RobotPosition const& start, RobotPosition const& end)

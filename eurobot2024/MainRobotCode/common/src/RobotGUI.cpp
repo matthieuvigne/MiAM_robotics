@@ -175,8 +175,8 @@ void RobotGUI::strategyButtonClicked()
 bool TableDrawing::on_draw(Cairo::RefPtr<Cairo::Context> const& cr)
 {
     // Real size
-    double const TABLE_WIDTH = 2000.0;
-    double const TABLE_HEIGHT = 3000.0;
+    double const TABLE_WIDTH = 3000.0;
+    double const TABLE_HEIGHT = 2000.0;
     double const MARGIN = 300;
 
     // Scale

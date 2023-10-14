@@ -1,4 +1,5 @@
 #include "common/MotionPlanner.h"
+#include <common/MotionParameters.h>
 
 #include <miam_utils/trajectory/Trajectory.h>
 #include <miam_utils/trajectory/SampledTrajectory.h>
@@ -71,6 +72,13 @@ MotionPlanner::MotionPlanner(RobotParameters const& robotParameters) :
     robotParams_(robotParameters),
     pathPlanner_(PathPlannerConfig())
 {
+
+    // create pathPlanner with correct grid
+    PathPlannerConfig config;
+    config.astar_resolution_mm = 50;
+    config.astar_grid_size_x = table_dimensions::table_size_x / 50;
+    config.astar_grid_size_y = table_dimensions::table_size_y / 50;
+    pathPlanner_ = PathPlanner(config);
 }
 
 TrajectoryVector MotionPlanner::planMotion(

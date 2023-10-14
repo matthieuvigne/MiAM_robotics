@@ -43,14 +43,14 @@ int main (int argc, char *argv[])
 
     // Create handler.
     Viewer *viewer = nullptr;
-    refBuilder->get_widget_derived("mainWindow", viewer, "./config/tableCherryOnTheCake.png");
+    refBuilder->get_widget_derived("mainWindow", viewer, "./config/vinyles_table_2024_BETA.png");
     main_robot::Strategy mainStrategy;
     ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobot2023.png", &mainStrategy, 1.0, 0.0, 0.0, "mainRobot.");
     viewer->addRobot(mainRobot);
 
-    secondary_robot::Strategy secondaryStrategy;
-    ViewerRobot secondaryRobot(secondary_robot::generateParams(), "./config/secondaryRobot2023.png", &secondaryStrategy, 0.0, 0.0, 1.0, "secondaryRobot.");
-    viewer->addRobot(secondaryRobot);
+    // secondary_robot::Strategy secondaryStrategy;
+    // ViewerRobot secondaryRobot(secondary_robot::generateParams(), "./config/secondaryRobot2023.png", &secondaryStrategy, 0.0, 0.0, 1.0, "secondaryRobot.");
+    // viewer->addRobot(secondaryRobot);
 
     // Start telemetry for both robots.
     system("/miam_workspace/src/MiAM_robotics/teleplot_binaries/teleplot-linux > /dev/null 2> /dev/null&");

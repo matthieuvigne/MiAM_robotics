@@ -1,0 +1,48 @@
+#ifndef MOTION_PARAMETERS_H
+    #define MOTION_PARAMETERS_H
+
+    // Detection arameters
+    namespace detection {
+
+      // Zone radius
+      double constexpr r1 = 400;
+      double constexpr r2 = 700;
+
+      // Zone angular width
+      double constexpr theta1 = M_PI_2;
+      double constexpr theta2 = 0.70;
+
+      double const x_max = 430;
+      double const y_max = 400;
+      double const xfar_max = 700;
+      double const yfar_max = 500;
+
+      // during avoidance...
+      double const x_max_avoidance = 430;
+      double const y_max_avoidance = 400;
+      double const xfar_max_avoidance = 700;
+      double const yfar_max_avoidance = 500;
+
+      double const mpc_obstacle_size = 475;
+
+      // for ending trajectory...
+      double const x_max_ending = 200;
+      double const y_max_ending = 300;
+      double const xfar_max_ending = 300;
+      double const yfar_max_ending = 400;
+    }
+
+    // Dimensions of the table
+    namespace table_dimensions {
+      int constexpr table_size_x = 3000;
+      int constexpr table_size_y = 2000;
+      
+      double constexpr table_margin = 50;
+      double constexpr table_max_x = (double) table_size_x - table_margin;
+      double constexpr table_max_y = (double) table_size_y - table_margin;
+      double constexpr table_min_x = table_margin;
+      double constexpr table_min_y = table_margin;
+    } // namespace table dimensions
+
+
+#endif
