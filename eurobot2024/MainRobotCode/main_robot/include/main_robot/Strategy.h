@@ -160,10 +160,10 @@ namespace main_robot
 
       STSServoDriver *servo;
 
-      Action *chooseNextAction(
-          std::vector<Action> &actions,
-          RobotPosition currentPosition,
-          MotionPlanner &motionPlanner);
+      // Action *chooseNextAction(
+      //     std::vector<Action> &actions,
+      //     RobotPosition currentPosition,
+      //     MotionPlanner &motionPlanner);
 
       /// @brief  \brief Blocks until arms have finished moving
       ArmPosition getArmPosition(int const& armFirstServoId);

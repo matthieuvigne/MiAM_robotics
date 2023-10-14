@@ -57,6 +57,25 @@ MotionController::MotionController(RobotParameters const &robotParameters) : cur
     endPosition.y = 100;
     endPosition.theta = -M_PI_2;
     lowAvoidanceZone_ = std::make_pair(endPosition, 500);
+
+    RobotPosition p1;
+    p1.x = 1000;
+    p1.y = 3000;
+    addPersistentObstacle(std::make_pair(p1, 300));
+    p1.x = 1000;
+    p1.y = 2700;
+    addPersistentObstacle(std::make_pair(p1, 300));
+    p1.x = 1000;
+    p1.y = 0;
+    addPersistentObstacle(std::make_pair(p1, 300));
+    p1.x = 1000;
+    p1.y = 300;
+    addPersistentObstacle(std::make_pair(p1, 300));
+
+    // ajouter gros obstacle pour ne jamais aller dans la zone carree adverse
+    p1.x = 2000;
+    p1.y = 3000;
+    addPersistentObstacle(std::make_pair(p1, 600));
 }
 
 void MotionController::init(RobotPosition const& startPosition, std::string const& teleplotPrefix)
