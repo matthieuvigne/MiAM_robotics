@@ -73,6 +73,8 @@ namespace main_robot
 
       void periodicAction() override;
 
+      bool performMainRobotAction(Action* action);
+
     private:
 
       void funnyAction();
