@@ -35,7 +35,7 @@
 
 #define MPC_OBJECTIVE_TOLERANCE 10 // mm
 #define MPC_CONSECUTIVE_POINT_TOLERANCE 1 // mm
-#define MPC_VELOCITY_OVERHEAD_PCT 0.9
+#define MPC_VELOCITY_OVERHEAD_PCT 0.8
 
 /* Global variables used by the solver. */
 ACADOvariables acadoVariables;
@@ -62,8 +62,8 @@ std::mutex acado_mutex;
 
 TrajectoryConfig MotionPlanner::getMPCTrajectoryConfig() {
     TrajectoryConfig c;
-    c.maxWheelVelocity = 500;
-    c.maxWheelAcceleration = 600;
+    c.maxWheelVelocity = 1000;
+    c.maxWheelAcceleration = 2000;
     c.robotWheelSpacing = 100.5;
     return c;
 };
@@ -170,6 +170,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     // parameterize solver
     miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
     cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
+    cplan.maxWheelAcceleration *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
 
     // create trajectory interpolating waypoints
     traj = computeTrajectoryBasicPath(cplan, waypoints, 0);

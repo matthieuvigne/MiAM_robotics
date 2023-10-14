@@ -63,6 +63,12 @@ void MotionController::init(RobotPosition const& startPosition)
     endPosition.y = 100;
     endPosition.theta = -M_PI_2;
     lowAvoidanceZone_ = std::make_pair(endPosition, 500);
+
+    // Add persistent obstacles (i.e. forbidden zones etc)
+    RobotPosition obstaclePosition;
+    obstaclePosition.x = 2800;
+    obstaclePosition.y = 1800;
+    addPersistentObstacle(std::make_pair(obstaclePosition, 500));
 }
 
 miam::RobotPosition MotionController::getCurrentPosition()

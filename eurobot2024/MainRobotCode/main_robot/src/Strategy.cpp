@@ -298,9 +298,11 @@ void Strategy::match_impl()
   endPosition.y = 1189;
   endPosition.theta = M_PI_2;
   traj = robot->getMotionController()->computeMPCTrajectory(endPosition, robot->getMotionController()->getDetectedObstacles(), true);
-
-  robot->getMotionController()->setTrajectoryToFollow(traj);
-  robot->getMotionController()->waitForTrajectoryFinished();
+  if (!traj.empty())
+  {
+    robot->getMotionController()->setTrajectoryToFollow(traj);
+    robot->getMotionController()->waitForTrajectoryFinished();
+  }
 
   return;
 
