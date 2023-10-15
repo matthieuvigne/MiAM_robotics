@@ -43,7 +43,7 @@ int main (int argc, char *argv[])
 
     // Create handler.
     Viewer *viewer = nullptr;
-    refBuilder->get_widget_derived("mainWindow", viewer, "./config/vinyles_table_2024_BETA.png");
+    refBuilder->get_widget_derived("mainWindow", viewer, "./config/vinyles_table_2024_FINAL_V1.png");
     main_robot::Strategy mainStrategy;
     ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobot2023.png", &mainStrategy, 1.0, 0.0, 0.0, "mainRobot.");
     viewer->addRobot(mainRobot);
