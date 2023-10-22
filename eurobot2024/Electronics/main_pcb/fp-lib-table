@@ -1,5 +1,5 @@
 (fp_lib_table
   (version 7)
-  (lib (name "MiAM")(type "KiCad")(uri "/home/matthieu/miam_workspace/src/MiAM_robotics/eurobot2024/Electronics/libraries/MiAM.pretty")(options "")(descr ""))
+  (lib (name "MiAM")(type "KiCad")(uri "${KIPRJMOD}/../libraries/MiAM.pretty")(options "")(descr ""))
   (lib (name "Molex_UltraFit")(type "KiCad")(uri "${KIPRJMOD}/../libraries/Molex_UltraFit.pretty")(options "")(descr "")(disabled))
 )
