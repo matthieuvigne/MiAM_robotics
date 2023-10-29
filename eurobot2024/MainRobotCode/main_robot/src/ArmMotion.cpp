@@ -16,6 +16,7 @@
 #include "common/DH_transform.hpp"
 #include "common/MotionPlanner.h"
 #include "common/ArmInverseKinematics.hpp"
+#include "common/ThreadHandler.h"
 
 #define CHECK_CURRENT 0
 
@@ -219,6 +220,7 @@ void Strategy::depileArm(std::queue<std::shared_ptr<ArmAction>>& actions, int ar
             }
         }
     }
+    std::cout << "Actions empty, exiting" << std::endl;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -231,6 +233,8 @@ void Strategy::waitForArmMotionSequenced()
 
         std::thread thread_right([this](){depileArm(right_arm_positions, RIGHT_ARM);});
         std::thread thread_left([this](){depileArm(left_arm_positions, LEFT_ARM);});
+        ThreadHandler::addThread(thread_right, false); // register but do not detach thread
+        ThreadHandler::addThread(thread_left, false);
 
         thread_right.join();
         thread_left.join();

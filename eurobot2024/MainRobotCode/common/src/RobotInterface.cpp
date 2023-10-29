@@ -2,6 +2,7 @@
 #include "common/AbstractStrategy.h"
 #include "common/RobotGUI.h"
 #include <filesystem>
+#include "common/ThreadHandler.h"
 
 RobotInterface::RobotInterface(RobotParameters const& robotParameters,
                                RobotGUI *gui,
@@ -67,8 +68,6 @@ void RobotInterface::lowLevelLoop()
         if (metronome_.hasReset_)
         {
             metronome_.hasReset_ = false;
-            if (strategyHandle > 0)
-                pthread_cancel(strategyHandle);
             logger_ << "[Robot] Termination signal received from simulation, exiting low-level loop" << std::endl;
             return;
         }
@@ -89,8 +88,7 @@ void RobotInterface::lowLevelLoop()
                 metronome_.resetLag();
                 // Start strategy thread.
                 strategyThread = std::thread(&AbstractStrategy::match, strategy_);
-                strategyHandle = strategyThread.native_handle();
-                strategyThread.detach();
+                ThreadHandler::addThread(strategyThread);
             }
         }
 

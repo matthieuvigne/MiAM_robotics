@@ -74,6 +74,7 @@ bool Viewer::runSimulation()
     double realElapsedTime = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - lastTime_).count();
     while (isRunning_ && realElapsedTime > ROBOT_DT / simulationTimeRatio_)
     {
+        // std::cout << "Running -- simulationTime_: " << simulationTime_ << std::endl;
         simulationTime_ += ROBOT_DT;
         for(int i = 0; i < robots_.size(); i++)
         {
