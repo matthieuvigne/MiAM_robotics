@@ -1,46 +1,33 @@
 #include "common/ThreadHandler.h"
 #include <iostream>
 
-/**
- * Static methods should be defined outside the class.
- */
 
-ThreadHandler* ThreadHandler::pinstance_{nullptr};
-std::mutex ThreadHandler::mutex_;
-
-/**
- * The first time we call GetInstance we will lock the storage location
- *      and then we make sure again that the variable is null and then we
- *      set the value. RU:
- */
-ThreadHandler *ThreadHandler::GetInstance()
+ThreadHandler& ThreadHandler::GetInstance()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (pinstance_ == nullptr)
-    {
-        pinstance_ = new ThreadHandler();
-    }
-    return pinstance_;
+    static ThreadHandler handler;
+    return handler;
 }
 
 
-void ThreadHandler::addThread(std::thread& newThread, bool detach)
+pthread_t ThreadHandler::addThread(std::thread& newThread, bool detach)
 {
     pthread_t handle = newThread.native_handle();
-    ThreadHandler::GetInstance()->createdThreads_.push_back(handle);
+    ThreadHandler::GetInstance().createdThreads_.push_back(handle);
 
+    std::cout << "ThreadHandler: added thread, count:" << ThreadHandler::GetInstance().createdThreads_.size() << std::endl;
     if (detach)
         newThread.detach();
+    return handle;
 }
 
 
 
 void ThreadHandler::removeAllThreads()
 {
-    for (auto t : ThreadHandler::GetInstance()->createdThreads_)
+    for (auto t : ThreadHandler::GetInstance().createdThreads_)
     {
         std::cout << "Cancelling: " << t << std::endl;
         pthread_cancel(t);
     }
-    ThreadHandler::GetInstance()->createdThreads_.clear();
+    ThreadHandler::GetInstance().createdThreads_.clear();
 }

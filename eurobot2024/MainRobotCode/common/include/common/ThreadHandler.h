@@ -20,9 +20,6 @@ class ThreadHandler
      * operator.
      */
 private:
-    static ThreadHandler * pinstance_;
-    static std::mutex mutex_;
-
     std::vector<pthread_t> createdThreads_;
 
 protected:
@@ -47,16 +44,16 @@ public:
      * object stored in the static field.
      */
 
-    static ThreadHandler *GetInstance();
+    static ThreadHandler& GetInstance();
     /**
      * Finally, any ThreadHandler should define some business logic, which can be
      * executed on its instance.
      */
 
     static void removeAllThreads();
-    static void addThread(std::thread& newThread, bool detach = true);
-    
-    
+    static pthread_t addThread(std::thread& newThread, bool detach = true);
+
+
 };
 
 #endif

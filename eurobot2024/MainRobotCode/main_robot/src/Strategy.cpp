@@ -286,8 +286,7 @@ void Strategy::match()
   std::cout << "Strategy thread started." << std::endl;
 
   std::thread stratMain(&Strategy::match_impl, this);
-  pthread_t handle = stratMain.native_handle();
-  ThreadHandler::addThread(stratMain);
+  pthread_t handle = ThreadHandler::addThread(stratMain);
 
   double const FALLBACK_TIME = 95.0;
   robot->wait(FALLBACK_TIME);

@@ -107,7 +107,7 @@ bool Viewer::runSimulation()
 
         realElapsedTime -= ROBOT_DT / simulationTimeRatio_;
         lastTime_ += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(ROBOT_DT / simulationTimeRatio_));
-        if (simulationTime_ > MATCH_TIME)
+        if (simulationTime_ > MATCH_TIME && robots_.at(0)->getMatchTime() > 0)
         {
             isRunning_ = false;
             simulationTime_ = MATCH_TIME;
@@ -116,7 +116,7 @@ bool Viewer::runSimulation()
     if (!isRunning_)
         lastTime_ = currentTime;
 
-    progressBar->set_fraction(simulationTime_ / MATCH_TIME);
+    progressBar->set_fraction(std::min(simulationTime_ / MATCH_TIME, 1.0));
     std::stringstream stream;
     stream << "Time: " << std::fixed << std::setprecision(3) << simulationTime_;
     progressBar->set_text(stream.str());

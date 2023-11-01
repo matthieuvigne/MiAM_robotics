@@ -56,7 +56,7 @@ void RobotInterface::lowLevelLoop()
 
     // Create strategy thread.
     std::thread strategyThread;
-    pthread_t strategyHandle = 0;
+    pthread_t strategyHandle;
 
     // Loop until start of the match, then for 100 seconds after the start of the match.
     while(!hasMatchStarted_ || (currentTime_ < 100.0 + matchStartTime_))
@@ -88,7 +88,7 @@ void RobotInterface::lowLevelLoop()
                 metronome_.resetLag();
                 // Start strategy thread.
                 strategyThread = std::thread(&AbstractStrategy::match, strategy_);
-                ThreadHandler::addThread(strategyThread);
+                strategyHandle = ThreadHandler::addThread(strategyThread);
             }
         }
 
