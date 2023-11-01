@@ -15,6 +15,7 @@
 #include "common/DH_transform.hpp"
 #include "common/MotionPlanner.h"
 #include "common/ArmInverseKinematics.hpp"
+#include "common/ThreadHandler.h"
 
 
 using namespace miam::trajectory;
@@ -285,15 +286,12 @@ void Strategy::match()
   std::cout << "Strategy thread started." << std::endl;
 
   std::thread stratMain(&Strategy::match_impl, this);
-  pthread_t handle = stratMain.native_handle();
-  createdThreads_.push_back(handle);
-  stratMain.detach();
+  pthread_t handle = ThreadHandler::addThread(stratMain);
 
   double const FALLBACK_TIME = 95.0;
   robot->wait(FALLBACK_TIME);
   if (!MATCH_COMPLETED)
       pthread_cancel(handle);
-  createdThreads_.clear();
   usleep(50000);
   if (!MATCH_COMPLETED)
   {

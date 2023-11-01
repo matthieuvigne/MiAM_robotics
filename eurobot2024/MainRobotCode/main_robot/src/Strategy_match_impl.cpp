@@ -1,7 +1,7 @@
 #include "main_robot/Strategy.h"
 #include "main_robot/MainRobotAction.h"
 
-// #define TESTING_MPC
+#define TESTING_MPC
 
 
 using namespace miam::trajectory;
@@ -26,6 +26,7 @@ void Strategy::match_impl()
     // go_forward(1000);
 
 #ifdef TESTING_MPC
+    std::cout << "Testing MPC" << std::endl;
     endPosition.x = 2287;
     endPosition.y = 1189;
     endPosition.theta = M_PI_2;

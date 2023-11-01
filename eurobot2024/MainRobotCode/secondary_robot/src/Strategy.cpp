@@ -13,6 +13,7 @@
 #include "secondary_robot/Strategy.h"
 
 #include <common/MotionPlanner.h>
+#include "common/ThreadHandler.h"
 
 using namespace miam::trajectory;
 using miam::RobotPosition;
@@ -75,9 +76,7 @@ bool Strategy::setup(RobotInterface *robot)
     {
         // Start rail-listening thread.
         std::thread railThread(&Strategy::periodicAction, this);
-        pthread_t handle = railThread.native_handle();
-        createdThreads_.push_back(handle);
-        railThread.detach();
+        ThreadHandler::addThread(railThread);
 
         phase = setupPhase::CALIBRATING_RAIL;
         this->robot = robot;
@@ -762,8 +761,7 @@ void Strategy::match()
 
     std::thread stratMain(&Strategy::match_impl, this);
     pthread_t handle = stratMain.native_handle();
-    createdThreads_.push_back(handle);
-    stratMain.detach();
+    ThreadHandler::addThread(stratMain);
 
     double const FALLBACK_TIME = 90.0;
     robot->wait(FALLBACK_TIME);

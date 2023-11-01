@@ -2,6 +2,7 @@
 /// \copyright GNU GPLv3
 #include "ViewerRobot.h"
 #include <string>
+#include "common/ThreadHandler.h"
 
 double const ROBOT_DT = 1.0e-9 * ROBOT_UPDATE_PERIOD;
 
@@ -64,7 +65,7 @@ void ViewerRobot::draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mm
     cr->set_line_width(2.0);
     cr->stroke();
 
-        // Draw robot target trajectory.
+    // Draw robot target trajectory.
     if (!currentTrajectory_.empty())
     {
         double pointX =  mmToCairo * currentTrajectory_.at(0).position.x;
@@ -225,21 +226,18 @@ void ViewerRobot::reset(bool const& isPlayingRightSide)
 {
     metronome_.reset();
     trajectory_.clear();
+    currentTrajectory_.clear();
     kinematics_ = motionController_.getKinematics();
     simulatedEncoders_ = Vector2::Zero();
     hasMatchEnded_ = false;
 
-    for (auto t : strategy_->createdThreads_)
-        pthread_cancel(t);
-    strategy_->createdThreads_.clear();
+    ThreadHandler::removeAllThreads();
+
     metronome_.reset();
-    if (lowLevelThread_.joinable())
-        lowLevelThread_.join();
-    for (auto t: runningThreads_)
-        pthread_cancel(t);
-    runningThreads_.clear();
 
     lowLevelThread_ = std::thread(&RobotInterface::lowLevelLoop, this);
+    ThreadHandler::addThread(lowLevelThread_);
+
     gui_.unfullscreen();
     gui_.show_all();
 }

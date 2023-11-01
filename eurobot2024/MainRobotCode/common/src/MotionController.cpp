@@ -1,5 +1,6 @@
 #include <common/MotionController.h>
 #include <miam_utils/trajectory/Utilities.h>
+#include "common/ThreadHandler.h"
 
 MotionController::MotionController(RobotParameters const &robotParameters, Logger *logger) :
     currentPosition_(),
@@ -45,9 +46,7 @@ void MotionController::init(RobotPosition const& startPosition)
     avoidanceComputationScheduled_ = false;
 
     std::thread stratSolver(&MotionController::loopOnAvoidanceComputation, this);
-    pthread_t handle = stratSolver.native_handle();
-    createdThreads_.push_back(handle);
-    stratSolver.detach();
+    ThreadHandler::addThread(stratSolver);
 
     // Init controller state
     motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;

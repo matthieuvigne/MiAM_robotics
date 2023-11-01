@@ -19,10 +19,10 @@ namespace miam{
             resetCollisions();
         }
 
-        void PathPlanner::printMap() 
+        void PathPlanner::printMap()
         {
             AStar::Vec2i worldSize = generator_.getWorldSize();
-            
+
             std::cout << "World size: " << worldSize.x << ", " << worldSize.y << std::endl;
             // std::cout << "Collisions: " << std::endl;
             // for (auto collision : generator_.getCollisions())
@@ -54,7 +54,7 @@ namespace miam{
         }
 
         void PathPlanner::printMap(
-            std::vector<RobotPosition> path, 
+            std::vector<RobotPosition> path,
             RobotPosition currentPosition,
             RobotPosition targetPosition)
         {
@@ -70,7 +70,7 @@ namespace miam{
             //     std::cout << position.x << " " << position.y << std::endl;
             // }
 
-            
+
             std::cout << "World size: " << worldSize.x << ", " << worldSize.y << std::endl;
             // std::cout << "Collisions: " << std::endl;
             // for (auto collision : generator_.getCollisions())
@@ -126,7 +126,7 @@ namespace miam{
         void PathPlanner::addCollisionsNoDuplicate(AStar::Vec2i collision)
         {
             AStar::CoordinateList existingCollisions = generator_.getCollisions();
-            if (!(std::find(existingCollisions.begin(), existingCollisions.end(), collision) != existingCollisions.end())) 
+            if (!(std::find(existingCollisions.begin(), existingCollisions.end(), collision) != existingCollisions.end()))
             {
                 generator_.addCollision(collision);
             }
@@ -135,7 +135,7 @@ namespace miam{
         void PathPlanner::addCollision(RobotPosition const& position, double radius)
         {
             // number of grid units to be taken into account
-            int grid_distance = ceil(radius / config_.astar_resolution_mm);  
+            int grid_distance = ceil(radius / config_.astar_resolution_mm);
             AStar::Vec2i center_position = robotPositionToVec2i(position);
 
             // in a big square around the center position, draw obstacle
@@ -155,21 +155,21 @@ namespace miam{
                 }
             }
         }
-                
+
         void PathPlanner::resetCollisions()
         {
             generator_.clearCollisions();
 
             // obstacles table
             // bordure exterieure
-            for (int i = 0; i < config_.astar_grid_size_x; i++) 
+            for (int i = 0; i < config_.astar_grid_size_x; i++)
             {
                 generator_.addCollision({i, 0});
                 generator_.addCollision({i, 1});
                 generator_.addCollision({i, config_.astar_grid_size_y-2});
                 generator_.addCollision({i, config_.astar_grid_size_y-1});
             }
-            for (int j = 0; j < config_.astar_grid_size_y; j++) 
+            for (int j = 0; j < config_.astar_grid_size_y; j++)
             {
                 generator_.addCollision({0, j});
                 generator_.addCollision({1, j});
@@ -207,11 +207,11 @@ namespace miam{
 
 
             bool checkPath = true;
-            for (int i = 0; i < path.size() - 1; i++)
+            for (unsigned int i = 0; i < path.size() - 1; i++)
             {
                 AStar::Vec2i p1 = path.at(i);
                 AStar::Vec2i p2 = path.at(i+1);
-                if (abs(p1.x - p2.x) > 1 | abs(p1.y - p2.y) > 1)
+                if (abs(p1.x - p2.x) > 1 || abs(p1.y - p2.y) > 1)
                 {
                     checkPath = false;
                     break;
@@ -219,9 +219,9 @@ namespace miam{
             }
 
 
-            if (checkPath & robotPositionToVec2i(start) == path.back() & robotPositionToVec2i(end) == path.front())
+            if (checkPath && robotPositionToVec2i(start) == path.back() && robotPositionToVec2i(end) == path.front())
             {
-                for (auto coordinate = path.rbegin(); coordinate != path.rend(); ++coordinate) 
+                for (auto coordinate = path.rbegin(); coordinate != path.rend(); ++coordinate)
                 {
                     targetPosition = vec2iToRobotPosition(*coordinate);
                     positions.push_back(targetPosition);
@@ -232,15 +232,14 @@ namespace miam{
                 positions.back() = end;
 
                 // smooth out angles
-                for (int i = 1; i < positions.size(); i++)
+                for (unsigned int i = 1; i < positions.size(); i++)
                 {
                     double theta;
-                    int forward_index = std::max((int)positions.size() - 1, i);
 
                     // compute angle
-                    double dx = positions.at(forward_index).x - positions.at(i-1).x;
-                    double dy = positions.at(forward_index).y - positions.at(i-1).y;
-                    
+                    double dx = positions.at(i).x - positions.at(i-1).x;
+                    double dy = positions.at(i).y - positions.at(i-1).y;
+
                     if (dx == 0)
                     {
                         theta = (dy > 0 ? 1 : -1) * M_PI_2;
@@ -252,7 +251,7 @@ namespace miam{
                     positions.at(i-1).theta = theta;
                     positions.at(i).theta = theta;
                 }
-            } 
+            }
             else
             {
                 std::cout << "Path planning failed" << std::endl;
@@ -263,14 +262,14 @@ namespace miam{
 
         RobotPosition PathPlanner::vec2iToRobotPosition(AStar::Vec2i astarWaypoint) {
             return RobotPosition(
-                astarWaypoint.x * config_.astar_resolution_mm + config_.astar_resolution_mm / 2, 
+                astarWaypoint.x * config_.astar_resolution_mm + config_.astar_resolution_mm / 2,
                 astarWaypoint.y * config_.astar_resolution_mm + config_.astar_resolution_mm / 2,
                 0
             );
         }
 
         AStar::Vec2i PathPlanner::robotPositionToVec2i(RobotPosition position) {
-            
+
             // tail i, j is nearest to ((i + 0.5) * resolution, (j + 0.5) * resolution)
             int i = round(position.x / config_.astar_resolution_mm - 0.5);
             int j = round(position.y / config_.astar_resolution_mm - 0.5);
