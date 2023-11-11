@@ -51,6 +51,7 @@ make -j4 install
 cmake ~/dev/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=~/dev/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
 make -j4 install
 
+## eurobot2019
 # Compile strategy viewer
 cd ~/dev/build/MiAM_robotics
 mkdir -p eurobot2019/StrategyViewer
@@ -64,6 +65,22 @@ mkdir -p eurobot2019/MainRobotCode/
 cd eurobot2019/MainRobotCode/
 cmake ~/dev/src/MiAM_robotics/eurobot2019/MainRobotCode -DCMAKE_BUILD_TYPE=Release
 make -j4
+
+## eurobot2024
+# Compile strategy viewer
+cd ~/dev/build/MiAM_robotics
+mkdir -p eurobot2024/StrategyViewer
+cd eurobot2024/StrategyViewer
+cmake ~/dev/src/MiAM_robotics/eurobot2024/StrategyViewer -DCMAKE_INSTALL_PREFIX=~/dev/install/ -DCMAKE_BUILD_TYPE=Release
+make -j4
+
+# Compile robot code
+cd ~/dev/build/MiAM_robotics
+mkdir -p eurobot2024/MainRobotCode/
+cd eurobot2024/MainRobotCode/
+cmake ~/dev/src/MiAM_robotics/eurobot2024/MainRobotCode -DCMAKE_BUILD_TYPE=Release
+make -j4
+
 
 
 source ~/.bashrc
