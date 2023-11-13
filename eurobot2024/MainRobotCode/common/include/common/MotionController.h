@@ -172,11 +172,11 @@
             // Trajectory definition.
             TrajectoryVector newTrajectories_; ///< Vector of new trajectories to follow.
             TrajectoryVector currentTrajectories_; ///< Current trajectories being followed.
-            bool wasTrajectoryFollowingSuccessful_; ///< Flag describing the success of the trajectory following process.
+            bool wasTrajectoryFollowingSuccessful_{true}; ///< Flag describing the success of the trajectory following process.
             std::mutex newTrajectoryMutex_;
             RobotPosition currentTargetEndPosition_; // < The current target position (saved for replanning)
 
-            double curvilinearAbscissa_; ///< Curvilinear abscissa of the current trajectory.
+            double curvilinearAbscissa_{0.0}; ///< Curvilinear abscissa of the current trajectory.
             DrivetrainKinematics kinematics_;
 
             // Tracking PIDs

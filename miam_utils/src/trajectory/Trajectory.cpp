@@ -14,11 +14,11 @@ namespace miam{
             {}
 
         Trajectory::Trajectory(TrajectoryConfig const& config):
+            isAvoidanceTrajectory_(false),
+            needReplanning_(false),
             duration_(0.0),
             config_(config),
-            avoidanceEnabled_(true),
-            isAvoidanceTrajectory_(false),
-            needReplanning_(false)
+            avoidanceEnabled_(true)
         {
         }
 

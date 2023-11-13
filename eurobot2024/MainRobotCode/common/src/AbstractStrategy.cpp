@@ -138,7 +138,7 @@ void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
     motionController->waitForTrajectoryFinished();
 
 
-    bool moveSuccess = motionController->waitForTrajectoryFinished();
+    motionController->waitForTrajectoryFinished();
 }
 
 //--------------------------------------------------------------------------------------------------

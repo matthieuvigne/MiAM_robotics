@@ -9,11 +9,11 @@ RobotInterface::RobotInterface(RobotParameters const& robotParameters,
                                AbstractStrategy *strategy,
                                bool const& testMode,
                                std::string const& teleplotPrefix):
+    metronome_(ROBOT_UPDATE_PERIOD),
     motionController_(robotParameters, &logger_),
     servos_(),
     gui_(gui),
     strategy_(strategy),
-    metronome_(ROBOT_UPDATE_PERIOD),
     testMode_(testMode),
     teleplotPrefix_(teleplotPrefix)
 {
@@ -56,7 +56,7 @@ void RobotInterface::lowLevelLoop()
 
     // Create strategy thread.
     std::thread strategyThread;
-    pthread_t strategyHandle;
+    pthread_t strategyHandle = 0;
 
     // Loop until start of the match, then for 100 seconds after the start of the match.
     while(!hasMatchStarted_ || (currentTime_ < 100.0 + matchStartTime_))

@@ -21,7 +21,7 @@ ServerThread::ServerThread(int port)
 //--------------------------------------------------------------------------------------------------
 
 ServerThread::~ServerThread(){
-  thread_ptr_->join();  
+  thread_ptr_->join();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ void ServerThread::serverThread()
         {
           case MessageType::INITIALIZATION:
           {
-            common::Team const& team = client_request.getParamsAs<common::Team>();
+            // common::Team const& team = client_request.getParamsAs<common::Team>();
             // camera_thread_ptr_->setTeam(team);
             break;
           }
@@ -83,7 +83,7 @@ void ServerThread::serverThread()
         // Shut down if request
         if(shut_down) break;
       }
-      
+
       break;
     }
     catch(SocketException const& e)

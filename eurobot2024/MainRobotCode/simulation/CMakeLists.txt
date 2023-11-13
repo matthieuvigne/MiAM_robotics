@@ -9,7 +9,6 @@ include_directories(
   ../common/include
   include
   ../main_robot/include
-  ../secondary_robot/include
   ../embedded/include
   ../../../vision/include
   ../../../qpoases
@@ -20,7 +19,6 @@ include_directories(
 # Add all source files.
 file(GLOB_RECURSE SOURCES ../common/src/*.cpp
                   ../main_robot/src/*.cpp
-                  ../secondary_robot/src/*.cpp
                   src/*.cpp
                   ../../../vision/src/network/camera_client.cpp
                   ../../../vision/src/network/client*.cpp

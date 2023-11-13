@@ -47,15 +47,11 @@ file(GLOB_RECURSE COMMON_SOURCES "../common/src/*.cpp"
 
 file(GLOB_RECURSE MAIN_SOURCES "../main_robot/src/*.cpp" "src/MainRobotMain.cpp")
 
-file(GLOB_RECURSE SECONDARY_SOURCES "../secondary_robot/src/*.cpp" "src/SecondaryRobotMain.cpp")
-
-
 set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX )
 
 # Add directory containing the headers.
 include_directories(../common/include)
 include_directories(../main_robot/include)
-include_directories(../secondary_robot/include)
 include_directories(./include)
 include_directories(../../../a-star/source
     ../../../qpoases
@@ -89,8 +85,5 @@ target_link_libraries(mainRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRAR
 AStar acado_solver "-lhdf5_cpp")
 
 
-add_executable(secondaryRobotCode ${SECONDARY_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(secondaryRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES}
-AStar acado_solver "-lhdf5_cpp")
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")

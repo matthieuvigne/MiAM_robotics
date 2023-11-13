@@ -93,7 +93,7 @@ void TextLogHandler::flush()
     hsize_t offset[1] = {datasetOffset_};
     hsize_t dims[1] = {1};
     DataSpace mspace2(1, dims);
-    for (int i = 0; i < pos_; i++)
+    for (unsigned int i = 0; i < pos_; i++)
     {
         fspace.selectHyperslab(H5S_SELECT_SET, dims, offset);
         dataset_.write(&data_[i], STRING_TYPE, mspace2, fspace);

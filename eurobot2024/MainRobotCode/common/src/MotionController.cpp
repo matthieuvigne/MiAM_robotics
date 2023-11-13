@@ -3,14 +3,9 @@
 #include "common/ThreadHandler.h"
 
 MotionController::MotionController(RobotParameters const &robotParameters, Logger *logger) :
-    currentPosition_(),
-    newTrajectories_(),
-    currentTrajectories_(),
-    wasTrajectoryFollowingSuccessful_(true),
-    curvilinearAbscissa_(0.0),
     robotParams_(robotParameters),
-    logger_(logger),
-    motionPlanner_(robotParams_)
+    motionPlanner_(robotParams_),
+    logger_(logger)
 {
     kinematics_ = DrivetrainKinematics(robotParams_.wheelRadius,
                                        robotParams_.wheelSpacing,
@@ -475,9 +470,7 @@ double MotionController::minDistancePositionToObstacle(RobotPosition position, b
 
     for (auto obstacle : getDetectedObstacles(includePersistentObstacles))
     {
-
         double tmpMin = (std::get<0>(obstacle) - position).norm() - std::get<1>(obstacle);
-        double tmpMinEnd = (std::get<0>(obstacle) - position).norm() - std::get<1>(obstacle);
 
         // distance to center of obstacle minus size of the obstacle
         minDistanceFromObstacle = std::min(

@@ -131,11 +131,6 @@ extern ConsoleLogger::UniquePtr global_console_logger_ptr;
 
 //--------------------------------------------------------------------------------------------------
 
-// #define LOGFILE                                                      \
-// if(common::global_file_logger_ptr == nullptr)                        \
-//   throw std::runtime_error("File logger has not been initialized");  \
-// (*common::global_file_logger_ptr) << "[" << __FILENAME__ << ": l."   \
-//   << __LINE__ << "] "
 
 #define LOGFILE                                                      \
 if(common::global_file_logger_ptr == nullptr)                        \

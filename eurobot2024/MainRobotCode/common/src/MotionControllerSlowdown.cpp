@@ -6,7 +6,6 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
 {
 
     double coeff = 1.0;
-    bool is_robot_stopped = false;
 
     LidarPoint detected_point;
     detected_point.r = 1e6;
@@ -46,7 +45,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
             double yfar_max = detection::yfar_max;
 
             // in low avoidance if norm from current position is less than a value
-            bool isInLowAvoidance = lowAvoidanceZoneEnabled_ && 
+            bool isInLowAvoidance = lowAvoidanceZoneEnabled_ &&
                 ((getCurrentPosition() - std::get<0>(lowAvoidanceZone_)).norm() < std::get<1>(lowAvoidanceZone_));
 
             // if (isInLowAvoidance)
@@ -76,7 +75,6 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
                     {
                         // Stop robot
                         coeff = 0.0;
-                        is_robot_stopped = true;
                         detected_point = point;
                     }
                 }

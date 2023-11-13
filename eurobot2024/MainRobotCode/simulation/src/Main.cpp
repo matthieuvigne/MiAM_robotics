@@ -12,9 +12,6 @@
 #include "main_robot/Parameters.h"
 #include "main_robot/Strategy.h"
 
-#include "secondary_robot/Parameters.h"
-#include "secondary_robot/Strategy.h"
-
 Glib::RefPtr<Gtk::Application> app;
 
 int main (int argc, char *argv[])
@@ -47,10 +44,6 @@ int main (int argc, char *argv[])
     main_robot::Strategy mainStrategy;
     ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobot2023.png", &mainStrategy, 1.0, 0.0, 0.0, "mainRobot.");
     viewer->addRobot(mainRobot);
-
-    // secondary_robot::Strategy secondaryStrategy;
-    // ViewerRobot secondaryRobot(secondary_robot::generateParams(), "./config/secondaryRobot2023.png", &secondaryStrategy, 0.0, 0.0, 1.0, "secondaryRobot.");
-    // viewer->addRobot(secondaryRobot);
 
     // Start telemetry for both robots.
     system("/miam_workspace/src/MiAM_robotics/teleplot_binaries/teleplot-linux > /dev/null 2> /dev/null&");

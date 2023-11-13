@@ -65,12 +65,12 @@ bool Viewer::runSimulation()
     while (isRunning_ && realElapsedTime > ROBOT_DT / simulationTimeRatio_)
     {
         simulationTime_ += ROBOT_DT;
-        for(int i = 0; i < robots_.size(); i++)
+        for(unsigned int i = 0; i < robots_.size(); i++)
         {
             ViewerRobot* r = robots_.at(i);
             // get the other robots
             std::vector<Vector2 > obstaclesPosition;
-            for (int j = 0; j < robots_.size(); j++)
+            for (unsigned int j = 0; j < robots_.size(); j++)
             {
                 if (j != i)
                 {

@@ -125,7 +125,7 @@ bool RobotGUI::doUpdate()
     {
         // Remove second widget, if needed.
         auto childs = box_.get_children();
-        for (int i = 1; i < childs.size(); i++)
+        for (unsigned int i = 1; i < childs.size(); i++)
             box_.remove(*childs.at(i));
         if (robotData.state == robotstate::INIT || robotData.state == robotstate::UNDERVOLTAGE)
         {

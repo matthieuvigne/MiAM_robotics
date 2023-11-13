@@ -201,7 +201,7 @@ void ViewerRobot::tick(SimulatorData const& simulationData)
 
     // Current trajectory
     currentTrajectory_.clear();
-    for (int i = 0; i < motionController_.getCurrentTrajectories().size(); i++)
+    for (unsigned int i = 0; i < motionController_.getCurrentTrajectories().size(); i++)
     {
         Trajectory* traj = motionController_.getCurrentTrajectories().at(i).get();
         double startAbscissa = (i == 0) ? motionController_.getCurvilinearAbscissa() : 0.0;
