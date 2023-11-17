@@ -65,6 +65,10 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
         }
     if (hasPing)
     {
+        for (int i = 0; i < 256; i++)
+        {
+            servoType_[i] = STS::ServoType::UNKNOWN;
+        }
         // Configure servos
         writeRegister(0xFE, STS::registers::WRITE_LOCK, 0);
         usleep(1000);
@@ -82,6 +86,14 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
         usleep(1000);
         // Lock EEPROM
         writeRegister(0xFE, STS::registers::WRITE_LOCK, 1);
+        usleep(1000);
+        writeRegister(0xFE, STS::registers::MINIMUM_ANGLE, 0);
+        usleep(1000);
+        writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 1, 0);
+        usleep(1000);
+        writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 2, 0);
+        usleep(1000);
+        writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 3, 0);
         usleep(1000);
         // Disable all servos
         disable(0xFE);
@@ -121,8 +133,12 @@ std::vector<unsigned char> STSServoDriver::detectServos()
 {
     std::vector<unsigned char> ids;
     for (unsigned char i = 0; i < 0xFE; i++)
+    {
+        // Reset detected types, servo might have changed.
+        servoType_[i] = STS::ServoType::UNKNOWN;
         if (ping(i))
             ids.push_back(i);
+    }
     return ids;
 }
 
@@ -152,20 +168,34 @@ bool STSServoDriver::resetPositionAsCenter(unsigned char const& servoId)
 
 bool STSServoDriver::setId(unsigned char const& oldServoId, unsigned char const& newServoId)
 {
+    if (servoType_[oldServoId] == STS::ServoType::UNKNOWN)
+    {
+        determineServoType(oldServoId);
+    }
+
     if (oldServoId >= 0xFE || newServoId >= 0xFE)
         return false;
     if (ping(newServoId))
         return false; // address taken
-    if (!writeRegister(oldServoId, STS::registers::WRITE_LOCK, 0))
+    unsigned char lockRegister = STS::registers::WRITE_LOCK;
+    if (servoType_[oldServoId] == STS::ServoType::SCS)
+    {
+        lockRegister = STS::registers::TORQUE_LIMIT; // On SCS, this has been remapped.
+    }
+
+    if (!writeRegister(oldServoId, lockRegister, 0))
         return false;
     // Write new ID
     if (!writeRegister(oldServoId, STS::registers::ID, newServoId))
         return false;
     // Lock EEPROM
-    if (!writeRegister(newServoId, STS::registers::WRITE_LOCK, 1))
+    if (!writeRegister(newServoId, lockRegister, 1))
       return false;
     // Give it some time to change id.
     usleep(50000);
+    // Update servo type cache.
+    servoType_[newServoId] = servoType_[oldServoId];
+    servoType_[oldServoId] = STS::ServoType::UNKNOWN;
     return ping(newServoId);
 }
 
@@ -183,12 +213,7 @@ int16_t STSServoDriver::getLastCommand(unsigned char const& servoId)
 
 int16_t STSServoDriver::getCurrentSpeed(unsigned char const& servoId)
 {
-    int16_t value = readTwoBytesRegister(servoId, STS::registers::CURRENT_SPEED);
-    // Bit15 is sign bit
-    int16_t signedValue = value & ~0x8000;
-    if (value & 0x8000)
-        signedValue = -signedValue;
-    return signedValue;
+    return readTwoBytesRegister(servoId, STS::registers::CURRENT_SPEED);
 }
 
 
@@ -236,21 +261,35 @@ void STSServoDriver::setTorqueLimit(unsigned char const& servoId, double const& 
 bool STSServoDriver::setTargetPosition(unsigned char const& servoId, int16_t const& position, bool const& asynchronous)
 {
     lastCommands_[servoId] = position;
-    // Bit 15 is the sign bit: change convention accordingly.
-    uint16_t pos = std::abs(position);
-    if (position < 0)
-        pos = 0x8000  | pos;
-    return writeTwoBytesRegister(servoId, STS::registers::TARGET_POSITION, pos, asynchronous);
+    return writeTwoBytesRegister(servoId, STS::registers::TARGET_POSITION, position, asynchronous);
 }
 
 
 bool STSServoDriver::setTargetVelocity(unsigned char const& servoId, int16_t const& velocity, bool const& asynchronous)
 {
-    // Bit 15 is the sign bit: change convention accordingly.
-    uint16_t vel = std::abs(velocity);
-    if (velocity < 0)
-        vel = 0x8000  | vel;
-    return writeTwoBytesRegister(servoId, STS::registers::RUNNING_SPEED, vel, asynchronous);
+    if (servoType_[servoId] == STS::ServoType::UNKNOWN)
+    {
+        determineServoType(servoId);
+    }
+    switch(servoType_[servoId])
+    {
+        case STS::ServoType::STS:
+            return writeTwoBytesRegister(servoId, STS::registers::RUNNING_SPEED, velocity, asynchronous);
+        case STS::ServoType::SCS:
+            // Not implemented, this messes us the servo configuration and is not used for now anyway.
+            return false;
+            // writeRegister(servoId, STS::registers::MINIMUM_ANGLE, 0);
+            // usleep(1000);
+            // writeRegister(servoId, STS::registers::MINIMUM_ANGLE + 1, 0);
+            // usleep(1000);
+            // writeRegister(servoId, STS::registers::MINIMUM_ANGLE + 2, 0);
+            // usleep(1000);
+            // writeRegister(servoId, STS::registers::MINIMUM_ANGLE + 3, 0);
+            // usleep(1000);
+            // return writeTwoBytesRegister(servoId, STS::registers::RUNNING_TIME, velocity, asynchronous);
+        default:
+            return false;
+    }
 }
 
 
@@ -335,11 +374,34 @@ bool STSServoDriver::writeRegister(unsigned char const& servoId,
 
 bool STSServoDriver::writeTwoBytesRegister(unsigned char const& servoId,
                                            unsigned char const& registerId,
-                                           uint16_t const& value,
+                                           int16_t const& value,
                                            bool const& asynchronous)
 {
-    unsigned char params[2] = {static_cast<unsigned char>(value & 0xFF),
-                               static_cast<unsigned char>((value >> 8) & 0xFF)};
+    uint16_t servoValue = 0;
+
+    if (servoType_[servoId] == STS::ServoType::UNKNOWN)
+    {
+        determineServoType(servoId);
+    }
+    switch(servoType_[servoId])
+    {
+        case STS::ServoType::SCS:
+            // Little endian ; byte 10 is sign.
+            servoValue = std::abs(value);
+            if (value < 0)
+                servoValue = 0x0400  | servoValue;
+            // Invert endianness
+            servoValue = (servoValue >> 8) + ((servoValue & 0xFF) << 8);
+            break;
+        case STS::ServoType::STS:
+        default:
+            servoValue = std::abs(value);
+            if (value < 0)
+                servoValue = 0x8000  | servoValue;
+            break;
+    }
+    unsigned char params[2] = {static_cast<unsigned char>(servoValue & 0xFF),
+                               static_cast<unsigned char>((servoValue >> 8) & 0xFF)};
     return writeRegisters(servoId, registerId, 2, params, asynchronous);
 }
 
@@ -356,11 +418,37 @@ unsigned char STSServoDriver::readRegister(unsigned char const& servoId, unsigne
 
 int16_t STSServoDriver::readTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId)
 {
+
+    if (servoType_[servoId] == STS::ServoType::UNKNOWN)
+    {
+        determineServoType(servoId);
+    }
+
     unsigned char result[2] = {0, 0};
+    int16_t value = 0;
+    int16_t signedValue = 0;
     returnCode_ = readRegisters(servoId, registerId, 2, result);
     if (returnCode_ < 0)
         return 0;
-    return static_cast<int16_t>(result[0] +  (result[1] << 8));
+    switch(servoType_[servoId])
+    {
+        case STS::ServoType::SCS:
+            value = static_cast<int16_t>(result[1] +  (result[0] << 8));
+            // Bit 15 is sign
+            signedValue = value & ~0x8000;
+            if (value & 0x8000)
+                signedValue = -signedValue;
+            return signedValue;
+        case STS::ServoType::STS:
+            value = static_cast<int16_t>(result[0] +  (result[1] << 8));
+            // Bit 15 is sign
+            signedValue = value & ~0x8000;
+            if (value & 0x8000)
+                signedValue = -signedValue;
+            return signedValue;
+        default:
+            return 0;
+    }
 }
 
 
@@ -426,4 +514,13 @@ int STSServoDriver::recieveMessage(unsigned char const& servoId,
     for (int i = 0; i < readLength; i++)
         outputBuffer[i] = result[i + 4];
     return 0;
+}
+
+void STSServoDriver::determineServoType(unsigned char const& servoId)
+{
+    switch(readRegister(servoId, STS::registers::SERVO_MAJOR))
+    {
+        case 9: servoType_[servoId] = STS::ServoType::STS; break;
+        case 5: servoType_[servoId] = STS::ServoType::SCS; break;
+    }
 }

@@ -52,7 +52,7 @@
             unsigned char const TORQUE_SWITCH           = 0x28;
             unsigned char const TARGET_ACCELERATION     = 0x29;
             unsigned char const TARGET_POSITION         = 0x2A;
-            unsigned char const RUNNING_TIME            = 0x2C; //????
+            unsigned char const RUNNING_TIME            = 0x2C; // Like running speed, for the SCS serie.
             unsigned char const RUNNING_SPEED           = 0x2E;
             unsigned char const TORQUE_LIMIT            = 0x30;
             unsigned char const WRITE_LOCK              = 0x37;
@@ -71,6 +71,13 @@
             POSITION = 0,
             VELOCITY = 1,
             STEP = 3
+        };
+
+        enum class ServoType
+        {
+            UNKNOWN = 0,
+            STS = 1,
+            SCS = 2
         };
 
 
@@ -207,7 +214,7 @@
             /// \return True if write was successful
             bool writeTwoBytesRegister(unsigned char const& servoId,
                                        unsigned char const& registerId,
-                                       uint16_t const& value,
+                                       int16_t const& value,
                                        bool const& asynchronous = false);
 
             /// \brief Read a single register
@@ -277,6 +284,9 @@
                               unsigned char const& readLength,
                               unsigned char *outputBuffer);
 
+            /// \brief Determine servo type (STS or SCS, they don't use exactly the same protocol)
+            void determineServoType(unsigned char const& servoId);
+
             int port_;        ///< Serial port file descriptor.
             int dirPin_;     ///< Direction pin number.
             double readTimeout_; ///< Read timeout, in ms.
@@ -284,5 +294,7 @@
 
             std::unordered_map<unsigned char, int16_t> lastCommands_;
             std::mutex mutex_;
+
+            STS::ServoType servoType_[256];
     };
 #endif
