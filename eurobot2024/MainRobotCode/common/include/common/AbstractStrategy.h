@@ -20,12 +20,6 @@ class AbstractStrategy
         // The actual match code, which runs in its own thread.
         virtual void match() = 0;
 
-        /// @brief Function called at every timestep of the low-level loop.
-        /// @details This function is meant to implement NON-BLOCKING
-        ///          actions at the low-level loop period. The typical usage
-        ///          is servo control.
-        virtual void periodicAction() = 0;
-
         // network::CameraClient camera_;
         std::vector<pthread_t> createdThreads_;
 

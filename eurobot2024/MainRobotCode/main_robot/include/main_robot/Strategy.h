@@ -12,6 +12,7 @@
 #include "common/MotionPlanner.h"
 
 #include "main_robot/AbstractAction.h"
+#include "main_robot/ServoManager.h"
 
 #include <mutex>
 #include <array>
@@ -34,7 +35,6 @@ class Strategy : public AbstractStrategy
         // The actual match code, which runs in its own thread.
         void match() override;
 
-        void periodicAction() override;
     private:
         void match_impl(); /// Actual implementation of the match code.
 
@@ -44,6 +44,8 @@ class Strategy : public AbstractStrategy
         bool performAction(std::shared_ptr<AbstractAction> action);
 
         std::vector<std::shared_ptr<AbstractAction>> actions_;  ///< All actions that can be performed.
+
+        ServoManager servoManager_;
   };
 }
 

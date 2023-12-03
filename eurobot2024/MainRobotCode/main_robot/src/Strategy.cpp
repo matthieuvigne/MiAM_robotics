@@ -45,6 +45,8 @@ bool Strategy::setup(RobotInterface *robot)
     this->robot = robot;
     this->motionController = robot->getMotionController();
     robot->logger_ << "[Strategy] Strategy setup is being performed" << std::endl;
+    servoManager_.init(robot);
+
 
     motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 
@@ -53,19 +55,11 @@ bool Strategy::setup(RobotInterface *robot)
 
     for (int i = 0; i < 6; i++)
     {
-        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, i));
-        actions_.push_back(std::make_shared<DropPlantsAction>(robot, i));
+        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, i));
+        actions_.push_back(std::make_shared<DropPlantsAction>(robot, &servoManager_, i));
     }
 
     return true;
-}
-
-
-//--------------------------------------------------------------------------------------------------
-
-void Strategy::periodicAction()
-{
-  // TODO
 }
 
 //--------------------------------------------------------------------------------------------------
