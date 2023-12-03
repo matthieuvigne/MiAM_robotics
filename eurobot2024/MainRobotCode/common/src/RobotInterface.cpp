@@ -78,12 +78,13 @@ void RobotInterface::lowLevelLoop()
         // If match hasn't started, perform setup and wait for switch.
         if (!hasMatchStarted_)
         {
+            motionController_.isPlayingRightSide_ = gui_->getIsPlayingRightSide();
+            motionController_.resetPosition(gui_->getStartPosition());
             hasMatchStarted_ = setupBeforeMatchStart();
             if (hasMatchStarted_)
             {
                 matchStartTime_ = currentTime_;
-                motionController_.isPlayingRightSide_ = gui_->getIsPlayingRightSide();
-                logger_ << "[Robot] Starting match, isPlayingRightSide_" << motionController_.isPlayingRightSide_ << std::endl;
+                logger_ << "[Robot] Starting match, isPlayingRightSide_: " << motionController_.isPlayingRightSide_ << std::endl;
                 guiState_.state = robotstate::MATCH;
                 metronome_.resetLag();
                 // Start strategy thread.
@@ -140,12 +141,6 @@ void RobotInterface::lowLevelLoop()
 RobotParameters RobotInterface::getParameters() const
 {
     return motionController_.robotParams_;
-}
-
-
-bool RobotInterface::isStrategyTop() const
-{
-    return gui_->getIsTopStrategy();
 }
 
 

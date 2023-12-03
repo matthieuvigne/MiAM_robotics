@@ -28,7 +28,6 @@ namespace main_robot
 {
 
 bool MATCH_COMPLETED = false;
-RobotPosition START_POSITION(0, 1125, 0);
 
 
 //--------------------------------------------------------------------------------------------------
@@ -46,10 +45,6 @@ bool Strategy::setup(RobotInterface *robot)
     this->robot = robot;
     this->motionController = robot->getMotionController();
     robot->logger_ << "[Strategy] Strategy setup is being performed" << std::endl;
-
-    // Set initial position: bottom left
-    START_POSITION.x = robot->getParameters().CHASSIS_BACK;
-    motionController->resetPosition(START_POSITION, true, true, true);
 
     motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 
@@ -150,7 +145,7 @@ void Strategy::match()
         robot->logger_ << "Match almost done, auto-triggering fallback strategy" << std::endl;
     }
     // TODO: don't go there if you already are
-    robot->setGUIActionName("Back to base");
+    robot->setGUIActionName("[Match End] Back to base");
     goBackToBase();
 }
 

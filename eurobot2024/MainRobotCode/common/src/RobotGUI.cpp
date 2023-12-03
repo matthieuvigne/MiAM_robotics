@@ -7,6 +7,13 @@
 #include <iomanip>
 #include <iostream>
 
+
+std::vector<miam::RobotPosition> START_POSITIONS({
+    miam::RobotPosition(300, 1700, 0),
+    miam::RobotPosition(2700, 1000, M_PI),
+    miam::RobotPosition(300, 200, 0)
+});
+
 RobotGUI::RobotGUI()
 {
     set_size_request(300, 300);
@@ -15,8 +22,8 @@ RobotGUI::RobotGUI()
     // Styling
     auto provider = Gtk::CssProvider::create();
     provider->load_from_data("label {font-size:22px;}"
-            "#blue {background:#005B8C;}"
-            "#green {background:#007749;}"
+            "#blue {background:#5485a4;}"
+            "#yellow {background:#e0bc48;}"
             "#button_text {color:#FFFFFF;}"
             "#score {font-size:40; color:#0000FF;}");
     Gtk::StyleContext::add_provider_for_screen(get_screen(), provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
@@ -48,8 +55,8 @@ RobotGUI::RobotGUI()
     sideButton_ = Gtk::Button("Bleu");
     sideButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::sideButtonClicked));
 
-    strategyButton_ = Gtk::Button("Bottom strategy");
-    strategyButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::strategyButtonClicked));
+    startPositionButton_ = Gtk::Button("Next start position");
+    startPositionButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::startPositionButtonClicked));
 
     scoreLabel_.set_name("score");
     add(box_);
@@ -71,11 +78,6 @@ RobotGUI::~RobotGUI()
 bool RobotGUI::getIsPlayingRightSide()
 {
     return isPlayingRightSide_;
-}
-
-bool RobotGUI::getIsTopStrategy()
-{
-    return isStrategyTop_;
 }
 
 bool RobotGUI::doUpdate()
@@ -102,23 +104,15 @@ bool RobotGUI::doUpdate()
     scoreLabel_.set_text("Score: " + std::to_string(robotData.score));
     if (isPlayingRightSide_)
     {
-        sideButton_.set_label("Vert");
-        sideButton_.set_name("green");
+        sideButton_.set_label("Yellow");
+        sideButton_.set_name("yellow");
         sideButton_.get_child()->set_name("button_text");
     }
     else
     {
-        sideButton_.set_label("Bleu");
+        sideButton_.set_label("Blue");
         sideButton_.set_name("blue");
         sideButton_.get_child()->set_name("button_text");
-    }
-    if (isStrategyTop_)
-    {
-        strategyButton_.set_label("Top strategy");
-    }
-    else
-    {
-        strategyButton_.set_label("Bottom strategy");
     }
 
     drawingArea_.queue_draw();
@@ -135,7 +129,7 @@ bool RobotGUI::doUpdate()
         if (robotData.state == robotstate::WAITING_FOR_START)
         {
             box_.pack_start(sideButton_);
-            box_.pack_start(strategyButton_);
+            box_.pack_start(startPositionButton_);
             box_.pack_start(drawingArea_);
         }
         if (robotData.state == robotstate::MATCH)
@@ -168,11 +162,20 @@ void RobotGUI::sideButtonClicked()
     doUpdate();
 }
 
-void RobotGUI::strategyButtonClicked()
+void RobotGUI::startPositionButtonClicked()
 {
-    isStrategyTop_ = !isStrategyTop_;
+    startPositionIdx_++;
+    if (startPositionIdx_ >= static_cast<int>(START_POSITIONS.size()))
+        startPositionIdx_ = 0;
     doUpdate();
 }
+
+
+miam::RobotPosition RobotGUI::getStartPosition()
+{
+    return START_POSITIONS[startPositionIdx_];
+}
+
 
 bool TableDrawing::on_draw(Cairo::RefPtr<Cairo::Context> const& cr)
 {

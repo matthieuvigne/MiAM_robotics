@@ -104,8 +104,6 @@
             /// \return Time since start of the match, or 0 if not started.
             double getMatchTime();
 
-            bool isStrategyTop() const;
-
             bool isPlayingRightSide() const;
 
             Logger logger_; ///< Logger object

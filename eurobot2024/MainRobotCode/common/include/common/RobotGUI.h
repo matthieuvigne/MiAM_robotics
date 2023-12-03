@@ -29,11 +29,12 @@
                 void update(RobotGUIData const& robotData);
 
                 bool getIsPlayingRightSide();
-                bool getIsTopStrategy();
+
+                miam::RobotPosition getStartPosition();
 
             protected:
                 void sideButtonClicked();
-                void strategyButtonClicked();
+                void startPositionButtonClicked();
 
             private:
                 bool doUpdate();
@@ -52,14 +53,14 @@
                 Gtk::Label actionNameLabel_;
 
                 Gtk::Button sideButton_;
-                Gtk::Button strategyButton_;
+                Gtk::Button startPositionButton_;
 
                 TableDrawing drawingArea_;
 
 
                 RobotGUIData robotData_;
+                int startPositionIdx_ = 0;  // Index of start position in START_POSITIONS vector.
                 bool isPlayingRightSide_ = false;
-                bool isStrategyTop_ = false;
 
                 robotstate lastState_ = robotstate::MATCH_DONE;
                 std::mutex mutex_;

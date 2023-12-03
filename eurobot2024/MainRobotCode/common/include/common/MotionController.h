@@ -78,7 +78,7 @@
             /// \param[in] resetX Wheather or not to reset the X coordinate.
             /// \param[in] resetY Wheather or not to reset the Y coordinate.
             /// \param[in] resetTheta Wheather or not to reset the angle.
-            void resetPosition(RobotPosition const& resetPosition, bool const& resetX, bool const& resetY, bool const& resetTheta);
+            void resetPosition(RobotPosition const& resetPosition, bool const& resetX = true, bool const& resetY = true, bool const& resetTheta = true);
 
             /// \brief Set new trajectory set to follow.
             /// \details This function is used to set the trajectories which will be followed by

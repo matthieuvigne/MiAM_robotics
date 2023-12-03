@@ -137,7 +137,7 @@ void ViewerRobot::updateSensorData()
 void ViewerRobot::applyMotorTarget(DrivetrainTarget const& target)
 {
     // Handle init
-    if (guiState_.state == robotstate::MATCH && lastState_ != robotstate::MATCH)
+    if (guiState_.state != robotstate::MATCH)
     {
         simulationPosition_ = motionController_.getCurrentPosition();
 
@@ -148,7 +148,6 @@ void ViewerRobot::applyMotorTarget(DrivetrainTarget const& target)
         }
         trajectory_.clear();
     }
-    lastState_ = guiState_.state ;
     simulationSpeed_ = WheelSpeed(ROBOT_DT * target.motorSpeed);
     kinematics_.integratePosition(simulationSpeed_, simulationPosition_, false);
 
