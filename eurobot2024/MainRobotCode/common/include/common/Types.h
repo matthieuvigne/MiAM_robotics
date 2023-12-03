@@ -30,6 +30,7 @@
         double currentMatchTime = 0;
         miam::RobotPosition currentPosition;
         std::vector<miam::RobotPosition> detectedObstacles;
+        std::string currentActionName = "";
     }; ///< Data forwarded by the robot to the GUI
 
 

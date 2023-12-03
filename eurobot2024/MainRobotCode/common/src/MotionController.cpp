@@ -480,3 +480,24 @@ double MotionController::minDistancePositionToObstacle(RobotPosition position, b
 
     return minDistanceFromObstacle;
 }
+
+
+bool MotionController::goToStraightLine(RobotPosition const& position, double const& speedFactor, bool const& backward)
+{
+    // Don't go faster than maximum
+    double const clampedFactor = std::clamp(speedFactor, 0.0, 1.75);
+
+    miam::trajectory::TrajectoryConfig conf = robotParams_.getTrajConf();
+    conf.maxWheelVelocity *= clampedFactor;
+    conf.maxWheelAcceleration *= clampedFactor;
+    RobotPosition currentPosition = getCurrentPosition();
+    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
+        conf,
+        currentPosition, // start
+        position, // end
+        0.0, // no velocity at end point
+        backward // or forward
+  );
+  setTrajectoryToFollow(traj);
+  return waitForTrajectoryFinished();
+}

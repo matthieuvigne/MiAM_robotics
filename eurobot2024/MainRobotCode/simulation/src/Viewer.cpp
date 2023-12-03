@@ -182,6 +182,10 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
     timeLabel->set_text("Time: " + stream.str());
     scoreLabel->set_text("Score: " + std::to_string(score));
 
+    // Draw game state.
+    cr->scale(mmToCairo_, mmToCairo_);
+    robots_[0]->gameState_.draw(cr);
+
     return true;
 }
 

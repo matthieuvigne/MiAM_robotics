@@ -119,6 +119,7 @@ TrajectoryVector MotionPlanner::planMotion(
     }
     else
     {
+        planned_path.back().theta = targetPosition.theta;
         st = solveTrajectoryFromWaypoints(planned_path);
     }
 

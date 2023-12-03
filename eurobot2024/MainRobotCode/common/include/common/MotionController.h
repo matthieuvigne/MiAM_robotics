@@ -100,6 +100,15 @@
             bool wasTrajectoryFollowingSuccessful();
 
 
+            /// @brief  Go to a target position in a straight line.
+            /// @details This function is blocking, and returns once the motion has completed.
+            /// @param targetPosition Target position
+            /// @param speedRatio Ratio of maximum speed
+            /// @param backward Forward or backward motion
+            /// @return True is move is successful, false otherwise
+            bool goToStraightLine(RobotPosition const& targetPosition, double const& speedRatio = 1.0, bool const& backward = false);
+
+
             /// \brief Compute next motor target.
             ///
             /// \param[in] measurements Latest robot measurements

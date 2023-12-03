@@ -49,6 +49,7 @@
 
                 Gtk::Label debugLabel_;
                 Gtk::Label scoreLabel_;
+                Gtk::Label actionNameLabel_;
 
                 Gtk::Button sideButton_;
                 Gtk::Button strategyButton_;

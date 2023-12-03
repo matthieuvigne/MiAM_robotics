@@ -17,33 +17,16 @@
 #include "common/ArmInverseKinematics.hpp"
 #include "common/ThreadHandler.h"
 
+#include "main_robot/PickupPlantsAction.h"
+#include "main_robot/DropPlantsAction.h"
 
 using namespace miam::trajectory;
 using miam::RobotPosition;
 using namespace kinematics;
 
-#define HOMOLOGATION 0
-
-#define RIGHT_ARM_FIRST_SERVO_ID 10
-#define LEFT_ARM_FIRST_SERVO_ID 20
-
-#define FUNNY_ACTION_LEFT_SERVO_ID 6
-#define FUNNY_ACTION_RIGHT_SERVO_ID 7
-
-#define TEST_CAKE 0
-#define USE_CAMERA 1
-#define ENABLE_DYNAMIC_ACTION_CHOOSING 0 // use the dynamic action choosing feature
-#define TEST_MPC_PLANNER 0
-
 namespace main_robot
 {
 
-// #define SKIP_TO_GRABBING_SAMPLES 1
-// #define SKIP_TO_PUSHING_SAMPLES 1
-// #define SKIP_TO_GRABBING_SAMPLES_SIDE_DIST 1
-
-// This function is responsible for trying to bring the robot back to base,
-// at the end of the match.
 bool MATCH_COMPLETED = false;
 RobotPosition START_POSITION(0, 1125, 0);
 
@@ -61,19 +44,8 @@ bool Strategy::setup(RobotInterface *robot)
 {
     // Get robot
     this->robot = robot;
-    this->servo = robot->getServos();
     this->motionController = robot->getMotionController();
     robot->logger_ << "[Strategy] Strategy setup is being performed" << std::endl;
-
-    // Setup pumps and valves
-    RPi_setupGPIO(PUMP_RIGHT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(PUMP_RIGHT, false);
-    RPi_setupGPIO(PUMP_LEFT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(PUMP_LEFT, false);
-    RPi_setupGPIO(VALVE_RIGHT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(VALVE_RIGHT, false);
-    RPi_setupGPIO(VALVE_LEFT, PiGPIOMode::PI_GPIO_OUTPUT);
-    RPi_writeGPIO(VALVE_LEFT, false);
 
     // Set initial position: bottom left
     START_POSITION.x = robot->getParameters().CHASSIS_BACK;
@@ -81,52 +53,16 @@ bool Strategy::setup(RobotInterface *robot)
 
     motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 
-    // Change P gain of the first servos of each arm to prevent vibrations
-    servo->setPIDGains(RIGHT_ARM, 25, 15, 0);
-    servo->setPIDGains(LEFT_ARM, 25, 15, 0);
-    servo->setPIDGains(RIGHT_ARM + 1, 20, 15, 0);
-    servo->setPIDGains(LEFT_ARM + 1, 20, 1, 0);
+    // Load actions into action vector.
+    actions_.clear();
 
-#if TEST_CAKE
-    // Fold arm (to comment)
-    servo->setTargetPosition(FUNNY_ACTION_LEFT_SERVO_ID, 2048);
-    servo->setTargetPosition(FUNNY_ACTION_RIGHT_SERVO_ID, 2048);
-    servo->setTargetPosition(RIGHT_ARM, STS::radToServoValue(M_PI_2));
-    servo->setTargetPosition(LEFT_ARM, STS::radToServoValue(-M_PI_2));
-    for (int i = 1; i < 4; i++)
+    for (int i = 0; i < 6; i++)
     {
-        servo->setTargetPosition(RIGHT_ARM + i, 2048);
-        servo->setTargetPosition(LEFT_ARM + i, 2048);
+        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, i));
+        actions_.push_back(std::make_shared<DropPlantsAction>(robot, i));
     }
-    servo->setTargetPosition(RIGHT_ARM + 1, STS::radToServoValue(M_PI_2));
-    servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
-    setTargetPosition(LEFT_ARM, ABS, 0.15, ABS, 80*arm::RAD, ABS, arm::PILE_CLEAR_HEIGHT);
-    setTargetPosition(RIGHT_ARM, ABS, 0.15, ABS, 80*arm::RAD, ABS, arm::PILE_CLEAR_HEIGHT);
-    runActionBlock();
-#else
-    for (int i = 0; i < 4; i++)
-    {
-        servo->setTargetPosition(RIGHT_ARM + i, 2048);
-        servo->setTargetPosition(LEFT_ARM + i, 2048);
-    }
-    servo->setTargetPosition(RIGHT_ARM + 1, STS::radToServoValue(M_PI_2));
-    servo->setTargetPosition(LEFT_ARM + 1, STS::radToServoValue(-M_PI_2));
-    setTargetPosition(LEFT_ARM, ABS, 0.15, ABS, 10*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
-    setTargetPosition(RIGHT_ARM, ABS, 0.15, ABS, 10*arm::RAD, ABS, arm::GROUND_HEIGHT + 1e-2);
-    runActionBlock();
-#endif
-    isAtBase_ = false;
 
     return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Strategy::funnyAction()
-{
-  servo->setTargetPosition(FUNNY_ACTION_LEFT_SERVO_ID, 1500);
-  servo->setTargetPosition(FUNNY_ACTION_RIGHT_SERVO_ID, 2500);
-  robot->updateScore(5);
 }
 
 
@@ -134,18 +70,14 @@ void Strategy::funnyAction()
 
 void Strategy::periodicAction()
 {
-
+  // TODO
 }
 
 //--------------------------------------------------------------------------------------------------
 
 void Strategy::shutdown()
 {
-    // Turn off pumps, open valves
-    RPi_writeGPIO(PUMP_RIGHT, false);
-    RPi_writeGPIO(PUMP_LEFT, false);
-    RPi_writeGPIO(VALVE_RIGHT, false);
-    RPi_writeGPIO(VALVE_LEFT, false);
+  // TODO
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -201,116 +133,120 @@ void Strategy::shutdown()
 
 //--------------------------------------------------------------------------------------------------
 
-namespace arm_positions{
-    double const GROUND_HEIGHT = -0.195;
-
-    // Position of the cakes
-    double const CAKES_FRONT_DISTANCE = 0.115;
-    double const CAKES_SIDE_DISTANCE = 0.100;
-    double const FRONT_RIGHT_ANGLE = -0.27;
-    double const FRONT_LEFT_ANGLE = 0.27;
-    double const SIDE_ANGLE = 1.2;
-
-    double const PILE_CLEAR_HEIGHT = GROUND_HEIGHT + 0.085;
-    // double const PILE_CLEAR_HEIGHT = GROUND_HEIGHT + 0.085;
-
-    ArmPosition DISTRIBUTOR_CHERRY(125, -0.55, -130);
-
-}
-
-//--------------------------------------------------------------------------------------------------
-
-int Strategy::switch_arm(int arm_idx)
-{
-  if(robot->isPlayingRightSide())
-  {
-    switch(arm_idx)
-    {
-      case LEFT_ARM:
-        return RIGHT_ARM;
-        break;
-      case RIGHT_ARM:
-        return LEFT_ARM;
-        break;
-      default:
-        std::cerr << "Unknown pile" << std::endl;
-    }
-  }
-  return arm_idx;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-int Strategy::switch_pile(int pile_idx)
-{
-  if(robot->isPlayingRightSide())
-  {
-    switch(pile_idx)
-    {
-      case PILE_IDX::LEFT_SIDE:
-        return PILE_IDX::RIGHT_SIDE;
-        break;
-      case PILE_IDX::LEFT_FRONT:
-        return PILE_IDX::RIGHT_FRONT;
-        break;
-      case PILE_IDX::MIDDLE:
-        return PILE_IDX::MIDDLE;
-        break;
-      case PILE_IDX::RIGHT_FRONT:
-        return PILE_IDX::LEFT_FRONT;
-        break;
-      case PILE_IDX::RIGHT_SIDE:
-        return PILE_IDX::LEFT_SIDE;
-        break;
-      default:
-        std::cerr << "Unknown pile" << std::endl;
-    }
-  }
-  return pile_idx;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-double Strategy::switch_angle(double angle)
-{
-  if(robot->isPlayingRightSide())
-    angle = - angle;
-  return angle;
-}
-
-
-//--------------------------------------------------------------------------------------------------
-
 void Strategy::match()
 {
-  std::cout << "Strategy thread started." << std::endl;
+    robot->logger_ << "Strategy thread started." << std::endl;
 
-  std::thread stratMain(&Strategy::match_impl, this);
-  pthread_t handle = ThreadHandler::addThread(stratMain);
+    std::thread stratMain(&Strategy::match_impl, this);
+    pthread_t handle = ThreadHandler::addThread(stratMain);
 
-  double const FALLBACK_TIME = 95.0;
-  robot->wait(FALLBACK_TIME);
-  if (!MATCH_COMPLETED)
-      pthread_cancel(handle);
-  usleep(50000);
-  if (!MATCH_COMPLETED)
-  {
-      std::cout << "Match almost done, auto-triggering fallback strategy" << std::endl;
-  }
-  funnyAction();
+    double const FALLBACK_TIME = 85.0;
+    robot->wait(FALLBACK_TIME);
+    if (!MATCH_COMPLETED)
+        pthread_cancel(handle);
+    usleep(50000);
+    if (!MATCH_COMPLETED)
+    {
+        robot->logger_ << "Match almost done, auto-triggering fallback strategy" << std::endl;
+    }
+    // TODO: don't go there if you already are
+    robot->setGUIActionName("Back to base");
+    goBackToBase();
 }
 
-//--------------------------------------------------------------------------------------------------
 
 void Strategy::goBackToBase()
 {
   RobotPosition targetPosition{825,550,0}; // 700
-  setTargetPosition(switch_arm(LEFT_ARM), REL, 0., ABS, 0, REL, 0.);
-  setTargetPosition(switch_arm(RIGHT_ARM), REL, 0., ABS, 0, REL, 0.);
-  runActionBlock();
   go_to_straight_line(targetPosition, 1.5, false);
   targetPosition.y -= 350; // 500;
   go_to_straight_line(targetPosition, 1.5, false);
 }
+
+
+//--------------------------------------------------------------------------------------------------
+
+void Strategy::match_impl()
+{
+    int highestPriorityAction = 1;
+    while (highestPriorityAction > 0)
+    {
+        highestPriorityAction = -1;
+
+        robot->logger_ << "[Strategy] Choosing action from list: " << std::endl;
+        for (unsigned int i = 0; i < actions_.size(); i++)
+        {
+            actions_.at(i)->updateStartCondition();
+            if (actions_.at(i)->priority_ > highestPriorityAction)
+                highestPriorityAction = actions_.at(i)->priority_;
+            robot->logger_ << i << "\t" << *actions_.at(i) << std::endl;
+        }
+
+        // Look amongst action with highest priority, select the closest one.
+        int selectedAction = 0;
+        double minDistance = 1e10;
+        RobotPosition currentPosition = motionController->getCurrentPosition();
+        for (unsigned int i = 0; i < actions_.size(); i++)
+        {
+            if (actions_.at(i)->priority_ == highestPriorityAction)
+            {
+                double const distance = (actions_.at(i)->startPosition_ - currentPosition).norm();
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    selectedAction = i;
+                }
+            }
+        }
+
+
+        // Perform this action
+        robot->logger_ << "[Strategy] Chose action " << selectedAction << std::endl;
+        robot->setGUIActionName(actions_.at(selectedAction)->getName());
+
+        bool actionNeedsToBeRemoved = performAction(actions_.at(selectedAction));
+        robot->setGUIActionName("None");
+
+        if (actionNeedsToBeRemoved)
+        {
+            actions_.erase(actions_.begin() + selectedAction);
+        }
+    }
+    robot->logger_ << "[Strategy] No more action to perform" << std::endl;
+
+
+}
+
+bool Strategy::performAction(std::shared_ptr<AbstractAction> action)
+{
+    robot->logger_ << "[Strategy] Performing action: " << *action << std::endl;
+    // Go to the start of the action
+    TrajectoryVector traj;
+    traj = robot->getMotionController()->computeMPCTrajectory(action->startPosition_, robot->getMotionController()->getDetectedObstacles(), true);
+    if (traj.empty())
+    {
+        robot->logger_ << "[Strategy] Motion planning to action failed!" << std::endl;
+        return false;
+    }
+
+    // Perform trigger action
+    action->actionStartTrigger();
+
+    // Follow trajectory to action start
+    robot->getMotionController()->setTrajectoryToFollow(traj);
+    if (!robot->getMotionController()->waitForTrajectoryFinished())
+    {
+        // action was not successful
+        return false;
+    }
+    if (!action->performAction())
+    {
+        // action was not successful
+        return false;
+    }
+
+    return true;
+}
+
 
 }

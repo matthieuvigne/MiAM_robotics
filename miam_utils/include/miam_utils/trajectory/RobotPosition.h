@@ -23,7 +23,7 @@
                 /// \param[in] xIn x coordinate.
                 /// \param[in] yIn y coordinate.
                 /// \param[in] thetaIn theta coordinate.
-                RobotPosition(double const& xIn, double const& yIn, double const& thetaIn);
+                RobotPosition(double const& xIn, double const& yIn, double const& thetaIn = 0.0);
 
                 /// \brief Sum two position.
                 ///

@@ -92,6 +92,7 @@ bool RobotGUI::doUpdate()
     stream << "Time: " << std::fixed << std::setprecision(1) << robotData.currentMatchTime<< "s";
     matchTime_.set_text(stream.str());
     labelState_.set_text(robotStateNames[static_cast<int>(robotData.state)]);
+    actionNameLabel_.set_text(robotData.currentActionName);
 
     // Update bottom part, if needed
     if (robotData.state == robotstate::UNDERVOLTAGE)
@@ -141,6 +142,7 @@ bool RobotGUI::doUpdate()
         {
             box_.pack_start(drawingArea_);
             box_.pack_start(scoreLabel_);
+            box_.pack_start(actionNameLabel_);
         }
         if (robotData.state == robotstate::MATCH_DONE)
         {

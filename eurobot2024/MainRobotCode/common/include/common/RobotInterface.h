@@ -14,6 +14,7 @@
     #include "common/RobotParameters.h"
     #include "common/MotionController.h"
     #include "common/Types.h"
+    #include "common/GameState.h"
 #ifdef SIMULATION
     #include "FakeMetronome.h"
 #endif
@@ -108,6 +109,13 @@
             bool isPlayingRightSide() const;
 
             Logger logger_; ///< Logger object
+            GameState gameState_;
+
+
+            void setGUIActionName(std::string const& actionName)
+            {
+                guiState_.currentActionName = actionName;
+            }
 
         protected:
 #ifdef SIMULATION
@@ -132,7 +140,6 @@
 
             std::string teleplotPrefix_;
             RobotMeasurements measurements_;
-
         private:
             /// \brief Perform robot setup, returns true the match has started or not.
             ///
