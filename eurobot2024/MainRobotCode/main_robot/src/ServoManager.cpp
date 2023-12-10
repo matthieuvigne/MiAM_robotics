@@ -24,9 +24,34 @@ void ServoManager::closeClaw(int const& clawId)
     servos_->setTargetPosition(clawId, 1000);
 }
 
-void ServoManager::moveTurret(double const&)
+void ServoManager::openClaws(bool const& front)
 {
+    openClaw(0);
+    openClaw(1);
+    openClaw(2);
+}
 
+
+void ServoManager::closeClaws(bool const& front)
+{
+    openClaw(3);
+    openClaw(4);
+    openClaw(5);
+}
+
+void ServoManager::updateClawContent(bool const& front, GameState & gameState)
+{
+    int offset = (front ? 0 : 3);
+
+    // TODO: for now, grab is considered perfect
+    for (int j = 0; j < 3; j++)
+        gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+}
+
+
+void ServoManager::moveTurret(double const& targetPosition)
+{
+    currentPosition_ = targetPosition;
 }
 
 void ServoManager::waitForTurret()

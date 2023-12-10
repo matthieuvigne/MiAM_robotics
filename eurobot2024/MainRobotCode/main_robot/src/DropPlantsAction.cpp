@@ -17,11 +17,11 @@ void DropPlantsAction::updateStartCondition()
     startPosition_ = PLANT_DROP_COORD[zoneId_];
 
     // Action is only possible if there are plants present.
-    if (robot_->gameState_.nPlantsInRobot <= 0)
+    if (robot_->gameState_.nPlantsInRobot() <= 0)
     {
         priority_ = -1;
     }
-    else if (robot_->gameState_.nPlantsInRobot > 4)
+    else if (robot_->gameState_.nPlantsInRobot() > 4)
     {
         priority_ = 2;
     }
@@ -39,8 +39,10 @@ void DropPlantsAction::actionStartTrigger()
 
 bool DropPlantsAction::performAction()
 {
-    robot_->gameState_.nPlantsCollected[zoneId_] += 3;
-    robot_->gameState_.nPlantsInRobot -= 3;
+    robot_->gameState_.nPlantsCollected[zoneId_] += robot_->gameState_.nPlantsInRobot();
+    // TODO: drop
+    for (int i = 0; i < 6; i++)
+        robot_->gameState_.robotClawContent[i] = ClawContent::EMPTY;
 
     // Action should not be done again if there are more than 3 plants.
     return robot_->gameState_.nPlantsCollected[zoneId_] > 3;

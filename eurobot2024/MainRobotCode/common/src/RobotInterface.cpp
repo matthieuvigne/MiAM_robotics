@@ -45,6 +45,7 @@ void RobotInterface::lowLevelLoop()
     hasMatchStarted_ = false;
     matchStartTime_ = 0.0;
     currentTime_ = 0.0;
+    gameState_ = GameState();
 
 #ifdef SIMULATION
     metronome_.hasReset_ = false;

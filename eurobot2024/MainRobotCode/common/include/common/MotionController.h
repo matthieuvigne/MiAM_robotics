@@ -109,6 +109,15 @@
             bool goToStraightLine(RobotPosition const& targetPosition, double const& speedRatio = 1.0, bool const& backward = false);
 
 
+
+            /// @brief  Move a certain distance is a straight line.
+            /// @details This function is blocking, and returns once the motion has completed.
+            /// @param distance Distance - negative to go backward
+            /// @param speedRatio Ratio of maximum speed
+            /// @return True is move is successful, false otherwise
+            bool goStraight(double const& distance, double const& speedRatio = 1.0);
+
+
             /// \brief Compute next motor target.
             ///
             /// \param[in] measurements Latest robot measurements

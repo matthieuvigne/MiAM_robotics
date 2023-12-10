@@ -501,3 +501,12 @@ bool MotionController::goToStraightLine(RobotPosition const& position, double co
   setTrajectoryToFollow(traj);
   return waitForTrajectoryFinished();
 }
+
+bool MotionController::goStraight(double const& distance, double const& speedFactor)
+{
+    RobotPosition targetPosition = getCurrentPosition();
+    double const angle = targetPosition.theta + (distance < 0 ? M_PI : 0);
+    targetPosition.x += std::cos(angle) * std::abs(distance);
+    targetPosition.y += std::sin(angle) * std::abs(distance);
+    return goToStraightLine(targetPosition, speedFactor, distance < 0);
+}

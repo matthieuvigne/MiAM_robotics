@@ -35,6 +35,11 @@ public:
     void openClaw(int const& clawId);
     void closeClaw(int const& clawId);
 
+    void openClaws(bool const& front);
+    void closeClaws(bool const& front);
+
+    void updateClawContent(bool const& front, GameState & gameState);
+
     /// @brief Move turret to specified position, in rad.
     void moveTurret(double const& turretPos);
 
@@ -44,6 +49,11 @@ public:
         return turretState_ == turret::state::IDLE;
     }
 
+    double getTurretPosition() const
+    {
+        return currentPosition_;
+    }
+
 private:
     RobotInterface *robot_;
     STSServoDriver *servos_;
@@ -51,6 +61,8 @@ private:
     void turretMotionThread();
 
     turret::state turretState_{turret::state::CALIBRATING};
+
+    double currentPosition_{0.0};
 };
 
 #endif
