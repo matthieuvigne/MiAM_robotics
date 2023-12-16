@@ -162,19 +162,24 @@ namespace miam{
 
             // obstacles table
             // bordure exterieure
+            int forbidden_border_size_grid = config_.forbidden_border_size_mm / config_.astar_resolution_mm;
+
             for (int i = 0; i < config_.astar_grid_size_x; i++)
             {
-                generator_.addCollision({i, 0});
-                generator_.addCollision({i, 1});
-                generator_.addCollision({i, config_.astar_grid_size_y-2});
-                generator_.addCollision({i, config_.astar_grid_size_y-1});
+                for (int k = 0; k <= forbidden_border_size_grid; k++)
+                {
+                    generator_.addCollision({i, k});
+                    generator_.addCollision({i, config_.astar_grid_size_y-1-k});
+
+                }
             }
             for (int j = 0; j < config_.astar_grid_size_y; j++)
             {
-                generator_.addCollision({0, j});
-                generator_.addCollision({1, j});
-                generator_.addCollision({config_.astar_grid_size_x-2, j});
-                generator_.addCollision({config_.astar_grid_size_x-1, j});
+                for (int k = 0; k <= forbidden_border_size_grid; k++)
+                {
+                    generator_.addCollision({k, j});
+                    generator_.addCollision({config_.astar_grid_size_x-1-k, j});
+                }
             }
         }
 

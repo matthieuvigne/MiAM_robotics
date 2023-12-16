@@ -25,7 +25,7 @@
 
 #define N           ACADO_N   /* Number of intervals in the horizon. */
 
-#define VERBOSE     0         /* Show iterations: 1, silent: 0.  */
+#define VERBOSE     1         /* Show iterations: 1, silent: 0.  */
 
 /*
  * Parameters with which the custom solver was compiled
@@ -35,6 +35,7 @@
 
 #define MPC_OBJECTIVE_TOLERANCE 10 // mm
 #define MPC_CONSECUTIVE_POINT_TOLERANCE 1 // mm
+#define MPC_CONSECUTIVE_ANGLE_TOLERANCE 0.05 // rad
 #define MPC_VELOCITY_OVERHEAD_PCT 0.8
 
 /* Global variables used by the solver. */
@@ -78,6 +79,7 @@ MotionPlanner::MotionPlanner(RobotParameters const& robotParameters) :
     config.astar_resolution_mm = 50;
     config.astar_grid_size_x = table_dimensions::table_size_x / 50;
     config.astar_grid_size_y = table_dimensions::table_size_y / 50;
+    config.forbidden_border_size_mm = 1; // should be equal to robot radius
     pathPlanner_ = PathPlanner(config);
 }
 
@@ -440,8 +442,15 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
             if (outputPoints.size() > 0)
             {
                 if (
-                    ((outputPoints.back().position - target_position.position).norm() < MPC_OBJECTIVE_TOLERANCE) |
-                    ((outputPoints.back().position - tp.position).norm() < MPC_CONSECUTIVE_POINT_TOLERANCE)
+                    // we are very close to the target in norm
+                    ((outputPoints.back().position - target_position.position).norm() < MPC_OBJECTIVE_TOLERANCE) ||
+                    // time is greater than reference duration and
+                    // two consecutive points in the trajectory are too similar in norm and in angle
+                    (
+                        (outputPoints.size()-1) * DELTA_T > reference_trajectory.getDuration() &&
+                        (outputPoints.back().position - tp.position).norm() < MPC_CONSECUTIVE_POINT_TOLERANCE &&
+                        std::abs(outputPoints.back().position.theta - tp.position.theta) < MPC_CONSECUTIVE_ANGLE_TOLERANCE
+                    )
                     )
                 {
                     break;

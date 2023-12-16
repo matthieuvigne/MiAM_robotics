@@ -17,6 +17,7 @@
                 int astar_resolution_mm = 50;
                 int astar_grid_size_x = 40;
                 int astar_grid_size_y = 60;
+                int forbidden_border_size_mm = 175;
             };
 
             /// @brief The path planning grid depicts the map. Each tile is a region of the map.
