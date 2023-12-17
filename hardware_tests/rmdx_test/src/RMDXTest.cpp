@@ -23,6 +23,7 @@ double time()
     struct timespec currentTime;
     clock_gettime(CLOCK_MONOTONIC, &currentTime);
     double const elapsed = currentTime.tv_sec - startTime.tv_sec + (currentTime.tv_nsec - startTime.tv_nsec) / 1e9;
+    return elapsed;
 }
 
 int main (int argc, char *argv[])
