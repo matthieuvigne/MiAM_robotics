@@ -32,7 +32,7 @@ void drawText(Cairo::RefPtr<Cairo::Context> const& cr, std::string const& text)
     cr->stroke();
 }
 
-void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr)
+void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPosition const& robotPosition)
 {
     cr->set_source_rgb(1.0, 0.0, 0.0);
 
@@ -47,4 +47,25 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr)
 
     cr->move_to(0, 100);
     drawText(cr, "In robot: " + std::to_string(nPlantsInRobot()));
+
+    cr->save();
+
+    cr->translate(robotPosition.x, 2000. - robotPosition.y);
+    // Minus sign: indirect convention is used in Cairo.
+    cr->rotate(-robotPosition.theta);
+
+    double const XPOS[6] = {150, 150, 150, -150, -150, -150};
+    double const YPOS[6] = {-100, 0, 100, -100, 0, 100};
+    for (int i = 0; i < 6; i++)
+    {
+        cr->arc(XPOS[i], YPOS[i], 20, 0.0, 2.0 * M_PI);
+        switch(robotClawContent[i])
+        {
+            case ClawContent::EMPTY: cr->set_source_rgba(1.0, 1.0, 1.0, 0.0); break;
+            case ClawContent::UNKNOWN_PLANT: cr->set_source_rgb(1.0, 1.0, 0.0); break;
+            default: cr->set_source_rgb(1.0, 1.0, 1.0); break;
+        }
+        cr->fill();
+    }
+    cr->restore();
 }

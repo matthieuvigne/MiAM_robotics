@@ -113,7 +113,6 @@ void MainWindow::rescan()
 
 bool MainWindow::updateReadings()
 {
-    std::cout << static_cast<int>(driver_->readRegister(0x01, 0x3C)) << std::endl;
     driver_->setTorqueLimit(0x01, 0.1);
     for (unsigned int i = 0; i < servoIds_.size(); i++)
     {

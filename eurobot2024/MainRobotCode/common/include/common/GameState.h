@@ -27,7 +27,7 @@
             /// @brief Number of plants in each collected zone.
             int nPlantsCollected[6] = {0, 0, 0, 0, 0, 0};
 
-            /// TODO enum
+            /// Content of the robot's claws
             ClawContent robotClawContent[6] = {ClawContent::EMPTY,
                                                ClawContent::EMPTY,
                                                ClawContent::EMPTY,
@@ -56,6 +56,6 @@
 
             /// @brief Draw current state as overlay on the table.
             /// @param cr A cairo::context, correctly scaled and offsetted.
-            void draw(Cairo::RefPtr<Cairo::Context> const& cr);
+            void draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPosition const& robotPosition);
     };
  #endif

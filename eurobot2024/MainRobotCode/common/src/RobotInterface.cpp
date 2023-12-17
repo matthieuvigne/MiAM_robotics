@@ -29,7 +29,7 @@ void RobotInterface::initLogger()
     // Generate unique file ID, because raspberry pi clock is always reset.
     int count = 0;
     std::filesystem::path logDir{"logs/"};
-    for (auto& p : std::filesystem::directory_iterator(logDir))
+    for (auto& p __attribute__ ((unused)) : std::filesystem::directory_iterator(logDir))
         count++;
     std::string filename = "logs/log" + std::to_string(count) + "_" + std::string(timestamp) + "_" + motionController_.robotParams_.name + ".hdf5";
     logger_.start(filename);
