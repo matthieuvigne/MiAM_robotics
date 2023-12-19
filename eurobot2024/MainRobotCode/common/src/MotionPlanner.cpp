@@ -30,20 +30,6 @@
 /*
  * Parameters with which the custom solver was compiled
  */
-#define DELTA_T    MPC_DELTA_T
-#define HORIZON_T   DELTA_T * N
-
-#define MPC_OBJECTIVE_TOLERANCE 10 // mm
-#define MPC_CONSECUTIVE_POINT_TOLERANCE 1 // mm
-#define MPC_CONSECUTIVE_ANGLE_TOLERANCE 0.05 // rad
-#define MPC_VELOCITY_OVERHEAD_PCT 0.8
-
-/* Global variables used by the solver. */
-ACADOvariables acadoVariables;
-ACADOworkspace acadoWorkspace;
-
-using namespace miam;
-using namespace std;
 
 // The parameters used to generate the MPC code
 #define MPC_DELTA_T 0.1// 100 ms
@@ -55,6 +41,24 @@ using namespace std;
 #define MPC_MU_VANG 0.01 // weight of the trajectory (w) in the optimization algorithm
 
 #define MPC_PONDERATION_FINAL_STATE 10 // scaling factor to account more for the final state
+
+#define DELTA_T    MPC_DELTA_T
+#define HORIZON_T   DELTA_T * N
+
+#define MPC_OBJECTIVE_TOLERANCE 10 // mm
+#define MPC_CONSECUTIVE_POINT_TOLERANCE 1 // mm
+#define MPC_CONSECUTIVE_ANGLE_TOLERANCE 0.05 // rad
+
+#define MPC_VELOCITY_OVERHEAD_PCT 0.7
+#define MPC_ACCELERATION_OVERHEAD_PCT 0.6
+
+/* Global variables used by the solver. */
+ACADOvariables acadoVariables;
+ACADOworkspace acadoWorkspace;
+
+using namespace miam;
+using namespace std;
+
 
 // ACADO should be inited only once
 bool is_acado_inited = false;
@@ -121,7 +125,9 @@ TrajectoryVector MotionPlanner::planMotion(
     }
     else
     {
-        planned_path.back().theta = targetPosition.theta;
+        // planned_path.back().theta = targetPosition.theta;   // this makes the MPC try to ensure the end angle
+        //                                                     // but end angle is often not reachable so the angle 
+        //                                                     // is then ensured with a point turn afterwards
         st = solveTrajectoryFromWaypoints(planned_path);
     }
 
@@ -173,7 +179,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     // parameterize solver
     miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
     cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
-    cplan.maxWheelAcceleration *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
+    cplan.maxWheelAcceleration *= MPC_ACCELERATION_OVERHEAD_PCT; // give 20% overhead to the controller
 
     // create trajectory interpolating waypoints
     traj = computeTrajectoryBasicPath(cplan, waypoints, 0);
@@ -200,6 +206,10 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
             nIter * (HORIZON_T - 2 * DELTA_T)
         );
 
+        // this is the case in which the solved MPC iteration has some
+        // stationary points ; the function truncates these points, which renders the duration less
+        // than horizon_t
+        // todo : maybe add some conditions about being close to the target?
         if (st->getDuration() < HORIZON_T)
         {
             res.push_back(st);
@@ -231,6 +241,10 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
         distance += (p.at(i+1) - p.at(i)).norm();
     }
 
+#ifdef VERBOSE
+    cout << "computeTrajectoryBasicPath: Planning path of distance " << distance << endl;
+#endif
+
     // make a trapezoid of velocity
     Trapezoid tp = Trapezoid(
         distance,
@@ -240,43 +254,77 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
         config.maxWheelAcceleration
     );
 
+    // parameterize the trajectory using curvilinear abscissa
+    double startPointCurvilinearAbscissa = 0.0;
+    double startPointTrapezoid = 0.0;
     for (long unsigned int i = 0; i < p.size() - 1; i++) {
+        
         RobotPosition p1 = p.at(i);
         RobotPosition p2 = p.at(i+1);
+        double endPointCurvilinearAbscissa = startPointCurvilinearAbscissa += (p2 - p1).norm();
 
-        double starting_speed;
+        double startSpeed;
         if (i == 0) {
-            starting_speed = initialSpeed;
+            startSpeed = initialSpeed;
         } else {
             // starting speed is the ending speed of the preceding trajectory
             // do not take the endpoint or else the speed is null
-            starting_speed = vector.back()->getCurrentPoint(vector.back()->getDuration() - 0.001).linearVelocity;
+            startSpeed = vector.back()->getCurrentPoint(vector.back()->getDuration()).linearVelocity;
         }
 
-        // approximate the velocity curve to be a trapezoid
-        // could refine that taking distance into account
-        double maxSpeed = (
-            tp.getState(tp.getDuration() * i / (p.size()-1)).velocity +
-            tp.getState(tp.getDuration() * (i+1) / (p.size()-1)).velocity
-        ) / 2.0;
+        // // approximate the velocity curve to be a trapezoid
+        // // could refine that taking distance into account
+        // double maxSpeed = (
+        //     tp.getState(tp.getDuration() * i / (p.size()-1)).velocity +
+        //     tp.getState(tp.getDuration() * (i+1) / (p.size()-1)).velocity
+        // ) / 2.0;
+
+        // get max velocity from tp
+        double timeOfTrapezoid = startPointTrapezoid;
+        while (timeOfTrapezoid < tp.getDuration() && tp.getState(timeOfTrapezoid).position < endPointCurvilinearAbscissa)
+        {
+            timeOfTrapezoid += 0.001;
+        }
+        double endSpeed = tp.getState(timeOfTrapezoid).velocity;
 
         std::shared_ptr<StraightLine> line(new StraightLine(
             config, p1, p2,
-            starting_speed,
-            maxSpeed, false));
+            startSpeed,
+            endSpeed, false));
+
+#ifdef VERBOSE
+        cout << "Point index " << i << " : endSpeed " << endSpeed << " start at " << line->getCurrentPoint(0) << " end at " << line->getEndPoint() << endl;
+
+        if (i == 0)
+        {
+            cout << "Checking first straightline: " << endl;
+            for (double stime = 0; stime <= line->getDuration(); stime+=0.1)
+                cout << line->getCurrentPoint(stime) << endl;
+        }
+#endif
 
         // Go from point to point.
         vector.push_back(std::shared_ptr<Trajectory>(line));
+
+        // Update variables
+        startPointCurvilinearAbscissa = endPointCurvilinearAbscissa;
+        startPointTrapezoid += line->getDuration();
     }
 
-    if (VERBOSE)
+#ifdef VERBOSE
+    cout << "Computed TrajectoryVector: " << endl;
+    for (double stime = 0; stime <= vector.getDuration(); stime+=0.1)
+        cout << vector.getCurrentPoint(stime) << endl;
+    cout << vector.getEndPoint() << endl;
+#endif
+
+#ifdef VERBOSE
+    for (double t=0; t <= vector.getDuration(); t+=0.2)
     {
-        for (double t=0; t <= vector.getDuration(); t+=0.2)
-        {
-            textlog << "[MotionPlanner] " << "t: " << t << " " << vector.getCurrentPoint(t) << std::endl;
-        }
-        textlog << "[MotionPlanner] " << "t: " << vector.getDuration() << " " << vector.getEndPoint() << std::endl;
+        textlog << "[MotionPlanner] " << "t: " << t << " " << vector.getCurrentPoint(t) << std::endl;
     }
+    textlog << "[MotionPlanner] " << "t: " << vector.getDuration() << " " << vector.getEndPoint() << std::endl;
+#endif
 
     return vector;
 };

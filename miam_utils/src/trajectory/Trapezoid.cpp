@@ -107,7 +107,7 @@ namespace miam{
             TrapezoidState output;
             if(currentTime < 0.0)
                 return output;
-            if(currentTime >= duration_)
+            if(currentTime > duration_)
             {
                 output.position = length_;
                 return output;
