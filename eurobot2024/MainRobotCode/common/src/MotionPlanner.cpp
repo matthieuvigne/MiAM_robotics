@@ -80,9 +80,9 @@ MotionPlanner::MotionPlanner(RobotParameters const& robotParameters) :
 
     // create pathPlanner with correct grid
     PathPlannerConfig config;
-    config.astar_resolution_mm = 50;
-    config.astar_grid_size_x = table_dimensions::table_size_x / 50;
-    config.astar_grid_size_y = table_dimensions::table_size_y / 50;
+    config.astar_resolution_mm = 25;
+    config.astar_grid_size_x = table_dimensions::table_size_x / config.astar_resolution_mm;
+    config.astar_grid_size_y = table_dimensions::table_size_y / config.astar_resolution_mm;
     config.forbidden_border_size_mm = 1; // should be equal to robot radius
     pathPlanner_ = PathPlanner(config);
 }

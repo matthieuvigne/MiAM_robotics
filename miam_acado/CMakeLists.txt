@@ -34,9 +34,8 @@ find_package(Boost COMPONENTS system iostreams filesystem REQUIRED) # sudo apt-g
 # Prerequisites
 #
 FIND_PACKAGE( ACADO REQUIRED )
-pkg_search_module(ACADO REQUIRED rplidar)
+pkg_search_module(ACADO REQUIRED acado)
 message(STATUS "Found acado v." ${ACADO_VERSION})
-
 
 pkg_search_module(RPLIDAR REQUIRED rplidar)
 message(STATUS "Found rplidar v." ${RPLIDAR_VERSION})

@@ -283,19 +283,19 @@ acadoWorkspace.H[(iRow * 80 + 40) + (iCol * 2 + 1)] = acadoWorkspace.H[(iCol * 8
 
 void acado_multQ1d( real_t* const dOld, real_t* const dNew )
 {
-dNew[0] = + (real_t)1.0000000000000000e+03*dOld[0];
-dNew[1] = + (real_t)1.0000000000000000e+03*dOld[1];
+dNew[0] = + (real_t)1.0000000000000000e+02*dOld[0];
+dNew[1] = + (real_t)1.0000000000000000e+02*dOld[1];
 dNew[2] = + (real_t)1.0000000000000000e+01*dOld[2];
-dNew[3] = + (real_t)1.0000000000000000e+02*dOld[3];
+dNew[3] = + (real_t)1.0000000000000000e+01*dOld[3];
 dNew[4] = +dOld[4];
 }
 
 void acado_multQN1d( real_t* const dOld, real_t* const dNew )
 {
-dNew[0] = + (real_t)1.0000000000000000e+04*dOld[0];
-dNew[1] = + (real_t)1.0000000000000000e+04*dOld[1];
+dNew[0] = + (real_t)1.0000000000000000e+03*dOld[0];
+dNew[1] = + (real_t)1.0000000000000000e+03*dOld[1];
 dNew[2] = + (real_t)1.0000000000000000e+02*dOld[2];
-dNew[3] = + (real_t)1.0000000000000000e+03*dOld[3];
+dNew[3] = + (real_t)1.0000000000000000e+02*dOld[3];
 dNew[4] = + (real_t)1.0000000000000000e+01*dOld[4];
 }
 
@@ -309,10 +309,10 @@ RDy1[1] = 0.0;
 
 void acado_multQDy( real_t* const Dy1, real_t* const QDy1 )
 {
-QDy1[0] = + (real_t)1.0000000000000000e+03*Dy1[0];
-QDy1[1] = + (real_t)1.0000000000000000e+03*Dy1[1];
+QDy1[0] = + (real_t)1.0000000000000000e+02*Dy1[0];
+QDy1[1] = + (real_t)1.0000000000000000e+02*Dy1[1];
 QDy1[2] = + (real_t)1.0000000000000000e+01*Dy1[2];
-QDy1[3] = + (real_t)1.0000000000000000e+02*Dy1[3];
+QDy1[3] = + (real_t)1.0000000000000000e+01*Dy1[3];
 QDy1[4] = +Dy1[4];
 }
 
@@ -352,6 +352,35 @@ dNew[4] += + E1[8]*U1[0] + E1[9]*U1[1];
 
 void acado_multQ1Gx( real_t* const Gx1, real_t* const Gx2 )
 {
+Gx2[0] = + (real_t)1.0000000000000000e+02*Gx1[0];
+Gx2[1] = + (real_t)1.0000000000000000e+02*Gx1[1];
+Gx2[2] = + (real_t)1.0000000000000000e+02*Gx1[2];
+Gx2[3] = + (real_t)1.0000000000000000e+02*Gx1[3];
+Gx2[4] = + (real_t)1.0000000000000000e+02*Gx1[4];
+Gx2[5] = + (real_t)1.0000000000000000e+02*Gx1[5];
+Gx2[6] = + (real_t)1.0000000000000000e+02*Gx1[6];
+Gx2[7] = + (real_t)1.0000000000000000e+02*Gx1[7];
+Gx2[8] = + (real_t)1.0000000000000000e+02*Gx1[8];
+Gx2[9] = + (real_t)1.0000000000000000e+02*Gx1[9];
+Gx2[10] = + (real_t)1.0000000000000000e+01*Gx1[10];
+Gx2[11] = + (real_t)1.0000000000000000e+01*Gx1[11];
+Gx2[12] = + (real_t)1.0000000000000000e+01*Gx1[12];
+Gx2[13] = + (real_t)1.0000000000000000e+01*Gx1[13];
+Gx2[14] = + (real_t)1.0000000000000000e+01*Gx1[14];
+Gx2[15] = + (real_t)1.0000000000000000e+01*Gx1[15];
+Gx2[16] = + (real_t)1.0000000000000000e+01*Gx1[16];
+Gx2[17] = + (real_t)1.0000000000000000e+01*Gx1[17];
+Gx2[18] = + (real_t)1.0000000000000000e+01*Gx1[18];
+Gx2[19] = + (real_t)1.0000000000000000e+01*Gx1[19];
+Gx2[20] = +Gx1[20];
+Gx2[21] = +Gx1[21];
+Gx2[22] = +Gx1[22];
+Gx2[23] = +Gx1[23];
+Gx2[24] = +Gx1[24];
+}
+
+void acado_multQN1Gx( real_t* const Gx1, real_t* const Gx2 )
+{
 Gx2[0] = + (real_t)1.0000000000000000e+03*Gx1[0];
 Gx2[1] = + (real_t)1.0000000000000000e+03*Gx1[1];
 Gx2[2] = + (real_t)1.0000000000000000e+03*Gx1[2];
@@ -362,45 +391,16 @@ Gx2[6] = + (real_t)1.0000000000000000e+03*Gx1[6];
 Gx2[7] = + (real_t)1.0000000000000000e+03*Gx1[7];
 Gx2[8] = + (real_t)1.0000000000000000e+03*Gx1[8];
 Gx2[9] = + (real_t)1.0000000000000000e+03*Gx1[9];
-Gx2[10] = + (real_t)1.0000000000000000e+01*Gx1[10];
-Gx2[11] = + (real_t)1.0000000000000000e+01*Gx1[11];
-Gx2[12] = + (real_t)1.0000000000000000e+01*Gx1[12];
-Gx2[13] = + (real_t)1.0000000000000000e+01*Gx1[13];
-Gx2[14] = + (real_t)1.0000000000000000e+01*Gx1[14];
-Gx2[15] = + (real_t)1.0000000000000000e+02*Gx1[15];
-Gx2[16] = + (real_t)1.0000000000000000e+02*Gx1[16];
-Gx2[17] = + (real_t)1.0000000000000000e+02*Gx1[17];
-Gx2[18] = + (real_t)1.0000000000000000e+02*Gx1[18];
-Gx2[19] = + (real_t)1.0000000000000000e+02*Gx1[19];
-Gx2[20] = +Gx1[20];
-Gx2[21] = +Gx1[21];
-Gx2[22] = +Gx1[22];
-Gx2[23] = +Gx1[23];
-Gx2[24] = +Gx1[24];
-}
-
-void acado_multQN1Gx( real_t* const Gx1, real_t* const Gx2 )
-{
-Gx2[0] = + (real_t)1.0000000000000000e+04*Gx1[0];
-Gx2[1] = + (real_t)1.0000000000000000e+04*Gx1[1];
-Gx2[2] = + (real_t)1.0000000000000000e+04*Gx1[2];
-Gx2[3] = + (real_t)1.0000000000000000e+04*Gx1[3];
-Gx2[4] = + (real_t)1.0000000000000000e+04*Gx1[4];
-Gx2[5] = + (real_t)1.0000000000000000e+04*Gx1[5];
-Gx2[6] = + (real_t)1.0000000000000000e+04*Gx1[6];
-Gx2[7] = + (real_t)1.0000000000000000e+04*Gx1[7];
-Gx2[8] = + (real_t)1.0000000000000000e+04*Gx1[8];
-Gx2[9] = + (real_t)1.0000000000000000e+04*Gx1[9];
 Gx2[10] = + (real_t)1.0000000000000000e+02*Gx1[10];
 Gx2[11] = + (real_t)1.0000000000000000e+02*Gx1[11];
 Gx2[12] = + (real_t)1.0000000000000000e+02*Gx1[12];
 Gx2[13] = + (real_t)1.0000000000000000e+02*Gx1[13];
 Gx2[14] = + (real_t)1.0000000000000000e+02*Gx1[14];
-Gx2[15] = + (real_t)1.0000000000000000e+03*Gx1[15];
-Gx2[16] = + (real_t)1.0000000000000000e+03*Gx1[16];
-Gx2[17] = + (real_t)1.0000000000000000e+03*Gx1[17];
-Gx2[18] = + (real_t)1.0000000000000000e+03*Gx1[18];
-Gx2[19] = + (real_t)1.0000000000000000e+03*Gx1[19];
+Gx2[15] = + (real_t)1.0000000000000000e+02*Gx1[15];
+Gx2[16] = + (real_t)1.0000000000000000e+02*Gx1[16];
+Gx2[17] = + (real_t)1.0000000000000000e+02*Gx1[17];
+Gx2[18] = + (real_t)1.0000000000000000e+02*Gx1[18];
+Gx2[19] = + (real_t)1.0000000000000000e+02*Gx1[19];
 Gx2[20] = + (real_t)1.0000000000000000e+01*Gx1[20];
 Gx2[21] = + (real_t)1.0000000000000000e+01*Gx1[21];
 Gx2[22] = + (real_t)1.0000000000000000e+01*Gx1[22];
@@ -410,28 +410,28 @@ Gx2[24] = + (real_t)1.0000000000000000e+01*Gx1[24];
 
 void acado_multQ1Gu( real_t* const Gu1, real_t* const Gu2 )
 {
-Gu2[0] = + (real_t)1.0000000000000000e+03*Gu1[0];
-Gu2[1] = + (real_t)1.0000000000000000e+03*Gu1[1];
-Gu2[2] = + (real_t)1.0000000000000000e+03*Gu1[2];
-Gu2[3] = + (real_t)1.0000000000000000e+03*Gu1[3];
+Gu2[0] = + (real_t)1.0000000000000000e+02*Gu1[0];
+Gu2[1] = + (real_t)1.0000000000000000e+02*Gu1[1];
+Gu2[2] = + (real_t)1.0000000000000000e+02*Gu1[2];
+Gu2[3] = + (real_t)1.0000000000000000e+02*Gu1[3];
 Gu2[4] = + (real_t)1.0000000000000000e+01*Gu1[4];
 Gu2[5] = + (real_t)1.0000000000000000e+01*Gu1[5];
-Gu2[6] = + (real_t)1.0000000000000000e+02*Gu1[6];
-Gu2[7] = + (real_t)1.0000000000000000e+02*Gu1[7];
+Gu2[6] = + (real_t)1.0000000000000000e+01*Gu1[6];
+Gu2[7] = + (real_t)1.0000000000000000e+01*Gu1[7];
 Gu2[8] = +Gu1[8];
 Gu2[9] = +Gu1[9];
 }
 
 void acado_multQN1Gu( real_t* const Gu1, real_t* const Gu2 )
 {
-Gu2[0] = + (real_t)1.0000000000000000e+04*Gu1[0];
-Gu2[1] = + (real_t)1.0000000000000000e+04*Gu1[1];
-Gu2[2] = + (real_t)1.0000000000000000e+04*Gu1[2];
-Gu2[3] = + (real_t)1.0000000000000000e+04*Gu1[3];
+Gu2[0] = + (real_t)1.0000000000000000e+03*Gu1[0];
+Gu2[1] = + (real_t)1.0000000000000000e+03*Gu1[1];
+Gu2[2] = + (real_t)1.0000000000000000e+03*Gu1[2];
+Gu2[3] = + (real_t)1.0000000000000000e+03*Gu1[3];
 Gu2[4] = + (real_t)1.0000000000000000e+02*Gu1[4];
 Gu2[5] = + (real_t)1.0000000000000000e+02*Gu1[5];
-Gu2[6] = + (real_t)1.0000000000000000e+03*Gu1[6];
-Gu2[7] = + (real_t)1.0000000000000000e+03*Gu1[7];
+Gu2[6] = + (real_t)1.0000000000000000e+02*Gu1[6];
+Gu2[7] = + (real_t)1.0000000000000000e+02*Gu1[7];
 Gu2[8] = + (real_t)1.0000000000000000e+01*Gu1[8];
 Gu2[9] = + (real_t)1.0000000000000000e+01*Gu1[9];
 }
@@ -4501,10 +4501,10 @@ acado_multQDy( &(acadoWorkspace.Dy[ 85 ]), &(acadoWorkspace.QDy[ 85 ]) );
 acado_multQDy( &(acadoWorkspace.Dy[ 90 ]), &(acadoWorkspace.QDy[ 90 ]) );
 acado_multQDy( &(acadoWorkspace.Dy[ 95 ]), &(acadoWorkspace.QDy[ 95 ]) );
 
-acadoWorkspace.QDy[100] = + (real_t)1.0000000000000000e+04*acadoWorkspace.DyN[0];
-acadoWorkspace.QDy[101] = + (real_t)1.0000000000000000e+04*acadoWorkspace.DyN[1];
+acadoWorkspace.QDy[100] = + (real_t)1.0000000000000000e+03*acadoWorkspace.DyN[0];
+acadoWorkspace.QDy[101] = + (real_t)1.0000000000000000e+03*acadoWorkspace.DyN[1];
 acadoWorkspace.QDy[102] = + (real_t)1.0000000000000000e+02*acadoWorkspace.DyN[2];
-acadoWorkspace.QDy[103] = + (real_t)1.0000000000000000e+03*acadoWorkspace.DyN[3];
+acadoWorkspace.QDy[103] = + (real_t)1.0000000000000000e+02*acadoWorkspace.DyN[3];
 acadoWorkspace.QDy[104] = + (real_t)1.0000000000000000e+01*acadoWorkspace.DyN[4];
 
 acadoWorkspace.QDy[5] += acadoWorkspace.Qd[0];
@@ -5899,18 +5899,18 @@ acadoWorkspace.DyN[4] = acadoWorkspace.objValueOut[4] - acadoVariables.yN[4];
 objVal = 0.0000000000000000e+00;
 for (lRun1 = 0; lRun1 < 20; ++lRun1)
 {
-tmpDy[0] = + acadoWorkspace.Dy[lRun1 * 5]*(real_t)1.0000000000000000e+03;
-tmpDy[1] = + acadoWorkspace.Dy[lRun1 * 5 + 1]*(real_t)1.0000000000000000e+03;
+tmpDy[0] = + acadoWorkspace.Dy[lRun1 * 5]*(real_t)1.0000000000000000e+02;
+tmpDy[1] = + acadoWorkspace.Dy[lRun1 * 5 + 1]*(real_t)1.0000000000000000e+02;
 tmpDy[2] = + acadoWorkspace.Dy[lRun1 * 5 + 2]*(real_t)1.0000000000000000e+01;
-tmpDy[3] = + acadoWorkspace.Dy[lRun1 * 5 + 3]*(real_t)1.0000000000000000e+02;
+tmpDy[3] = + acadoWorkspace.Dy[lRun1 * 5 + 3]*(real_t)1.0000000000000000e+01;
 tmpDy[4] = + acadoWorkspace.Dy[lRun1 * 5 + 4];
 objVal += + acadoWorkspace.Dy[lRun1 * 5]*tmpDy[0] + acadoWorkspace.Dy[lRun1 * 5 + 1]*tmpDy[1] + acadoWorkspace.Dy[lRun1 * 5 + 2]*tmpDy[2] + acadoWorkspace.Dy[lRun1 * 5 + 3]*tmpDy[3] + acadoWorkspace.Dy[lRun1 * 5 + 4]*tmpDy[4];
 }
 
-tmpDyN[0] = + acadoWorkspace.DyN[0]*(real_t)1.0000000000000000e+04;
-tmpDyN[1] = + acadoWorkspace.DyN[1]*(real_t)1.0000000000000000e+04;
+tmpDyN[0] = + acadoWorkspace.DyN[0]*(real_t)1.0000000000000000e+03;
+tmpDyN[1] = + acadoWorkspace.DyN[1]*(real_t)1.0000000000000000e+03;
 tmpDyN[2] = + acadoWorkspace.DyN[2]*(real_t)1.0000000000000000e+02;
-tmpDyN[3] = + acadoWorkspace.DyN[3]*(real_t)1.0000000000000000e+03;
+tmpDyN[3] = + acadoWorkspace.DyN[3]*(real_t)1.0000000000000000e+02;
 tmpDyN[4] = + acadoWorkspace.DyN[4]*(real_t)1.0000000000000000e+01;
 objVal += + acadoWorkspace.DyN[0]*tmpDyN[0] + acadoWorkspace.DyN[1]*tmpDyN[1] + acadoWorkspace.DyN[2]*tmpDyN[2] + acadoWorkspace.DyN[3]*tmpDyN[3] + acadoWorkspace.DyN[4]*tmpDyN[4];
 

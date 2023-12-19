@@ -7,9 +7,9 @@
 #define MPC_DELTA_T 0.1// 100 ms
 #define MPC_N_TIME_INTERVALS 20 // 20 discrete time intervals
 
-#define MPC_MU_TRAJ 100 // weight of the trajectory (x, y) in the optimization algorithm
+#define MPC_MU_TRAJ 1000 // weight of the trajectory (x, y) in the optimization algorithm
 #define MPC_MU_THETA 10 // weight of the trajectory (theta) in the optimization algorithm
-#define MPC_MU_VLIN 1 // weight of the trajectory (v) in the optimization algorithm
+#define MPC_MU_VLIN 100 // weight of the trajectory (v) in the optimization algorithm
 #define MPC_MU_VANG 1 // weight of the trajectory (w) in the optimization algorithm
 
 #define MPC_PONDERATION_FINAL_STATE 10 // scaling factor to account more for the final state
@@ -94,6 +94,7 @@ int main() {
     mpc.set( GENERATE_MAKE_FILE,          NO             );
     mpc.set( GENERATE_MATLAB_INTERFACE,   NO             );
     mpc.set( GENERATE_SIMULINK_INTERFACE, NO             );
+    mpc.set( CG_HARDCODE_CONSTRAINT_VALUES, NO             );
 
 
     // if (mpc.exportCode( "../src/generated_code" ) != SUCCESSFUL_RETURN)
