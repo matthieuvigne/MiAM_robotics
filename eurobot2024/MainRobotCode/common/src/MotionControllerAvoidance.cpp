@@ -145,7 +145,7 @@ TrajectoryVector MotionController::computeBasicAvoidanceTrajectory(RobotPosition
             positions.push_back(right_point_further);
             positions.push_back(targetPosition);
             traj = miam::trajectory::computeTrajectoryRoundedCorner(robotParams_.getTrajConf(), positions, 200.0, 0.3);
-        }
+        }   
     }
 
     return traj;
@@ -175,13 +175,9 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
 
         textlog << "[MotionController] " << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
 
-        TrajectoryConfig tc_pt = robotParams_.getTrajConf();
-        tc_pt.maxWheelVelocity *= 0.3;
-        tc_pt.maxWheelAcceleration *= 0.3;
-
         // add a point turn to keep the end angle info
         std::shared_ptr<PointTurn > pt_sub_end(
-            new PointTurn(tc_pt,
+            new PointTurn(robotParams_.getTrajConf(),
             traj.getEndPoint().position, targetPosition.theta)
         );
         traj.push_back(pt_sub_end);
@@ -192,12 +188,13 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
     }
 
     double minDistanceToObstacle = 10000;
+    double obstacleRadiusMargin = detection::mpc_obstacle_margin; // add safety distance to obstacle to avoid crossing it
 
     // update obstacle map
     motionPlanner_.pathPlanner_.resetCollisions();
     for (auto obstacle : detectedObstacles)
     {
-        motionPlanner_.pathPlanner_.addCollision(std::get<0>(obstacle), std::get<1>(obstacle));
+        motionPlanner_.pathPlanner_.addCollision(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
         minDistanceToObstacle = std::min(minDistanceToObstacle, (std::get<0>(obstacle) - currentPosition).norm());
     }
 
@@ -344,13 +341,9 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
 
         textlog << "[MotionController] " << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
 
-        TrajectoryConfig tc_pt = robotParams_.getTrajConf();
-        tc_pt.maxWheelVelocity *= 0.8;
-        tc_pt.maxWheelAcceleration *= 0.8;
-
         // add a point turn to keep the end angle info
         std::shared_ptr<PointTurn > pt_sub_end(
-            new PointTurn(tc_pt,
+            new PointTurn(robotParams_.getTrajConf(),
             traj.getEndPoint().position, targetPosition.theta)
         );
         traj.push_back(pt_sub_end);
@@ -362,12 +355,13 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
 
 
     double minDistanceToObstacle = 10000;
+    double obstacleRadiusMargin = detection::mpc_obstacle_margin; // add safety distance to obstacle to avoid crossing it
 
     // update obstacle map
     motionPlanner_.pathPlanner_.resetCollisions();
     for (auto obstacle : detectedObstacles)
     {
-        motionPlanner_.pathPlanner_.addCollision(std::get<0>(obstacle), std::get<1>(obstacle));
+        motionPlanner_.pathPlanner_.addCollision(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
         minDistanceToObstacle = std::min(minDistanceToObstacle, (std::get<0>(obstacle) - currentPosition).norm());
     }
 

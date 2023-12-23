@@ -24,6 +24,8 @@
       double const yfar_max_avoidance = 500;
 
       double const mpc_obstacle_size = 475;
+      // add this amount to obstacle radius in PathPlanner to get some slack
+      double const mpc_obstacle_margin = 75; 
 
       // for ending trajectory...
       double const x_max_ending = 200;

@@ -191,7 +191,8 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     detectedObstaclesMutex_.unlock();
 
     // Compute slowdown
-    slowDownCoeff_ = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
+    // slowDownCoeff_ = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
+    slowDownCoeff_ = computeObstacleAvoidanceSlowdownAnticipateTrajectory(measurements.lidarDetection, hasMatchStarted);
     clampedSlowDownCoeff_ = std::min(slowDownCoeff_, clampedSlowDownCoeff_ + 0.05);
 
     changeMotionControllerState();

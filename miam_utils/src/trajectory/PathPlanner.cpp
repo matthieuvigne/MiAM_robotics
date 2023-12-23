@@ -94,29 +94,29 @@ namespace miam{
                     AStar::Vec2i target({i, j});
                     if (target == current_position)
                     {
-                        std::cout << "S ";
+                        std::cout << "S";
                     }
                     else if (target == target_position)
                     {
-                        std::cout << "E ";
+                        std::cout << "E";
                     }
                     else if (std::find(
                         collisions.begin(),
                         collisions.end(),
                         target) != collisions.end())
                     {
-                        std::cout << "X ";
+                        std::cout << "X";
                     }
                     else if (std::find(
                         pathInVec2i.begin(),
                         pathInVec2i.end(),
                         target) != pathInVec2i.end())
                     {
-                        std::cout << "o ";
+                        std::cout << "o";
                     }
                     else
                     {
-                        std::cout << "  ";
+                        std::cout << " ";
                     }
                 }
                 std::cout << std::endl;

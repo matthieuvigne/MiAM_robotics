@@ -98,3 +98,81 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
 
     return coeff;
 }
+
+
+
+double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted)
+{
+    // If no trajectory then don't slow down
+    if (currentTrajectories_.empty())
+        return 1.0;
+
+    double minSlowDown = 0.4;
+    double maxSlowDown = 0.8;
+
+    double dtTimeHorizon = 0.1;
+    double minTimeHorizon = 0.5; // Any obstacle crossed below this time horizon will trigger stop
+    double maxTimeHorizon = 3.0; // Time horizon to check ; slowdown will be maxSlowDown
+    // Between these values, linear interpolation will be applied
+
+    // double obstacleRadius = detection::mpc_obstacle_size;
+
+    double coeff = 1.0;
+
+    // // Create a list of detected robots in table coordinates
+    // std::vector<RobotPosition > detectedRobotsTableCoordinates;
+    // for (auto& robot : detectedRobots)
+    // {
+    //     // Get the Lidar Point, symeterize it if needed and check its projection
+    //     LidarPoint const point = this->isPlayingRightSide_
+    //                                 ? LidarPoint(robot.point.r, -robot.point.theta)
+    //                                 : LidarPoint(robot.point.r, robot.point.theta);
+
+    //     if (this->isLidarPointWithinTable(point))
+    //     {
+    //         detectedRobotsTableCoordinates.push_back(lidarPointToRobotPosition(point));
+    //     }
+    // }
+
+    TrajectoryPoint futureTrajectoryPoint;
+    for (double timeHorizon = 0.0; timeHorizon <= maxTimeHorizon; timeHorizon += dtTimeHorizon)
+    {
+        // Get the future (not slowed down) position
+        futureTrajectoryPoint = currentTrajectories_.getCurrentPoint(curvilinearAbscissa_ + timeHorizon);
+
+        // double minDistanceToObstacle = 1e6;
+        for (auto& obstacle : detectedObstacles_)
+        {
+            // If we detect a future collision
+            if ((futureTrajectoryPoint.position - std::get<0>(obstacle)).norm() < std::get<1>(obstacle))
+            {
+                // If we are going away from the obstacle, authorize the move
+                RobotPosition translatedObstacle = std::get<0>(obstacle) - futureTrajectoryPoint.position;
+                RobotPosition obstacleInRobotReferential;
+                obstacleInRobotReferential.x = translatedObstacle.x * std::cos(-futureTrajectoryPoint.position.theta) 
+                    - translatedObstacle.y * std::sin(-futureTrajectoryPoint.position.theta);
+                obstacleInRobotReferential.y = translatedObstacle.x * std::sin(-futureTrajectoryPoint.position.theta) 
+                    + translatedObstacle.y * std::cos(-futureTrajectoryPoint.position.theta);
+                
+                // The obstacle is in front of the robot
+                if (futureTrajectoryPoint.linearVelocity * obstacleInRobotReferential.x > 0)
+                {
+                    // If collision is imminent, stop
+                    if (timeHorizon < minTimeHorizon)
+                    {
+                        coeff = 0.0;
+                    }
+                    else
+                    {
+                        coeff = std::min(coeff, minSlowDown + (timeHorizon - minTimeHorizon) / (maxTimeHorizon - minTimeHorizon) * (maxSlowDown - minSlowDown));
+                    }
+                }
+            }
+        }
+    }
+
+    if (coeff < 1.0)
+        std::cout << "SlowDown: " << coeff << std::endl;
+
+    return coeff;
+}

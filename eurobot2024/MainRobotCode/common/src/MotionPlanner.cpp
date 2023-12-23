@@ -125,9 +125,9 @@ TrajectoryVector MotionPlanner::planMotion(
     }
     else
     {
-        // planned_path.back().theta = targetPosition.theta;   // this makes the MPC try to ensure the end angle
-        //                                                     // but end angle is often not reachable so the angle 
-        //                                                     // is then ensured with a point turn afterwards
+        planned_path.back().theta = targetPosition.theta;   // this makes the MPC try to ensure the end angle
+                                                            // but end angle is often not reachable so the angle 
+                                                            // is then ensured with a point turn afterwards
         st = solveTrajectoryFromWaypoints(planned_path);
     }
 

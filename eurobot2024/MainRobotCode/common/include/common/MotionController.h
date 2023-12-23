@@ -221,6 +221,8 @@
             /// \return coefficient for trajectory time increase
             double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
 
+            double computeObstacleAvoidanceSlowdownAnticipateTrajectory(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
+
             /// @brief Update trajectory to perform avoidance
             /// @return avoidance traj
             TrajectoryVector performAvoidance();
