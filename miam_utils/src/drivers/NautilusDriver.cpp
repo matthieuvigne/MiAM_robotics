@@ -5,8 +5,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-
 #include <iostream>
+#include <cstring>
 
 using namespace nautilus;
 
