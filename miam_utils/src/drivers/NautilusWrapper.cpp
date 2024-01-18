@@ -5,8 +5,9 @@ double const ENC_TICK_TO_RAD = 2 * M_PI / 16384.0;
 
 using namespace nautilus;
 
-NautilusWrapper::NautilusWrapper(std::string const& portName, int const& frequency):
-    nautilus_(portName, frequency)
+NautilusWrapper::NautilusWrapper(std::string const& portName, double const& reductionRatio, int const& frequency):
+    nautilus_(portName, frequency),
+    motorReductionRatio_(reductionRatio)
 {
 }
 
@@ -31,7 +32,7 @@ NautilusMeasurements NautilusWrapper::updateMeasurements()
     NautilusReply rep = readRegister(Register::measuredVelocity);
     lastMeasurements_.motorVelocity = rep.data;
     if (rep.isValid)
-        lastMeasurements_.motorVelocity = rep.data;
+        lastMeasurements_.motorVelocity = rep.data / motorReductionRatio_;
 
     rep = readRegister(Register::measuredIQ);
     if (rep.isValid)
@@ -54,7 +55,7 @@ void NautilusWrapper::setTargetVelocity(double const& targetVelocity)
         nautilus_.stop();
     }
 
-    nautilus_.writeRegister(Register::targetVelocity, static_cast<float>(targetVelocity));
+    nautilus_.writeRegister(Register::targetVelocity, static_cast<float>(motorReductionRatio_ * targetVelocity));
 }
 
 

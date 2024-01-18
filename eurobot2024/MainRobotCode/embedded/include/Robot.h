@@ -20,6 +20,7 @@
     #include <miam_utils/drivers/RMDX.h>
     #include <miam_utils/drivers/RMDXController.h>
     #include <miam_utils/drivers/AS5045Driver.h>
+    #include <miam_utils/drivers/NautilusWrapper.h>
     #include <miam_utils/drivers/INA226Driver.h>
     #include <miam_utils/trajectory/PointTurn.h>
     #include <miam_utils/trajectory/Utilities.h>
@@ -72,19 +73,12 @@
             void shutdown();
 
         private:
-            bool disableLidar_; // Disable lidar (works only in test mode)
-
-            std::vector<double> lastEncoderPosition_;
-
             // Robot hardware
             RPLidarHandler lidar_; ///< Lidar
-            SPIWrapper spiMotor_;
-            MCP2515 mcp_;
-            RMDX motors_;
-            RMDXController rightController_;
-            RMDXController leftController_;
-            SPIWrapper spiEncoder_;
-            AS5045 encoders_;
+            bool disableLidar_; // Disable lidar (works only in test mode)
+
+            NautilusWrapper rightMotor_;
+            NautilusWrapper leftMotor_;
             INA226 ina226_;
 
             // Init variables.
@@ -93,6 +87,8 @@
             bool isEncodersInit_ = false;
             bool isLidarInit_ = false; ///< Boolean representing the initialization of the lidar.
             bool isServoInit_ = false;
+            bool isINAInit_ = false;
 
+            bool areMotorsLocked_ = false;
     };
  #endif

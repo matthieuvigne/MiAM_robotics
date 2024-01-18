@@ -39,9 +39,9 @@
     }DrivetrainTarget;
 
     struct DrivetrainMeasurements{
-        Vector2 encoderPosition; ///< Encoder position, rad.
+        Vector2 encoderPosition = Vector2::Zero(); ///< Encoder position, rad.
         WheelSpeed encoderSpeed; ///< Speed, measured by the encoders
-        Vector2 motorSpeed; ///<< Measured motor speed, in rad/s
+        Vector2 motorSpeed = Vector2::Zero(); ///<< Measured motor speed, in rad/s
         std::deque<DetectedRobot> lidarDetection; ///< Robots detected by the lidar.
     };
 

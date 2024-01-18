@@ -12,40 +12,24 @@
 
 
 /// @brief GPIO with the start switch.
-int const START_SWITCH = 20;
-
-// Motor control parameters
-double const Kp = 0.7;
-double const Ki = 0.9;
-double const maxOutput = 20;
-double const filterCutoff = 10.0;
-double const maxFeedforward = 0.4;
-
+int const START_SWITCH = 17;
 
 Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar):
     RobotInterface(parameters, gui, strategy, testMode),
     lidar_(parameters.lidarOffset),
     disableLidar_(disableLidar),
-    spiMotor_(RPI_SPI_00, 1000000),
-    mcp_(&spiMotor_),
-    motors_(&mcp_),
-    rightController_(&motors_, parameters.rightMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward, parameters.maxWheelAcceleration / parameters.wheelRadius),
-    leftController_(&motors_, parameters.leftMotorId, Kp, Ki, maxOutput, filterCutoff, maxFeedforward, parameters.maxWheelAcceleration / parameters.wheelRadius),
-    spiEncoder_(RPI_SPI_01, 1000000),
-    encoders_(&spiEncoder_, 2)
+    rightMotor_(RPI_SPI_00),
+    leftMotor_(RPI_SPI_01)
 {
     guiState_.state = robotstate::INIT;
     guiState_.score = 0;
-
-    lastEncoderPosition_.push_back(0);
-    lastEncoderPosition_.push_back(0);
 }
 
 
 void Robot::stopMotors()
 {
-    motors_.setCurrent(motionController_.robotParams_.rightMotorId, 0);
-    motors_.setCurrent(motionController_.robotParams_.leftMotorId, 0);
+    rightMotor_.stop();
+    leftMotor_.stop();
 }
 
 
@@ -55,42 +39,32 @@ bool Robot::initSystem()
     guiState_.debugStatus = "";
 
     // Motor init
-    if (!isMCPInit_)
+    if (!isMotorsInit_ && !isEncodersInit_)
     {
-        isMCPInit_ = mcp_.init();
-        if (!isMCPInit_)
-            guiState_.debugStatus += "MCP init failed\n";
-    }
-
-    if (isMCPInit_)
-    {
-        if (!isMotorsInit_)
+        bool rightEncoderInit = false;
+        bool leftEncoderInit = false;
+        isMotorsInit_ = true;
+        if (!rightMotor_.init(rightEncoderInit))
         {
-            isMotorsInit_ = true;
-            if (!motors_.init(motionController_.robotParams_.rightMotorId, 0.300))
-            {
-                guiState_.debugStatus += "Right motor init failed\n";
-                isMotorsInit_ = false;
-            }
-            if (!motors_.init(motionController_.robotParams_.leftMotorId, 0.300))
-            {
-                guiState_.debugStatus += "Left motor init failed\n";
-                isMotorsInit_ = false;
-            }
+            guiState_.debugStatus += "Right motor init failed\n";
+            isMotorsInit_ = false;
         }
+        if (!rightEncoderInit)
+            guiState_.debugStatus += "Right encoder init failed\n";
+
+        if (!leftMotor_.init(leftEncoderInit))
+        {
+            guiState_.debugStatus += "Left motor init failed\n";
+            isMotorsInit_ = false;
+        }
+        if (!leftEncoderInit)
+            guiState_.debugStatus += "Right encoder init failed\n";
+        isEncodersInit_ = rightEncoderInit && leftEncoderInit;
     }
 
-    // Encoder init
-    if (!isEncodersInit_)
-    {
-        bool inaInit = ina226_.init(&RPI_I2C);
-
-        isEncodersInit_ = encoders_.init() & inaInit;
-        if (!isEncodersInit_)
-            guiState_.debugStatus += "Encoders init failed\n";
-        else
-            lastEncoderPosition_ = encoders_.updatePosition();
-    }
+    // TODO
+    if (!isINAInit_)
+        isINAInit_ = ina226_.init(&RPI_I2C);
 
     if (!isServoInit_)
     {
@@ -106,7 +80,7 @@ bool Robot::initSystem()
             guiState_.debugStatus += "Lidar init failed\n";
     }
 
-    return isMCPInit_ & isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_);
+    return isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_);
 }
 
 
@@ -117,40 +91,40 @@ void Robot::wait(double const& waitTimeS)
 
 void Robot::updateSensorData()
 {
-    std::vector<double> encoderPosition = encoders_.updatePosition();
-    int const pR = motionController_.robotParams_.rightEncoderId;
-    int const pL = motionController_.robotParams_.leftEncoderId;
-    encoderPosition[pR] *= motionController_.robotParams_.rightEncoderDirection;
-    encoderPosition[pL] *= motionController_.robotParams_.leftEncoderDirection;
-    measurements_.drivetrainMeasurements.encoderPosition[side::RIGHT] = encoderPosition[pR];
-    measurements_.drivetrainMeasurements.encoderPosition[side::LEFT] = encoderPosition[pL];
-    measurements_.drivetrainMeasurements.encoderSpeed.right = encoderPosition[pR] - lastEncoderPosition_[pR];
-    measurements_.drivetrainMeasurements.encoderSpeed.left = encoderPosition[pL] - lastEncoderPosition_[pL];
-    lastEncoderPosition_ = encoderPosition;
 
-    measurements_.batteryVoltage = 20.0; // Hack, for now: we don't have a good battery measurement system.
+    NautilusMeasurements rightMeasurements = rightMotor_.updateMeasurements();
+    NautilusMeasurements leftMeasurements = leftMotor_.updateMeasurements();
+
+    rightMeasurements.encoderPosition *= motionController_.robotParams_.rightEncoderDirection;
+    leftMeasurements.encoderPosition *= motionController_.robotParams_.leftEncoderDirection;
+    measurements_.drivetrainMeasurements.encoderSpeed.right = rightMeasurements.encoderPosition - measurements_.drivetrainMeasurements.encoderPosition[side::RIGHT];
+    measurements_.drivetrainMeasurements.encoderSpeed.left = leftMeasurements.encoderPosition - measurements_.drivetrainMeasurements.encoderPosition[side::LEFT];
+
+    measurements_.drivetrainMeasurements.motorSpeed[side::RIGHT] = rightMeasurements.motorVelocity;
+    measurements_.drivetrainMeasurements.motorSpeed[side::LEFT] = leftMeasurements.motorVelocity;
+    measurements_.drivetrainMeasurements.encoderPosition[side::RIGHT] = rightMeasurements.encoderPosition;
+    measurements_.drivetrainMeasurements.encoderPosition[side::LEFT] = leftMeasurements.encoderPosition;
+
+    measurements_.batteryVoltage = rightMeasurements.batteryVoltage;
+
+    // Log
+    logger_.log("rightMotor.motorVelocity", currentTime_, rightMeasurements.motorVelocity);
+    logger_.log("rightMotor.motorCurrent", currentTime_, rightMeasurements.motorCurrent);
+    logger_.log("rightMotor.batteryVoltage", currentTime_, rightMeasurements.batteryVoltage);
+    logger_.log("rightMotor.currentMode", currentTime_, rightMeasurements.currentMode);
+    logger_.log("leftMotor.motorVelocity", currentTime_, leftMeasurements.motorVelocity);
+    logger_.log("leftMotor.motorCurrent", currentTime_, leftMeasurements.motorCurrent);
+    logger_.log("leftMotor.batteryVoltage", currentTime_, leftMeasurements.batteryVoltage);
+    logger_.log("leftMotor.currentMode", currentTime_, leftMeasurements.currentMode);
 }
 
 void Robot::applyMotorTarget(DrivetrainTarget const& target)
 {
-    static bool wasRunning = false;
-    static bool panicMode = false;
-    static double panicStartTime = 0.0;
-    if (panicMode)
+    static bool wasRunning = true;
+    if (!hasMatchStarted_ || areMotorsLocked_)
     {
-        logger_ << "[Robot] Panic !" << std::endl;
-        stopMotors();
-        // If naturally stopped, exit panic.
-        if (currentTime_ - panicStartTime > 100.0 && std::abs(target.motorSpeed[0]) < 0.001 && std::abs(target.motorSpeed[1]) < 0.001 )
-        {
-            panicMode = false;
-            logger_ << "[Robot] Clearing panic state." << std::endl;
-        }
-    }
-    else if (!hasMatchStarted_)
-    {
-        leftController_.stop(dt_);
-        rightController_.stop(dt_);
+        rightMotor_.stop();
+        leftMotor_.stop();
     }
     else
     {
@@ -159,10 +133,8 @@ void Robot::applyMotorTarget(DrivetrainTarget const& target)
             if (wasRunning)
                 logger_ << "[Robot] Motors stopping" << std::endl;
             wasRunning = false;
-            rightController_.stop(dt_);
-            measurements_.drivetrainMeasurements.motorSpeed(0) = 0.0;
-            leftController_.stop(dt_);
-            measurements_.drivetrainMeasurements.motorSpeed(1) = 0.0;
+            rightMotor_.stop();
+            leftMotor_.stop();
             logger_.log("MotorController.status", currentTime_, 0);
         }
         else
@@ -171,9 +143,9 @@ void Robot::applyMotorTarget(DrivetrainTarget const& target)
                 logger_ << "[Robot] Motors running" << std::endl;
             wasRunning = true;
             int sign = motionController_.robotParams_.rightMotorDirection;
-            measurements_.drivetrainMeasurements.motorSpeed(0) = sign * rightController_.sendTarget(sign * target.motorSpeed[0], dt_);
+            rightMotor_.setTargetVelocity(sign * target.motorSpeed[0]);
             sign = motionController_.robotParams_.leftMotorDirection;
-            measurements_.drivetrainMeasurements.motorSpeed(1) = sign * leftController_.sendTarget(sign * target.motorSpeed[1], dt_);
+            leftMotor_.setTargetVelocity(sign * target.motorSpeed[1]);
             logger_.log("MotorController.status", currentTime_, 1);
         }
     }
@@ -194,7 +166,7 @@ void Robot::shutdown()
 {
     stopMotors();
     // Hack: lock motors to prevent override.
-    motors_.mutex_.lock();
+    areMotorsLocked_ = true;
     if (isLidarInit_)
         lidar_.stop();
     servos_.disable(0xFE);
