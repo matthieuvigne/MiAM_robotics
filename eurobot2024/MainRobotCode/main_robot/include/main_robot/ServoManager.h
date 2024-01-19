@@ -51,7 +51,7 @@ public:
 
     double getTurretPosition() const
     {
-        return currentPosition_;
+        return currentTurretPosition_;
     }
 
 private:
@@ -62,7 +62,11 @@ private:
 
     turret::state turretState_{turret::state::CALIBRATING};
 
-    double currentPosition_{0.0};
+    double currentTurretPosition_{0.0};
+    double targetTurretPosition_{0.0};
+    int lastTurretPosition_{0};
+
+    void updateTurretPosition();
 };
 
 #endif

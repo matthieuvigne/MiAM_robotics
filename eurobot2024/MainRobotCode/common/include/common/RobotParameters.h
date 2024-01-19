@@ -10,7 +10,7 @@
         #include <miam_utils/trajectory/Trajectory.h>
 
         // Robot update period, in ns
-        #define ROBOT_UPDATE_PERIOD 10e6
+        #define ROBOT_UPDATE_PERIOD 5e6
         #define UNDERVOLTAGE_LEVEL 19.5
 
 
@@ -60,8 +60,6 @@
             int rightMotorDirection = 1; // Invert motor if needed: positive is moving forward.
             int leftMotorDirection = -1; // Invert motor if needed: positive is moving forward.
 
-            int rightEncoderId;
-            int leftEncoderId;
             int rightEncoderDirection = 1; // Invert encoder if needed: positive is moving forward.
             int leftEncoderDirection = -1; // Invert encoder if needed: positive is moving forward.
 

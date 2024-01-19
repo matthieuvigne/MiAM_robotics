@@ -1,12 +1,14 @@
 #include "main_robot/ServoManager.h"
 #include "common/ThreadHandler.h"
 
-#define TURRET_ID = 42;
+#define TURRET_ID 42
 
 void ServoManager::init(RobotInterface *robot)
 {
     robot_ = robot;
     servos_ = robot->getServos();
+
+    turretState_ = turret::state::CALIBRATING;
 
     std::thread th(&ServoManager::turretMotionThread, this);
     ThreadHandler::addThread(th);
@@ -44,14 +46,28 @@ void ServoManager::updateClawContent(bool const& front, GameState & gameState)
     int offset = (front ? 0 : 3);
 
     // TODO: for now, grab is considered perfect
+    // for (int j = 0; j < 3; j++)
+    //     gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+
     for (int j = 0; j < 3; j++)
-        gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+    {
+        if (((double) rand() / (RAND_MAX)) > 0.5)
+            gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+    }
 }
 
 
 void ServoManager::moveTurret(double const& targetPosition)
 {
+#ifdef SIMULATION
     currentPosition_ = targetPosition;
+    return;
+#endif
+    targetTurretPosition_ = targetPosition;
+    if (targetTurretPosition_ > currentTurretPosition_)
+        turretState_ = turret::state::MOVING_CLOCKWISE;
+    else
+        turretState_ = turret::state::MOVING_COUNTER_CLOCKWISE;
 }
 
 void ServoManager::waitForTurret()
@@ -63,12 +79,50 @@ void ServoManager::waitForTurret()
 
 void ServoManager::turretMotionThread()
 {
+#ifdef SIMULATION
     turretState_ = turret::state::IDLE;
+    return;
+#endif
+
+    // FIXME
+    turretState_ = turret::state::IDLE;
+    return;
+    // Perform calibration
+
     while (true)
     {
         robot_->wait(0.020);
-        // TODO
 
+        if (turretState_ == turret::state::MOVING_CLOCKWISE || turretState_ == turret::state::MOVING_COUNTER_CLOCKWISE)
+        {
+            int const turretMotionSign = (turretState_ == turret::state::MOVING_CLOCKWISE ? 1 : -1);
+
+            if (turretMotionSign * (currentTurretPosition_ - targetTurretPosition_) > 0)
+                servos_->setTargetVelocity(TURRET_ID, turretMotionSign * 2000);
+            else
+            {
+                servos_->setTargetVelocity(TURRET_ID, 0);
+                turretState_ = turret::state::IDLE;
+            }
+        }
+        else
+            servos_->setTargetVelocity(TURRET_ID, 0);
+
+        updateTurretPosition();
     }
+}
 
+void ServoManager::updateTurretPosition()
+{
+    int pos = servos_->getCurrentPosition(TURRET_ID);
+
+    double increment = (pos - lastTurretPosition_) / 4096 * 2 * M_PI;
+    if (increment > M_PI)
+        increment = increment - 2 * M_PI;
+    if (increment < -M_PI)
+        increment = increment + 2 * M_PI;
+
+    currentTurretPosition_ += increment;
+
+    lastTurretPosition_ = pos;
 }

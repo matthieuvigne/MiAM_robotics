@@ -108,14 +108,17 @@ void Robot::updateSensorData()
     measurements_.batteryVoltage = rightMeasurements.batteryVoltage;
 
     // Log
-    logger_.log("rightMotor.motorVelocity", currentTime_, rightMeasurements.motorVelocity);
+    logger_.log("rightMotor.motorVelocity", currentTime_, motionController_.robotParams_.rightMotorDirection * rightMeasurements.motorVelocity);
     logger_.log("rightMotor.motorCurrent", currentTime_, rightMeasurements.motorCurrent);
     logger_.log("rightMotor.batteryVoltage", currentTime_, rightMeasurements.batteryVoltage);
     logger_.log("rightMotor.currentMode", currentTime_, rightMeasurements.currentMode);
-    logger_.log("leftMotor.motorVelocity", currentTime_, leftMeasurements.motorVelocity);
+    logger_.log("rightMotor.nCommunicationFailed", currentTime_, rightMeasurements.nCommunicationFailed);
+
+    logger_.log("leftMotor.motorVelocity", currentTime_, motionController_.robotParams_.leftMotorDirection * leftMeasurements.motorVelocity);
     logger_.log("leftMotor.motorCurrent", currentTime_, leftMeasurements.motorCurrent);
     logger_.log("leftMotor.batteryVoltage", currentTime_, leftMeasurements.batteryVoltage);
     logger_.log("leftMotor.currentMode", currentTime_, leftMeasurements.currentMode);
+    logger_.log("leftMotor.nCommunicationFailed", currentTime_, leftMeasurements.nCommunicationFailed);
 }
 
 void Robot::applyMotorTarget(DrivetrainTarget const& target)
@@ -171,5 +174,6 @@ void Robot::shutdown()
         lidar_.stop();
     servos_.disable(0xFE);
     strategy_->shutdown();
+    logger_.close();
 }
 

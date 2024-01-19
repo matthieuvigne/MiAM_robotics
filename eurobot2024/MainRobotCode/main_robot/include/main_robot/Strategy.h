@@ -46,6 +46,7 @@ class Strategy : public AbstractStrategy
         std::vector<std::shared_ptr<AbstractAction>> actions_;  ///< All actions that can be performed.
 
         ServoManager servoManager_;
+        bool isSetupFirstInstance_ = true;
   };
 }
 

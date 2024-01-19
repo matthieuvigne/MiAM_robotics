@@ -41,25 +41,32 @@ Strategy::Strategy()
 
 bool Strategy::setup(RobotInterface *robot)
 {
-    // Get robot
-    this->robot = robot;
-    this->motionController = robot->getMotionController();
-    robot->logger_ << "[Strategy] Strategy setup is being performed" << std::endl;
-    servoManager_.init(robot);
-
-
-    motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
-
-    // Load actions into action vector.
-    actions_.clear();
-
-    for (int i = 0; i < 6; i++)
+    if (isSetupFirstInstance_)
     {
-        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, i));
-        actions_.push_back(std::make_shared<DropPlantsAction>(robot, &servoManager_, i));
+        isSetupFirstInstance_ = false;
+        // Get robot
+        this->robot = robot;
+        this->motionController = robot->getMotionController();
+        robot->logger_ << "[Strategy] Strategy setup is being performed" << std::endl;
+
+        // Init servo manager, this starts turret calibration
+        servoManager_.init(robot);
+
+
+        motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
+
+        // Load actions into action vector.
+        actions_.clear();
+
+        for (int i = 0; i < 6; i++)
+        {
+            actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, i));
+            actions_.push_back(std::make_shared<DropPlantsAction>(robot, &servoManager_, i));
+        }
     }
 
-    return true;
+    // Wait until turret is calibrating.
+    return servoManager_.isTurretMotionless();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -125,6 +132,9 @@ void Strategy::shutdown()
 void Strategy::match()
 {
     robot->logger_ << "Strategy thread started." << std::endl;
+
+    testSquare(false, 500);
+    return;
 
     std::thread stratMain(&Strategy::match_impl, this);
     pthread_t handle = ThreadHandler::addThread(stratMain);
