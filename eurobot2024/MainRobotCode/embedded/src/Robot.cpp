@@ -119,10 +119,6 @@ void Robot::updateSensorData()
     rightMeasurements.encoderPosition *= motionController_.robotParams_.rightEncoderDirection;
     leftMeasurements.encoderPosition *= motionController_.robotParams_.leftEncoderDirection;
 
-    // Wheel asymmetry handling
-    rightMeasurements.encoderPosition *= 1.015;
-    leftMeasurements.encoderPosition *= 1.0;
-
     WheelSpeed baseSpeed;
 
     WheelSpeed motorPosition;
@@ -220,7 +216,7 @@ void Robot::applyMotorTarget(DrivetrainTarget const& target)
     }
     else
     {
-        if (std::abs(target.motorSpeed[0]) < 0.001 && std::abs(target.motorSpeed[1]) < 0.001 )
+        if (std::abs(target.motorSpeed.right) < 0.001 && std::abs(target.motorSpeed.left) < 0.001 )
         {
             if (wasRunning)
                 logger_ << "[Robot] Motors stopping" << std::endl;
@@ -235,9 +231,9 @@ void Robot::applyMotorTarget(DrivetrainTarget const& target)
                 logger_ << "[Robot] Motors running" << std::endl;
             wasRunning = true;
             int sign = motionController_.robotParams_.rightMotorDirection;
-            rightMotor_.setTargetVelocity(sign * target.motorSpeed[0]);
+            rightMotor_.setTargetVelocity(sign * target.motorSpeed.right);
             sign = motionController_.robotParams_.leftMotorDirection;
-            leftMotor_.setTargetVelocity(sign * target.motorSpeed[1]);
+            leftMotor_.setTargetVelocity(sign * target.motorSpeed.left);
             logger_.log("MotorController.status", currentTime_, 1);
         }
     }

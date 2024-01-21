@@ -35,7 +35,7 @@
 
 
     typedef struct {
-        Vector2 motorSpeed = Vector2::Zero(); ///<< Target motor speed, in rad/s
+        WheelSpeed motorSpeed; ///<< Target motor speed, in rad/s
     }DrivetrainTarget;
 
     struct DrivetrainMeasurements{

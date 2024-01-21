@@ -10,9 +10,11 @@ MotionController::MotionController(RobotParameters const &robotParameters, Logge
     motionPlanner_(robotParams_, logger),
     logger_(logger)
 {
-    kinematics_ = DrivetrainKinematics(robotParams_.wheelRadius,
+    kinematics_ = DrivetrainKinematics(robotParams_.rightWheelRadius,
+                                       robotParams_.leftWheelRadius,
                                        robotParams_.wheelSpacing,
-                                       robotParams_.encoderWheelRadius,
+                                       robotParams_.rightEncoderWheelRadius,
+                                       robotParams_.leftEncoderWheelRadius,
                                        robotParams_.encoderWheelSpacing);
 }
 
@@ -201,8 +203,8 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     log("motionControllerState", static_cast<int>(motionControllerState_));
     log("detectionCoeff",slowDownCoeff_);
     log("clampedDetectionCoeff", clampedSlowDownCoeff_);
-    log("MotionController.commandVelocityRight",target.motorSpeed[side::RIGHT]);
-    log("MotionController.commandVelocityLeft",target.motorSpeed[side::LEFT]);
+    log("MotionController.commandVelocityRight",target.motorSpeed.right);
+    log("MotionController.commandVelocityLeft",target.motorSpeed.left);
 
     return target;
 }
@@ -420,8 +422,8 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
 )
 {
     DrivetrainTarget target;
-    target.motorSpeed[side::RIGHT] = 0.0;
-    target.motorSpeed[side::LEFT] = 0.0;
+    target.motorSpeed.right = 0.0;
+    target.motorSpeed.left = 0.0;
 
     if (!hasMatchStarted)
     {

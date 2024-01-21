@@ -4,6 +4,7 @@
 
 #include "gtest/gtest.h"
 #include "miam_utils/trajectory/ThreeWheelsKinematics.hpp"
+#include "miam_utils/trajectory/DrivetrainKinematics.h"
 
 double randf()
 {
@@ -16,7 +17,7 @@ TEST(ThreeWheelsKinematicsTest, InverseSanityCheck)
     double robotRadius = randf();
     double wheelRadius = randf();
     omni::ThreeWheelsKinematics kinematics(robotRadius, wheelRadius);
-    
+
     omni::BaseSpeed baseSpeed(0.0, 0.0, 0.0);
     // Pure rotation: all wheel velocities should be equal to - robotRadius / wheelRadius * baseSpeed.omega_.
     baseSpeed.omega_ = randf();
@@ -44,7 +45,7 @@ TEST(ThreeWheelsKinematicsTest, ForwardInverse)
 {
     // Test ThreeWheelsKinematics class, making sure forward and inverse kinematics are the reciprocal of each other.
     omni::ThreeWheelsKinematics kinematics(randf(), randf());
-    
+
     omni::WheelSpeed wheelSpeed(randf(), randf(), randf());
     omni::WheelSpeed convertedWheelSpeed = kinematics.inverseKinematics(kinematics.forwardKinematics(wheelSpeed));
     for (int i = 0; i < 3; i++)
@@ -55,4 +56,24 @@ TEST(ThreeWheelsKinematicsTest, ForwardInverse)
     ASSERT_FLOAT_EQ(baseSpeed.vx_, convertedBaseSpeed.vx_);
     ASSERT_FLOAT_EQ(baseSpeed.vy_, convertedBaseSpeed.vy_);
     ASSERT_FLOAT_EQ(baseSpeed.omega_, convertedBaseSpeed.omega_);
+}
+
+
+TEST(DrivetrainKinematicsTest, ForwardInverse)
+{
+    // Test ThreeWheelsKinematics class, making sure forward and inverse kinematics are the reciprocal of each other.
+    for (int i = 0; i < 50; i++)
+    {
+        DrivetrainKinematics kinematics(randf(), randf(), randf(), randf(), randf(), randf());
+
+        WheelSpeed wheelSpeed(randf(), randf());
+        WheelSpeed convertedWheelSpeed = kinematics.inverseKinematics(kinematics.forwardKinematics(wheelSpeed));
+        ASSERT_FLOAT_EQ(wheelSpeed.right, convertedWheelSpeed.right);
+        ASSERT_FLOAT_EQ(wheelSpeed.left, convertedWheelSpeed.left);
+
+        BaseSpeed baseSpeed(randf(), randf());
+        BaseSpeed convertedBaseSpeed = kinematics.forwardKinematics(kinematics.inverseKinematics(baseSpeed));
+        ASSERT_FLOAT_EQ(baseSpeed.linear, convertedBaseSpeed.linear);
+        ASSERT_FLOAT_EQ(baseSpeed.angular, convertedBaseSpeed.angular);
+    }
 }

@@ -81,9 +81,11 @@
             /// \param[in] motorWheelSpacing Distance between the center of the robot and the motor wheel, in mm.
             /// \param[in] encoderWheelRadius Radius of the encoder wheel, in mm.
             /// \param[in] encoderWheelSpacing Distance between the center of the robot and the encoder wheel, in mm.
-            DrivetrainKinematics(double const& motorWheelRadiusIn,
+            DrivetrainKinematics(double const& rightMotorWheelRadiusIn,
+                                 double const& leftMotorWheelRadiusIn,
                                  double const& motorWheelSpacingIn,
-                                 double const& encoderWheelRadiusIn,
+                                 double const& rightEncoderWheelRadiusIn,
+                                 double const& leftEncoderWheelRadiusIn,
                                  double const& encoderWheelSpacingIn);
 
             /// \brief Forward kinematics, i.e. convert wheel speed to base speed
@@ -115,9 +117,11 @@
             void integratePosition(WheelSpeed const& wheelSpeedIn, miam::RobotPosition & positionInOut, bool const& useEncoders = true) const;
 
         private:
-            double motorWheelRadius_; ///< Radius of the motor wheel, in mm.
+            double rightMotorWheelRadius_; ///< Radius of the right motor wheel, in mm.
+            double leftMotorWheelRadius_; ///< Radius of the left motor wheel, in mm.
             double motorWheelSpacing_; ///< Distance between the center of the robot and the motor wheel, in mm.
-            double encoderWheelRadius_; ///< Radius of the encoder wheel, in mm.
+            double rightEncoderWheelRadius_; ///< Radius of the right encoder wheel, in mm.
+            double leftEncoderWheelRadius_; ///< Radius of the left encoder wheel, in mm.
             double encoderWheelSpacing_; ///< Distance between the center of the robot and the encoder wheel, in mm.
     };
 #endif

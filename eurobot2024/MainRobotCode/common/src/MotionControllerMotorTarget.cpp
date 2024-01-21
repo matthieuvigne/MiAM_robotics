@@ -66,8 +66,8 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
         if (trackingLongitudinalError < 2 && trackingAngleError < 0.01 && speed.right < 0.5 && speed.left < 0.5)
         {
             // Just stop the robot.
-            target.motorSpeed[0] = 0.0;
-            target.motorSpeed[1] = 0.0;
+            target.motorSpeed.right = 0.0;
+            target.motorSpeed.left = 0.0;
             return true;
         }
     }
@@ -101,20 +101,18 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
         targetSpeed.angular = -targetSpeed.angular;
 
     // Convert from base velocity to motor wheel velocity.
-    WheelSpeed wheelSpeed = kinematics_.inverseKinematics(targetSpeed);
-    // Convert to motor unit.
-    target.motorSpeed[side::RIGHT] = wheelSpeed.right;
-    target.motorSpeed[side::LEFT] = wheelSpeed.left;
+    target.motorSpeed = kinematics_.inverseKinematics(targetSpeed);
 
     // Clamp to maximum speed
-    double const maxAngularVelocity = 1.5 * robotParams_.maxWheelSpeedTrajectory / robotParams_.wheelRadius;
-    for (int i = 0; i < 2; i++)
-    {
-        if (target.motorSpeed[i] > maxAngularVelocity)
-            target.motorSpeed[i] = maxAngularVelocity;
-        if (target.motorSpeed[i] < -maxAngularVelocity)
-            target.motorSpeed[i] = -maxAngularVelocity;
-    }
+    double const maxAngularVelocity = 1.5 * robotParams_.maxWheelSpeedTrajectory / robotParams_.rightWheelRadius;
+    if (target.motorSpeed.right > maxAngularVelocity)
+        target.motorSpeed.right = maxAngularVelocity;
+    if (target.motorSpeed.right < -maxAngularVelocity)
+        target.motorSpeed.right = -maxAngularVelocity;
+    if (target.motorSpeed.left > maxAngularVelocity)
+        target.motorSpeed.left = maxAngularVelocity;
+    if (target.motorSpeed.left < -maxAngularVelocity)
+        target.motorSpeed.left = -maxAngularVelocity;
 
 
     log("MotionController.linearPIDCorrection",pidLinearCorrection);

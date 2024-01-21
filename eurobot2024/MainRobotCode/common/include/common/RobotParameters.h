@@ -20,13 +20,12 @@
         // Parameters defining a robot
         struct RobotParameters {
             std::string name;
-            double wheelRadius; ///< Wheel radius, in mm
+            double rightWheelRadius; ///< Right wheel radius, in mm
+            double leftWheelRadius; ///< Left wheel radius, in mm
             double wheelSpacing; ///< Wheel spacing from robot center, in mm
-            double encoderWheelRadius;  ///< Radius of encoder wheels, in mm.
+            double rightEncoderWheelRadius;  ///< Radius of encoder wheels, in mm.
+            double leftEncoderWheelRadius;  ///< Radius of encoder wheels, in mm.
             double encoderWheelSpacing;  ///< Spacing between both encoder wheels, in mm.
-
-            double maxWheelSpeed; ///< Maximum wheel speed, in mm/s.
-            double maxWheelAcceleration; ///< Maximum wheel acceleration, in mm/s^2.
 
             double maxWheelSpeedTrajectory; ///< Maximum wheel speed, in mm/s, for trajectory generation.
             double maxWheelAccelerationTrajectory; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.

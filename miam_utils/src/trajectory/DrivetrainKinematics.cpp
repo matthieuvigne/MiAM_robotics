@@ -4,20 +4,26 @@
 #include <cmath>
 
 DrivetrainKinematics::DrivetrainKinematics():
-        motorWheelRadius_(1.0),
+        rightMotorWheelRadius_(1.0),
+        leftMotorWheelRadius_(1.0),
         motorWheelSpacing_(1.0),
-        encoderWheelRadius_(1.0),
+        rightEncoderWheelRadius_(1.0),
+        leftEncoderWheelRadius_(1.0),
         encoderWheelSpacing_(1.0)
 {
 }
 
-DrivetrainKinematics::DrivetrainKinematics(double const& motorWheelRadiusIn,
+DrivetrainKinematics::DrivetrainKinematics(double const& rightMotorWheelRadiusIn,
+                                           double const& leftMotorWheelRadiusIn,
                                            double const& motorWheelSpacingIn,
-                                           double const& encoderWheelRadiusIn,
+                                           double const& rightEncoderWheelRadiusIn,
+                                           double const& leftEncoderWheelRadiusIn,
                                            double const& encoderWheelSpacingIn):
-        motorWheelRadius_(motorWheelRadiusIn),
+        rightMotorWheelRadius_(rightMotorWheelRadiusIn),
+        leftMotorWheelRadius_(leftMotorWheelRadiusIn),
         motorWheelSpacing_(motorWheelSpacingIn),
-        encoderWheelRadius_(encoderWheelRadiusIn),
+        rightEncoderWheelRadius_(rightEncoderWheelRadiusIn),
+        leftEncoderWheelRadius_(leftEncoderWheelRadiusIn),
         encoderWheelSpacing_(encoderWheelSpacingIn)
 {
 }
@@ -25,24 +31,29 @@ DrivetrainKinematics::DrivetrainKinematics(double const& motorWheelRadiusIn,
 BaseSpeed DrivetrainKinematics::forwardKinematics(WheelSpeed const& wheelSpeedIn, bool const& useEncoders) const
 {
     BaseSpeed speed;
-    double wheelRadius = (useEncoders ? encoderWheelRadius_ : motorWheelRadius_);
-    double wheelSpacing = (useEncoders ? encoderWheelSpacing_ : motorWheelSpacing_);
+    double const rightWheelRadius = (useEncoders ? rightEncoderWheelRadius_ : rightMotorWheelRadius_);
+    double const leftWheelRadius = (useEncoders ? leftEncoderWheelRadius_ : leftMotorWheelRadius_);
+    double const wheelSpacing = (useEncoders ? encoderWheelSpacing_ : motorWheelSpacing_);
 
+    double const rightVelocity = wheelSpeedIn.right * rightWheelRadius;
+    double const leftVelocity = wheelSpeedIn.left * leftWheelRadius;
     // Linear velocity: average of both velocities.
-    speed.linear = (wheelSpeedIn.right + wheelSpeedIn.left) / 2.0 * wheelRadius;
+    speed.linear = (rightVelocity + leftVelocity) / 2.0;
     // Angular velocity: difference of both velocities over wheel spacing.
-    speed.angular = (wheelSpeedIn.right - wheelSpeedIn.left) / 2.0 * wheelRadius / wheelSpacing;
+    speed.angular = (rightVelocity - leftVelocity) / 2.0 / wheelSpacing;
     return speed;
 }
 
 WheelSpeed DrivetrainKinematics::inverseKinematics(BaseSpeed const& baseSpeedIn, bool const& useEncoders) const
 {
     WheelSpeed speed;
-    double wheelRadius = (useEncoders ? encoderWheelRadius_ : motorWheelRadius_);
+    double const rightWheelRadius = (useEncoders ? rightEncoderWheelRadius_ : rightMotorWheelRadius_);
+    double const leftWheelRadius = (useEncoders ? leftEncoderWheelRadius_ : leftMotorWheelRadius_);
+
     double wheelSpacing = (useEncoders ? encoderWheelSpacing_ : motorWheelSpacing_);
 
-    speed.right = (baseSpeedIn.linear + wheelSpacing * baseSpeedIn.angular) / wheelRadius;
-    speed.left = (baseSpeedIn.linear - wheelSpacing * baseSpeedIn.angular) / wheelRadius;
+    speed.right = (baseSpeedIn.linear + wheelSpacing * baseSpeedIn.angular) / rightWheelRadius;
+    speed.left = (baseSpeedIn.linear - wheelSpacing * baseSpeedIn.angular) / leftWheelRadius;
     return speed;
 }
 
