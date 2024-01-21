@@ -49,7 +49,13 @@ void DatasetHandler::flush()
     fspace.selectHyperslab(H5S_SELECT_SET, dims, offset);
 
     DataSpace mspace2(2, dims);
-    dataset_.write(data_, PredType::NATIVE_DOUBLE, mspace2, fspace);
+    double dataToWrite[2][pos_];
+    for (int i = 0; i < pos_; i++)
+    {
+        dataToWrite[0][i] = data_[0][i];
+        dataToWrite[1][i] = data_[1][i];
+    }
+    dataset_.write(dataToWrite, PredType::NATIVE_DOUBLE, mspace2, fspace);
 
     datasetOffset_ += pos_;
     pos_ = 0;

@@ -14,11 +14,11 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     targetPoint.linearVelocity *= slowDownRatio;
     targetPoint.angularVelocity *= slowDownRatio;
 
-    log("targetPositionX",targetPoint.position.x);
-    log("targetPositionY",targetPoint.position.y);
-    log("targetPositionTheta",targetPoint.position.theta);
-    log("targetLinearVelocity",targetPoint.linearVelocity);
-    log("targetAngularVelocity",targetPoint.angularVelocity);
+    log("MotionController.targetPositionX",targetPoint.position.x);
+    log("MotionController.targetPositionY",targetPoint.position.y);
+    log("MotionController.targetPositionTheta",targetPoint.position.theta);
+    log("MotionController.targetVelocityLinear",targetPoint.linearVelocity);
+    log("MotionController.targetVelocityAngular",targetPoint.angularVelocity);
 
     // Compute targets for rotation and translation motors.
     BaseSpeed targetSpeed;
@@ -74,7 +74,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     double angularPIDError = trackingAngleError;
     double transverseCorrection = 0.0;
     if (std::abs(targetPoint.linearVelocity) > 0.1 * robotParams_.maxWheelSpeedTrajectory)
-        transverseCorrection = robotParams_.transverseKp * targetPoint.linearVelocity / robotParams_.maxWheelSpeed * trackingTransverseError;
+        transverseCorrection = robotParams_.transverseKp * targetPoint.linearVelocity / robotParams_.maxWheelSpeedTrajectory * trackingTransverseError;
     if (targetPoint.linearVelocity < 0)
         transverseCorrection = -transverseCorrection;
     angularPIDError += transverseCorrection;
@@ -92,7 +92,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     target.motorSpeed[side::LEFT] = wheelSpeed.left;
 
     // Clamp to maximum speed
-    double const maxAngularVelocity = robotParams_.maxWheelSpeed / robotParams_.wheelRadius;
+    double const maxAngularVelocity = 1.5 * robotParams_.maxWheelSpeedTrajectory / robotParams_.wheelRadius;
     for (int i = 0; i < 2; i++)
     {
         if (target.motorSpeed[i] > maxAngularVelocity)

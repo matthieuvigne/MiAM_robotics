@@ -15,38 +15,21 @@
                 RobotParameters param;
                 param.name = "MainRobot";
 
-#if 1
                 // Coefficients qui marchent à droite (false)
                 param.wheelRadius = 55.4; ///< Wheel radius, in mm - identified during open loop experiments.
                 param.wheelSpacing = 105.0; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.
                 param.encoderWheelRadius = 26.25; ///< Radius of encoder wheels, in mm.
                 param.encoderWheelSpacing = 131.2; ///< Encoder wheel spacing from robot center, in mm.
 
-                param.maxWheelSpeed = 10*600.0; ///< Maximum wheel speed, in mm/s.
-                param.maxWheelAcceleration = 10*700.0; ///< Maximum wheel acceleration, in mm/s^2.
-
-                param.maxWheelSpeedTrajectory = 1000.0; ///< Maximum wheel speed, in mm/s, for trajectory generation.
+                param.maxWheelSpeedTrajectory = 500.0; ///< Maximum wheel speed, in mm/s, for trajectory generation.
                 param.maxWheelAccelerationTrajectory = 800.0/3.; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
-#else
-                // Coefficients qui marche à gauche (true)
-                param.wheelRadius = 55.4; ///< Wheel radius, in mm - identified during open loop experiments.
-                param.wheelSpacing = 105.0; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.
-                param.encoderWheelRadius = 26.25; ///< Radius of encoder wheels, in mm.
-                param.encoderWheelSpacing = 135; ///< Encoder wheel spacing from robot center, in mm.
-
-                param.maxWheelSpeed = 10*600.0; ///< Maximum wheel speed, in mm/s.
-                param.maxWheelAcceleration = 10*700.0; ///< Maximum wheel acceleration, in mm/s^2.
-
-                param.maxWheelSpeedTrajectory = 1000.0; ///< Maximum wheel speed, in mm/s, for trajectory generation.
-                param.maxWheelAccelerationTrajectory = 800.0/3.; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
-#endif
 
                 param.linearKp = 3.5;
                 param.linearKd = 0.01;
                 param.linearKi = 0.0;
                 param.transverseKp = 0.005;
-                param.rotationKp = 7.0;
-                param.rotationKd = 0.01;
+                param.rotationKp = 5.0;
+                param.rotationKd = 0.005;
                 param.rotationKi = 0.0;
 
                 // Chassis physical dimensions
@@ -61,7 +44,7 @@
                 param.leftMotorDirection = -1;
 
                 param.rightEncoderDirection = -1;
-                param.leftEncoderDirection =  1;
+                param.leftEncoderDirection = 1;
 
                 param.lidarOffset = M_PI_4;
 

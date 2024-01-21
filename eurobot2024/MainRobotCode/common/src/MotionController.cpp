@@ -126,20 +126,20 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     // Log input
     currentTime_ += dt;
     log("timeIncrement",dt);
-    log("encoderRight",measurements.encoderPosition[side::RIGHT]);
-    log("encoderLeft",measurements.encoderPosition[side::LEFT]);
-    log("motorVelocityRight", measurements.motorSpeed[side::RIGHT]);
-    log("motorVelocityLeft", measurements.motorSpeed[side::LEFT]);
+    log("MotionController.encoderRight",measurements.encoderPosition[side::RIGHT]);
+    log("MotionController.encoderLeft",measurements.encoderPosition[side::LEFT]);
+    log("MotionController.motorVelocityRight", measurements.motorSpeed[side::RIGHT]);
+    log("MotionController.motorVelocityLeft", measurements.motorSpeed[side::LEFT]);
 
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderSpeed);
-    log("currentPositionX",currentPosition.x);
-    log("currentPositionY",currentPosition.y);
-    log("currentPositionTheta",currentPosition.theta);
+    log("MotionController.currentPositionX",currentPosition.x);
+    log("MotionController.currentPositionY",currentPosition.y);
+    log("MotionController.currentPositionTheta",currentPosition.theta);
 
     BaseSpeed baseSpeed = kinematics_.forwardKinematics(measurements.encoderSpeed, true);
-    log("currentVelocityLinear",baseSpeed.linear / dt);
-    log("currentVelocityAngular",baseSpeed.angular / dt);
+    log("MotionController.currentVelocityLinear",baseSpeed.linear / dt);
+    log("MotionController.currentVelocityAngular",baseSpeed.angular / dt);
 
     DrivetrainTarget target;
 
@@ -202,8 +202,8 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     log("motionControllerState", static_cast<int>(motionControllerState_));
     log("detectionCoeff",slowDownCoeff_);
     log("clampedDetectionCoeff", clampedSlowDownCoeff_);
-    log("commandVelocityRight",target.motorSpeed[side::RIGHT]);
-    log("commandVelocityLeft",target.motorSpeed[side::LEFT]);
+    log("MotionController.commandVelocityRight",target.motorSpeed[side::RIGHT]);
+    log("MotionController.commandVelocityLeft",target.motorSpeed[side::LEFT]);
 
     return target;
 }

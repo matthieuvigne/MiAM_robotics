@@ -89,7 +89,7 @@ void ServoManager::updateClawContent(bool const& front, GameState & gameState)
 
     for (int j = 0; j < 3; j++)
     {
-        if (((double) rand() / (RAND_MAX)) > 0.5)
+        // if (((double) rand() / (RAND_MAX)) > 0.5)
             gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
     }
 }
@@ -133,7 +133,7 @@ void ServoManager::setClawPosition(ClawPosition claw_position)
 void ServoManager::moveTurret(double const& targetPosition)
 {
 #ifdef SIMULATION
-    currentPosition_ = targetPosition;
+    currentTurretPosition_ = targetTurretPosition_;
     return;
 #endif
 
@@ -171,7 +171,11 @@ void ServoManager::turretMotionThread()
 #endif
 
     // FIXME
-    turretState_ = turret::state::IDLE;
+    while(true)
+    {
+        turretState_ = turret::state::IDLE;
+        usleep(50000);
+    }
     return;
     // Perform calibration
 
