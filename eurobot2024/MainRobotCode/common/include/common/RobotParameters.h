@@ -11,7 +11,7 @@
 
         // Robot update period, in ns
         #define ROBOT_UPDATE_PERIOD 5e6
-        #define UNDERVOLTAGE_LEVEL 19.5
+        #define UNDERVOLTAGE_LEVEL 16.5
 
 
         // Parameters defining a robot

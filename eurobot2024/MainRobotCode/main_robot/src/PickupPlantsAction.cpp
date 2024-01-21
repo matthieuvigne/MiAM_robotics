@@ -35,10 +35,12 @@ void PickupPlantsAction::actionStartTrigger()
 
 bool PickupPlantsAction::performAction()
 {
+    robot_->logger_ << "[PickupPlantsAction] Performing action" << std::endl;
+
     servoManager_->waitForTurret();
 
     bool isFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
-        robot_->logger_ << "Is front" << isFront << std::endl;
+    robot_->logger_ << "Is front" << isFront << std::endl;
 
     // Grab three plants
     robot_->getMotionController()->goToStraightLine(PLANT_COLLECT_COORD[zoneId_], 0.5);

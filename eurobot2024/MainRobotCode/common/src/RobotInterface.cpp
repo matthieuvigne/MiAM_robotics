@@ -44,12 +44,23 @@ void RobotInterface::lowLevelLoop()
     guiState_.state = robotstate::INIT;
     hasMatchStarted_ = false;
     matchStartTime_ = 0.0;
-    currentTime_ = 0.0;
+    currentTime_ = -1.0;
     gameState_ = GameState();
+
+    // Setup
+    while (guiState_.state == robotstate::INIT)
+    {
+        setupBeforeMatchStart();
+        usleep(10000);
+    }
 
 #ifdef SIMULATION
     metronome_.hasReset_ = false;
+#else
+    metronome_ = Metronome(ROBOT_UPDATE_PERIOD);
 #endif
+
+    currentTime_ = 0.0;
 
     logger_ << "Low-level loop started." << std::endl;
 
