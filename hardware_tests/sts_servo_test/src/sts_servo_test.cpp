@@ -79,75 +79,58 @@ int main(int argc, char* argv[])
   servo_manager.init(&robot);
   servo_manager.set_servos(&driver);
   
-  // Open/close the claws
-  //~ std::cout << "Opening claw 2" << std::endl;
-  //~ servo_manager.openClaw(2);
-  //~ std::cout << "Opened claw 2" << std::endl;
-  //~ usleep(1000000);
-  //~ std::cout << "Opening claw 4" << std::endl;
-  //~ servo_manager.openClaw(4);
-  //~ std::cout << "Opened claw 4" << std::endl;
-  //~ usleep(1000000);
-  //~ std::cout << "Closing claw 2" << std::endl;
-  //~ servo_manager.closeClaw(2);
-  //~ std::cout << "Closing claw 2" << std::endl;
-  //~ usleep(1000000);
-  //~ std::cout << "Closing claw 4" << std::endl;
-  //~ servo_manager.closeClaw(4);
-  //~ std::cout << "Closing claw 4" << std::endl;
-  //~ usleep(1000000);
-  //~ std::cout << "Opening claw 3" << std::endl;
-  //~ servo_manager.openClaw(3);
-  //~ std::cout << "Opened claw 3" << std::endl;
-  //~ usleep(1000000);  
-  //~ std::cout << "Closing claw 3" << std::endl;
-  //~ servo_manager.closeClaw(3);
-  //~ std::cout << "Closing claw 3" << std::endl;
-  //~ usleep(1000000);  
-  // Open/close the claws
-  //~ servo_manager.openClaw(2);
-  //~ usleep(1000000);
-  //~ servo_manager.openClaw(3);
-  //~ usleep(1000000);
-  //~ servo_manager.openClaw(4);
-  //~ usleep(1000000);
-  //~ servo_manager.closeClaw(2);
-  //~ usleep(1000000);
-  //~ servo_manager.closeClaw(3);
-  //~ usleep(1000000);
-  //~ servo_manager.closeClaw(4);
-  
-  //~ servo_manager.closeClaw(2);
-  //~ servo_manager.closeClaws(true);
-  
-  // Get and display the current position of the turret
-  double const turret_position = servo_manager.getTurretPosition();
-  std::cout << "Current turret position : " << turret_position << std::endl;
-  servo_manager.moveTurret(0);
+  // Sequence
+  servo_manager.moveTurret(0); // Initialisation a faire avec l'interrupteur
   usleep(1000000);
+  //~ driver.setMode(10, STS::Mode::STEP);
   servo_manager.setClawPosition(ClawPosition::LOW_POSITION);
   usleep(1000000);
   servo_manager.openClaws(true);
-  usleep(1000000);
+  usleep(4000000);
   servo_manager.closeClaws(true);
-  usleep(1000000);
-  servo_manager.openClaws(true);
-  usleep(1000000);
-  servo_manager.moveTurret(-20);
-  usleep(1000000);
-  servo_manager.setClawPosition(ClawPosition::MEDIUM_POSITION);
   usleep(1000000);
   servo_manager.setClawPosition(ClawPosition::HIGH_POSITION);
   usleep(1000000);
-  servo_manager.moveTurret(30);
+  servo_manager.moveTurret(90);
+  usleep(1000000);
+  servo_manager.setClawPosition(ClawPosition::MEDIUM_POSITION);
+  usleep(1000000);
+  servo_manager.openClaws(true);
+  usleep(2000000);
+  servo_manager.setClawPosition(ClawPosition::HIGH_POSITION);
   usleep(1000000);
   servo_manager.moveTurret(0);
   usleep(1000000);
-  servo_manager.moveTurret(90);
-  usleep(2000000);
-  servo_manager.moveTurret(180);
-  usleep(2000000);
   driver.disable(0xFE);
+  
+  // Get and display the current position of the turret
+  //~ double const turret_position = servo_manager.getTurretPosition();
+  //~ std::cout << "Current turret position : " << turret_position << std::endl;
+  //~ servo_manager.moveTurret(0);
+  //~ usleep(1000000);
+  //~ servo_manager.setClawPosition(ClawPosition::LOW_POSITION);
+  //~ usleep(1000000);
+  //~ servo_manager.openClaws(true);
+  //~ usleep(1000000);
+  //~ servo_manager.closeClaws(true);
+  //~ usleep(1000000);
+  //~ servo_manager.openClaws(true);
+  //~ usleep(1000000);
+  //~ servo_manager.moveTurret(-20);
+  //~ usleep(1000000);
+  //~ servo_manager.setClawPosition(ClawPosition::MEDIUM_POSITION);
+  //~ usleep(1000000);
+  //~ servo_manager.setClawPosition(ClawPosition::HIGH_POSITION);
+  //~ usleep(1000000);
+  //~ servo_manager.moveTurret(30);
+  //~ usleep(1000000);
+  //~ servo_manager.moveTurret(0);
+  //~ usleep(1000000);
+  //~ servo_manager.moveTurret(90);
+  //~ usleep(2000000);
+  //~ servo_manager.moveTurret(180);
+  //~ usleep(2000000);
+  //~ driver.disable(0xFE);
   
   return EXIT_SUCCESS;
 }
