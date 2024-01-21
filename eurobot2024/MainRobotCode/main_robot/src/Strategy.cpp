@@ -133,7 +133,7 @@ void Strategy::match()
 {
     robot->logger_ << "Strategy thread started." << std::endl;
 
-    testSquare(false, 500);
+    testSquare(true, 500);
     return;
 
     std::thread stratMain(&Strategy::match_impl, this);

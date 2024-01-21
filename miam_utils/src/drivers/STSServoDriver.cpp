@@ -337,7 +337,7 @@ int STSServoDriver::sendMessage(unsigned char const& servoId,
     }
     else
     {
-        usleep(15);
+        usleep(0);
     }
     if (!willRead)
         mutex_.unlock();
