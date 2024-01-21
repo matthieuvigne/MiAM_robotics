@@ -10,6 +10,11 @@ enum turretPosition{
     BACK = 1,
 };
 
+enum class ClawPosition{
+    LOW_POSITION = 0,
+    MEDIUM_POSITION = 1,
+    HIGH_POSITION = 2,
+};
 
 namespace turret
 {
@@ -31,6 +36,7 @@ public:
     ServoManager() {}
 
     void init(RobotInterface *robot);
+    void set_servos(STSServoDriver *servos);
 
     void openClaw(int const& clawId);
     void closeClaw(int const& clawId);
@@ -39,6 +45,8 @@ public:
     void closeClaws(bool const& front);
 
     void updateClawContent(bool const& front, GameState & gameState);
+
+    void setClawPosition(ClawPosition claw_position);
 
     /// @brief Move turret to specified position, in rad.
     void moveTurret(double const& turretPos);
@@ -49,10 +57,7 @@ public:
         return turretState_ == turret::state::IDLE;
     }
 
-    double getTurretPosition() const
-    {
-        return currentTurretPosition_;
-    }
+    double getTurretPosition() const;
 
 private:
     RobotInterface *robot_;

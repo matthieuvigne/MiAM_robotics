@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 
 #Configure project
-project(mainRobotCode)
-set(PROJECT_DESCRIPTION "Code for the main robot for Eurobot")
+project(sts_servo_test)
+set(PROJECT_DESCRIPTION "Test for the servos")
 
 # Set compiler to arm compiler (cross-compile)
 set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
@@ -42,37 +42,41 @@ include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_I
 link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS} ${MIAM_VISION_LIBRARY_DIRS} ${GTK_LIBRARY_DIRS} ${HDF5LIB_LIBRARY_DIRS})
 
 # Include source files from src directory.
-file(GLOB_RECURSE COMMON_SOURCES "../common/src/*.cpp"
-                                 "src/Robot.cpp")
+file(GLOB_RECURSE COMMON_SOURCES "../../eurobot2024/MainRobotCode/common/src/*.cpp"
+                                 "../../eurobot2024/MainRobotCode/embedded/src/Robot.cpp")
 
-file(GLOB_RECURSE MAIN_SOURCES "../main_robot/src/*.cpp" "src/MainRobotMain.cpp")
+file(GLOB_RECURSE MAIN_SOURCES "../../eurobot2024/MainRobotCode/main_robot/src/*.cpp"
+                               "./src/sts_servo_test.cpp")
 
 set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX )
 
 # Add directory containing the headers.
-include_directories(../common/include)
-include_directories(../main_robot/include)
+include_directories(../../eurobot2024/MainRobotCode/common/include)
+include_directories(../../eurobot2024/MainRobotCode/main_robot/include)
+include_directories(../../eurobot2024/MainRobotCode/embedded/include)
 include_directories(./include)
-include_directories(../../../a-star/source
-    ../../../qpoases
-    ../../../qpoases/INCLUDE
-    ../../../qpoases/SRC
-    ../common/acado_solver)
+include_directories(../../a-star/source
+    ../../qpoases
+    ../../qpoases/INCLUDE
+    ../../qpoases/SRC
+    ../../eurobot2024/MainRobotCode/common/acado_solver)
 
-FILE( GLOB LIB_SOURCES ../../../a-star/source/*.cpp )
-FILE( GLOB LIB_HEADERS ../../../a-star/source/*.hpp )
+FILE( GLOB LIB_SOURCES ../../a-star/source/*.cpp )
+FILE( GLOB LIB_HEADERS ../../a-star/source/*.hpp )
 set_source_files_properties(${LIB_SOURCES} PROPERTIES LANGUAGE CXX )
 ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
 
 # qpoases
-FILE( GLOB LIB_SOURCES ../../../qpoases/SRC/*.cpp )
-FILE( GLOB LIB_HEADERS ../../../qpoases/INCLUDE/*.hpp )
+FILE( GLOB LIB_SOURCES ../../qpoases/SRC/*.cpp )
+FILE( GLOB LIB_HEADERS ../../qpoases/INCLUDE/*.hpp )
 set_source_files_properties(${LIB_SOURCES1} PROPERTIES LANGUAGE CXX )
 ADD_LIBRARY( qpoases ${LIB_SOURCES} ${LIB_HEADERS} )
 
 # acado_solver
-FILE( GLOB LIB_SOURCES ../common/acado_solver/*.cpp ../common/acado_solver/*.c )
-FILE( GLOB LIB_HEADERS ../common/acado_solver/*.hpp ../common/acado_solver/*.h )
+FILE( GLOB LIB_SOURCES ../../eurobot2024/MainRobotCode/common/acado_solver/*.cpp
+                       ../../eurobot2024/MainRobotCode/common/acado_solver/*.c )
+FILE( GLOB LIB_HEADERS ../../eurobot2024/MainRobotCode/common/acado_solver/*.hpp 
+                       ../../eurobot2024/MainRobotCode/common/acado_solver/*.h )
 set_source_files_properties(${LIB_SOURCES} PROPERTIES LANGUAGE CXX )
 ADD_LIBRARY( acado_solver ${LIB_SOURCES} ${LIB_HEADERS} )
 target_link_libraries( acado_solver qpoases )
@@ -80,8 +84,8 @@ target_link_libraries( acado_solver qpoases )
 message(${RPLIDAR_INCLUDE_DIRS})
 
 # Set executable target and link libraries.
-add_executable(mainRobotCode ${MAIN_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(mainRobotCode ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES}
+add_executable(sts_servo_test ${MAIN_SOURCES} ${COMMON_SOURCES})
+target_link_libraries(sts_servo_test ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES}
 AStar acado_solver "-lhdf5_cpp")
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")
