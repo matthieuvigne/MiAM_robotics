@@ -68,7 +68,7 @@ bool Robot::initSystem()
 
     if (!isServoInit_)
     {
-        isServoInit_ = servos_.init("/dev/ttyAMA0", 18);
+        isServoInit_ = servos_.init("/dev/ttyAMA0", -1);
         if (!isServoInit_)
             guiState_.debugStatus += "Servo init failed\n";
     }

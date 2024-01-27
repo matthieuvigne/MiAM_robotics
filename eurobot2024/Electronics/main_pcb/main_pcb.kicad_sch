@@ -7346,7 +7346,7 @@
     (property "Reference" "R4" (at 228.6 40.6399 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Value" "10k" (at 228.6 43.1799 0)
+    (property "Value" "2k" (at 228.6 43.1799 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Footprint" "Resistor_SMD:R_0805_2012Metric" (at 227.838 41.91 90)

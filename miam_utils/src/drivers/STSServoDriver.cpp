@@ -50,7 +50,8 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
     // Open port
     port_ = uart_open(portName, baudRate);
     dirPin_ = dirPin;
-    RPi_setupGPIO(dirPin_, PI_GPIO_OUTPUT);
+    if (dirPin_ > 0)
+        RPi_setupGPIO(dirPin_, PI_GPIO_OUTPUT);
 
     if(port_ == -1)
         return false;
@@ -325,19 +326,18 @@ int STSServoDriver::sendMessage(unsigned char const& servoId,
     }
     message[5 + paramLength] = ~checksum;
 
-    RPi_writeGPIO(dirPin_, false);
-    usleep(10);
-    int ret = write(port_, message, 6 + paramLength);
-    if (!willRead)
+    if (dirPin_ > 0)
     {
-        usleep(2);
-        tcflush(port_, TCOFLUSH);
-        usleep(5);
-        RPi_writeGPIO(dirPin_, true);
+        RPi_writeGPIO(dirPin_, false);
+        usleep(10);
     }
-    else
+
+    int ret = write(port_, message, 6 + paramLength);
+    tcflush(port_, TCOFLUSH);
+    if (dirPin_ > 0 && !willRead)
     {
-        usleep(0);
+        usleep(10);
+        RPi_writeGPIO(dirPin_, true);
     }
     if (!willRead)
         mutex_.unlock();
@@ -495,7 +495,8 @@ int STSServoDriver::recieveMessage(unsigned char const& servoId,
                                    unsigned char const& readLength,
                                    unsigned char *outputBuffer)
 {
-    RPi_writeGPIO(dirPin_, true);
+    if (dirPin_ > 0)
+        RPi_writeGPIO(dirPin_, true);
     unsigned char result[readLength + 5];
     int rd = read_timeout(port_, result, readLength + 5, readTimeout_);
     if (rd != readLength + 5)
