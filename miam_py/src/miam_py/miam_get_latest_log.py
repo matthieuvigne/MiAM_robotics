@@ -12,7 +12,7 @@ def sorted_nicely( l ):
     return sorted(l, key = alphanum_key)
 
 
-if __name__ == "__main__":
+def main():
     sftpURL   =  '192.168.6.2'
     sftpUser  =  'pi'
     sftpPass  =  'raspberry'
@@ -30,3 +30,6 @@ if __name__ == "__main__":
 
     ftp.get(files[-1], "./" + files[-1])
     print(f"Copied '{files[-1]}' from the robot to the current working directory")
+
+if __name__ == "__main__":
+    main()

@@ -9,7 +9,7 @@ import argparse
 import h5py
 from pathlib import Path
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description = "Extract text log from h5df file.")
     parser.add_argument("input", type = Path, help = "Input HDF5 log file.")
     # parser.add_argument("-fft", required = False, default = False, action = "store_true",
@@ -31,3 +31,6 @@ if __name__ == "__main__":
         print(f"Content saved to file '{filename}'")
     else:
         print(string_data)
+
+if __name__ == "__main__":
+    main()

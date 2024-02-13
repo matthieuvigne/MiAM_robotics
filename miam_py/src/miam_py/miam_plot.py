@@ -27,8 +27,7 @@ def my_fft(data, dt):
     return frequencies, 2.0/N * np.abs(data_fft[0:N//2])
 
 
-if __name__ == "__main__":
-
+def main():
     description_str = "Plot data from a robot log file.\n" + \
                       "Specify a list of headers, separated by a colon for plotting on the same subplot.\n" + \
                       "Example: h1 h2:h3 generates two subplots, one with h1, one with h2 and h3.\n" + \
@@ -102,3 +101,6 @@ if __name__ == "__main__":
         ax.grid()
     plt.subplots_adjust(bottom=0.05, top=0.92, left=0.06, right=0.98, wspace=0.1, hspace=0.05)
     plt.show()
+
+if __name__ == "__main__":
+    main()
