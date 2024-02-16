@@ -31,6 +31,14 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     RobotPosition currentPosition = currentPosition_.get();
     RobotPosition error = currentPosition - targetPoint.position;
 
+    WheelSpeed speed = measurements.encoderSpeed;
+    speed.left /= dt;
+    speed.right /= dt;
+    BaseSpeed currentSpeed = kinematics_.forwardKinematics(speed, true);
+    log("MotionController.currentVelocityLinear", currentSpeed.linear);
+    log("MotionController.currentVelocityAngular", currentSpeed.angular);
+
+
     // Rotate by -theta to express the error in the tangent frame.
     RobotPosition rotatedError = error.rotate(-targetPoint.position.theta);
 
@@ -67,8 +75,14 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
 
     // If trajectory has an angular velocity but no linear velocity, it's a point turn:
     // disable corresponding position servoing.
+    double pidLinearCorrection = 0.0;
     if (!(std::abs(targetPoint.angularVelocity) > 0.1 && std::abs(targetPoint.linearVelocity) < 0.1))
-        targetSpeed.linear += PIDLinear_.computeValue(trackingLongitudinalError, dt);
+    {
+        double const velocityError = currentSpeed.linear * std::cos(currentPosition.theta - targetPoint.position.theta) - targetSpeed.linear;
+        pidLinearCorrection = PIDLinear_.computeValue(trackingLongitudinalError, velocityError, dt);
+    }
+
+    targetSpeed.linear += pidLinearCorrection;
 
     // Modify angular PID target based on transverse error, if we are going fast enough.
     double angularPIDError = trackingAngleError;
@@ -79,7 +93,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
         transverseCorrection = -transverseCorrection;
     angularPIDError += transverseCorrection;
 
-    targetSpeed.angular += PIDAngular_.computeValue(angularPIDError, dt);
+    targetSpeed.angular += PIDAngular_.computeValue(angularPIDError, currentSpeed.angular - targetSpeed.angular, dt);
 
     // Invert velocity if playing on right side.
     if (isPlayingRightSide_)
@@ -102,8 +116,8 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     }
 
 
-    log("linearPIDCorrection",PIDLinear_.getCorrection());
-    log("angularPIDCorrection",PIDAngular_.getCorrection());
+    log("MotionController.linearPIDCorrection",pidLinearCorrection);
+    log("MotionController.angularPIDCorrection",PIDAngular_.getCorrection());
 
 
     return false;

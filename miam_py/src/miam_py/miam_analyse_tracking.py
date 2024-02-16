@@ -126,11 +126,11 @@ def main():
 
     axs[1][0].plot(time, v, label="Linear velocity")
     axs[1][0].plot(time, trajectory_v, label="Trajectory linear velocity")
-    axs[1][0].plot(time, get_data_resampled(logfile, 'linearPIDCorrection', time), label="PID correction")
+    axs[1][0].plot(time, get_data_resampled(logfile, 'MotionController.linearPIDCorrection', time), label="PID correction")
 
     axs[1][1].plot(time, omega, label="Angular velocity")
     axs[1][1].plot(time, trajectory_omega, label="Trajectory angular velocity")
-    axs[1][1].plot(time, get_data_resampled(logfile, 'angularPIDCorrection', time), label="PID correction")
+    axs[1][1].plot(time, get_data_resampled(logfile, 'MotionController.angularPIDCorrection', time), label="PID correction")
 
     axs[0][0].set_title("Angle (rad)")
     axs[0][1].set_title("Position error (mm)")

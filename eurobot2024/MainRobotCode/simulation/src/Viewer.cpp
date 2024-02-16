@@ -35,6 +35,7 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     refGlade->get_widget("scoreLabel", scoreLabel);
     refGlade->get_widget("progressBar", progressBar);
     refGlade->get_widget("switchButton", switchButton);
+    switchButton->set_active();
     refGlade->get_widget("simulationRatioSpin", simulationRatioSpin);
     simulationRatioSpin->signal_value_changed().connect(sigc::mem_fun(this, &Viewer::updateTimeRatio));
     refGlade->get_widget("drawingArea", drawingArea);

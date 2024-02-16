@@ -137,10 +137,6 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     log("MotionController.currentPositionY",currentPosition.y);
     log("MotionController.currentPositionTheta",currentPosition.theta);
 
-    BaseSpeed baseSpeed = kinematics_.forwardKinematics(measurements.encoderSpeed, true);
-    log("MotionController.currentVelocityLinear",baseSpeed.linear / dt);
-    log("MotionController.currentVelocityAngular",baseSpeed.angular / dt);
-
     DrivetrainTarget target;
 
     // Update list of obstacles
