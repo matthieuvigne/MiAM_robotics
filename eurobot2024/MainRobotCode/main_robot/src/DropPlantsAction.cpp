@@ -8,7 +8,7 @@ const miam::RobotPosition PLANT_DROP_COORD[6] =
         miam::RobotPosition(300, 1600, M_PI_2),
         miam::RobotPosition(150, 1400, M_PI),
         miam::RobotPosition(2785, 1000),
-        miam::RobotPosition(2900, 600),
+        miam::RobotPosition(2785, 600),
         miam::RobotPosition(150, 1400, M_PI),
 };
 

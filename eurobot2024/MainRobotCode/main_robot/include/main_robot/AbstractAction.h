@@ -32,6 +32,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const AbstractAction& dt);
     RobotPosition startPosition_;
     int priority_ = -1; ///< Action priority: higher priority actions will be attempted first. Action with negative priorities will not be performed.
+    bool wasFailed = false;
 
     std::string getName()
     {
@@ -44,7 +45,7 @@ protected:
 
 inline std::ostream& operator<<(std::ostream& os, const AbstractAction& a)
 {
-    os << a.name_ << ": priority " << a.priority_ << ", (" << a.startPosition_ << ")";
+    os << a.name_ << ": failed " << a.wasFailed << " priority " << a.priority_ << ", (" << a.startPosition_ << ")";
     return os;
 }
 

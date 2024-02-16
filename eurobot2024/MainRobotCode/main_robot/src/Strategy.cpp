@@ -156,10 +156,19 @@ void Strategy::match()
 
 void Strategy::goBackToBase()
 {
-  RobotPosition targetPosition{825,550,0}; // 700
-  go_to_straight_line(targetPosition, 1.5, false);
-  targetPosition.y -= 350; // 500;
-  go_to_straight_line(targetPosition, 1.5, false);
+    // Target depends on start position
+    RobotPosition targetPosition;
+    if (robot->getStartPosition().y < 700)
+    {
+        targetPosition.x = 250;
+        targetPosition.y = 1750;
+    }
+    else
+    {
+        targetPosition.x = 250;
+        targetPosition.y = 250;
+    }
+    go_to_straight_line(targetPosition);
 }
 
 
@@ -168,15 +177,16 @@ void Strategy::goBackToBase()
 void Strategy::match_impl()
 {
     int highestPriorityAction = 1;
-    while (highestPriorityAction > 0)
+    while (highestPriorityAction > 0 && !actions_.empty())
     {
         highestPriorityAction = -1;
 
         robot->logger_ << "[Strategy] Choosing action from list: " << std::endl;
+
         for (unsigned int i = 0; i < actions_.size(); i++)
         {
             actions_.at(i)->updateStartCondition();
-            if (actions_.at(i)->priority_ > highestPriorityAction)
+            if (!actions_.at(i)->wasFailed && actions_.at(i)->priority_ > highestPriorityAction)
                 highestPriorityAction = actions_.at(i)->priority_;
             robot->logger_ << i << "\t" << *actions_.at(i) << std::endl;
         }
@@ -187,7 +197,7 @@ void Strategy::match_impl()
         RobotPosition currentPosition = motionController->getCurrentPosition();
         for (unsigned int i = 0; i < actions_.size(); i++)
         {
-            if (actions_.at(i)->priority_ == highestPriorityAction)
+            if (actions_.at(i)->priority_ == highestPriorityAction && !actions_.at(i)->wasFailed)
             {
                 double const distance = (actions_.at(i)->startPosition_ - currentPosition).norm();
                 if (distance < minDistance)
@@ -203,10 +213,38 @@ void Strategy::match_impl()
         robot->logger_ << "[Strategy] Chose action " << selectedAction << std::endl;
         robot->setGUIActionName(actions_.at(selectedAction)->getName());
 
-        bool actionNeedsToBeRemoved = performAction(actions_.at(selectedAction));
+        bool actionShouldBeRemoved;
+        bool actionSuccessful = performAction(actions_.at(selectedAction), actionShouldBeRemoved);
+
+        // If action failed: don't try it again for now until one is successful
+        if (actionSuccessful)
+        {
+            for (unsigned int i = 0; i < actions_.size(); i++)
+            {
+                actions_.at(i)->wasFailed = false;
+            }
+        }
+        else
+        {
+            actions_.at(selectedAction)->wasFailed = true;
+            // If all actions have failed, let's try everything over again.
+            bool allFail = true;
+            for (unsigned int i = 0; i < actions_.size(); i++)
+            {
+                allFail = allFail & actions_.at(i)->wasFailed;
+            }
+            if (allFail)
+            {
+                robot->logger_ << "[Strategy] All actions have failed, let's reset." << std::endl;
+                for (unsigned int i = 0; i < actions_.size(); i++)
+                {
+                    actions_.at(i)->wasFailed = false;
+                }
+            }
+        }
         robot->setGUIActionName("None");
 
-        if (actionNeedsToBeRemoved)
+        if (actionShouldBeRemoved)
         {
             actions_.erase(actions_.begin() + selectedAction);
         }
@@ -216,8 +254,9 @@ void Strategy::match_impl()
 
 }
 
-bool Strategy::performAction(std::shared_ptr<AbstractAction> action)
+bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & actionShouldBeRemoved)
 {
+    actionShouldBeRemoved = false;
     robot->logger_ << "[Strategy] Performing action: " << *action << std::endl;
     // Go to the start of the action
     TrajectoryVector traj;
@@ -238,12 +277,7 @@ bool Strategy::performAction(std::shared_ptr<AbstractAction> action)
         // action was not successful
         return false;
     }
-    if (!action->performAction())
-    {
-        // action was not successful
-        return false;
-    }
-
+    actionShouldBeRemoved = action->performAction();
     return true;
 }
 

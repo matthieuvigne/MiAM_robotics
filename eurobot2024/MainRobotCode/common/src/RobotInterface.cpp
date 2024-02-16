@@ -91,7 +91,7 @@ void RobotInterface::lowLevelLoop()
         if (!hasMatchStarted_)
         {
             motionController_.isPlayingRightSide_ = gui_->getIsPlayingRightSide();
-            motionController_.resetPosition(gui_->getStartPosition());
+            motionController_.resetPosition(getStartPosition());
             hasMatchStarted_ = setupBeforeMatchStart();
             if (hasMatchStarted_)
             {

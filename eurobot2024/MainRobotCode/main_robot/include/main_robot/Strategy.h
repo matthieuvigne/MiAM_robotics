@@ -40,8 +40,8 @@ class Strategy : public AbstractStrategy
 
         void goBackToBase();
 
-        // Perform a given action, return true if it can be removed from the list.
-        bool performAction(std::shared_ptr<AbstractAction> action);
+        // Perform a given action, return true if action was successful.
+        bool performAction(std::shared_ptr<AbstractAction> action, bool & actionShouldBeRemoved);
 
         std::vector<std::shared_ptr<AbstractAction>> actions_;  ///< All actions that can be performed.
 

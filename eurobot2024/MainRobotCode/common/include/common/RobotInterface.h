@@ -15,11 +15,11 @@
     #include "common/MotionController.h"
     #include "common/Types.h"
     #include "common/GameState.h"
+    #include "common/RobotGUI.h"
 #ifdef SIMULATION
     #include "FakeMetronome.h"
 #endif
 
-    class RobotGUI;
     class AbstractStrategy;
 
     /// @brief An abstract class representing a robot
@@ -99,6 +99,7 @@
 
             MotionController* getMotionController() { return &motionController_;}
             STSServoDriver* getServos() { return &servos_;}
+            RobotPosition getStartPosition() { return gui_->getStartPosition();}
 
             /// \brief Get time in current match.
             /// \return Time since start of the match, or 0 if not started.
