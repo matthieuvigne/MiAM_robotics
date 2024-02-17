@@ -51,6 +51,7 @@ void RobotInterface::lowLevelLoop()
     while (guiState_.state == robotstate::INIT)
     {
         setupBeforeMatchStart();
+        gui_->update(guiState_);
         usleep(10000);
     }
 

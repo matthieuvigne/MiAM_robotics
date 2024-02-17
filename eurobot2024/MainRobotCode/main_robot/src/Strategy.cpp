@@ -76,59 +76,6 @@ void Strategy::shutdown()
   // TODO
 }
 
-//--------------------------------------------------------------------------------------------------
-
-// Action* Strategy::chooseNextAction(
-//     std::vector<Action>& actions,
-//     RobotPosition currentPosition,
-//     MotionPlanner& motionPlanner
-// )
-// {
-
-//     Action* bestAction = &actions.front();
-//     double bestLoss = 0;
-
-//     int i = 0;
-
-//     // if all actions are deactivated, reactivate all actions
-//     bool all_actions_deactivated = true;
-//     for (auto & a : actions)
-//     {
-//         if (a.isActivated_)
-//             all_actions_deactivated = false;
-//     }
-//     if (all_actions_deactivated)
-//     {
-//         std::cout << "All actions are deactivated: reactivate all" << std::endl;
-//         for (auto & a : actions)
-//             a.isActivated_ = true;
-//     }
-
-//     for (auto & a : actions)
-//     {
-//         if (a.isActivated_)
-//         {
-//             // compute loss
-//             double timeItTakesToGoThere = motionPlanner.computeMotionTime(robot->getParameters().getTrajConf(), currentPosition, a.startPosition_);
-//             double currentLoss = a.nPointsToGain_ /(a.timeItTakes_ + timeItTakesToGoThere);
-
-//             std::cout << "Calcul pour " << i << " : " << timeItTakesToGoThere << ", " << currentLoss << std::endl;
-
-//             if (bestLoss < currentLoss)
-//             {
-//                 bestAction = &a;
-//                 bestLoss = currentLoss;
-//                 std::cout << "Chosen action " << i << std::endl;
-//             }
-//         }
-//         i++;
-//     }
-
-//     return bestAction;
-// }
-
-//--------------------------------------------------------------------------------------------------
-
 void Strategy::match()
 {
     robot->logger_ << "Strategy thread started." << std::endl;

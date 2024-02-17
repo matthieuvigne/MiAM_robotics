@@ -18,8 +18,8 @@ Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, Robo
     RobotInterface(parameters, gui, strategy, testMode),
     lidar_(parameters.lidarOffset),
     disableLidar_(disableLidar),
-    rightMotor_(RPI_SPI_00),
-    leftMotor_(RPI_SPI_01)
+    rightMotor_(RPI_SPI_01),
+    leftMotor_(RPI_SPI_00)
 {
     guiState_.state = robotstate::INIT;
     guiState_.score = 0;
@@ -39,7 +39,7 @@ bool Robot::initSystem()
     guiState_.debugStatus = "";
 
     // Motor init
-    if (!isMotorsInit_ && !isEncodersInit_)
+    if (!isMotorsInit_ || !isEncodersInit_)
     {
         bool rightEncoderInit = false;
         bool leftEncoderInit = false;
@@ -58,7 +58,7 @@ bool Robot::initSystem()
             isMotorsInit_ = false;
         }
         if (!leftEncoderInit)
-            guiState_.debugStatus += "Right encoder init failed\n";
+            guiState_.debugStatus += "Left encoder init failed\n";
         isEncodersInit_ = rightEncoderInit && leftEncoderInit;
     }
 

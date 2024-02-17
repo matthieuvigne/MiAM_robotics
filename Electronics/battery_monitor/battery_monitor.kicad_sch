@@ -3287,7 +3287,7 @@
     (property "Reference" "IC1" (at 59.69 147.32 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "MIC2779H-1YM5_TR" (at 59.69 149.86 0)
+    (property "Value" "MIC2779L-1YM5_TR" (at 59.69 149.86 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "MIC2779L-1YM5_TR:SOT95P280X145-5N" (at 69.85 249.86 0)
