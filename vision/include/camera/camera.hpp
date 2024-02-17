@@ -85,6 +85,11 @@ public:
     common::MarkerPtrList* detected_markers_ptr,
     std::string const& imageLogPath) const;
 
+  // Get angle with marker
+  double get_angle_with_marker(
+    cv::Mat const& image,
+    int marker_id) const;
+
 private:
   void configureCamera();
 

@@ -291,8 +291,12 @@ bool Camera::detectMarkers(
     detected_markers_ptr->push_back(std::move(marker_ptr));
   }
 
-  std::thread saveThread(&dumpImages, imageLogPath, imageToSave, image_with_markers);
-  saveThread.detach();
+  // Save the image if required
+  if(!imageLogPath.empty())
+  {
+    std::thread saveThread(&dumpImages, imageLogPath, imageToSave, image_with_markers);
+    saveThread.detach();
+  }
 
   #if USE_TEST_BENCH
     cv::imshow("Image", image_with_markers);
@@ -300,6 +304,43 @@ bool Camera::detectMarkers(
   #endif
 
   return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+double Camera::get_angle_with_marker(
+  cv::Mat const& image,
+  int target_marker_id) const
+{
+  // Get all the markers
+  double camera_azimuth_deg = 0;
+  double camera_elevation_deg = 0;
+  common::MarkerPtrList detected_markers;
+  bool success = this->detectMarkers(image, camera_azimuth_deg, camera_elevation_deg,
+    &detected_markers, "");
+  
+  // Iterate through the markers and get the angle with the target marker
+  double angle_deg = std::nan("");
+  for(common::Marker::UniquePtr const& marker_ptr : detected_markers)
+  {
+    // Skip if not the right marker
+    if(marker_ptr->getId() != target_marker_id)
+      continue;
+    
+    // Get the marker's pose
+    Eigen::Affine3d const* TCM = marker_ptr->getTCM();
+    CHECK_NOTNULL(TCM);
+    
+    // Project the camera axis vector into the marker's plane
+    double const deg2rad = M_PI / 180.;
+    Eigen::Matrix3d const RCM = TCM->rotation();
+    Eigen::Vector3d const uMy = RCM.col(2);
+    Eigen::Vector3d const uCx = Eigen::Vector3d::UnitX();
+    angle_deg = std::acos(uMy.dot(uCx)*deg2rad);
+    angle_deg *= double(uMy.dot(uCx)>=0);
+  }
+  
+  return angle_deg;
 }
 
 //--------------------------------------------------------------------------------------------------
