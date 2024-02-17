@@ -5,9 +5,14 @@
 #include <iomanip>
 #include <sstream>
 #include "Parameters.h"
+#include "MessageSender.h"
 
 // double const ROBOT_DT = 1.0e-9 * ROBOT_UPDATE_PERIOD;
 double const MATCH_TIME = 100.0;
+double const TRAJ_SERIALIZATION_INTERVAL = 0.1;
+
+std::unique_ptr<float > serializationResults;
+int serializationResultsSize = 0;
 
 ObjectRow objectrow;
 
@@ -42,8 +47,7 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     refGlade->get_widget("scoreLabel", scoreLabel);
     refGlade->get_widget("progressBar", progressBar);
     refGlade->get_widget("switchButton", switchButton);
-    refGlade->get_widget("simulationRatioSpin", simulationRatioSpin);
-    simulationRatioSpin->signal_value_changed().connect(sigc::mem_fun(this, &Viewer::updateTimeRatio));
+    refGlade->get_widget("recipientIPTextView", recipientIPTextView);
     refGlade->get_widget("drawingArea", drawingArea);
     
     refGlade->get_widget("coordinateList", treeView);
@@ -297,6 +301,13 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
             pointY =  mmToCairo_ * (TABLE_HEIGHT_MM - newTrajectory.getCurrentPoint(time).position.y);
             cr->line_to(pointX, pointY);
         } while (time <= newTrajectory.getDuration());
+
+        // last point
+        time = newTrajectory.getDuration();
+        pointX =  mmToCairo_ * newTrajectory.getCurrentPoint(time).position.x;
+        pointY =  mmToCairo_ * (TABLE_HEIGHT_MM - newTrajectory.getCurrentPoint(time).position.y);
+        cr->line_to(pointX, pointY);
+
         cr->set_source_rgb(1.0, 1.0, 1.0);
         cr->set_line_width(5.0);
         cr->stroke_preserve();
@@ -319,7 +330,7 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
     std::stringstream stream;
     stream << std::fixed << std::setprecision(2) << simulationTime_;
     timeLabel->set_text("Time: " + stream.str());
-    scoreLabel->set_text("Score: " + std::to_string(score));
+    scoreLabel->set_text("Traj time: " + std::to_string(newTrajectory.getDuration()));
 
     // Draw game state.
     cr->scale(mmToCairo_, mmToCairo_);
@@ -393,15 +404,79 @@ void Viewer::playClicked()
 
 void Viewer::pauseClicked()
 {
-    isRunning_ = false;
+    // isRunning_ = false;
+    std::cout << "Serializing" << std::endl;
+
+    int N = std::ceil(newTrajectory.getDuration() / TRAJ_SERIALIZATION_INTERVAL);
+    double deltat = newTrajectory.getDuration() / N;
+    serializationResultsSize = 2 + 5*(N+1);
+
+    std::cout << "Size=" << serializationResultsSize << ", deltat=" << deltat << ", duration: " << newTrajectory.getDuration() << std::endl;
+
+    serializationResults.reset(new float[serializationResultsSize]());
+
+    int serializationIndex = 0;
+
+    // first 2 bytes are size of trajectory (nb of pts) and duration
+    serializationResults.get()[serializationIndex++] = N+1;
+    serializationResults.get()[serializationIndex++] = newTrajectory.getDuration();
+
+    for (int i = 0; i <= N; i++) 
+    {
+        TrajectoryPoint pt;
+        if (i < N)
+        {
+            pt = newTrajectory.getCurrentPoint(deltat * i);
+        } else {
+            pt = newTrajectory.getEndPoint();
+        }
+        // res.push_back((float)pt.position.x);
+        // res.push_back((float)pt.position.y);
+        // res.push_back((float)pt.position.theta);
+        // res.push_back((float)pt.linearVelocity);
+        // res.push_back((float)pt.angularVelocity);
+        // serializationResults.get()[5*i] = (float)pt.position.x;
+        // serializationResults.get()[5*i+1] = (float)pt.position.y;
+        // serializationResults.get()[5*i+2] = (float)pt.position.theta;
+        // serializationResults.get()[5*i+3] = (float)pt.linearVelocity;
+        // serializationResults.get()[5*i+4] = (float)pt.angularVelocity;
+        serializationResults.get()[serializationIndex++] = (float)pt.position.x;
+        serializationResults.get()[serializationIndex++] = (float)pt.position.y;
+        serializationResults.get()[serializationIndex++] = (float)pt.position.theta;
+        serializationResults.get()[serializationIndex++] = (float)pt.linearVelocity;
+        serializationResults.get()[serializationIndex++] = (float)pt.angularVelocity;
+    }
+
+    std::cout << "Size in bytes: " << serializationResultsSize << std::endl;
+
+    // for (float f : res)
+    // {
+    //     std::cout << f << std::endl;
+    // }
+
+    // for (int i=0; i< serializationResultsSize; i++)
+    // {
+    //     float f = serializationResults.get()[i];
+    //     std::cout << f << std::endl;
+    // }
+
 }
 
 void Viewer::resetClicked()
 {
-    isRunning_ = false;
-    simulationTime_ = 0.0;
+    // isRunning_ = false;
+    // simulationTime_ = 0.0;
     // for(auto r : robots_)
     //     r->reset(false);
+
+    // only send if trajectory not empty
+    if (serializationResultsSize > 0 && serializationResults.get()[0] > 1)
+    {
+        std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
+        std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
+        // message_sender::send_message(serializationResults.get(), serializationResultsSize, str_ip_address.c_str());
+        message_sender::send_message(serializationResults.get(), serializationResultsSize, "127.0.0.1");
+    }
 }
 
 void Viewer::valueChanged(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter)
@@ -411,7 +486,7 @@ void Viewer::valueChanged(const Gtk::TreeModel::Path& path, const Gtk::TreeModel
 
 void Viewer::updateTimeRatio()
 {
-    simulationTimeRatio_ = simulationRatioSpin->get_value();
+    // simulationTimeRatio_ = simulationRatioSpin->get_value();
 }
 
 void Viewer::deletePointButtonClicked()

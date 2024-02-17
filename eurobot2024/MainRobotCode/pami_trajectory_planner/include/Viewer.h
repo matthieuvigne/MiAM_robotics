@@ -59,7 +59,7 @@ private:
     Gtk::Label *scoreLabel;
     Gtk::CheckButton *switchButton;
     Gtk::ProgressBar *progressBar;
-    Gtk::SpinButton *simulationRatioSpin;
+    Gtk::TextView *recipientIPTextView;
     Gtk::DrawingArea *drawingArea;
 
     Gtk::TextView *maxVelocityTextView;

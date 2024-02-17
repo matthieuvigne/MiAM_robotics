@@ -47,7 +47,7 @@
           <object class="GtkLabel" id="scoreLabel">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">Score: 0</property>
+            <property name="label" translatable="yes">Label</property>
             <attributes>
               <attribute name="scale" value="1.2"/>
             </attributes>
@@ -89,7 +89,7 @@
             <property name="spacing">5</property>
             <child>
               <object class="GtkButton" id="play">
-                <property name="label" translatable="yes">Play</property>
+                <property name="label" translatable="yes">Compute trajectory</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
@@ -104,7 +104,7 @@
             </child>
             <child>
               <object class="GtkButton" id="pause">
-                <property name="label" translatable="yes">Pause</property>
+                <property name="label" translatable="yes">Serialize</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
@@ -119,7 +119,7 @@
             </child>
             <child>
               <object class="GtkButton" id="reset">
-                <property name="label" translatable="yes">Reset</property>
+                <property name="label" translatable="yes">Send</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
@@ -133,12 +133,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="replayTime2">
+              <object class="GtkLabel" id="label2">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="halign">center</property>
                 <property name="valign">center</property>
-                <property name="label" translatable="yes">Simulation speed:</property>
+                <property name="label" translatable="yes">Recipient IP:</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -147,30 +147,30 @@
               </packing>
             </child>
             <child>
-              <object class="GtkSpinButton" id="simulationRatioSpin">
+              <object class="GtkTextView" id="recipientIPTextView">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="halign">center</property>
-                <property name="valign">center</property>
-                <property name="input-purpose">digits</property>
-                <property name="adjustment">adjustment3</property>
-                <property name="digits">1</property>
-                <property name="value">1</property>
+                <property name="margin-start">1</property>
+                <property name="margin-end">1</property>
+                <property name="margin-top">1</property>
+                <property name="margin-bottom">1</property>
+                <property name="hexpand">True</property>
+                <property name="monospace">True</property>
               </object>
               <packing>
-                <property name="expand">False</property>
+                <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">4</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="switchButton">
-                <property name="label" translatable="yes">Starting switch state</property>
+                <property name="label" translatable="yes">Ensure end angle</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
                 <property name="halign">start</property>
-                <property name="hexpand">True</property>
+                <property name="active">True</property>
                 <property name="draw-indicator">True</property>
               </object>
               <packing>
@@ -286,6 +286,9 @@
                 <property name="vexpand">True</property>
                 <property name="headers-clickable">False</property>
                 <property name="enable-search">False</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
+                </child>
               </object>
               <packing>
                 <property name="left-attach">0</property>
