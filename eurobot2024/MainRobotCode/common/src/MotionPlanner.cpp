@@ -7,6 +7,7 @@
 #include <miam_utils/trajectory/StraightLine.h>
 #include <miam_utils/trajectory/PointTurn.h>
 #include <miam_utils/trajectory/Utilities.h>
+#include <miam_utils/MathUtils.h>
 
 #include <iostream>
 #include <cmath>
@@ -67,8 +68,8 @@ std::mutex acado_mutex;
 
 TrajectoryConfig MotionPlanner::getMPCTrajectoryConfig() {
     TrajectoryConfig c;
-    c.maxWheelVelocity = 1000;
-    c.maxWheelAcceleration = 2000;
+    c.maxWheelVelocity = 700;
+    c.maxWheelAcceleration = 1000;
     c.robotWheelSpacing = 100.5;
     return c;
 };
@@ -126,9 +127,9 @@ TrajectoryVector MotionPlanner::planMotion(
     else
     {
         planned_path.back().theta = targetPosition.theta;   // this makes the MPC try to ensure the end angle
-                                                            // but end angle is often not reachable so the angle 
+                                                            // but end angle is often not reachable so the angle
                                                             // is then ensured with a point turn afterwards
-        st = solveTrajectoryFromWaypoints(planned_path);
+        st = solveTrajectoryFromWaypoints(planned_path, ensureEndAngle, targetPosition.theta);
     }
 
     if (st.getDuration() > 0)
@@ -171,7 +172,9 @@ TrajectoryVector MotionPlanner::planMotion(
 
 
 TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
-    std::vector<RobotPosition> waypoints
+    std::vector<RobotPosition> waypoints,
+    bool const& tryEnsureEndAngle,
+    double const& endAngle
 )
 {
     trajectory::TrajectoryVector traj;
@@ -203,7 +206,9 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
             traj,
             start_position,
             target_position,
-            nIter * (HORIZON_T - 2 * DELTA_T)
+            nIter * (HORIZON_T - 2 * DELTA_T),
+            tryEnsureEndAngle,
+            endAngle
         );
 
         // this is the case in which the solved MPC iteration has some
@@ -257,13 +262,14 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
     // parameterize the trajectory using curvilinear abscissa
     double startPointCurvilinearAbscissa = 0.0;
     double startPointTrapezoid = 0.0;
+
     for (long unsigned int i = 0; i < p.size() - 1; i++) {
-        
+
         RobotPosition p1 = p.at(i);
         RobotPosition p2 = p.at(i+1);
         double endPointCurvilinearAbscissa = startPointCurvilinearAbscissa += (p2 - p1).norm();
 
-        double startSpeed;
+        double startSpeed = 0.0;
         if (i == 0) {
             startSpeed = initialSpeed;
         } else {
@@ -333,7 +339,9 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
     TrajectoryVector reference_trajectory,
     TrajectoryPoint start_position,
     TrajectoryPoint target_position,
-    double start_time
+    double const& start_time,
+    bool const& tryEnsureEndAngle,
+    double const& endAngle
 )
 {
     acado_mutex.lock();
@@ -373,31 +381,15 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
         acadoVariables.x0[3] = start_position.linearVelocity / 1000;
         acadoVariables.x0[4] = start_position.angularVelocity;
 
-        // perturbation
-        float perturbation_scale = 0.0 / 1000.0;
-        float perturbation_scale_angle = 0.0;
 
         TrajectoryPoint tp;
 
 
-        for (int indice = 0; indice < N+1; indice++) {
-
-            // cout << indice << endl;
-
-            // start at start_time and iterate over N
-            real_t t = indice * DELTA_T + start_time;
-
-            // if (t > getDuration(reference_trajectory)) {
-            //     t = getDuration(reference_trajectory);
-            // }
-
+        std::vector<double> posX, posY, posTheta, linVel, angVel;
+        for (int indice = 0; indice < N+1; indice++)
+        {
+            real_t const t = indice * DELTA_T + start_time;
             tp = reference_trajectory.getCurrentPoint(t);
-
-            // oldtp was inited at start_position
-            if (abs(tp.position.theta - oldtp.position.theta) > M_PI)
-            {
-                // cout << "Smoothing angle" << endl;
-            }
 
             // if the gap is > M_PI, then subtract 2 pi
             if ( tp.position.theta - oldtp.position.theta > M_PI)
@@ -413,34 +405,49 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
             }
             oldtp = tp;
 
-            // if (VERBOSE)
-            // {
-            //     textlog << "[MotionPlanner] " << "true: " << "t=" << t << " --- " << tp.position.x << "\t" << tp.position.y << "\t" << tp.position.theta << "\t" << tp.linearVelocity << "\t" << tp.angularVelocity << std::endl;
-            // }
+            posX.push_back(tp.position.x);
+            posY.push_back(tp.position.y);
+            posTheta.push_back(tp.position.theta);
+            linVel.push_back(tp.linearVelocity);
+            angVel.push_back(tp.angularVelocity);
+        }
 
+        // Do some padding on theta to better match the desired end angle.
+        double const HALF_WINDOW_SIZE = 7;
+        if (tryEnsureEndAngle)
+        {
+            for (int i = 0; i < HALF_WINDOW_SIZE; i++)
+                posTheta.push_back(endAngle);
+        }
+        // Filter
+        posTheta = movingAverage(posTheta, HALF_WINDOW_SIZE);
+
+        // Fill problem
+        for (int indice = 0; indice < N+1; indice++)
+        {
             /* Initialize the states. */
-            acadoVariables.x[ indice * NX ] = tp.position.x / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-            acadoVariables.x[ indice * NX + 1] = tp.position.y / 1000.0  + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-            acadoVariables.x[ indice * NX + 2] = tp.position.theta + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
+            acadoVariables.x[ indice * NX ] = posX.at(indice)/ 1000.0;
+            acadoVariables.x[ indice * NX + 1] = posY.at(indice) / 1000.0;
+            acadoVariables.x[ indice * NX + 2] = posTheta.at(indice);
 
             /* Initialize the controls. */
-            acadoVariables.x[ indice * NX + 3] = tp.linearVelocity / 1000.0 + perturbation_scale * ((float) rand()/RAND_MAX - 0.5) * 2;
-            acadoVariables.x[ indice * NX + 4] = tp.angularVelocity + perturbation_scale_angle * ((float) rand()/RAND_MAX - 0.5) * 2;
+            acadoVariables.x[ indice * NX + 3] = linVel.at(indice) / 1000.0;
+            acadoVariables.x[ indice * NX + 4] = angVel.at(indice);
 
             if (indice < N) {
-                acadoVariables.y[ indice * NY ] = tp.position.x / 1000.0;
-                acadoVariables.y[ indice * NY + 1] = tp.position.y / 1000.0;
-                acadoVariables.y[ indice * NY + 2] = tp.position.theta;
-                acadoVariables.y[ indice * NY + 3] = tp.linearVelocity / 1000.0;
-                acadoVariables.y[ indice * NY + 4] = tp.angularVelocity ;
+                acadoVariables.y[ indice * NY ] = posX.at(indice) / 1000.0;
+                acadoVariables.y[ indice * NY + 1] = posY.at(indice) / 1000.0;
+                acadoVariables.y[ indice * NY + 2] = posTheta.at(indice);
+                acadoVariables.y[ indice * NY + 3] = linVel.at(indice) / 1000.0;
+                acadoVariables.y[ indice * NY + 4] = angVel.at(indice);
             }
         }
 
-        acadoVariables.yN[0] = tp.position.x / 1000.0;
-        acadoVariables.yN[1] = tp.position.y / 1000.0;
-        acadoVariables.yN[2] = tp.position.theta;
-        acadoVariables.yN[3] = tp.linearVelocity / 1000.0;
-        acadoVariables.yN[4] = tp.angularVelocity;
+        acadoVariables.yN[0] = posX.back() / 1000.0;
+        acadoVariables.yN[1] = posY.back() / 1000.0;
+        acadoVariables.yN[2] = posTheta.back();
+        acadoVariables.yN[3] = linVel.back() / 1000.0;
+        acadoVariables.yN[4] = angVel.back();
 
         /* Some temporary variables. */
         acado_timer t;

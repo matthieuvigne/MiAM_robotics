@@ -80,8 +80,6 @@ void Strategy::match()
 {
     robot->logger_ << "Strategy thread started." << std::endl;
 
-    testSquare(true, 500);
-    return;
 
     std::thread stratMain(&Strategy::match_impl, this);
     pthread_t handle = ThreadHandler::addThread(stratMain);
@@ -123,10 +121,9 @@ void Strategy::goBackToBase()
 
 void Strategy::match_impl()
 {
-    int highestPriorityAction = 1;
-    while (highestPriorityAction > 0 && !actions_.empty())
+    while (!actions_.empty())
     {
-        highestPriorityAction = -1;
+        int highestPriorityAction = -1;
 
         robot->logger_ << "[Strategy] Choosing action from list: " << std::endl;
 

@@ -9,7 +9,7 @@ const miam::RobotPosition PLANT_DROP_COORD[6] =
         miam::RobotPosition(150, 1400, M_PI),
         miam::RobotPosition(2785, 1000),
         miam::RobotPosition(2785, 600),
-        miam::RobotPosition(150, 1400, M_PI),
+        miam::RobotPosition(150, 150, M_PI),
 };
 
 void DropPlantsAction::updateStartCondition()
@@ -39,10 +39,15 @@ void DropPlantsAction::actionStartTrigger()
 
 bool DropPlantsAction::performAction()
 {
+    servoManager_->setClawPosition(ClawPosition::LOW_POSITION);
+    robot_->wait(0.5);
+    servoManager_->openClaws(true);
     robot_->gameState_.nPlantsCollected[zoneId_] += robot_->gameState_.nPlantsInRobot();
-    // TODO: drop
+
     for (int i = 0; i < 6; i++)
         robot_->gameState_.robotClawContent[i] = ClawContent::EMPTY;
+
+    robot_->getMotionController()->goStraight(-100);
 
     // Action should not be done again if there are more than 3 plants.
     return robot_->gameState_.nPlantsCollected[zoneId_] > 3;

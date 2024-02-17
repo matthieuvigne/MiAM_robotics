@@ -12,6 +12,12 @@ void ServoManager::init(RobotInterface *robot)
 
     std::thread th(&ServoManager::turretMotionThread, this);
     ThreadHandler::addThread(th);
+
+    // Small servos need to be init.
+    servos_->setMode(0xFE, STS::Mode::POSITION);
+    robot_->wait(0.1);
+    openClaws(true);
+    setClawPosition(ClawPosition::HIGH_POSITION);
 }
 
 void ServoManager::set_servos(STSServoDriver *servos)
@@ -26,13 +32,13 @@ void ServoManager::openClaw(int const& clawId)
   switch(clawId)
   {
     case 2:
-      servos_->setTargetPosition(clawId, 614);
+      servos_->setTargetPosition(clawId, 435);
       break;
     case 3:
-      servos_->setTargetPosition(clawId, 383);
+      servos_->setTargetPosition(clawId, 445);
       break;
     case 4:
-      servos_->setTargetPosition(clawId, 514);
+      servos_->setTargetPosition(clawId, 570);
       break;
     default:
       std::cout << "Failed to open claw." << std::endl;
@@ -45,13 +51,13 @@ void ServoManager::closeClaw(int const& clawId)
   switch(clawId)
   {
     case 2:
-      servos_->setTargetPosition(clawId, 534);
+      servos_->setTargetPosition(clawId, 365);
       break;
     case 3:
-      servos_->setTargetPosition(clawId, 473);
+      servos_->setTargetPosition(clawId, 515);
       break;
     case 4:
-      servos_->setTargetPosition(clawId, 574);
+      servos_->setTargetPosition(clawId, 640);
       break;
     default:
       std::cout << "Failed to close claw." << std::endl;
@@ -61,22 +67,20 @@ void ServoManager::closeClaw(int const& clawId)
 void ServoManager::openClaws(bool const& front)
 {
     openClaw(2);
-    usleep(10000);
+    robot_->wait(0.050);
     openClaw(3);
-    usleep(10000);
+    robot_->wait(0.050);
     openClaw(4);
-    usleep(10000);
 }
 
 
 void ServoManager::closeClaws(bool const& front)
 {
     closeClaw(2);
-    usleep(10000);
+    robot_->wait(0.050);
     closeClaw(3);
-    usleep(10000);
+    robot_->wait(0.050);
     closeClaw(4);
-    usleep(10000);
 }
 
 void ServoManager::updateClawContent(bool const& front, GameState & gameState)
@@ -101,33 +105,29 @@ double ServoManager::getTurretPosition() const
 
 void ServoManager::setClawPosition(ClawPosition claw_position)
 {
-  usleep(1000000);
-  std::cout << "(11:" << servos_->getCurrentPosition(11) << ","
-            << " 12:" << servos_->getCurrentPosition(12) << ")" << std::endl;
   switch(claw_position)
   {
     case ClawPosition::LOW_POSITION:
       servos_->setTargetPosition(11, 1625);
-      usleep(10000);
+      robot_->wait(0.030);
       servos_->setTargetPosition(12, 3432);
-      usleep(10000);
+      robot_->wait(0.030);
       break;
     case ClawPosition::MEDIUM_POSITION:
       servos_->setTargetPosition(11, 2335);
-      usleep(10000);
-      servos_->setTargetPosition(12, 2702);
-      usleep(10000);
+      robot_->wait(0.030);
+      servos_->setTargetPosition(12, 2550);
+      robot_->wait(0.030);
       break;
     case ClawPosition::HIGH_POSITION:
       servos_->setTargetPosition(11, 2695);
-      usleep(10000);
+      robot_->wait(0.030);
       servos_->setTargetPosition(12, 2352);
-      usleep(10000);
+      robot_->wait(0.030);
       break;
     default:
       std::cout << "Unknown target claw position." << std::endl;
   }
-  usleep(10000);
 }
 
 void ServoManager::moveTurret(double const& targetPosition)
@@ -159,7 +159,7 @@ void ServoManager::moveTurret(double const& targetPosition)
 void ServoManager::waitForTurret()
 {
     while (turretState_ != turret::state::IDLE)
-        robot_->wait(0.001);
+        robot_->wait(0.010);
 }
 
 

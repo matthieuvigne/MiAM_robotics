@@ -2,6 +2,9 @@
 #include <miam_utils/trajectory/Utilities.h>
 #include "common/ThreadHandler.h"
 
+// Time to keep servoing after the theoretical end of the trajectory.
+# define TRAJECTORY_TRACKING_TIMEOUT 0.5
+
 MotionController::MotionController(RobotParameters const &robotParameters, Logger *logger) :
     robotParams_(robotParameters),
     motionPlanner_(robotParams_),
@@ -268,9 +271,9 @@ void MotionController::changeMotionControllerState()
                 }
             }
 
-            // If we are more than a specified time  after the end of the trajectory, stop it anyway.
+            // If we are more than a specified time after the end of the trajectory, stop it anyway.
             // We hope to have servoed the robot is less than that anyway.
-            else if (curvilinearAbscissa_ - trajectoryTimeout_ > traj->getDuration())
+            else if (curvilinearAbscissa_ - trajectoryTimeout_ > traj->getDuration() + TRAJECTORY_TRACKING_TIMEOUT)
             {
                 *logger_ << "[MotionController] Timeout on trajectory following" << std::endl;
                 currentTrajectories_.erase(currentTrajectories_.begin());

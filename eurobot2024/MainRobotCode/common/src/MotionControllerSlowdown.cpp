@@ -149,11 +149,11 @@ double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory(st
                 // If we are going away from the obstacle, authorize the move
                 RobotPosition translatedObstacle = std::get<0>(obstacle) - futureTrajectoryPoint.position;
                 RobotPosition obstacleInRobotReferential;
-                obstacleInRobotReferential.x = translatedObstacle.x * std::cos(-futureTrajectoryPoint.position.theta) 
+                obstacleInRobotReferential.x = translatedObstacle.x * std::cos(-futureTrajectoryPoint.position.theta)
                     - translatedObstacle.y * std::sin(-futureTrajectoryPoint.position.theta);
-                obstacleInRobotReferential.y = translatedObstacle.x * std::sin(-futureTrajectoryPoint.position.theta) 
+                obstacleInRobotReferential.y = translatedObstacle.x * std::sin(-futureTrajectoryPoint.position.theta)
                     + translatedObstacle.y * std::cos(-futureTrajectoryPoint.position.theta);
-                
+
                 // The obstacle is in front of the robot
                 if (futureTrajectoryPoint.linearVelocity * obstacleInRobotReferential.x > 0)
                 {
@@ -170,9 +170,6 @@ double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory(st
             }
         }
     }
-
-    if (coeff < 1.0)
-        std::cout << "SlowDown: " << coeff << std::endl;
 
     return coeff;
 }

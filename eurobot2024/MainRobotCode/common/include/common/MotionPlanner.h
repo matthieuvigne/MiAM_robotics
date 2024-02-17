@@ -46,7 +46,9 @@ class MotionPlanner{
             double initialSpeed);
 
         static TrajectoryVector solveTrajectoryFromWaypoints(
-            std::vector<RobotPosition> waypoints
+            std::vector<RobotPosition> waypoints,
+            bool const& tryEnsureEndAngle,
+            double const& endAngle
         );
 
         static TrajectoryConfig getMPCTrajectoryConfig();
@@ -55,7 +57,9 @@ class MotionPlanner{
             TrajectoryVector reference_trajectory,
             TrajectoryPoint start_position,
             TrajectoryPoint target_position,
-            double start_time
+            double const& start_time,
+            bool const& tryEnsureEndAngle,
+            double const& endAngle
         );
 
 };

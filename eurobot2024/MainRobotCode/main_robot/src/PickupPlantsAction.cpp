@@ -2,7 +2,7 @@
 
 
 // Radius of the circle for action start.
-double const RADIUS = 200;
+double const RADIUS = 300;
 
 void PickupPlantsAction::updateStartCondition()
 {
@@ -25,8 +25,9 @@ void PickupPlantsAction::updateStartCondition()
 
 void PickupPlantsAction::actionStartTrigger()
 {
-        robot_->logger_ << "Computing action " << robot_->gameState_.isClawAvailable(true) << std::endl;
-    // Move the turret in advance
+    robot_->logger_ << "Computing action " << robot_->gameState_.isClawAvailable(true) << std::endl;
+    // Move the turret and servos in advance
+    servoManager_->setClawPosition(ClawPosition::LOW_POSITION);
     if (robot_->gameState_.isClawAvailable(true))
         servoManager_->moveTurret(0);
     else
@@ -48,7 +49,8 @@ bool PickupPlantsAction::performAction()
     servoManager_->closeClaws(isFront);
 
     // See what has been grabbed
-    robot_->wait(0.3);
+    robot_->wait(0.15);
+    servoManager_->setClawPosition(ClawPosition::HIGH_POSITION);
     servoManager_->updateClawContent(isFront, robot_->gameState_);
     robot_->gameState_.nPlantsPerZone[zoneId_] -= 3;
 

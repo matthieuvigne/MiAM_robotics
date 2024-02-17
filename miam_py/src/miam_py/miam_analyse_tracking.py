@@ -140,6 +140,7 @@ def main():
         for a in ax:
             a.legend(bbox_to_anchor=(1.0, 1.0), loc = 1)
             a.grid()
+    fig.suptitle(logname)
     plt.show()
 
 if __name__ == "__main__":
