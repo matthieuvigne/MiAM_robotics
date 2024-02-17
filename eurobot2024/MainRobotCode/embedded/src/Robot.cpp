@@ -97,6 +97,13 @@ void Robot::updateSensorData()
 
     rightMeasurements.encoderPosition *= motionController_.robotParams_.rightEncoderDirection;
     leftMeasurements.encoderPosition *= motionController_.robotParams_.leftEncoderDirection;
+
+    // Wheel asymmetry handling
+    rightMeasurements.encoderPosition *= 1.0;
+    leftMeasurements.encoderPosition *= 0.988;
+
+
+
     measurements_.drivetrainMeasurements.encoderSpeed.right = rightMeasurements.encoderPosition - measurements_.drivetrainMeasurements.encoderPosition[side::RIGHT];
     measurements_.drivetrainMeasurements.encoderSpeed.left = leftMeasurements.encoderPosition - measurements_.drivetrainMeasurements.encoderPosition[side::LEFT];
 
