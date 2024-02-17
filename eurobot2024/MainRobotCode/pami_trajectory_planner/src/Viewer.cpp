@@ -12,7 +12,7 @@ double const MATCH_TIME = 100.0;
 double const TRAJ_SERIALIZATION_INTERVAL = 0.1;
 
 std::unique_ptr<float > serializationResults;
-int serializationResultsSize = 0;
+int serializationResultsSizeInFloatNumber = 0;
 
 ObjectRow objectrow;
 
@@ -409,11 +409,11 @@ void Viewer::pauseClicked()
 
     int N = std::ceil(newTrajectory.getDuration() / TRAJ_SERIALIZATION_INTERVAL);
     double deltat = newTrajectory.getDuration() / N;
-    serializationResultsSize = 2 + 5*(N+1);
+    serializationResultsSizeInFloatNumber = 2 + 5*(N+1);
 
-    std::cout << "Size=" << serializationResultsSize << ", deltat=" << deltat << ", duration: " << newTrajectory.getDuration() << std::endl;
+    std::cout << "Size=" << serializationResultsSizeInFloatNumber << ", deltat=" << deltat << ", duration: " << newTrajectory.getDuration() << std::endl;
 
-    serializationResults.reset(new float[serializationResultsSize]());
+    serializationResults.reset(new float[serializationResultsSizeInFloatNumber]());
 
     int serializationIndex = 0;
 
@@ -447,14 +447,14 @@ void Viewer::pauseClicked()
         serializationResults.get()[serializationIndex++] = (float)pt.angularVelocity;
     }
 
-    std::cout << "Size in bytes: " << serializationResultsSize << std::endl;
+    std::cout << "Size in float number: " << serializationResultsSizeInFloatNumber << std::endl;
 
     // for (float f : res)
     // {
     //     std::cout << f << std::endl;
     // }
 
-    // for (int i=0; i< serializationResultsSize; i++)
+    // for (int i=0; i< serializationResultsSizeInFloatNumber; i++)
     // {
     //     float f = serializationResults.get()[i];
     //     std::cout << f << std::endl;
@@ -470,13 +470,13 @@ void Viewer::resetClicked()
     //     r->reset(false);
 
     // only send if trajectory not empty
-    if (serializationResultsSize > 0 && serializationResults.get()[0] > 1)
+    if (serializationResultsSizeInFloatNumber > 0 && serializationResults.get()[0] > 1)
     {
         std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
         std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
-        // message_sender::send_message(serializationResults.get(), serializationResultsSize, str_ip_address.c_str());
-        // message_sender::send_message(serializationResults.get(), serializationResultsSize*sizeof(serializationResults.get()[0]), "127.0.0.1");
-        message_sender::send_message(serializationResults.get(), serializationResultsSize*sizeof(serializationResults.get()[0]), str_ip_address.c_str());
+        // message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
+        // message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber*sizeof(serializationResults.get()[0]), "127.0.0.1");
+        message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
     }
 }
 

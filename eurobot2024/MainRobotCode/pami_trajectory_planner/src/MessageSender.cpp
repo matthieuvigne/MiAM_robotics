@@ -9,7 +9,7 @@
 
 namespace message_sender
 {
-    void send_message(float* message, int message_size, const char* str_ip_addr)
+    void send_message(float* message, int message_size_in_float_number, const char* str_ip_addr)
     {
         // creating socket 
         int clientSocket = socket(AF_INET, SOCK_STREAM, 0); 
@@ -25,7 +25,7 @@ namespace message_sender
                 sizeof(serverAddress)) << std::endl; 
     
         // sending data 
-        std::cout << "Send: " << send(clientSocket, message, message_size, 0) << std::endl; 
+        std::cout << "Send: " << send(clientSocket, message, message_size_in_float_number*4, 0) << std::endl; 
     
         // closing socket 
         close(clientSocket); 
