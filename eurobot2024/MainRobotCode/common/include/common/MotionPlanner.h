@@ -46,7 +46,8 @@ class MotionPlanner{
             double initialSpeed);
 
         static TrajectoryVector solveTrajectoryFromWaypoints(
-            std::vector<RobotPosition> waypoints
+            std::vector<RobotPosition> waypoints,
+            TrajectoryConfig tc
         );
 
         static TrajectoryConfig getMPCTrajectoryConfig();

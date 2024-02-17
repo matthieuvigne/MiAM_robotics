@@ -8,6 +8,7 @@
 #include <gtkmm.h>
 #include <iostream>
 #include <miam_utils/Types.h>
+#include <common/MotionPlanner.h>
 
 // #include "ViewerRobot.h"
 
@@ -41,7 +42,9 @@ private:
     // Recompute trajectories, based on obstacle positon.
     void playClicked();
     void pauseClicked();
+    void deletePointButtonClicked();
     void updateTimeRatio();
+    void valueChanged(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter);
 
     // Function actually running the simulation
     bool runSimulation();
@@ -59,9 +62,14 @@ private:
     Gtk::SpinButton *simulationRatioSpin;
     Gtk::DrawingArea *drawingArea;
 
+    Gtk::TextView *maxVelocityTextView;
+    Gtk::TextView *maxAccelerationTextView;
+
     Glib::RefPtr<Gtk::ListStore> treeModel; // the model for the tree
     Gtk::TreeView *treeView;
     Gtk::TreeModel::Row row;
+    Glib::RefPtr<Gtk::ListStore> store; 
+    Glib::RefPtr<Gtk::TreeSelection> selection; 
 
     bool redraw(const Cairo::RefPtr<Cairo::Context> &cr);
 
@@ -78,6 +86,8 @@ private:
     double mmToCairo_;
     double originX_;
     double originY_;
+
+    MotionPlanner* motionPlanner;
 };
 
 // model for the row in the tree view

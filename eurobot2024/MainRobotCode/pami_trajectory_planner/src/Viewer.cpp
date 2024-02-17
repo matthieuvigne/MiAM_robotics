@@ -11,6 +11,11 @@ double const MATCH_TIME = 100.0;
 
 ObjectRow objectrow;
 
+RobotParameters robotParameters;
+TrajectoryConfig trajectoryConfig;
+std::vector<RobotPosition > positions;
+TrajectoryVector newTrajectory;
+
 bool exitApp(GdkEventAny* event)
 {
     Gtk::Main::quit();
@@ -42,6 +47,9 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     refGlade->get_widget("drawingArea", drawingArea);
     
     refGlade->get_widget("coordinateList", treeView);
+    refGlade->get_widget("maxVelocityTextView", maxVelocityTextView);
+    refGlade->get_widget("maxAccelerationTextView", maxAccelerationTextView);
+    
 
     //create the tree
 	treeModel = Gtk::ListStore::create(objectrow);
@@ -53,6 +61,7 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
 	// treeView->append_column_editable("v", objectrow.v);	
 	// treeView->append_column_editable("w", objectrow.w);	
     treeView->set_reorderable();
+    treeModel->signal_row_changed().connect(sigc::mem_fun(this, &Viewer::valueChanged));
 	for(int x = 0; x < 2; x++) 
 	{
 		//for all columns, center
@@ -71,17 +80,28 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
 		// }
 	}
 
+    selection = treeView->get_selection(); 
+    // selection->set_mode(Gtk::SELECTION_MULTIPLE); 
+
     row = *(treeModel->append());
     row[objectrow.x] = 1000.0;
     row[objectrow.y] = 100.0;
-    row[objectrow.theta] = 10.0;
+    row[objectrow.theta] = 0.0;
     // row[objectrow.v] = 1000.0;
     // row[objectrow.w] = 10.0;
 
     row = *(treeModel->append());
     row[objectrow.x] = 2000.0;
     row[objectrow.y] = 200.0;
-    row[objectrow.theta] = 20.0;
+    row[objectrow.theta] = 0.0;
+    // row[objectrow.v] = 2000.0;
+    // row[objectrow.w] = 20.0;
+
+
+    row = *(treeModel->append());
+    row[objectrow.x] = 2200.0;
+    row[objectrow.y] = 1000.0;
+    row[objectrow.theta] = 0.0;
     // row[objectrow.v] = 2000.0;
     // row[objectrow.w] = 20.0;
 
@@ -92,7 +112,7 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
 
     drawingArea->signal_motion_notify_event().connect(sigc::mem_fun(this, &Viewer::mouseMove));
     drawingArea->signal_button_press_event().connect(sigc::mem_fun(this, &Viewer::clickObstacle));
-    drawingArea->signal_button_release_event().connect(sigc::mem_fun(this, &Viewer::clickObstacle));
+    // drawingArea->signal_button_release_event().connect(sigc::mem_fun(this, &Viewer::clickObstacle));
 
     Gtk::Button *button;
     refGlade->get_widget("play", button);
@@ -101,11 +121,23 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::pauseClicked));
     refGlade->get_widget("reset", button);
     button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::resetClicked));
+    
+    refGlade->get_widget("deletePointButton", button);
+    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::deletePointButtonClicked));
 
     // Load images.
     tableImage = Gdk::Pixbuf::create_from_file(tableImagePath, -1, -1);
 
-    Glib::signal_timeout().connect(sigc::mem_fun(*this,&Viewer::runSimulation), 50);
+    Glib::RefPtr<Gtk::TextBuffer> buffer = maxVelocityTextView->get_buffer();
+    buffer->set_text("500");    
+
+    // Glib::signal_timeout().connect(sigc::mem_fun(*this,&Viewer::runSimulation), 50);
+
+    // Initialize motion planner
+    trajectoryConfig.maxWheelVelocity = MAX_WHEEL_SPEED_MM_S;
+    trajectoryConfig.maxWheelAcceleration = MAX_WHEEL_ACCELERATION_MM_S;
+    trajectoryConfig.robotWheelSpacing = WHEEL_SPACING_MM;
+    motionPlanner = new MotionPlanner(robotParameters);
 }
 
 
@@ -187,6 +219,21 @@ void Viewer::start()
 
 bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
+
+    positions.clear();
+    auto children = treeModel->children();
+    for (auto iter = children.begin(), end = children.end(); iter != end; ++iter)
+    {
+        auto row = *iter;
+        //Do something with the row - see above for set/get.
+        RobotPosition newPosition;
+        newPosition.x = row[objectrow.x];
+        newPosition.y = row[objectrow.y];
+        newPosition.theta = row[objectrow.theta];
+        positions.push_back(newPosition);
+        // std::cout << newPosition << std::endl;
+    }
+
     // Put scaled table, keeping ratio.
     double heightToWidthRatio = tableImage->get_height() / (1.0 * tableImage->get_width());
     int widgetWidth = drawingArea->get_allocated_width();
@@ -214,15 +261,59 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
     //     robot->draw(cr, mmToCairo_);
     // }
 
-    // Draw obstacle.
-    cr->set_source_rgb(1.0, 0.0, 0.0);
-    cr->arc(mmToCairo_ * obstaclePosition_(0), mmToCairo_ * (TABLE_HEIGHT_MM - obstaclePosition_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
-    cr->fill();
+    // Draw path .
+    if (!positions.empty()) 
+    {
+        double pointX =  mmToCairo_ * positions.at(0).x;
+        double pointY =  mmToCairo_ * (TABLE_HEIGHT_MM - positions.at(0).y);
 
-    // Draw obstacle2.
-    cr->set_source_rgb(0.0, 0.0, 1.0);
-    cr->arc(mmToCairo_ * obstacle2Position_(0), mmToCairo_ * (TABLE_HEIGHT_MM - obstacle2Position_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
-    cr->fill();
+        cr->move_to(pointX, pointY);
+        for(unsigned long i = 0; i < positions.size(); i+=1)
+        {
+            pointX =  mmToCairo_ * positions.at(i).x;
+            pointY =  mmToCairo_ * (TABLE_HEIGHT_MM - positions.at(i).y);
+            cr->line_to(pointX, pointY);
+        }
+        cr->set_source_rgb(1.0, 1.0, 1.0);
+        cr->set_line_width(5.0);
+        cr->stroke_preserve();
+        cr->set_source_rgb(1.0, 0.0, 0.0);
+        cr->set_line_width(2.0);
+        cr->stroke();
+    }
+
+    // Draw result
+    if (!newTrajectory.empty()) 
+    {
+        double pointX =  mmToCairo_ * newTrajectory.getCurrentPoint(0).position.x;
+        double pointY =  mmToCairo_ * (TABLE_HEIGHT_MM - newTrajectory.getCurrentPoint(0).position.y);
+
+        cr->move_to(pointX, pointY);
+        double time = 0.0;
+        do
+        {
+            time += 0.01;
+            pointX =  mmToCairo_ * newTrajectory.getCurrentPoint(time).position.x;
+            pointY =  mmToCairo_ * (TABLE_HEIGHT_MM - newTrajectory.getCurrentPoint(time).position.y);
+            cr->line_to(pointX, pointY);
+        } while (time <= newTrajectory.getDuration());
+        cr->set_source_rgb(1.0, 1.0, 1.0);
+        cr->set_line_width(5.0);
+        cr->stroke_preserve();
+        cr->set_source_rgb(0.0, 0.0, 1.0);
+        cr->set_line_width(2.0);
+        cr->stroke();
+    }
+
+    // // Draw obstacle.
+    // cr->set_source_rgb(1.0, 0.0, 0.0);
+    // cr->arc(mmToCairo_ * obstaclePosition_(0), mmToCairo_ * (TABLE_HEIGHT_MM - obstaclePosition_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
+    // cr->fill();
+
+    // // Draw obstacle2.
+    // cr->set_source_rgb(0.0, 0.0, 1.0);
+    // cr->arc(mmToCairo_ * obstacle2Position_(0), mmToCairo_ * (TABLE_HEIGHT_MM - obstacle2Position_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
+    // cr->fill();
 
     // Update labels.
     std::stringstream stream;
@@ -267,19 +358,22 @@ bool Viewer::clickObstacle(GdkEventButton* motion_event)
     {
         obstaclePosition_(0) = motion_event->x;
         obstaclePosition_(1) = motion_event->y;
-        // Convert coordinates to table coordinates
-        obstaclePosition_(0) = (obstaclePosition_(0) - originX_) / mmToCairo_;
-        obstaclePosition_(1) = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
-
+        // // Convert coordinates to table coordinates
+        // obstaclePosition_(0) = (obstaclePosition_(0) - originX_) / mmToCairo_;
+        // obstaclePosition_(1) = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
+        row = *(treeModel->append());
+        row[objectrow.x] = (obstaclePosition_(0) - originX_) / mmToCairo_;
+        row[objectrow.y] = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
+        row[objectrow.theta] = 0.0;
     }
-    else if (motion_event->button == 3)
-    {
-        obstacle2Position_(0) = motion_event->x;
-        obstacle2Position_(1) = motion_event->y;
-        // Convert coordinates to table coordinates
-        obstacle2Position_(0) = (obstacle2Position_(0) - originX_) / mmToCairo_;
-        obstacle2Position_(1) = TABLE_HEIGHT_MM - (obstacle2Position_(1) - originY_) / mmToCairo_;
-    }
+    // else if (motion_event->button == 3)
+    // {
+    //     obstacle2Position_(0) = motion_event->x;
+    //     obstacle2Position_(1) = motion_event->y;
+    //     // Convert coordinates to table coordinates
+    //     obstacle2Position_(0) = (obstacle2Position_(0) - originX_) / mmToCairo_;
+    //     obstacle2Position_(1) = TABLE_HEIGHT_MM - (obstacle2Position_(1) - originY_) / mmToCairo_;
+    // }
 
     drawingArea->queue_draw();
     return true;
@@ -287,7 +381,14 @@ bool Viewer::clickObstacle(GdkEventButton* motion_event)
 
 void Viewer::playClicked()
 {
-    isRunning_ = true;
+    // isRunning_ = true;
+
+    std::cout << "playClicked" << std::endl;
+
+    // Compute new trajectory
+    newTrajectory = motionPlanner->solveTrajectoryFromWaypoints(positions, trajectoryConfig);
+
+
 }
 
 void Viewer::pauseClicked()
@@ -303,7 +404,32 @@ void Viewer::resetClicked()
     //     r->reset(false);
 }
 
+void Viewer::valueChanged(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter)
+{
+    drawingArea->queue_draw();
+}
+
 void Viewer::updateTimeRatio()
 {
     simulationTimeRatio_ = simulationRatioSpin->get_value();
+}
+
+void Viewer::deletePointButtonClicked()
+{
+//     Gtk::TreeModel::Row* selected_row = treeView->get_selection()->get_selected();
+
+    auto iter = selection->get_selected();
+    if(iter) //If anything is selected
+    {
+        // auto row = *iter;
+        //Do something with the row.
+        treeModel->erase(iter);
+    }
+    // treeModel->remove()
+
+    // treeView->erase(selected_row);
+    // // for(int i = paths.size()-1; i>=0; i--) {
+    // //     store->remove(store->get_iter(paths.at(i)));
+    // // }
+    drawingArea->queue_draw();
 }

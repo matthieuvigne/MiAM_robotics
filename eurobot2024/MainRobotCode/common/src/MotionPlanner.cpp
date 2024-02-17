@@ -128,7 +128,7 @@ TrajectoryVector MotionPlanner::planMotion(
         planned_path.back().theta = targetPosition.theta;   // this makes the MPC try to ensure the end angle
                                                             // but end angle is often not reachable so the angle 
                                                             // is then ensured with a point turn afterwards
-        st = solveTrajectoryFromWaypoints(planned_path);
+        st = solveTrajectoryFromWaypoints(planned_path, getMPCTrajectoryConfig());
     }
 
     if (st.getDuration() > 0)
@@ -171,13 +171,14 @@ TrajectoryVector MotionPlanner::planMotion(
 
 
 TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
-    std::vector<RobotPosition> waypoints
+    std::vector<RobotPosition> waypoints,
+    TrajectoryConfig tc
 )
 {
     trajectory::TrajectoryVector traj;
 
     // parameterize solver
-    miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
+    miam::trajectory::TrajectoryConfig cplan = tc;
     cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
     cplan.maxWheelAcceleration *= MPC_ACCELERATION_OVERHEAD_PCT; // give 20% overhead to the controller
 
