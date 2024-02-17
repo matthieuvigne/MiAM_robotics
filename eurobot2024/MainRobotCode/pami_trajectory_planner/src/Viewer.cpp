@@ -475,7 +475,7 @@ void Viewer::resetClicked()
         std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
         std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
         // message_sender::send_message(serializationResults.get(), serializationResultsSize, str_ip_address.c_str());
-        message_sender::send_message(serializationResults.get(), serializationResultsSize, "127.0.0.1");
+        message_sender::send_message(serializationResults.get(), serializationResultsSize*sizeof(serializationResults.get()[0]), "127.0.0.1");
     }
 }
 
