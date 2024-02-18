@@ -54,6 +54,7 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     refGlade->get_widget("maxVelocityTextView", maxVelocityTextView);
     refGlade->get_widget("maxAccelerationTextView", maxAccelerationTextView);
     
+    refGlade->get_widget("recipientIDTextView", recipientIDTextView);
 
     //create the tree
 	treeModel = Gtk::ListStore::create(objectrow);
@@ -119,13 +120,13 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     // drawingArea->signal_button_release_event().connect(sigc::mem_fun(this, &Viewer::clickObstacle));
 
     Gtk::Button *button;
-    refGlade->get_widget("play", button);
+    refGlade->get_widget("computeTrajectoryButton", button);
     button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::playClicked));
-    refGlade->get_widget("pause", button);
+    refGlade->get_widget("serializeAndSendButton", button);
     button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::pauseClicked));
-    refGlade->get_widget("reset", button);
-    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::resetClicked));
-    
+    refGlade->get_widget("sendIDButton", button);
+    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::sendIDButtonClicked));
+
     refGlade->get_widget("deletePointButton", button);
     button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::deletePointButtonClicked));
 
@@ -213,7 +214,7 @@ bool Viewer::runSimulation()
 void Viewer::start()
 {
     Glib::signal_timeout().connect(sigc::mem_fun(*this,&Viewer::runSimulation), 50);
-    resetClicked();
+    // resetClicked();
 }
 
 // void Viewer::addRobot(ViewerRobot & robot)
@@ -259,7 +260,7 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     cr->translate(originX_, originY_);
 
-    int score = 0;
+    // int score = 0;
     // for(auto robot : robots_)
     // {
     //     robot->draw(cr, mmToCairo_);
@@ -409,7 +410,7 @@ void Viewer::pauseClicked()
 
     int N = std::ceil(newTrajectory.getDuration() / TRAJ_SERIALIZATION_INTERVAL);
     double deltat = newTrajectory.getDuration() / N;
-    serializationResultsSizeInFloatNumber = 2 + 5*(N+1);
+    serializationResultsSizeInFloatNumber = 3 + 5*(N+1);
 
     std::cout << "Size=" << serializationResultsSizeInFloatNumber << ", deltat=" << deltat << ", duration: " << newTrajectory.getDuration() << std::endl;
 
@@ -417,7 +418,8 @@ void Viewer::pauseClicked()
 
     int serializationIndex = 0;
 
-    // first 2 bytes are size of trajectory (nb of pts) and duration
+    // first 3 bytes are size of trajectory (nb of pts) and duration
+    serializationResults.get()[serializationIndex++] = MessageType::NEW_TRAJECTORY;
     serializationResults.get()[serializationIndex++] = N+1;
     serializationResults.get()[serializationIndex++] = newTrajectory.getDuration();
 
@@ -460,17 +462,8 @@ void Viewer::pauseClicked()
     //     std::cout << f << std::endl;
     // }
 
-}
-
-void Viewer::resetClicked()
-{
-    // isRunning_ = false;
-    // simulationTime_ = 0.0;
-    // for(auto r : robots_)
-    //     r->reset(false);
-
     // only send if trajectory not empty
-    if (serializationResultsSizeInFloatNumber > 0 && serializationResults.get()[0] > 1)
+    if (serializationResultsSizeInFloatNumber > 0 && N > 0)
     {
         std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
         std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
@@ -478,6 +471,11 @@ void Viewer::resetClicked()
         // message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber*sizeof(serializationResults.get()[0]), "127.0.0.1");
         message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
     }
+    else
+    {
+        std::cout << "Not sending" << std::endl;
+    }
+
 }
 
 void Viewer::valueChanged(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter)
@@ -508,4 +506,9 @@ void Viewer::deletePointButtonClicked()
     // //     store->remove(store->get_iter(paths.at(i)));
     // // }
     drawingArea->queue_draw();
+}
+
+void Viewer::sendIDButtonClicked()
+{
+
 }

@@ -12,6 +12,13 @@ using namespace std;
 using namespace miam::trajectory; 
 
 #define SIZE_OF_BUFFER 512
+
+enum MessageType
+{
+    NEW_TRAJECTORY = 0,
+    SET_ID = 1,
+    ERROR = 99
+};
   
 int main() 
 { 
@@ -61,30 +68,40 @@ int main()
     //         std::cout << std::endl;
     // }
     
-
-    int size_of_trajectory = tmpvec.at(0);
-    float duration_of_trajectory = tmpvec.at(1);
-
-    cout << "Size of trajectory: " << size_of_trajectory << endl;
-    cout << "Duration of trajectory: " << duration_of_trajectory << endl;
-
-    std::vector<TrajectoryPoint > trajectoryPoints;
-    // int serializationIndex = 2;
-    for (int i = 0; i < size_of_trajectory; i++)
+    MessageType mt = MessageType::ERROR;
+    if (tmpvec.at(0) == 0)
     {
-        TrajectoryPoint tp;
-        tp.position.x = tmpvec.at(2 + 5*i);
-        tp.position.y = tmpvec.at(2 + 5*i + 1);
-        tp.position.theta = tmpvec.at(2 + 5*i + 2);
-        tp.linearVelocity = tmpvec.at(2 + 5*i + 3);
-        tp.angularVelocity = tmpvec.at(2 + 5*i + 4);
-        trajectoryPoints.push_back(tp);
+        mt = MessageType::NEW_TRAJECTORY;
+    }
+    cout << "MessageType : " << mt << endl;
+
+    if (mt == MessageType::NEW_TRAJECTORY)
+    {
+        int size_of_trajectory = tmpvec.at(1);
+        float duration_of_trajectory = tmpvec.at(2);
+
+        cout << "Size of trajectory: " << size_of_trajectory << endl;
+        cout << "Duration of trajectory: " << duration_of_trajectory << endl;
+
+        std::vector<TrajectoryPoint > trajectoryPoints;
+        // int serializationIndex = 2;
+        for (int i = 0; i < size_of_trajectory; i++)
+        {
+            TrajectoryPoint tp;
+            tp.position.x = tmpvec.at(3 + 5*i);
+            tp.position.y = tmpvec.at(3 + 5*i + 1);
+            tp.position.theta = tmpvec.at(3 + 5*i + 2);
+            tp.linearVelocity = tmpvec.at(3 + 5*i + 3);
+            tp.angularVelocity = tmpvec.at(3 + 5*i + 4);
+            trajectoryPoints.push_back(tp);
+        }
+
+        for (auto& tp : trajectoryPoints)
+        {
+            std::cout << tp << std::endl;
+        }
     }
 
-    for (auto& tp : trajectoryPoints)
-    {
-        std::cout << tp << std::endl;
-    }
   
     // closing the socket. 
     close(serverSocket); 

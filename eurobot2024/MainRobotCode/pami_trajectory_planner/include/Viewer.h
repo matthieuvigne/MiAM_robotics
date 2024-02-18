@@ -10,6 +10,13 @@
 #include <miam_utils/Types.h>
 #include <common/MotionPlanner.h>
 
+enum MessageType
+{
+    NEW_TRAJECTORY = 0,
+    SET_ID = 1,
+    ERROR = 99
+};
+
 // #include "ViewerRobot.h"
 
 // Create the Viewer object, linked to the window.
@@ -26,9 +33,6 @@ public:
     /// \brief Start the simulation.
     void start();
 
-    /// @brief Reset button clicked callback.
-    void resetClicked();
-
 private:
     // std::vector<ViewerRobot*> robots_;  ///< List of robots being displayed.
 
@@ -43,6 +47,7 @@ private:
     void playClicked();
     void pauseClicked();
     void deletePointButtonClicked();
+    void sendIDButtonClicked();
     void updateTimeRatio();
     void valueChanged(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter);
 
@@ -64,6 +69,7 @@ private:
 
     Gtk::TextView *maxVelocityTextView;
     Gtk::TextView *maxAccelerationTextView;
+    Gtk::TextView *recipientIDTextView;
 
     Glib::RefPtr<Gtk::ListStore> treeModel; // the model for the tree
     Gtk::TreeView *treeView;

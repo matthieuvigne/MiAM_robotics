@@ -49,7 +49,7 @@ int main (int argc, char *argv[])
     system("/miam_workspace/src/MiAM_robotics/teleplot_binaries/teleplot-linux > /dev/null 2> /dev/null&");
     std::cout << "Teleplot server started, open your browser at 127.0.0.1:8080" << std::endl;
 
-    viewer->resetClicked();
+    // viewer->resetClicked();
 
     return app->run(*viewer);
 }
