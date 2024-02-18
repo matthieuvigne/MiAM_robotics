@@ -1,7 +1,7 @@
 #include <miam_utils/trajectory/Utilities.h>
 #include <miam_utils/trajectory/SampledTrajectory.h>
 #include <miam_utils/trajectory/PathPlanner.h>
-#include <miam_utils/TextLogger.h>
+#include <miam_utils/Logger.h>
 #include "common/RobotParameters.h"
 
 #ifndef MOTION_PLANNING_H
@@ -13,7 +13,7 @@ class MotionPlanner{
 
     public:
 
-        MotionPlanner(RobotParameters const& robotParameters);
+        MotionPlanner(RobotParameters const& robotParameters, Logger *logger);
 
         TrajectoryVector planMotion(
             RobotPosition const& currentPosition,
@@ -40,20 +40,18 @@ class MotionPlanner{
         RobotParameters robotParams_;
         PathPlanner pathPlanner_;
 
-        static TrajectoryVector computeTrajectoryBasicPath(
+        TrajectoryVector computeTrajectoryBasicPath(
             TrajectoryConfig const& config,
             std::vector<RobotPosition> p,
             double initialSpeed);
 
-        static TrajectoryVector solveTrajectoryFromWaypoints(
+        TrajectoryVector solveTrajectoryFromWaypoints(
             std::vector<RobotPosition> waypoints,
             bool const& tryEnsureEndAngle,
             double const& endAngle
         );
 
-        static TrajectoryConfig getMPCTrajectoryConfig();
-
-        static std::shared_ptr<SampledTrajectory > solveMPCIteration(
+        std::shared_ptr<SampledTrajectory > solveMPCIteration(
             TrajectoryVector reference_trajectory,
             TrajectoryPoint start_position,
             TrajectoryPoint target_position,
@@ -62,6 +60,7 @@ class MotionPlanner{
             double const& endAngle
         );
 
+        Logger* logger_;
 };
 
 

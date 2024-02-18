@@ -9,7 +9,7 @@
 
 
 std::vector<miam::RobotPosition> START_POSITIONS({
-    miam::RobotPosition(300, 1700, 0),
+    miam::RobotPosition(310.0, 1690.0, 0.0),
     miam::RobotPosition(2700, 1000, M_PI),
     miam::RobotPosition(300, 200, 0)
 });

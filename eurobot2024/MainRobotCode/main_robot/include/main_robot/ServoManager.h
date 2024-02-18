@@ -59,6 +59,8 @@ public:
 
     double getTurretPosition() const;
 
+    void raiseSolarPannelArm();
+    void lowerSolarPannelArm();
 private:
     RobotInterface *robot_;
     STSServoDriver *servos_;

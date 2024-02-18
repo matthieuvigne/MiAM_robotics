@@ -3,7 +3,6 @@
 #include "miam_utils/drivers/UART-Wrapper.h"
 #include "miam_utils/raspberry_pi/RPiGPIO.h"
 #include "miam_utils/drivers/STSServoDriver.h"
-#include "miam_utils/TextLogger.h"
 
 #include <math.h>
 #include <fcntl.h>
@@ -486,7 +485,9 @@ int STSServoDriver::readRegisters(unsigned char const& servoId,
         return 0;
     }
     fail ++;
-    texterror << "[STS servo] Failed to read register " << success << " " << fail << std::endl;
+#ifdef DEBUG
+    std::cout << "[STS servo] Failed to read register " << success << " " << fail << std::endl;
+#endif
     mutex_.unlock();
     return -1;
 }

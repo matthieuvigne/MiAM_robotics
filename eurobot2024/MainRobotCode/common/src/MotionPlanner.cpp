@@ -66,17 +66,10 @@ bool is_acado_inited = false;
 std::mutex acado_mutex;
 
 
-TrajectoryConfig MotionPlanner::getMPCTrajectoryConfig() {
-    TrajectoryConfig c;
-    c.maxWheelVelocity = 700;
-    c.maxWheelAcceleration = 1000;
-    c.robotWheelSpacing = 100.5;
-    return c;
-};
-
-MotionPlanner::MotionPlanner(RobotParameters const& robotParameters) :
+MotionPlanner::MotionPlanner(RobotParameters const& robotParameters, Logger* logger) :
     robotParams_(robotParameters),
-    pathPlanner_(PathPlannerConfig())
+    pathPlanner_(PathPlannerConfig()),
+    logger_(logger)
 {
 
     // create pathPlanner with correct grid
@@ -101,21 +94,21 @@ TrajectoryVector MotionPlanner::planMotion(
     // If path planning failed, return empty traj
     if (planned_path.size() == 0)
     {
-        textlog << "[MotionPlanner] " << "Path planning did not find any path" << std::endl;
+        *logger_ << "[MotionPlanner] " << "Path planning did not find any path" << std::endl;
         return TrajectoryVector();
     }
 
     TrajectoryVector res;
-    textlog << "[MotionPlanner] " << "Start solving..." << std::endl;
+    *logger_ << "[MotionPlanner] " << "Start solving..." << std::endl;
 
     // compute the trajectory from the waypoints
     TrajectoryVector st;
 
     if (useTrajectoryRoundedCorners)
     {
-        textlog << "[MotionPlanner] " << "Solving trajectory rounded corners " << std::endl;
+        *logger_ << "[MotionPlanner] " << "Solving trajectory rounded corners " << std::endl;
 
-        miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
+        miam::trajectory::TrajectoryConfig cplan = robotParams_.getTrajConf();
         cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
 
         st = computeTrajectoryRoundedCorner(
@@ -134,13 +127,13 @@ TrajectoryVector MotionPlanner::planMotion(
 
     if (st.getDuration() > 0)
     {
-        textlog << "[MotionPlanner] " << "Solved trajectory: " << std::endl;
+        *logger_ << "[MotionPlanner] " << "Solved trajectory: " << std::endl;
         // for (double t = 0; t <=st.getDuration(); t += 0.1) {
-        //     textlog << "[MotionPlanner] " << st.getCurrentPoint(t) << std::endl;
+        //     *logger_ << "[MotionPlanner] " << st.getCurrentPoint(t) << std::endl;
         // }
-        textlog << "[MotionPlanner] " << "Duration: " << st.getDuration() << std::endl;
-        textlog << "[MotionPlanner] " << "Start: " << st.getCurrentPoint(0.0) << std::endl;
-        textlog << "[MotionPlanner] " << "End: " << st.getEndPoint() << std::endl;
+        *logger_ << "[MotionPlanner] " << "Duration: " << st.getDuration() << std::endl;
+        *logger_ << "[MotionPlanner] " << "Start: " << st.getCurrentPoint(0.0) << std::endl;
+        *logger_ << "[MotionPlanner] " << "End: " << st.getEndPoint() << std::endl;
 
 
         // at start, perform a point turn to get the right angle
@@ -164,7 +157,7 @@ TrajectoryVector MotionPlanner::planMotion(
     }
     else
     {
-        textlog << "[MotionPlanner] " << "Solver failed" << std::endl;
+        *logger_ << "[MotionPlanner] " << "Solver failed" << std::endl;
     }
 
     return res;
@@ -180,7 +173,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     trajectory::TrajectoryVector traj;
 
     // parameterize solver
-    miam::trajectory::TrajectoryConfig cplan = getMPCTrajectoryConfig();
+    miam::trajectory::TrajectoryConfig cplan = robotParams_.getTrajConf();
     cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
     cplan.maxWheelAcceleration *= MPC_ACCELERATION_OVERHEAD_PCT; // give 20% overhead to the controller
 
@@ -327,9 +320,9 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
 #ifdef VERBOSE
     for (double t=0; t <= vector.getDuration(); t+=0.2)
     {
-        textlog << "[MotionPlanner] " << "t: " << t << " " << vector.getCurrentPoint(t) << std::endl;
+        *logger_ << "[MotionPlanner] " << "t: " << t << " " << vector.getCurrentPoint(t) << std::endl;
     }
-    textlog << "[MotionPlanner] " << "t: " << vector.getDuration() << " " << vector.getEndPoint() << std::endl;
+    *logger_ << "[MotionPlanner] " << "t: " << vector.getDuration() << " " << vector.getEndPoint() << std::endl;
 #endif
 
     return vector;
@@ -482,7 +475,7 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
 
             if (VERBOSE)
             {
-                textlog << "[MotionPlanner] " << "solved: " << "t=" << t << " --- " <<
+                *logger_ << "[MotionPlanner] " << "solved: " << "t=" << t << " --- " <<
                     tp.position.x << "\t" <<
                     tp.position.y << "\t" <<
                     tp.position.theta << "\t" <<

@@ -1,6 +1,5 @@
 #include <common/MotionController.h>
 #include <miam_utils/trajectory/Utilities.h>
-#include <miam_utils/TextLogger.h>
 
 double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const &detectedRobots, bool const &hasMatchStarted)
 {

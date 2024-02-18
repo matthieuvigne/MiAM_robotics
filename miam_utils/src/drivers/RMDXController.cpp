@@ -1,5 +1,4 @@
 #include "miam_utils/drivers/RMDXController.h"
-#include "miam_utils/TextLogger.h"
 
 #include <iostream>
 #include <algorithm>
@@ -59,7 +58,6 @@ double RMDXController::sendTarget(double const& targetVelocity, double const& dt
     {
         integralValue_ = 0;
         clampedTargetVelocity_ = 0.0;
-        textlog << static_cast<int>(motorId_) << " stop, resetting target" << std::endl;
     }
     targetVelocity_ = targetVelocity;
 

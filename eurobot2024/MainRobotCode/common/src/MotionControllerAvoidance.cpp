@@ -1,6 +1,5 @@
 #include <common/MotionController.h>
 #include <miam_utils/trajectory/Utilities.h>
-#include <miam_utils/TextLogger.h>
 
 
 void MotionController::setAvoidanceMode(AvoidanceMode avoidanceMode)
@@ -14,12 +13,12 @@ TrajectoryVector MotionController::performAvoidance()
 
     if (!currentTrajectories_.front()->isAvoidanceEnabled())
     {
-        textlog << "[MotionController] performAvoidance: Avoidance is disabled for this traj" << std::endl;
+        *logger_ << "[MotionController] performAvoidance: Avoidance is disabled for this traj" << std::endl;
         return traj;
     }
     else if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_OFF)
     {
-        textlog << "[MotionController] " << "performAvoidance: Avoidance disabled" << std::endl;
+        *logger_ << "[MotionController] " << "performAvoidance: Avoidance disabled" << std::endl;
         return traj;
     }
 
@@ -31,13 +30,13 @@ TrajectoryVector MotionController::performAvoidance()
     }
 
     std::vector<Obstacle> detectedObstacles = getDetectedObstacles();
-    textlog << "[MotionController] " << "performAvoidance: Obstacles detected: " << detectedObstacles.size() << std::endl;
+    *logger_ << "[MotionController] " << "performAvoidance: Obstacles detected: " << detectedObstacles.size() << std::endl;
     // if (avoidPersistentObstacles_)
     // {
-    //     textlog << "[MotionController] " << "performAvoidance: Avoiding also persistent obstacles" << std::endl;
+    //     *logger_ << "[MotionController] " << "performAvoidance: Avoiding also persistent obstacles" << std::endl;
     //     std::vector<Obstacle> persistentObstacles = getPersistentObstacles();
     //     copy(persistentObstacles.begin(), persistentObstacles.end(), back_inserter(detectedObstacles));
-    //     textlog << "[MotionController] " << "performAvoidance: New obstacles count: " << detectedObstacles.size() << std::endl;
+    //     *logger_ << "[MotionController] " << "performAvoidance: New obstacles count: " << detectedObstacles.size() << std::endl;
     // }
 
     if (avoidanceMode_ == AvoidanceMode::AVOIDANCE_BASIC)
@@ -59,9 +58,9 @@ void MotionController::loopOnAvoidanceComputation()
 
         if (needRecomputing)
         {
-            textlog << "[MotionControllerAvoidance] recomputing avoidace" << std::endl;
+            *logger_ << "[MotionControllerAvoidance] recomputing avoidace" << std::endl;
             TrajectoryVector res = performAvoidance();
-            textlog << "[MotionControllerAvoidance] loopOnAvoidanceComputation ended" << std::endl;
+            *logger_ << "[MotionControllerAvoidance] loopOnAvoidanceComputation ended" << std::endl;
             avoidanceComputationMutex_.lock();
             avoidanceComputationResult_.clear();
             avoidanceComputationResult_ = res;
@@ -80,13 +79,13 @@ TrajectoryVector MotionController::computeBasicAvoidanceTrajectory(RobotPosition
     TrajectoryVector traj;
     RobotPosition currentPosition = getCurrentPosition();
 
-    textlog << "[MotionController] " << ">> MotionControllerAvoidance : current position : " << currentPosition << std::endl;
-    textlog << "[MotionController] " << ">> MotionControllerAvoidance : target position : " << targetPosition << std::endl;
+    *logger_ << "[MotionController] " << ">> MotionControllerAvoidance : current position : " << currentPosition << std::endl;
+    *logger_ << "[MotionController] " << ">> MotionControllerAvoidance : target position : " << targetPosition << std::endl;
 
     RobotPosition endPosition;
     std::vector<RobotPosition> positions;
     // Set the new trajectory
-    textlog << "[MotionController] " << ">> MotionControllerAvoidance : Triggering basic avoidance" << std::endl;
+    *logger_ << "[MotionController] " << ">> MotionControllerAvoidance : Triggering basic avoidance" << std::endl;
 
     RobotPosition currentPositionModified = currentPosition;
 
@@ -120,8 +119,8 @@ TrajectoryVector MotionController::computeBasicAvoidanceTrajectory(RobotPosition
     if (left_point.x < table_dimensions::table_max_x and left_point.x > table_dimensions::table_min_x and left_point.y < table_dimensions::table_max_y and left_point.y > table_dimensions::table_min_y)
     {
 
-        textlog << "[MotionController] " << ">> MotionControllerAvoidance : trying to go left" << std::endl;
-        textlog << "[MotionController] " << ">> MotionControllerAvoidance : waypoint : " << left_point << std::endl;
+        *logger_ << "[MotionController] " << ">> MotionControllerAvoidance : trying to go left" << std::endl;
+        *logger_ << "[MotionController] " << ">> MotionControllerAvoidance : waypoint : " << left_point << std::endl;
 
         positions.clear();
         positions.push_back(currentPosition);
@@ -136,8 +135,8 @@ TrajectoryVector MotionController::computeBasicAvoidanceTrajectory(RobotPosition
         if (right_point.x < table_dimensions::table_max_x and right_point.x > table_dimensions::table_min_x and right_point.y < table_dimensions::table_max_y and right_point.y > table_dimensions::table_min_y)
         {
 
-            textlog << "[MotionController] " << ">> MotionControllerAvoidance : trying to go right" << std::endl;
-            textlog << "[MotionController] " << ">> MotionControllerAvoidance : waypoint : " << right_point << std::endl;
+            *logger_ << "[MotionController] " << ">> MotionControllerAvoidance : trying to go right" << std::endl;
+            *logger_ << "[MotionController] " << ">> MotionControllerAvoidance : waypoint : " << right_point << std::endl;
 
             positions.clear();
             positions.push_back(currentPosition);
@@ -145,7 +144,7 @@ TrajectoryVector MotionController::computeBasicAvoidanceTrajectory(RobotPosition
             positions.push_back(right_point_further);
             positions.push_back(targetPosition);
             traj = miam::trajectory::computeTrajectoryRoundedCorner(robotParams_.getTrajConf(), positions, 200.0, 0.3);
-        }   
+        }
     }
 
     return traj;
@@ -158,13 +157,13 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
     TrajectoryVector traj;
     RobotPosition currentPosition = getCurrentPosition();
 
-    textlog << "[MotionController] " << ">> MotionControllerAvoidance : current position : " << currentPosition << std::endl;
-    textlog << "[MotionController] " << ">> MotionControllerAvoidance : target position : " << targetPosition << std::endl;
-    textlog << "[MotionController] " << ">> MotionControllerAvoidance : planning MPC" << std::endl;
+    *logger_ << "[MotionController] " << ">> MotionControllerAvoidance : current position : " << currentPosition << std::endl;
+    *logger_ << "[MotionController] " << ">> MotionControllerAvoidance : target position : " << targetPosition << std::endl;
+    *logger_ << "[MotionController] " << ">> MotionControllerAvoidance : planning MPC" << std::endl;
 
     if ((currentPosition - targetPosition).norm() < 400)
     {
-        textlog << "[MotionController] " << "Target too close, doing a straight line to point" << std::endl;
+        *logger_ << "[MotionController] " << "Target too close, doing a straight line to point" << std::endl;
 
         traj = computeTrajectoryStraightLineToPoint(
             robotParams_.getTrajConf(),
@@ -173,7 +172,7 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
             !forward
         );
 
-        textlog << "[MotionController] " << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
+        *logger_ << "[MotionController] " << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
 
         // add a point turn to keep the end angle info
         std::shared_ptr<PointTurn > pt_sub_end(
@@ -182,7 +181,7 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
         );
         traj.push_back(pt_sub_end);
 
-        textlog << "[MotionController] " << "pt_sub_end ends at " << traj.getEndPoint().position << std::endl;
+        *logger_ << "[MotionController] " << "pt_sub_end ends at " << traj.getEndPoint().position << std::endl;
 
         return traj;
     }
@@ -198,7 +197,7 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
         minDistanceToObstacle = std::min(minDistanceToObstacle, (std::get<0>(obstacle) - currentPosition).norm());
     }
 
-    textlog << "[MotionController] " << ">> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
+    *logger_ << "[MotionController] " << ">> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
 
     // go back from the obstacle (the more counts the more margin)
     double margin = std::min(avoidanceCount_ * 75, 150);
@@ -211,7 +210,7 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
     {
         if (forward)
         {
-            textlog << "[MotionController] " << ">> Needing to go back " << distanceToGoBack << " mm" << std::endl;
+            *logger_ << "[MotionController] " << ">> Needing to go back " << distanceToGoBack << " mm" << std::endl;
             traj1 = miam::trajectory::computeTrajectoryStraightLine(
                 robotParams_.getTrajConf(),
                 currentPosition, // start
@@ -220,7 +219,7 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
         }
         else
         {
-            textlog << "[MotionController] " << ">> Needing to go forward " << distanceToGoBack << " mm" << std::endl;
+            *logger_ << "[MotionController] " << ">> Needing to go forward " << distanceToGoBack << " mm" << std::endl;
             traj1 = miam::trajectory::computeTrajectoryStraightLine(
                 robotParams_.getTrajConf(),
                 currentPosition, // start
@@ -243,8 +242,8 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
 
     }
 
-    textlog << "[MotionController] " << "currentPosition: " << currentPosition << std::endl;
-    textlog << "[MotionController] " << "newStartPoint: " << newStartPoint << std::endl;
+    *logger_ << "[MotionController] " << "currentPosition: " << currentPosition << std::endl;
+    *logger_ << "[MotionController] " << "newStartPoint: " << newStartPoint << std::endl;
 
     // plan motion
     newStartPoint.theta = currentPosition.theta;
@@ -256,13 +255,13 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
 
     if (traj2.empty())
     {
-        textlog << "[MotionController] " << "Avoidance path planning failed" << std::endl;
+        *logger_ << "[MotionController] " << "Avoidance path planning failed" << std::endl;
         return TrajectoryVector();
 
 
         // if motion planning failed, plan a straight line in order to go back anyway
 
-        // textlog << "[MotionController] " << "MPC traj failed, planning a dummy straight line" << std::endl;
+        // *logger_ << "[MotionController] " << "MPC traj failed, planning a dummy straight line" << std::endl;
         // traj2 = computeTrajectoryStraightLineToPoint(
         //     robotParams_.getTrajConf(),
         //     currentPosition, // start
@@ -290,8 +289,8 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
     }
     else
     {
-        textlog << "[MotionController] " << "MPC traj planned from " << traj2.getCurrentPoint(0.0) << std::endl;
-        textlog << "[MotionController] " << " to " << traj2.getEndPoint() << std::endl;
+        *logger_ << "[MotionController] " << "MPC traj planned from " << traj2.getCurrentPoint(0.0) << std::endl;
+        *logger_ << "[MotionController] " << " to " << traj2.getEndPoint() << std::endl;
 
         if (avoidanceEnabled)
         {
@@ -310,9 +309,9 @@ TrajectoryVector MotionController::computeMPCAvoidanceTrajectory(RobotPosition t
     }
     traj.insert( traj.end(), traj2.begin(), traj2.end() );
 
-    // textlog << "[MotionControllerAvoidance] MPC trajectory: " << std::endl;
+    // *logger_ << "[MotionControllerAvoidance] MPC trajectory: " << std::endl;
     // for (double t = 0; t <= traj.getDuration(); t+=0.2)
-    //     textlog << "[MotionControllerAvoidance] " << traj.getCurrentPoint(t) << std::endl;
+    //     *logger_ << "[MotionControllerAvoidance] " << traj.getCurrentPoint(t) << std::endl;
 
     return traj;
 }
@@ -324,13 +323,13 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
     TrajectoryVector traj;
     RobotPosition currentPosition = getCurrentPosition();
 
-    textlog << "[MotionController] " << ">> MotionController : current position : " << currentPosition << std::endl;
-    textlog << "[MotionController] " << ">> MotionController : target position : " << targetPosition << std::endl;
-    textlog << "[MotionController] " << ">> MotionController : planning MPC" << std::endl;
+    *logger_ << "[MotionController] " << ">> MotionController : current position : " << currentPosition << std::endl;
+    *logger_ << "[MotionController] " << ">> MotionController : target position : " << targetPosition << std::endl;
+    *logger_ << "[MotionController] " << ">> MotionController : planning MPC" << std::endl;
 
     if ((currentPosition - targetPosition).norm() < 400)
     {
-        textlog << "[MotionController] " << "Target too close, doing a straight line to point" << std::endl;
+        *logger_ << "[MotionController] " << "Target too close, doing a straight line to point" << std::endl;
 
         traj = computeTrajectoryStraightLineToPoint(
             robotParams_.getTrajConf(),
@@ -339,7 +338,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
             !forward
         );
 
-        textlog << "[MotionController] " << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
+        *logger_ << "[MotionController] " << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
 
         // add a point turn to keep the end angle info
         std::shared_ptr<PointTurn > pt_sub_end(
@@ -348,7 +347,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
         );
         traj.push_back(pt_sub_end);
 
-        textlog << "[MotionController] " << "pt_sub_end ends at " << traj.getEndPoint().position << std::endl;
+        *logger_ << "[MotionController] " << "pt_sub_end ends at " << traj.getEndPoint().position << std::endl;
 
         return traj;
     }
@@ -365,7 +364,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
         minDistanceToObstacle = std::min(minDistanceToObstacle, (std::get<0>(obstacle) - currentPosition).norm());
     }
 
-    textlog << "[MotionController] " << ">> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
+    *logger_ << "[MotionController] " << ">> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
 
     // go back from the obstacle (the more counts the more margin)
     double distanceToGoBack = std::max(0.0, detection::x_max  + 150 - minDistanceToObstacle);
@@ -377,7 +376,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
     {
         if (forward)
         {
-            textlog << "[MotionController] " << ">> Needing to go back " << distanceToGoBack << " mm" << std::endl;
+            *logger_ << "[MotionController] " << ">> Needing to go back " << distanceToGoBack << " mm" << std::endl;
             traj1 = miam::trajectory::computeTrajectoryStraightLine(
                 robotParams_.getTrajConf(),
                 currentPosition, // start
@@ -386,7 +385,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
         }
         else
         {
-            textlog << "[MotionController] " << ">> Needing to go forward " << distanceToGoBack << " mm" << std::endl;
+            *logger_ << "[MotionController] " << ">> Needing to go forward " << distanceToGoBack << " mm" << std::endl;
             traj1 = miam::trajectory::computeTrajectoryStraightLine(
                 robotParams_.getTrajConf(),
                 currentPosition, // start
@@ -399,7 +398,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
     }
     else
     {
-        textlog << "[MotionController] " << ">> Do not need to go back" << std::endl;
+        *logger_ << "[MotionController] " << ">> Do not need to go back" << std::endl;
     }
 
     // plan motion
@@ -411,7 +410,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
 
     if (traj2.empty())
     {
-        textlog << "[MotionController] " << ">> MPC path planning failed" << std::endl;
+        *logger_ << "[MotionController] " << ">> MPC path planning failed" << std::endl;
         return TrajectoryVector();
     }
 
@@ -421,8 +420,8 @@ TrajectoryVector MotionController::computeMPCTrajectory(RobotPosition targetPosi
     }
     traj.insert( traj.end(), traj2.begin(), traj2.end() );
 
-    textlog << "[MotionController] " << "MPC traj planned from " << traj.getCurrentPoint(0.0) << std::endl;
-    textlog << "[MotionController] " << " to " << traj.getEndPoint() << std::endl;
+    *logger_ << "[MotionController] " << "MPC traj planned from " << traj.getCurrentPoint(0.0) << std::endl;
+    *logger_ << "[MotionController] " << " to " << traj.getEndPoint() << std::endl;
 
     return traj;
 }

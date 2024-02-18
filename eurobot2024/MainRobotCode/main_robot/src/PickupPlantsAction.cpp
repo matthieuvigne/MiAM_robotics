@@ -2,7 +2,7 @@
 
 
 // Radius of the circle for action start.
-double const RADIUS = 300;
+double const RADIUS = 350;
 
 void PickupPlantsAction::updateStartCondition()
 {
@@ -26,8 +26,7 @@ void PickupPlantsAction::updateStartCondition()
 void PickupPlantsAction::actionStartTrigger()
 {
     robot_->logger_ << "Computing action " << robot_->gameState_.isClawAvailable(true) << std::endl;
-    // Move the turret and servos in advance
-    servoManager_->setClawPosition(ClawPosition::LOW_POSITION);
+    // Move the turret in advance
     if (robot_->gameState_.isClawAvailable(true))
         servoManager_->moveTurret(0);
     else
@@ -39,12 +38,20 @@ bool PickupPlantsAction::performAction()
     robot_->logger_ << "[PickupPlantsAction] Performing action" << std::endl;
 
     servoManager_->waitForTurret();
+    servoManager_->setClawPosition(ClawPosition::LOW_POSITION);
 
     bool isFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
     robot_->logger_ << "Is front" << isFront << std::endl;
 
-    // Grab three plants
-    robot_->getMotionController()->goToStraightLine(PLANT_COLLECT_COORD[zoneId_], 0.5);
+    // Grab three plants, moving toward the center of the zone.
+    RobotPosition currentPose = robot_->getMotionController()->getCurrentPosition();
+    double const angle = std::atan2(PLANT_COLLECT_COORD[zoneId_].y - currentPose.y, PLANT_COLLECT_COORD[zoneId_].x - currentPose.x);
+
+    RobotPosition targetPosition = currentPose;
+    targetPosition.theta = angle;
+    targetPosition.x += 150 * std::cos(angle);
+    targetPosition.y += 150 * std::sin(angle);
+    robot_->getMotionController()->goToStraightLine(targetPosition, 0.5);
 
     servoManager_->closeClaws(isFront);
 
@@ -54,7 +61,7 @@ bool PickupPlantsAction::performAction()
     servoManager_->updateClawContent(isFront, robot_->gameState_);
     robot_->gameState_.nPlantsPerZone[zoneId_] -= 3;
 
-    robot_->getMotionController()->goStraight(-100, 0.5);
+    robot_->getMotionController()->goStraight(-80, 0.5);
 
     // Let's see if we need to go for a second grab round.
     bool shouldRetry = false;

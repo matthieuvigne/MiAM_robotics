@@ -13,9 +13,12 @@ void ServoManager::init(RobotInterface *robot)
     std::thread th(&ServoManager::turretMotionThread, this);
     ThreadHandler::addThread(th);
 
-    // Small servos need to be init.
-    servos_->setMode(0xFE, STS::Mode::POSITION);
-    robot_->wait(0.1);
+    // Small servos need to be init - and this needs to be done severa times.
+    for (int i = 0; i < 3; i++)
+    {
+      servos_->setMode(0xFE, STS::Mode::POSITION);
+      robot_->wait(0.1);
+    }
     openClaws(true);
     setClawPosition(ClawPosition::HIGH_POSITION);
 }
@@ -215,4 +218,14 @@ void ServoManager::updateTurretPosition()
     currentTurretPosition_ += increment;
 
     lastTurretPosition_ = pos;
+}
+
+
+void ServoManager::raiseSolarPannelArm()
+{
+    servos_->setTargetPosition(20, 1200);
+}
+void ServoManager::lowerSolarPannelArm()
+{
+    servos_->setTargetPosition(20, 2048);
 }

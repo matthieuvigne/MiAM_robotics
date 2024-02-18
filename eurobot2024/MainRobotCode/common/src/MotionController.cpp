@@ -7,7 +7,7 @@
 
 MotionController::MotionController(RobotParameters const &robotParameters, Logger *logger) :
     robotParams_(robotParameters),
-    motionPlanner_(robotParams_),
+    motionPlanner_(robotParams_, logger),
     logger_(logger)
 {
     kinematics_ = DrivetrainKinematics(robotParams_.wheelRadius,
@@ -327,9 +327,9 @@ void MotionController::changeMotionControllerState()
                 avoidanceComputationMutex_.unlock();
 
                 timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
-                std::cout << "slowDownCoeff_ : " << slowDownCoeff_ << std::endl;
-                std::cout << "clampedSlowDownCoeff_ : " << clampedSlowDownCoeff_ << std::endl;
-                std::cout << "avoidanceCount_ : " << avoidanceCount_ << std::endl;
+                *logger_ << "slowDownCoeff_ : " << slowDownCoeff_ << std::endl;
+                *logger_ << "clampedSlowDownCoeff_ : " << clampedSlowDownCoeff_ << std::endl;
+                *logger_ << "avoidanceCount_ : " << avoidanceCount_ << std::endl;
 
                 nextMotionControllerState = CONTROLLER_WAIT_FOR_AVOIDANCE;
             }
