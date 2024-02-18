@@ -45,7 +45,11 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     refGlade->get_widget("scoreLabel", scoreLabel);
     refGlade->get_widget("progressBar", progressBar);
     refGlade->get_widget("switchButton", switchButton);
+
     refGlade->get_widget("recipientIPTextView", recipientIPTextView);
+    // default IP
+    recipientIPTextView->get_buffer()->set_text("127.0.0.1");
+
     refGlade->get_widget("drawingArea", drawingArea);
     
     refGlade->get_widget("coordinateList", treeView);
@@ -53,6 +57,8 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     refGlade->get_widget("maxAccelerationTextView", maxAccelerationTextView);
     
     refGlade->get_widget("recipientIDTextView", recipientIDTextView);
+    // default recipient ID
+    recipientIDTextView->get_buffer()->set_text("0");
 
     //create the tree
 	treeModel = Gtk::ListStore::create(objectrow);
@@ -271,7 +277,6 @@ void Viewer::computeTrajectoryButtonClicked()
 
 void Viewer::serializeAndSendButtonClicked()
 {
-    // isRunning_ = false;
     std::cout << "Serializing" << std::endl;
 
     int N = std::ceil(newTrajectory.getDuration() / TRAJ_SERIALIZATION_INTERVAL);
@@ -337,7 +342,36 @@ void Viewer::deletePointButtonClicked()
     drawingArea->queue_draw();
 }
 
+bool is_number(const std::string& s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}
+
 void Viewer::sendIDButtonClicked()
 {
+    // get id
+    std::string newID = recipientIDTextView->get_buffer()->get_text();
+    
+    if (is_number(newID)) 
+    {
+        int newID_number = std::stoi(newID);
+        serializationResultsSizeInFloatNumber = 2;
+        serializationResults.reset(new float[serializationResultsSizeInFloatNumber]());
 
+        int serializationIndex = 0;
+        serializationResults.get()[serializationIndex++] = MessageType::SET_ID;
+        serializationResults.get()[serializationIndex++] = (float)newID_number;
+
+        std::cout << "Size in float number: " << serializationResultsSizeInFloatNumber << std::endl;
+
+        std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
+        std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
+        message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
+    }
+    else
+    {
+        std::cout << "ID is not a number: " << newID << std::endl;
+    }
 }

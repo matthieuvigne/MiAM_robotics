@@ -34,74 +34,85 @@ int main()
     // binding socket. 
     bind(serverSocket, (struct sockaddr*)&serverAddress, 
          sizeof(serverAddress)); 
-  
-    // listening to the assigned socket 
-    listen(serverSocket, 5); 
-  
-    // accepting connection request 
-    int clientSocket 
-        = accept(serverSocket, nullptr, nullptr); 
-  
-    // recieving data 
-    std::vector<float > tmpvec;
-    float* buffer = new float[SIZE_OF_BUFFER](); 
-
-    int sizeofreceiveddata;
-
-    while((sizeofreceiveddata = recv(clientSocket, buffer, SIZE_OF_BUFFER*4, 0)) > 0)
-    {
-        cout << "Receiving: " << sizeofreceiveddata << std::endl; 
-        // cout << "Message from client: " << buffer 
-        //         << endl; 
-        for (int i = 0; i < SIZE_OF_BUFFER; i++)
-        {
-            float f = buffer[i];
-            // cout << f << endl;
-            tmpvec.push_back(f);
-        }
-    }
-
-    // for (int i=0; i < tmpvec.size(); i++)
-    // {
-    //     std::cout << tmpvec.at(i);
-    //     if (i > 0 && i % 5 == 0)
-    //         std::cout << std::endl;
-    // }
     
-    MessageType mt = MessageType::ERROR;
-    if (tmpvec.at(0) == 0)
+    for (;;)
     {
-        mt = MessageType::NEW_TRAJECTORY;
-    }
-    cout << "MessageType : " << mt << endl;
+        // listening to the assigned socket 
+        listen(serverSocket, 5); 
+    
+        // accepting connection request 
+        int clientSocket 
+            = accept(serverSocket, nullptr, nullptr); 
+    
+        // recieving data 
+        std::vector<float > tmpvec;
+        float* buffer = new float[SIZE_OF_BUFFER](); 
 
-    if (mt == MessageType::NEW_TRAJECTORY)
-    {
-        int size_of_trajectory = tmpvec.at(1);
-        float duration_of_trajectory = tmpvec.at(2);
+        int sizeofreceiveddata;
 
-        cout << "Size of trajectory: " << size_of_trajectory << endl;
-        cout << "Duration of trajectory: " << duration_of_trajectory << endl;
-
-        std::vector<TrajectoryPoint > trajectoryPoints;
-        // int serializationIndex = 2;
-        for (int i = 0; i < size_of_trajectory; i++)
+        while((sizeofreceiveddata = recv(clientSocket, buffer, SIZE_OF_BUFFER*4, 0)) > 0)
         {
-            TrajectoryPoint tp;
-            tp.position.x = tmpvec.at(3 + 5*i);
-            tp.position.y = tmpvec.at(3 + 5*i + 1);
-            tp.position.theta = tmpvec.at(3 + 5*i + 2);
-            tp.linearVelocity = tmpvec.at(3 + 5*i + 3);
-            tp.angularVelocity = tmpvec.at(3 + 5*i + 4);
-            trajectoryPoints.push_back(tp);
+            cout << "Receiving: " << sizeofreceiveddata << std::endl; 
+            // cout << "Message from client: " << buffer 
+            //         << endl; 
+            for (int i = 0; i < SIZE_OF_BUFFER; i++)
+            {
+                float f = buffer[i];
+                // cout << f << endl;
+                tmpvec.push_back(f);
+            }
         }
 
-        for (auto& tp : trajectoryPoints)
+        // for (int i=0; i < tmpvec.size(); i++)
+        // {
+        //     std::cout << tmpvec.at(i);
+        //     if (i > 0 && i % 5 == 0)
+        //         std::cout << std::endl;
+        // }
+        
+        MessageType mt = MessageType::ERROR;
+        if (tmpvec.at(0) == 0)
         {
-            std::cout << tp << std::endl;
+            mt = MessageType::NEW_TRAJECTORY;
+        }
+        else if (tmpvec.at(0) == 1)
+        {
+            mt = MessageType::SET_ID;
+        }
+        
+        cout << "MessageType : " << mt << endl;
+
+        if (mt == MessageType::NEW_TRAJECTORY)
+        {
+            int size_of_trajectory = tmpvec.at(1);
+            float duration_of_trajectory = tmpvec.at(2);
+
+            cout << "Size of trajectory: " << size_of_trajectory << endl;
+            cout << "Duration of trajectory: " << duration_of_trajectory << endl;
+
+            std::vector<TrajectoryPoint > trajectoryPoints;
+            // int serializationIndex = 2;
+            for (int i = 0; i < size_of_trajectory; i++)
+            {
+                TrajectoryPoint tp;
+                tp.position.x = tmpvec.at(3 + 5*i);
+                tp.position.y = tmpvec.at(3 + 5*i + 1);
+                tp.position.theta = tmpvec.at(3 + 5*i + 2);
+                tp.linearVelocity = tmpvec.at(3 + 5*i + 3);
+                tp.angularVelocity = tmpvec.at(3 + 5*i + 4);
+                trajectoryPoints.push_back(tp);
+            }
+
+            for (auto& tp : trajectoryPoints)
+            {
+                std::cout << tp << std::endl;
+            }
+        }
+        else if (mt == MessageType::SET_ID)
+        {
+            cout << "NewID: " << (int)tmpvec.at(1) << endl;
         }
     }
-
   
     // closing the socket. 
     close(serverSocket); 
