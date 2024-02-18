@@ -16,6 +16,8 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from matplotlib.backend_bases import NavigationToolbar2
 
+from .tabbed_figure import TabbedFigure
+
 # Custom home button to fix home view.
 def new_home(self, *args, **kwargs):
     fig = plt.figure(1)
@@ -60,9 +62,9 @@ def main():
         print("Loading log: {}".format(logname))
 
     logfile = miam_py.LogLoader(logname)
+    window = TabbedFigure(logname)
+
     # Get robot parameters from file.
-
-
     time = logfile.data['MotionController.currentPositionX'][0]
     # Load robot x, y, theta position.
     x = get_data_resampled(logfile, 'MotionController.currentPositionX', time)
@@ -84,10 +86,10 @@ def main():
 
 
     # Create table plot, used for changing axis ratio.
+    map_fig = plt.figure(1)
     def redo_table_plot():
-        fig = plt.figure(1)
-        xlim = fig.gca().get_xlim()
-        ylim = fig.gca().get_ylim()
+        xlim = map_fig.gca().get_xlim()
+        ylim = map_fig.gca().get_ylim()
         plt.clf()
         plt.text(0.01, 0.01, "Press a to change aspect ratio", transform=plt.gcf().transFigure)
         plt.plot(x, y, color='w', linewidth=5.0)
@@ -101,19 +103,39 @@ def main():
         table = mpimg.imread(os.path.join(os.path.dirname(miam_py.__file__),'../images/table.png'))
         image = plt.imshow(table, extent=[-500, 3500, -500, 2500], alpha=0.6, aspect=current_aspect_ratio)
         plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 1)
-        fig.canvas.draw()
-        fig.canvas.flush_events()
+        map_fig.canvas.draw()
+        map_fig.canvas.flush_events()
 
     # First plot: plot (x,y) position on playing field.
-    fig = plt.figure(1)
     # Callback on letter a to change image aspect ratio
-    fig.canvas.mpl_connect('key_press_event', press)
+    map_fig.canvas.mpl_connect('key_press_event', press)
     current_aspect_ratio = 'equal'
     redo_table_plot()
     plt.xlim(-500, 3500)
     plt.ylim(-500, 2500)
 
-    # Second plot: error in each component, plus velocity
+    window.add_plot("map", map_fig)
+
+    fig, axs = plt.subplots(2, 3, sharex = True)
+    fig.tight_layout()
+
+    xc =  [x, y, theta]
+    xt = [trajectory_x, trajectory_y, trajectory_theta]
+    label = ["x", "y", "angle"]
+    for i in range(len(xc)):
+        axs[0][i].plot(time, xc[i], label=f"Current {label[i]}")
+        axs[0][i].plot(time, xt[i], label=f"Target {label[i]}")
+        axs[1][i].plot(time, xc[i] - xt[i], label=f"Error {label[i]}")
+
+    for ax in axs:
+        for a in ax:
+            a.legend(bbox_to_anchor=(1.0, 1.0), loc = 1)
+            a.grid()
+    fig.suptitle(logname)
+
+    window.add_plot("Position error", fig)
+
+    # Error in each component, plus velocity
     fig, axs = plt.subplots(nrows=2, ncols=2, sharex = True)
     fig.tight_layout()
 
@@ -141,7 +163,8 @@ def main():
             a.legend(bbox_to_anchor=(1.0, 1.0), loc = 1)
             a.grid()
     fig.suptitle(logname)
-    plt.show()
+    window.add_plot("Tracking", fig)
+    window.show()
 
 if __name__ == "__main__":
     main()

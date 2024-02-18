@@ -71,4 +71,10 @@ RUN apt update &&\
     dpkg -x libhdf5-dev_1.10.4+repack-11ubuntu1_armhf.deb /tmp/ &&\
     cp -r /tmp/usr/lib/arm-linux-gnueabihf/* /usr/lib/arm-linux-gnueabihf/ &&\
     apt-get clean -y
+
+# Install PyQt5 requirements
+RUN apt update &&\
+    apt install -y '^libxcb.*-dev' '^libxkb.*-dev' &&\
+    apt-get clean -y
+
 WORKDIR /miam_workspace
