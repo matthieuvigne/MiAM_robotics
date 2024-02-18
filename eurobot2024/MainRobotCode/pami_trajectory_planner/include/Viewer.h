@@ -41,18 +41,13 @@ private:
 
     // Move the obstacle.
     bool mouseMove(GdkEventMotion *motion_event);
-    bool clickObstacle(GdkEventButton *motion_event);
 
     // Recompute trajectories, based on obstacle positon.
-    void playClicked();
-    void pauseClicked();
+    void computeTrajectoryButtonClicked();
+    void serializeAndSendButtonClicked();
     void deletePointButtonClicked();
     void sendIDButtonClicked();
-    void updateTimeRatio();
     void valueChanged(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter);
-
-    // Function actually running the simulation
-    bool runSimulation();
 
     // GUI-related elements.
     double simulationTime_ = 0.0;

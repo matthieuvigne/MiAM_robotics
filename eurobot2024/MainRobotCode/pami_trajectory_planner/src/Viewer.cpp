@@ -7,7 +7,6 @@
 #include "Parameters.h"
 #include "MessageSender.h"
 
-// double const ROBOT_DT = 1.0e-9 * ROBOT_UPDATE_PERIOD;
 double const MATCH_TIME = 100.0;
 double const TRAJ_SERIALIZATION_INTERVAL = 0.1;
 
@@ -38,7 +37,6 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     Gtk::Widget *window;
     refGlade->get_widget("mainWindow", window);
 
-    // window->signal_destroy().connect(Gtk::Main::quit());
     window->signal_delete_event().connect(sigc::ptr_fun(&exitApp));
 
     // Associate widgets.
@@ -63,8 +61,6 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
 	treeView->append_column_editable("x", objectrow.x);
 	treeView->append_column_editable("y", objectrow.y);	
 	treeView->append_column_editable("theta", objectrow.theta);	
-	// treeView->append_column_editable("v", objectrow.v);	
-	// treeView->append_column_editable("w", objectrow.w);	
     treeView->set_reorderable();
     treeModel->signal_row_changed().connect(sigc::mem_fun(this, &Viewer::valueChanged));
 	for(int x = 0; x < 2; x++) 
@@ -77,53 +73,36 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
 		pColumn->set_alignment(0.5);
 		pColumn->set_expand(true);
 		pColumn->set_sort_column(x);
-		// //last column: weight, color...
-		// if (x== 3)
-		// {
-		// 	pRenderer->property_weight().set_value(Pango::Weight::WEIGHT_BOLD);
-		// 	// pColumn->add_attribute(pRenderer->property_background_rgba(), objectrow.color);
-		// }
 	}
 
     selection = treeView->get_selection(); 
-    // selection->set_mode(Gtk::SELECTION_MULTIPLE); 
 
     row = *(treeModel->append());
     row[objectrow.x] = 1000.0;
     row[objectrow.y] = 100.0;
     row[objectrow.theta] = 0.0;
-    // row[objectrow.v] = 1000.0;
-    // row[objectrow.w] = 10.0;
 
     row = *(treeModel->append());
     row[objectrow.x] = 2000.0;
     row[objectrow.y] = 200.0;
     row[objectrow.theta] = 0.0;
-    // row[objectrow.v] = 2000.0;
-    // row[objectrow.w] = 20.0;
-
 
     row = *(treeModel->append());
     row[objectrow.x] = 2200.0;
     row[objectrow.y] = 1000.0;
     row[objectrow.theta] = 0.0;
-    // row[objectrow.v] = 2000.0;
-    // row[objectrow.w] = 20.0;
 
 
     drawingArea->signal_draw().connect(sigc::mem_fun(this, &Viewer::redraw));
-
     drawingArea->set_events(Gdk::POINTER_MOTION_MASK | Gdk::BUTTON_PRESS_MASK  | Gdk::BUTTON_RELEASE_MASK | Gdk::BUTTON_MOTION_MASK | Gdk::SCROLL_MASK);
 
     drawingArea->signal_motion_notify_event().connect(sigc::mem_fun(this, &Viewer::mouseMove));
-    drawingArea->signal_button_press_event().connect(sigc::mem_fun(this, &Viewer::clickObstacle));
-    // drawingArea->signal_button_release_event().connect(sigc::mem_fun(this, &Viewer::clickObstacle));
 
     Gtk::Button *button;
     refGlade->get_widget("computeTrajectoryButton", button);
-    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::playClicked));
+    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::computeTrajectoryButtonClicked));
     refGlade->get_widget("serializeAndSendButton", button);
-    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::pauseClicked));
+    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::serializeAndSendButtonClicked));
     refGlade->get_widget("sendIDButton", button);
     button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::sendIDButtonClicked));
 
@@ -135,8 +114,6 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
 
     Glib::RefPtr<Gtk::TextBuffer> buffer = maxVelocityTextView->get_buffer();
     buffer->set_text("500");    
-
-    // Glib::signal_timeout().connect(sigc::mem_fun(*this,&Viewer::runSimulation), 50);
 
     // Initialize motion planner
     trajectoryConfig.maxWheelVelocity = MAX_WHEEL_SPEED_MM_S;
@@ -151,76 +128,10 @@ Viewer::~Viewer()
 
 }
 
-bool Viewer::runSimulation()
-{
-    // // Increment currentTrajectoryIndex_ based on time elapsed: increment as much as needed to catch back with real
-    // // clock.
-    // std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
-    // double realElapsedTime = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - lastTime_).count();
-    // while (isRunning_ && realElapsedTime > ROBOT_DT / simulationTimeRatio_)
-    // {
-    //     // std::cout << "Running -- simulationTime_: " << simulationTime_ << std::endl;
-    //     simulationTime_ += ROBOT_DT;
-    //     for(unsigned int i = 0; i < robots_.size(); i++)
-    //     {
-    //         ViewerRobot* r = robots_.at(i);
-    //         // get the other robots
-    //         std::vector<Vector2 > obstaclesPosition;
-    //         for (unsigned int j = 0; j < robots_.size(); j++)
-    //         {
-    //             if (j != i)
-    //             {
-    //                 Vector2 v;
-    //                 v << robots_.at(j)->getPosition().x, robots_.at(j)->getPosition().y;
-    //                 obstaclesPosition.push_back(v);
-    //             }
-    //         }
-    //         // obstacles
-    //         obstaclesPosition.push_back(obstaclePosition_);
-    //         obstaclesPosition.push_back(obstacle2Position_);
-
-    //         SimulatorData data;
-    //         data.isStartingSwitchPluggedIn = switchButton->get_active();
-    //         data.obstaclesPosition = obstaclesPosition;
-    //         r->tick(data);
-    //     }
-    //     // Reset time on match start.
-    //     static double lastMatchTime = 0.0;
-    //     if (robots_.at(0)->getMatchTime() > 0 && lastMatchTime == 0)
-    //         simulationTime_ = 0;
-    //     lastMatchTime = robots_.at(0)->getMatchTime();
-
-    //     realElapsedTime -= ROBOT_DT / simulationTimeRatio_;
-    //     lastTime_ += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(ROBOT_DT / simulationTimeRatio_));
-    //     if (simulationTime_ > MATCH_TIME && robots_.at(0)->getMatchTime() > 0)
-    //     {
-    //         isRunning_ = false;
-    //         simulationTime_ = MATCH_TIME;
-    //     }
-    // }
-    // if (!isRunning_)
-    //     lastTime_ = currentTime;
-
-    // progressBar->set_fraction(std::min(simulationTime_ / MATCH_TIME, 1.0));
-    // std::stringstream stream;
-    // stream << "Time: " << std::fixed << std::setprecision(3) << simulationTime_;
-    // progressBar->set_text(stream.str());
-
-    drawingArea->queue_draw();
-    return true;
-}
-
-
 void Viewer::start()
 {
-    Glib::signal_timeout().connect(sigc::mem_fun(*this,&Viewer::runSimulation), 50);
-    // resetClicked();
+    
 }
-
-// void Viewer::addRobot(ViewerRobot & robot)
-// {
-//     robots_.push_back(&robot);
-// }
 
 bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
@@ -259,12 +170,6 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
     originY_ = (widgetHeight - newHeight) / 2 + TABLE_MARGIN_MM * mmToCairo_;
 
     cr->translate(originX_, originY_);
-
-    // int score = 0;
-    // for(auto robot : robots_)
-    // {
-    //     robot->draw(cr, mmToCairo_);
-    // }
 
     // Draw path .
     if (!positions.empty()) 
@@ -317,16 +222,6 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->stroke();
     }
 
-    // // Draw obstacle.
-    // cr->set_source_rgb(1.0, 0.0, 0.0);
-    // cr->arc(mmToCairo_ * obstaclePosition_(0), mmToCairo_ * (TABLE_HEIGHT_MM - obstaclePosition_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
-    // cr->fill();
-
-    // // Draw obstacle2.
-    // cr->set_source_rgb(0.0, 0.0, 1.0);
-    // cr->arc(mmToCairo_ * obstacle2Position_(0), mmToCairo_ * (TABLE_HEIGHT_MM - obstacle2Position_(1)), mmToCairo_ * 200, 0, 2 * M_PI - 0.1);
-    // cr->fill();
-
     // Update labels.
     std::stringstream stream;
     stream << std::fixed << std::setprecision(2) << simulationTime_;
@@ -335,7 +230,6 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     // Draw game state.
     cr->scale(mmToCairo_, mmToCairo_);
-    // robots_[0]->gameState_.draw(cr, robots_[0]->getPosition());
 
     return true;
 }
@@ -363,39 +257,11 @@ bool Viewer::mouseMove(GdkEventMotion* motion_event)
 }
 
 
-bool Viewer::clickObstacle(GdkEventButton* motion_event)
-{
-
-    if (motion_event->button == 1)
-    {
-        obstaclePosition_(0) = motion_event->x;
-        obstaclePosition_(1) = motion_event->y;
-        // // Convert coordinates to table coordinates
-        // obstaclePosition_(0) = (obstaclePosition_(0) - originX_) / mmToCairo_;
-        // obstaclePosition_(1) = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
-        row = *(treeModel->append());
-        row[objectrow.x] = (obstaclePosition_(0) - originX_) / mmToCairo_;
-        row[objectrow.y] = TABLE_HEIGHT_MM - (obstaclePosition_(1) - originY_) / mmToCairo_;
-        row[objectrow.theta] = 0.0;
-    }
-    // else if (motion_event->button == 3)
-    // {
-    //     obstacle2Position_(0) = motion_event->x;
-    //     obstacle2Position_(1) = motion_event->y;
-    //     // Convert coordinates to table coordinates
-    //     obstacle2Position_(0) = (obstacle2Position_(0) - originX_) / mmToCairo_;
-    //     obstacle2Position_(1) = TABLE_HEIGHT_MM - (obstacle2Position_(1) - originY_) / mmToCairo_;
-    // }
-
-    drawingArea->queue_draw();
-    return true;
-}
-
-void Viewer::playClicked()
+void Viewer::computeTrajectoryButtonClicked()
 {
     // isRunning_ = true;
 
-    std::cout << "playClicked" << std::endl;
+    std::cout << "computeTrajectoryButtonClicked" << std::endl;
 
     // Compute new trajectory
     newTrajectory = motionPlanner->solveTrajectoryFromWaypoints(positions, trajectoryConfig);
@@ -403,7 +269,7 @@ void Viewer::playClicked()
 
 }
 
-void Viewer::pauseClicked()
+void Viewer::serializeAndSendButtonClicked()
 {
     // isRunning_ = false;
     std::cout << "Serializing" << std::endl;
@@ -432,16 +298,6 @@ void Viewer::pauseClicked()
         } else {
             pt = newTrajectory.getEndPoint();
         }
-        // res.push_back((float)pt.position.x);
-        // res.push_back((float)pt.position.y);
-        // res.push_back((float)pt.position.theta);
-        // res.push_back((float)pt.linearVelocity);
-        // res.push_back((float)pt.angularVelocity);
-        // serializationResults.get()[5*i] = (float)pt.position.x;
-        // serializationResults.get()[5*i+1] = (float)pt.position.y;
-        // serializationResults.get()[5*i+2] = (float)pt.position.theta;
-        // serializationResults.get()[5*i+3] = (float)pt.linearVelocity;
-        // serializationResults.get()[5*i+4] = (float)pt.angularVelocity;
         serializationResults.get()[serializationIndex++] = (float)pt.position.x;
         serializationResults.get()[serializationIndex++] = (float)pt.position.y;
         serializationResults.get()[serializationIndex++] = (float)pt.position.theta;
@@ -451,24 +307,11 @@ void Viewer::pauseClicked()
 
     std::cout << "Size in float number: " << serializationResultsSizeInFloatNumber << std::endl;
 
-    // for (float f : res)
-    // {
-    //     std::cout << f << std::endl;
-    // }
-
-    // for (int i=0; i< serializationResultsSizeInFloatNumber; i++)
-    // {
-    //     float f = serializationResults.get()[i];
-    //     std::cout << f << std::endl;
-    // }
-
     // only send if trajectory not empty
     if (serializationResultsSizeInFloatNumber > 0 && N > 0)
     {
         std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
         std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
-        // message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
-        // message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber*sizeof(serializationResults.get()[0]), "127.0.0.1");
         message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
     }
     else
@@ -483,28 +326,14 @@ void Viewer::valueChanged(const Gtk::TreeModel::Path& path, const Gtk::TreeModel
     drawingArea->queue_draw();
 }
 
-void Viewer::updateTimeRatio()
-{
-    // simulationTimeRatio_ = simulationRatioSpin->get_value();
-}
-
 void Viewer::deletePointButtonClicked()
 {
-//     Gtk::TreeModel::Row* selected_row = treeView->get_selection()->get_selected();
-
     auto iter = selection->get_selected();
     if(iter) //If anything is selected
     {
-        // auto row = *iter;
         //Do something with the row.
         treeModel->erase(iter);
     }
-    // treeModel->remove()
-
-    // treeView->erase(selected_row);
-    // // for(int i = paths.size()-1; i>=0; i--) {
-    // //     store->remove(store->get_iter(paths.at(i)));
-    // // }
     drawingArea->queue_draw();
 }
 
