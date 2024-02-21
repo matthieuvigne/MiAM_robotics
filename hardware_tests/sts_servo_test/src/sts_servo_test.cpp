@@ -50,21 +50,6 @@ int main(int argc, char* argv[])
 
   // Try to communicate with servo.
   RPi_enablePorts();
-  STSServoDriver driver;
-  if (!driver.init("/dev/ttyAMA0", -1))
-  {
-      std::cout << "Failed to init communication with servos." << std::endl;
-      return 0;
-  }
-  // Start all servos in position mode.
-  driver.setMode(0xFE, STS::Mode::POSITION);
-  driver.setTorqueLimit(0x01, 0.1);
-  usleep(10000);
-
-  // Check detected servos
-  std::vector<unsigned char> detected_servos = driver.detectServos();
-  for(unsigned char servo_id : detected_servos)
-    std::cout << "Detected " << int(servo_id) << std::endl;
 
   // Create objects
   Glib::RefPtr<Gtk::Application> app =  Gtk::Application::create();
@@ -74,34 +59,59 @@ int main(int argc, char* argv[])
   main_robot::Strategy strategy;
   Robot robot(main_robot::generateParams(), &strategy, &gui, testMode, noLidar);
 
+  if (!robot.getServos()->init("/dev/ttyAMA0", -1))
+  {
+      std::cout << "Failed to init communication with servos." << std::endl;
+      return 0;
+  }
+
   // Instantiate the servo manager
   ServoManager servo_manager;
   servo_manager.init(&robot);
-  servo_manager.set_servos(&driver);
+
+  servo_manager.waitForTurret();
+
+  std::cout << "Turret calibrated" << std::endl;
+  robot.wait(1.0);
 
   // Sequence
+  while (true)
+  {
   servo_manager.moveTurret(0); // Initialisation a faire avec l'interrupteur
-  usleep(1000000);
+  robot.wait(1.0);
+  servo_manager.waitForTurret();
+  robot.wait(1.0);
+
+  servo_manager.moveTurret(M_PI_2); // Initialisation a faire avec l'interrupteur
+  robot.wait(1.0);
+  servo_manager.waitForTurret();
+  robot.wait(1.0);
+  }
+
+  servo_manager.waitForTurret();
+  while (true)
+    usleep(1000000);
+
   //~ driver.setMode(10, STS::Mode::STEP);
-  servo_manager.setClawPosition(ClawPosition::LOW_POSITION);
+  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::LOW_POSITION);
   usleep(1000000);
   servo_manager.openClaws(true);
   usleep(4000000);
   servo_manager.closeClaws(true);
   usleep(1000000);
-  servo_manager.setClawPosition(ClawPosition::HIGH_POSITION);
+  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
   usleep(1000000);
   servo_manager.moveTurret(90);
   usleep(1000000);
-  servo_manager.setClawPosition(ClawPosition::MEDIUM_POSITION);
+  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::MEDIUM_POSITION);
   usleep(1000000);
   servo_manager.openClaws(true);
   usleep(2000000);
-  servo_manager.setClawPosition(ClawPosition::HIGH_POSITION);
+  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
   usleep(1000000);
   servo_manager.moveTurret(0);
   usleep(1000000);
-  driver.disable(0xFE);
+  robot.getServos()->disable(0xFE);
 
   // Get and display the current position of the turret
   //~ double const turret_position = servo_manager.getTurretPosition();

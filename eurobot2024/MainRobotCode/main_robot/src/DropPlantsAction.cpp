@@ -39,7 +39,12 @@ void DropPlantsAction::actionStartTrigger()
 
 bool DropPlantsAction::performAction()
 {
-    servoManager_->setClawPosition(ClawPosition::LOW_POSITION);
+    // RobotPosition targetPosition = PLANT_DROP_COORD[zoneId_];
+    // targetPosition.x = 140;
+
+    // robot_->getMotionController()->goToStraightLine(targetPosition);
+
+    servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::LOW_POSITION);
     robot_->wait(0.5);
     servoManager_->openClaws(true);
     robot_->gameState_.nPlantsCollected[zoneId_] += robot_->gameState_.nPlantsInRobot();

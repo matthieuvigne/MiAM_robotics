@@ -38,7 +38,7 @@ bool PickupPlantsAction::performAction()
     robot_->logger_ << "[PickupPlantsAction] Performing action" << std::endl;
 
     servoManager_->waitForTurret();
-    servoManager_->setClawPosition(ClawPosition::LOW_POSITION);
+    servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::LOW_POSITION);
 
     bool isFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
     robot_->logger_ << "Is front" << isFront << std::endl;
@@ -57,7 +57,7 @@ bool PickupPlantsAction::performAction()
 
     // See what has been grabbed
     robot_->wait(0.15);
-    servoManager_->setClawPosition(ClawPosition::HIGH_POSITION);
+    servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
     servoManager_->updateClawContent(isFront, robot_->gameState_);
     robot_->gameState_.nPlantsPerZone[zoneId_] -= 3;
 
