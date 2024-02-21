@@ -107,6 +107,12 @@
 
             bool isPlayingRightSide() const;
 
+            void log(std::string const& variableName, double const& variableValue)
+            {
+                std::cout << variableName << " " << variableValue << std::endl;
+                logger_.log(variableName, currentTime_, variableValue);
+            }
+
             Logger logger_; ///< Logger object
             GameState gameState_;
 

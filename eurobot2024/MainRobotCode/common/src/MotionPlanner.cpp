@@ -68,7 +68,7 @@ std::mutex acado_mutex;
 
 MotionPlanner::MotionPlanner(RobotParameters const& robotParameters, Logger* logger) :
     robotParams_(robotParameters),
-    pathPlanner_(PathPlannerConfig()),
+    pathPlanner_(PathPlannerConfig(), logger_),
     logger_(logger)
 {
 
@@ -78,7 +78,7 @@ MotionPlanner::MotionPlanner(RobotParameters const& robotParameters, Logger* log
     config.astar_grid_size_x = table_dimensions::table_size_x / config.astar_resolution_mm;
     config.astar_grid_size_y = table_dimensions::table_size_y / config.astar_resolution_mm;
     config.forbidden_border_size_mm = 1; // should be equal to robot radius
-    pathPlanner_ = PathPlanner(config);
+    pathPlanner_ = PathPlanner(config, logger_);
 }
 
 TrajectoryVector MotionPlanner::planMotion(
@@ -98,15 +98,23 @@ TrajectoryVector MotionPlanner::planMotion(
         return TrajectoryVector();
     }
 
+#ifdef MOTIONCONTROLLER_UNITTEST
+    // Store corresponding path
+    for (unsigned int i = 0; i < planned_path.size(); i++)
+    {
+        logger_->log("PlannedPath.x", 0.15 * i, planned_path.at(i).x);
+        logger_->log("PlannedPath.y", 0.15 * i, planned_path.at(i).y);
+    }
+#endif
+
     TrajectoryVector res;
-    *logger_ << "[MotionPlanner] " << "Start solving..." << std::endl;
 
     // compute the trajectory from the waypoints
     TrajectoryVector st;
 
     if (useTrajectoryRoundedCorners)
     {
-        *logger_ << "[MotionPlanner] " << "Solving trajectory rounded corners " << std::endl;
+        *logger_ << "[MotionPlanner] " << "Smoothing path using trajectory rounded corners" << std::endl;
 
         miam::trajectory::TrajectoryConfig cplan = robotParams_.getTrajConf();
         cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
@@ -119,11 +127,28 @@ TrajectoryVector MotionPlanner::planMotion(
     }
     else
     {
+        *logger_ << "[MotionPlanner] " << "Smoothing path using staight lines" << std::endl;
+
         planned_path.back().theta = targetPosition.theta;   // this makes the MPC try to ensure the end angle
                                                             // but end angle is often not reachable so the angle
                                                             // is then ensured with a point turn afterwards
         st = solveTrajectoryFromWaypoints(planned_path, ensureEndAngle, targetPosition.theta);
     }
+
+#ifdef MOTIONCONTROLLER_UNITTEST
+    // Store corresponding path
+    double t = 0;
+    while (t <= st.getDuration())
+    {
+        TrajectoryPoint p = st.getCurrentPoint(t);
+        logger_->log("MPCOutput.x", t, p.position.x);
+        logger_->log("MPCOutput.y", t, p.position.y);
+        logger_->log("MPCOutput.theta", t, p.position.theta);
+        logger_->log("MPCOutput.v", t, p.linearVelocity);
+        logger_->log("MPCOutput.w", t, p.angularVelocity);
+        t += 0.01;
+    }
+#endif
 
     if (st.getDuration() > 0)
     {
@@ -179,6 +204,21 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
 
     // create trajectory interpolating waypoints
     traj = computeTrajectoryBasicPath(cplan, waypoints, 0);
+
+#ifdef MOTIONCONTROLLER_UNITTEST
+    // Store corresponding path
+    double t = 0;
+    while (t <= traj.getDuration())
+    {
+        TrajectoryPoint p = traj.getCurrentPoint(t);
+        logger_->log("LinearInterpolation.x", t, p.position.x);
+        logger_->log("LinearInterpolation.y", t, p.position.y);
+        logger_->log("LinearInterpolation.theta", t, p.position.theta);
+        logger_->log("LinearInterpolation.v", t, p.linearVelocity);
+        logger_->log("LinearInterpolation.w", t, p.angularVelocity);
+        t += 0.01;
+    }
+#endif
 
     // start of the entire trajectory
     TrajectoryPoint start_position = traj.getCurrentPoint(0.0);

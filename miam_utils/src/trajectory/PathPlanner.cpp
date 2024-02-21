@@ -9,8 +9,9 @@ using AStar::Vec2i;
 
 namespace miam{
     namespace trajectory{
-        PathPlanner::PathPlanner(PathPlannerConfig const& config):
-            config_(config)
+        PathPlanner::PathPlanner(PathPlannerConfig const& config, Logger *logger):
+            config_(config),
+            logger_(logger)
         {
             generator_.setWorldSize({config_.astar_grid_size_x, config_.astar_grid_size_y});
             generator_.setHeuristic(AStar::Heuristic::euclidean);
@@ -23,11 +24,11 @@ namespace miam{
         {
             AStar::Vec2i worldSize = generator_.getWorldSize();
 
-            std::cout << "World size: " << worldSize.x << ", " << worldSize.y << std::endl;
-            // std::cout << "Collisions: " << std::endl;
+            *logger_ << "[PathPlanner] World size: " << worldSize.x << ", " << worldSize.y << std::endl;
+            // *logger_ << "[PathPlanner] Collisions: " << std::endl;
             // for (auto collision : generator_.getCollisions())
             // {
-            //     std::cout << collision.x << ", " << collision.y << std::endl;
+            //     *logger_ << "[PathPlanner] " <<collision.x << ", " << collision.y << std::endl;
             // }
 
             std::vector<AStar::Vec2i > collisions = generator_.getCollisions();
@@ -42,14 +43,14 @@ namespace miam{
                         collisions.end(),
                         target) != collisions.end())
                         {
-                            std::cout << "X ";
+                            *logger_ << "X ";
                         }
                         else
                         {
-                            std::cout << "  ";
+                            *logger_ << "  ";
                         }
                 }
-                std::cout << std::endl;
+                *logger_ << std::endl;
             }
         }
 
@@ -64,28 +65,28 @@ namespace miam{
             {
                 pathInVec2i.push_back(robotPositionToVec2i(position));
             }
-            // std::cout << "Path: " << std::endl;
+            // *logger_ << "[PathPlanner] Path: " << std::endl;
             // for (auto& position : pathInVec2i)
             // {
-            //     std::cout << position.x << " " << position.y << std::endl;
+            //     *logger_ << "[PathPlanner] " <<position.x << " " << position.y << std::endl;
             // }
 
 
-            std::cout << "World size: " << worldSize.x << ", " << worldSize.y << std::endl;
-            // std::cout << "Collisions: " << std::endl;
+            *logger_ << "[PathPlanner] World size: " << worldSize.x << ", " << worldSize.y << std::endl;
+            // *logger_ << "[PathPlanner] Collisions: " << std::endl;
             // for (auto collision : generator_.getCollisions())
             // {
-            //     std::cout << collision.x << ", " << collision.y << std::endl;
+            //     *logger_ << "[PathPlanner] " <<collision.x << ", " << collision.y << std::endl;
             // }
 
             std::vector<AStar::Vec2i > collisions = generator_.getCollisions();
 
             Vec2i current_position = robotPositionToVec2i(currentPosition);
             Vec2i target_position = robotPositionToVec2i(targetPosition);
-            std::cout << "Current position RobotPosition: " << currentPosition << std::endl;
-            std::cout << "Current position i, j: " << current_position.x << " " << current_position.y << std::endl;
-            std::cout << "Target position RobotPosition: " << targetPosition << std::endl;
-            std::cout << "Target position i, j: " << target_position.x << " " << target_position.y << std::endl;
+            *logger_ << "[PathPlanner] Current position RobotPosition: " << currentPosition << std::endl;
+            *logger_ << "[PathPlanner] Current position i, j: " << current_position.x << " " << current_position.y << std::endl;
+            *logger_ << "[PathPlanner] Target position RobotPosition: " << targetPosition << std::endl;
+            *logger_ << "[PathPlanner] Target position i, j: " << target_position.x << " " << target_position.y << std::endl;
 
             for (int j = generator_.getWorldSize().y - 1; j >= 0; j--)
             {
@@ -94,32 +95,32 @@ namespace miam{
                     AStar::Vec2i target({i, j});
                     if (target == current_position)
                     {
-                        std::cout << "S";
+                        *logger_ << "S";
                     }
                     else if (target == target_position)
                     {
-                        std::cout << "E";
+                        *logger_ << "E";
                     }
                     else if (std::find(
                         collisions.begin(),
                         collisions.end(),
                         target) != collisions.end())
                     {
-                        std::cout << "X";
+                        *logger_ << "X";
                     }
                     else if (std::find(
                         pathInVec2i.begin(),
                         pathInVec2i.end(),
                         target) != pathInVec2i.end())
                     {
-                        std::cout << "o";
+                        *logger_ << "o";
                     }
                     else
                     {
-                        std::cout << " ";
+                        *logger_ << " ";
                     }
                 }
-                std::cout << std::endl;
+                *logger_ << "" <<std::endl;
             }
         }
 
@@ -192,19 +193,19 @@ namespace miam{
             AStar::Vec2i startPoint = robotPositionToVec2i(start);
             AStar::Vec2i endPoint = robotPositionToVec2i(end);
 
-            std::cout << "Planning from: " << startPoint.x << " " << startPoint.y << std::endl;
-            std::cout << "Planning to  : " << endPoint.x << " " << endPoint.y << std::endl;
+            *logger_ << "[PathPlanner] Planning from: " << startPoint.x << " " << startPoint.y << std::endl;
+            *logger_ << "[PathPlanner] Planning to  : " << endPoint.x << " " << endPoint.y << std::endl;
 
             // remove start position from obstacles
             generator_.removeCollision(startPoint);
 
             if (generator_.detectCollision(endPoint))
             {
-                std::cout << "PathPlanning failed: end point is in obstacle!" << std::endl;
+                *logger_ << "[PathPlanner] PathPlanning failed: end point is in obstacle!" << std::endl;
                 return positions;
             }
 
-            std::cout << "Generate path ... \n";
+            *logger_ << "[PathPlanner] Generate path ... \n";
             auto path = generator_.findPath(
                 startPoint,
                 endPoint
@@ -259,7 +260,7 @@ namespace miam{
             }
             else
             {
-                std::cout << "Path planning failed" << std::endl;
+                *logger_ << "[PathPlanner] Path planning failed" << std::endl;
             }
 
             return positions;

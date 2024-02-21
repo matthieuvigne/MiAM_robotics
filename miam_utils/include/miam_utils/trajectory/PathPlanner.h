@@ -5,6 +5,7 @@
 #ifndef MIAM_TRAJECTORY_PATHPLANNER
 #define MIAM_TRAJECTORY_PATHPLANNER
     #include "miam_utils/trajectory/Trajectory.h"
+    #include "miam_utils/Logger.h"
     #include "RobotPosition.h"
     #include <vector>
     #include <AStar.hpp>
@@ -25,25 +26,25 @@
             class PathPlanner
             {
                 public:
-                    PathPlanner(PathPlannerConfig const& config);
+                    PathPlanner(PathPlannerConfig const& config, Logger *logger);
 
                     /// @brief Adds a collision to the a-star map
                     /// @param position position in robotposition
                     /// @param radius radius of the collision in mm
                     void addCollision(RobotPosition const& position, double radius);
-                    
+
                     /// @brief Resets the collisions to only table border and cherry
                     /// distributors
                     void resetCollisions();
-                    
+
                     /// @brief Prints a-star map
                     void printMap();
-                    
+
                     /// @brief Prints a-star map along with a path
                     /// @param path path in robotposition
                     void printMap(
-                        std::vector<RobotPosition> path, 
-                        RobotPosition currentPosition, 
+                        std::vector<RobotPosition> path,
+                        RobotPosition currentPosition,
                         RobotPosition targetPosition
                     );
 
@@ -68,6 +69,7 @@
                 protected:
                     PathPlannerConfig config_;
                     AStar::Generator generator_;
+                    Logger* logger_;
 
                     void addCollisionsNoDuplicate(AStar::Vec2i collision);
             };
