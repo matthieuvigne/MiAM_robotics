@@ -60,6 +60,11 @@ ACADOworkspace acadoWorkspace;
 using namespace miam;
 using namespace std;
 
+#ifdef MOTIONCONTROLLER_UNITTEST
+std::vector<RobotPosition> UNITTEST_ASTAR_POS;
+TrajectoryVector UNITTEST_POINTTURN_TRAJ;
+TrajectoryVector UNITTEST_ROUNDED_TRAJ;
+#endif
 
 // ACADO should be inited only once
 bool is_acado_inited = false;
@@ -90,6 +95,29 @@ TrajectoryVector MotionPlanner::planMotion(
     // pathPlanner_.printMap();
     std::vector<RobotPosition > planned_path = pathPlanner_.planPath(currentPosition, targetPosition);
     pathPlanner_.printMap(planned_path, currentPosition, targetPosition);
+
+#ifdef MOTIONCONTROLLER_UNITTEST
+    UNITTEST_ASTAR_POS = planned_path;
+
+    UNITTEST_POINTTURN_TRAJ = TrajectoryVector();
+    if (planned_path.size() > 0)
+    {
+        RobotPosition pastPosition = planned_path.at(0);
+        for (unsigned int i = 1; i < planned_path.size(); i++)
+        {
+            TrajectoryVector inc = miam::trajectory::computeTrajectoryStraightLineToPoint(
+                robotParams_.getTrajConf(), pastPosition, planned_path.at(i));
+            UNITTEST_POINTTURN_TRAJ = UNITTEST_POINTTURN_TRAJ + inc;
+            pastPosition = inc.getEndPoint().position;
+        }
+    }
+
+    UNITTEST_ROUNDED_TRAJ = computeTrajectoryRoundedCorner(
+            robotParams_.getTrajConf(),
+            planned_path,
+            200
+        );
+#endif
 
     // If path planning failed, return empty traj
     if (planned_path.size() == 0)

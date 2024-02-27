@@ -9,6 +9,13 @@
 
 using namespace miam;
 using namespace miam::trajectory;
+
+#ifdef MOTIONCONTROLLER_UNITTEST
+extern std::vector<RobotPosition> UNITTEST_ASTAR_POS;
+extern TrajectoryVector UNITTEST_POINTTURN_TRAJ;
+extern TrajectoryVector UNITTEST_ROUNDED_TRAJ;
+#endif
+
 class MotionPlanner{
 
     public:

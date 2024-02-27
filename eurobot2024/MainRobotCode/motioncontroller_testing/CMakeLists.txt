@@ -9,7 +9,6 @@ include_directories(
   ../common/include
   include
   ../main_robot/include
-  ../embedded/include
   ../../../vision/include
   ../../../qpoases
   ../../../qpoases/INCLUDE
@@ -18,8 +17,7 @@ include_directories(
 
 # Add all source files.
 file(GLOB_RECURSE SOURCES ../common/src/*.cpp
-                  ../main_robot/src/*.cpp
-                  *.cpp
+                  src/*.cpp
                   ../../../vision/src/network/camera_client.cpp
                   ../../../vision/src/network/client*.cpp
                   ../../../vision/src/network/socket.cpp
@@ -70,7 +68,7 @@ ADD_LIBRARY( acado_solver ${LIB_SOURCES} ${LIB_HEADERS} )
 target_link_libraries( acado_solver qpoases)
 
 # Copy config.
-# file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Build executables
 add_executable(motionControllerTesting ${SOURCES})
