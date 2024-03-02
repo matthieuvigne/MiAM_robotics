@@ -6,7 +6,7 @@
 // 15A -> LSB target 0.5mA , 5mOhm:
 #define TARGET_CURRENT_LSB 0.0005
 
-double const R = 0.0068;
+double const R = 0.0050;
 uint16_t const calibRegister = static_cast<uint16_t>(0.00512 / R / TARGET_CURRENT_LSB);
 
 double const currentLSB = 0.00512 / R / calibRegister;

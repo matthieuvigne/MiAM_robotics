@@ -64,7 +64,11 @@ bool Robot::initSystem()
 
     // TODO
     if (!isINAInit_)
+    {
         isINAInit_ = ina226_.init(&RPI_I2C);
+        if (!isINAInit_)
+            guiState_.debugStatus += "Battery monitoring init failed\n";
+    }
 
     if (!isServoInit_)
     {
@@ -80,7 +84,7 @@ bool Robot::initSystem()
             guiState_.debugStatus += "Lidar init failed\n";
     }
 
-    return isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_);
+    return isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_) & isINAInit_;
 }
 
 
@@ -112,7 +116,9 @@ void Robot::updateSensorData()
     measurements_.drivetrainMeasurements.encoderPosition[side::RIGHT] = rightMeasurements.encoderPosition;
     measurements_.drivetrainMeasurements.encoderPosition[side::LEFT] = leftMeasurements.encoderPosition;
 
-    measurements_.batteryVoltage = rightMeasurements.batteryVoltage;
+    INA226Reading inaReading = ina226_.read();
+
+    measurements_.batteryVoltage = inaReading.voltage;
 
     // Log
     if (currentTime_ > 0.0)
@@ -126,6 +132,10 @@ void Robot::updateSensorData()
         logger_.log("Robot.leftMotor.batteryVoltage", currentTime_, leftMeasurements.batteryVoltage);
         logger_.log("Robot.leftMotor.currentMode", currentTime_, leftMeasurements.currentMode);
         logger_.log("Robot.leftMotor.nCommunicationFailed", currentTime_, leftMeasurements.nCommunicationFailed);
+
+        logger_.log("Robot.battery.voltage", currentTime_, inaReading.voltage);
+        logger_.log("Robot.battery.current", currentTime_, inaReading.current);
+        logger_.log("Robot.battery.power", currentTime_, inaReading.power);
     }
 }
 

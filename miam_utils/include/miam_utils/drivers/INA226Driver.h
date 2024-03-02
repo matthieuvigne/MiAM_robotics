@@ -19,7 +19,7 @@
 
             /// \brief Init and test communication with driver.
             /// \return True if communication was successful.
-            bool init(I2CAdapter *device, unsigned char const& address = 0x44);
+            bool init(I2CAdapter *device, unsigned char const& address = 0x40);
 
             /// \brief Reader power statistics.
             INA226Reading read();
