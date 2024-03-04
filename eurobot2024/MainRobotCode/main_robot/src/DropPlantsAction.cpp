@@ -2,14 +2,22 @@
 
 
 
-const miam::RobotPosition PLANT_DROP_COORD[6] =
+const miam::RobotPosition PLANT_DROP_COORD[3] =
 {
-        miam::RobotPosition(800, 1700, M_PI_2),
-        miam::RobotPosition(300, 1600, M_PI_2),
-        miam::RobotPosition(250, 1400, M_PI),
-        miam::RobotPosition(2785, 1000),
-        miam::RobotPosition(2785, 600),
-        miam::RobotPosition(250, 150, M_PI),
+    // Jardiniere
+    miam::RobotPosition(200, 200, 0),
+    miam::RobotPosition(200, 1800, 0),
+    miam::RobotPosition(2700, 100, 0)
+};
+
+#define CHASSIS_MARGIN 150
+
+const miam::RobotPosition JARDINIERE_COORD[3] =
+{
+    // Jardiniere
+    miam::RobotPosition(CHASSIS_MARGIN, 1700, M_PI),
+    miam::RobotPosition(3000 - CHASSIS_MARGIN, 600, 0),
+    miam::RobotPosition(300, 2000 - CHASSIS_MARGIN, M_PI_2)
 };
 
 void DropPlantsAction::updateStartCondition()
@@ -56,6 +64,58 @@ bool DropPlantsAction::performAction()
 
     // Action should not be done again if there are more than 3 plants.
     return robot_->gameState_.nPlantsCollected[zoneId_] > 3;
+}
+
+
+void DropPlantsToJarnidiereAction::updateStartCondition()
+{
+    startPosition_ = JARDINIERE_COORD[zoneId_] +
+        RobotPosition(-250, 0, 0).rotate(JARDINIERE_COORD[zoneId_].theta);
+
+    // Action is only possible if there are plants present,
+    // no plants in this jardiniere, and if the pots were cleared
+    bool isPossible = robot_->gameState_.nPlantsInRobot() > 0 && robot_->gameState_.nPlantsCollected[zoneId_ + 3] == 0;
+    if (zoneId_ < 3)
+        isPossible &= robot_->gameState_.nPotsInPile[zoneId_] == 0;
+
+    if (isPossible)
+    {
+        priority_ = -1;
+    }
+    else if (robot_->gameState_.nPlantsInRobot() > 4)
+    {
+        priority_ = 2;
+    }
+    else
+    {
+        priority_ = 0;
+    }
+}
+
+
+void DropPlantsToJarnidiereAction::actionStartTrigger()
+{
+    isDroppingFront_ = robot_->gameState_.isFrontClawMostFull();
+    servoManager_->moveTurret(isDroppingFront_ ? 0 : M_PI);
+}
+
+bool DropPlantsToJarnidiereAction::performAction()
+{
+    double const MARGIN = 100;
+    RobotPosition const target = JARDINIERE_COORD[zoneId_] +
+        RobotPosition(-MARGIN, 0, 0).rotate(JARDINIERE_COORD[zoneId_].theta);
+
+    if (!robot_->getMotionController()->goToStraightLine(target))
+        return false;
+    if (!robot_->getMotionController()->goStraight(MARGIN))
+        return false;
+
+    servoManager_->openClaws(isDroppingFront_);
+    robot_->gameState_.nPlantsCollected[3 + zoneId_] += robot_->gameState_.clearClawContent(isDroppingFront_);
+    robot_->getMotionController()->goStraight(-MARGIN);
+
+    // Action should never be done again
+    return true;
 }
 
 

@@ -25,8 +25,35 @@ public:
     bool performAction() override;
 
 private:
-     ServoManager *servoManager_;
+    ServoManager *servoManager_;
     int zoneId_;
+};
+
+
+class DropPlantsToJarnidiereAction: public AbstractAction
+{
+public:
+    /// @brief Action to drop plants to jardiniere
+    /// @param zoneCenter Center of the zone from which to pick-up the plants
+    DropPlantsToJarnidiereAction(RobotInterface *robot, ServoManager *servoManager, int const& zoneId):
+        AbstractAction("Drop plants to jardiniere" + std::to_string(zoneId), robot),
+        servoManager_(servoManager),
+        zoneId_(zoneId)
+    {}
+
+    /// @brief This function is called before choosing the action in the list,
+    ///        giving the opportunity for an action to update its start position and priority.
+    void updateStartCondition() override;
+
+    void actionStartTrigger() override;
+
+    bool performAction() override;
+
+private:
+    ServoManager *servoManager_;
+    int zoneId_;
+
+    bool isDroppingFront_;
 };
 
 

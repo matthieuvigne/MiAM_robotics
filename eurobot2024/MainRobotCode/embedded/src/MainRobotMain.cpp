@@ -57,6 +57,7 @@ int main(int argc, char **argv)
     // Parse input
     bool testMode = false;
     bool noLidar = false;
+    bool interactive = false;
     std::vector <std::string> sources;
     std::string destination;
     for (int i = 1; i < argc; i++)
@@ -65,6 +66,9 @@ int main(int argc, char **argv)
             testMode = true;
         else if (std::string(argv[i]) == "--nolidar")
             noLidar = true;
+            testMode = true;
+        else if (std::string(argv[i]) == "--interactive")
+            interactive = true;
         else
         {
             std::cout << "Main robot code." << std::endl;
@@ -88,7 +92,7 @@ int main(int argc, char **argv)
     Glib::RefPtr<Gtk::Application> app =  Gtk::Application::create();
     RobotGUI gui;
 
-    main_robot::Strategy strategy;
+    main_robot::Strategy strategy(interactive);
     Robot robot(main_robot::generateParams(), &strategy, &gui, testMode, noLidar);
     robotPtr = &robot;
 

@@ -32,7 +32,8 @@ bool MATCH_COMPLETED = false;
 
 //--------------------------------------------------------------------------------------------------
 
-Strategy::Strategy()
+Strategy::Strategy(bool const& interactive):
+    interactive_(interactive)
 {
     // Empty on purpose*
 }
@@ -61,7 +62,11 @@ bool Strategy::setup(RobotInterface *robot)
         for (int i = 0; i < 6; i++)
         {
             actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, i));
+        }
+        for (int i = 0; i < 3; i++)
+        {
             actions_.push_back(std::make_shared<DropPlantsAction>(robot, &servoManager_, i));
+            actions_.push_back(std::make_shared<DropPlantsToJarnidiereAction>(robot, &servoManager_, i));
         }
     }
 
@@ -135,19 +140,31 @@ void Strategy::match_impl()
             robot->logger_ << i << "\t" << *actions_.at(i) << std::endl;
         }
 
-        // Look amongst action with highest priority, select the closest one.
         int selectedAction = 0;
-        double minDistance = 1e10;
-        RobotPosition currentPosition = motionController->getCurrentPosition();
-        for (unsigned int i = 0; i < actions_.size(); i++)
+
+        if (interactive_)
         {
-            if (actions_.at(i)->priority_ == highestPriorityAction && !actions_.at(i)->wasFailed)
+            // Let the user choose the action
+            std::string userInput;
+            std::cout << "Type action number to perform" << std::endl;
+            std::cin >> userInput;
+            selectedAction = std::stoi(userInput);
+        }
+        else
+        {
+            // Look amongst action with highest priority, select the closest one.
+            double minDistance = 1e10;
+            RobotPosition currentPosition = motionController->getCurrentPosition();
+            for (unsigned int i = 0; i < actions_.size(); i++)
             {
-                double const distance = (actions_.at(i)->startPosition_ - currentPosition).norm();
-                if (distance < minDistance)
+                if (actions_.at(i)->priority_ == highestPriorityAction && !actions_.at(i)->wasFailed)
                 {
-                    minDistance = distance;
-                    selectedAction = i;
+                    double const distance = (actions_.at(i)->startPosition_ - currentPosition).norm();
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        selectedAction = i;
+                    }
                 }
             }
         }

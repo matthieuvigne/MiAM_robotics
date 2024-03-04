@@ -25,7 +25,9 @@
             ///        Zones are numbered from top to bottom, left to right.
             int nPlantsPerZone[6] = {6, 6, 6, 6, 6, 6};
             /// @brief Number of plants in each collected zone.
+            ///        1-3: standard zones ; 4-6: jardiniere
             int nPlantsCollected[6] = {0, 0, 0, 0, 0, 0};
+            int nPotsInPile[4] = {6, 6, 6, 6};
 
             /// Content of the robot's claws
             ClawContent robotClawContent[6] = {ClawContent::EMPTY,
@@ -51,6 +53,31 @@
                 for (int j = 0; j < 6; j++)
                     if (robotClawContent[j] != ClawContent::EMPTY)
                         nPlants++;
+                return nPlants;
+            }
+
+            bool isFrontClawMostFull()
+            {
+                int nFront = 0, nBack = 0;
+                for (int j = 0; j < 3; j++)
+                    if (robotClawContent[j] != ClawContent::EMPTY)
+                        nFront++;
+                for (int j = 0; j < 3; j++)
+                    if (robotClawContent[3 + j] != ClawContent::EMPTY)
+                        nBack++;
+                return nFront >= nBack;
+            }
+
+            int clearClawContent(bool const& isFront)
+            {
+                int nPlants = 0;
+                for (int j = 0; j < 3; j++)
+                {
+                    int idx = j + (isFront ? 3 : 0);
+                    if (robotClawContent[idx] != ClawContent::EMPTY)
+                        nPlants++;
+                    robotClawContent[idx] = ClawContent::EMPTY;
+                }
                 return nPlants;
             }
 

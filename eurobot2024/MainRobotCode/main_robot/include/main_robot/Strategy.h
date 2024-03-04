@@ -24,7 +24,7 @@ class Strategy : public AbstractStrategy
     public:
 
         // Constructor
-        Strategy();
+        Strategy(bool const& interactive = false);
 
         // Called before the start of the match, to setup the robot.
         bool setup(RobotInterface *robot) override;
@@ -47,6 +47,8 @@ class Strategy : public AbstractStrategy
 
         ServoManager servoManager_;
         bool isSetupFirstInstance_ = true;
+
+        bool interactive_; ///< Actions are choosen by the user
   };
 }
 

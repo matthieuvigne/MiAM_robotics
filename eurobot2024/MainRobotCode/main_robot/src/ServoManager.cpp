@@ -138,6 +138,8 @@ void ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
 
 void ServoManager::moveTurret(double const& targetPosition)
 {
+    currentTurretPosition_ = targetTurretPosition_;
+    return;
 #ifdef SIMULATION
     currentTurretPosition_ = targetTurretPosition_;
     return;
