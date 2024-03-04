@@ -88,15 +88,15 @@ namespace miam{
                         std::cout << "Trapezoid: cannot reach maximum velocity." << std::endl;
                     #endif
                     // We can't reach terminal velocity, so we will be constantly accelerating / decelerating.
-                    if(vi > ve)
+                    if(vi < ve)
                     {
                         // Constant acceleration, i.e. maxDuration.
                         duration_ = maxDuration;
                     }
                     else
                     {
-                        // Constant deceleration
-                        duration_ = (-vi + std::sqrt(vi * vi + 2 * maxAcceleration_ * length_)) / maxAcceleration_;
+                        // Constant deceleration - abs is just to be sure but shouldn't be needed.
+                        duration_ = (vi - std::sqrt(std::abs(vi * vi - 2 * maxAcceleration_ * length_))) / maxAcceleration_;
                     }
                 }
             }

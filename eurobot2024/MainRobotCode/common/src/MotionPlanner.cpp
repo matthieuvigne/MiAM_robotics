@@ -110,6 +110,8 @@ TrajectoryVector MotionPlanner::planMotion(
             UNITTEST_POINTTURN_TRAJ = UNITTEST_POINTTURN_TRAJ + inc;
             pastPosition = inc.getEndPoint().position;
         }
+        for (unsigned int i = 0; i < planned_path.size(); i++)
+            *logger_ << "Planned point: " << planned_path.at(i) << std::endl;
     }
 
     UNITTEST_ROUNDED_TRAJ = computeTrajectoryRoundedCorner(
@@ -174,6 +176,14 @@ TrajectoryVector MotionPlanner::planMotion(
         logger_->log("MPCOutput.theta", t, p.position.theta);
         logger_->log("MPCOutput.v", t, p.linearVelocity);
         logger_->log("MPCOutput.w", t, p.angularVelocity);
+
+        p = UNITTEST_ROUNDED_TRAJ.getCurrentPoint(t);
+        logger_->log("RoundedCornersTraj.x", t, p.position.x);
+        logger_->log("RoundedCornersTraj.y", t, p.position.y);
+        logger_->log("RoundedCornersTraj.theta", t, p.position.theta);
+        logger_->log("RoundedCornersTraj.v", t, p.linearVelocity);
+        logger_->log("RoundedCornersTraj.w", t, p.angularVelocity);
+
         t += 0.01;
     }
 #endif
@@ -198,6 +208,9 @@ TrajectoryVector MotionPlanner::planMotion(
         // insert solved trajectory
         res.insert( res.end(), st.begin(), st.end() );
 
+#ifdef MOTIONCONTROLLER_UNITTEST
+    UNITTEST_ROUNDED_TRAJ.insert(UNITTEST_ROUNDED_TRAJ.begin(), pt_sub_start);
+#endif
         if (ensureEndAngle)
         {
             // at end, perform a point turn to get the right angle
@@ -206,6 +219,9 @@ TrajectoryVector MotionPlanner::planMotion(
                 res.getEndPoint().position, targetPosition.theta)
             );
             res.push_back(pt_sub_end);
+#ifdef MOTIONCONTROLLER_UNITTEST
+    UNITTEST_ROUNDED_TRAJ.push_back(pt_sub_end);
+#endif
         }
     }
     else
@@ -239,11 +255,11 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     while (t <= traj.getDuration())
     {
         TrajectoryPoint p = traj.getCurrentPoint(t);
-        logger_->log("LinearInterpolation.x", t, p.position.x);
-        logger_->log("LinearInterpolation.y", t, p.position.y);
-        logger_->log("LinearInterpolation.theta", t, p.position.theta);
-        logger_->log("LinearInterpolation.v", t, p.linearVelocity);
-        logger_->log("LinearInterpolation.w", t, p.angularVelocity);
+        logger_->log("MPCReference.x", t, p.position.x);
+        logger_->log("MPCReference.y", t, p.position.y);
+        logger_->log("MPCReference.theta", t, p.position.theta);
+        logger_->log("MPCReference.v", t, p.linearVelocity);
+        logger_->log("MPCReference.w", t, p.angularVelocity);
         t += 0.01;
     }
 #endif
@@ -302,13 +318,13 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
 
     // get total distance
     double distance = 0;
-    for (long unsigned int i = 0; i < p.size() - 1; i++)
+    for (unsigned int i = 0; i < p.size() - 1; i++)
     {
         distance += (p.at(i+1) - p.at(i)).norm();
     }
 
 #ifdef VERBOSE
-    cout << "computeTrajectoryBasicPath: Planning path of distance " << distance << endl;
+    cout << "computeTrajectoryBasicPath: Planning path of distance " << distance << " to target: " << p.back() << std::endl;
 #endif
 
     // make a trapezoid of velocity
@@ -321,14 +337,15 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
     );
 
     // parameterize the trajectory using curvilinear abscissa
-    double startPointCurvilinearAbscissa = 0.0;
+    double endPointCurvilinearAbscissa = 0.0;
     double startPointTrapezoid = 0.0;
 
-    for (long unsigned int i = 0; i < p.size() - 1; i++) {
+    for (long unsigned int i = 0; i < p.size() - 1; i++)
+    {
+        RobotPosition const p1 = p.at(i);
+        RobotPosition const p2 = p.at(i+1);
 
-        RobotPosition p1 = p.at(i);
-        RobotPosition p2 = p.at(i+1);
-        double endPointCurvilinearAbscissa = startPointCurvilinearAbscissa += (p2 - p1).norm();
+        endPointCurvilinearAbscissa += (p2 - p1).norm();
 
         double startSpeed = 0.0;
         if (i == 0) {
@@ -338,13 +355,6 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
             // do not take the endpoint or else the speed is null
             startSpeed = vector.back()->getCurrentPoint(vector.back()->getDuration()).linearVelocity;
         }
-
-        // // approximate the velocity curve to be a trapezoid
-        // // could refine that taking distance into account
-        // double maxSpeed = (
-        //     tp.getState(tp.getDuration() * i / (p.size()-1)).velocity +
-        //     tp.getState(tp.getDuration() * (i+1) / (p.size()-1)).velocity
-        // ) / 2.0;
 
         // get max velocity from tp
         double timeOfTrapezoid = startPointTrapezoid;
@@ -374,7 +384,6 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
         vector.push_back(std::shared_ptr<Trajectory>(line));
 
         // Update variables
-        startPointCurvilinearAbscissa = endPointCurvilinearAbscissa;
         startPointTrapezoid += line->getDuration();
     }
 
@@ -392,7 +401,6 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
     }
     *logger_ << "[MotionPlanner] " << "t: " << vector.getDuration() << " " << vector.getEndPoint() << std::endl;
 #endif
-
     return vector;
 };
 
@@ -475,11 +483,11 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
 
         // Do some padding on theta to better match the desired end angle.
         double const HALF_WINDOW_SIZE = 7;
-        if (tryEnsureEndAngle)
-        {
-            for (int i = 0; i < HALF_WINDOW_SIZE; i++)
-                posTheta.push_back(endAngle);
-        }
+        // if (tryEnsureEndAngle)
+        // {
+        //     for (int i = 0; i < HALF_WINDOW_SIZE; i++)
+        //         posTheta.push_back(endAngle);
+        // }
         // Filter
         posTheta = movingAverage(posTheta, HALF_WINDOW_SIZE);
 

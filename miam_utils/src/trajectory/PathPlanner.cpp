@@ -237,26 +237,15 @@ namespace miam{
                 positions.front() = start;
                 positions.back() = end;
 
-                // smooth out angles
+                // Give to each point the angle corresponding to the line going to thext point.
                 for (unsigned int i = 1; i < positions.size(); i++)
                 {
-                    double theta;
-
-                    // compute angle
-                    double dx = positions.at(i).x - positions.at(i-1).x;
-                    double dy = positions.at(i).y - positions.at(i-1).y;
-
-                    if (dx == 0)
-                    {
-                        theta = (dy > 0 ? 1 : -1) * M_PI_2;
-                    }
-                    else
-                    {
-                        theta = atan(dy/dx);
-                    }
-                    positions.at(i-1).theta = theta;
-                    positions.at(i).theta = theta;
+                    double const dx = positions.at(i).x - positions.at(i-1).x;
+                    double const dy = positions.at(i).y - positions.at(i-1).y;
+                    positions.at(i).theta = std::atan2(dy, dx);
                 }
+                if (positions.size() > 1)
+                    positions.at(0).theta = positions.at(1).theta;
             }
             else
             {

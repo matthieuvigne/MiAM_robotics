@@ -144,26 +144,29 @@ namespace miam{
             // For each remaining pair of points, computed the line and rounded corner to go there.
             for(uint i = 1; i < positions.size() - 1; i++)
             {
-                RobotPosition startPoint = trajectories.back()->getEndPoint().position;
-                RobotPosition roundedCornerPoint = positions.at(i);
-                RobotPosition endPoint = positions.at(i + 1);
+                RobotPosition const startPoint = trajectories.back()->getEndPoint().position;
+                RobotPosition const roundedCornerPoint = positions.at(i);
+                RobotPosition const endPoint = positions.at(i + 1);
 
                 // Find position of the center of the circle.
                 // Get vectors going from the corner to both points.
                 RobotPosition firstVector = startPoint - roundedCornerPoint;
-                double firstNorm = firstVector.norm();
+                double const firstNorm = firstVector.norm();
                 firstVector.normalize();
                 RobotPosition secondVector = endPoint - roundedCornerPoint;
-                double secondNorm = secondVector.norm();
+                double const secondNorm = secondVector.norm();
                 secondVector.normalize();
 
                 // Find angle between both vectors.
-                double angle = std::acos(firstVector.dot(secondVector));
+                double const angle = std::acos(firstVector.dot(secondVector));
+
+                // If points are aligned, just skip it.
+                if (M_PI - angle < 1e-3)
+                    continue;
 
                 // Get distance from roundedCornerPoint to center along each vector, reducing the radius if it is too large.
-                double coefficient = 1 / std::tan(angle / 2.0);
-
-                double circleRadius = std::min(radius, std::min(firstNorm, secondNorm) / coefficient * 0.99);
+                double const coefficient = 1 / std::tan(angle / 2.0);
+                double const circleRadius = std::min(radius, std::min(firstNorm, secondNorm) / coefficient * 0.99);
 
                 // Compute point where the circle intersects both trajectories: get the first point and the
                 // angle.
