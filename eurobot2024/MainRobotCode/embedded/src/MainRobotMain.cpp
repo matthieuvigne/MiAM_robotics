@@ -65,8 +65,10 @@ int main(int argc, char **argv)
         if (std::string(argv[i]) == "--testmode")
             testMode = true;
         else if (std::string(argv[i]) == "--nolidar")
+        {
             noLidar = true;
             testMode = true;
+        }
         else if (std::string(argv[i]) == "--interactive")
             interactive = true;
         else

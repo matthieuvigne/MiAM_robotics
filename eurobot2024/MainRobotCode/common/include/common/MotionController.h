@@ -103,10 +103,11 @@
             /// @brief  Go to a target position in a straight line.
             /// @details This function is blocking, and returns once the motion has completed.
             /// @param targetPosition Target position
+            /// @param enforceEndAngle If set, a final rotation is added to match the end angle
             /// @param speedRatio Ratio of maximum speed
             /// @param backward Forward or backward motion
             /// @return True is move is successful, false otherwise
-            bool goToStraightLine(RobotPosition const& targetPosition, double const& speedRatio = 1.0, bool const& backward = false);
+            bool goToStraightLine(RobotPosition const& targetPosition, bool const& enforceEndAngle = false, double const& speedRatio = 1.0, bool const& backward = false);
 
 
 

@@ -205,7 +205,7 @@ namespace miam{
                 return positions;
             }
 
-            *logger_ << "[PathPlanner] Generate path ... \n";
+            *logger_ << "[PathPlanner] Generate path ... " << std::endl;
             auto path = generator_.findPath(
                 startPoint,
                 endPoint

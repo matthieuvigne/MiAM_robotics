@@ -82,6 +82,8 @@ private:
 
     MotionController *motionController_;
     Logger *logger_;
+
+    std::vector<Obstacle> obstacles_;
 };
 
 

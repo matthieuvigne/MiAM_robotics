@@ -6,6 +6,8 @@
 #define TABLE_HEIGHT_MM 2000.0
 #define TABLE_MARGIN_MM 0.0
 
+double const OBSTACLE_SIZE = 200;
+
 bool exitApp(GdkEventAny* event)
 {
     Gtk::Main::quit();
@@ -205,10 +207,27 @@ bool MotionControllerTestingViewer::redraw(const Cairo::RefPtr<Cairo::Context>& 
     cr->translate(originX_, originY_);
     cr->scale(mmToCairo_, mmToCairo_);
 
+    // Draw obstacles
+    for (auto obstacle: obstacles_)
+    {
+        cr->set_source_rgb(1.0, 0.0, 0.0);
+        cr->arc(std::get<0>(obstacle).x, TABLE_HEIGHT_MM - std::get<0>(obstacle).y, OBSTACLE_SIZE, 0, 2 * M_PI - 0.01);
+        cr->fill();
+    }
+
     // Robot robot start / end
     drawRobot(cr, startPosition_, 0.8, 0.3, 0.3, 0.8);
     drawRobot(cr, endPosition_, 0.3, 0.8, 0.3, 0.8);
-    drawRobot(cr, currentEditPosition_, 0.3, 0.3, 0.3, 0.8);
+    if (buttonSetObstacle->get_active())
+    {
+        cr->set_source_rgba(0.3, 0.3, 0.3, 0.8);
+        cr->arc(currentEditPosition_.x, TABLE_HEIGHT_MM - currentEditPosition_.y, OBSTACLE_SIZE, 0, 2 * M_PI - 0.01);
+        cr->fill();
+    }
+    else
+    {
+        drawRobot(cr, currentEditPosition_, 0.3, 0.3, 0.3, 0.8);
+    }
     std::vector<RobotPosition> pos;
     pos.push_back(startPosition_);
     pos.push_back(endPosition_);
@@ -267,6 +286,7 @@ bool MotionControllerTestingViewer::mouseMove(GdkEventMotion* motion_event)
 
     currentEditPosition_.x = posX;
     currentEditPosition_.y = posY;
+
     drawingArea->queue_draw();
     return true;
 }
@@ -283,7 +303,22 @@ bool MotionControllerTestingViewer::mouseClicked(GdkEventButton* buttonEvent)
     }
     else if (buttonSetObstacle->get_active())
     {
-        // TODO
+        // Remove obstacle if they are too close.
+        bool hasErased= false;
+        for (auto iter = obstacles_.begin(); iter != obstacles_.end(); )
+        {
+            if ((currentEditPosition_ -std::get<0>(*iter)).norm() < OBSTACLE_SIZE)
+            {
+                iter = obstacles_.erase(iter);
+                hasErased = true;
+            }
+            else
+                iter++;
+        }
+        if (!hasErased)
+            obstacles_.push_back(Obstacle(currentEditPosition_, OBSTACLE_SIZE));
+        recompute();
+        refresh();
     }
     drawingArea->queue_draw();
     return true;
@@ -316,6 +351,6 @@ void MotionControllerTestingViewer::recompute()
     motionController_->resetPosition(startPosition_);
     mpcTrajectory_ = motionController_->computeMPCTrajectory(
         endPosition_,
-        motionController_->getDetectedObstacles(),
+        obstacles_,
         true);
 }

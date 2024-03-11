@@ -247,6 +247,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     cplan.maxWheelAcceleration *= MPC_ACCELERATION_OVERHEAD_PCT; // give 20% overhead to the controller
 
     // create trajectory interpolating waypoints
+    std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
     traj = computeTrajectoryBasicPath(cplan, waypoints, 0);
 
 #ifdef MOTIONCONTROLLER_UNITTEST
@@ -305,6 +306,9 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
         start_position = st->getCurrentPoint(HORIZON_T - 2 * DELTA_T);
         nIter++;
     }
+    std::chrono::high_resolution_clock::time_point mpcTime = std::chrono::high_resolution_clock::now();
+    *logger_ << "MPC solved in: " << std::chrono::duration_cast<std::chrono::duration<double>>(mpcTime - startTime).count() << std::endl;
+
     return res;
 }
 

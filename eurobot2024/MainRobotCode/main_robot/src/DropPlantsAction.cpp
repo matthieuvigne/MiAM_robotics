@@ -15,7 +15,7 @@ const miam::RobotPosition PLANT_DROP_COORD[3] =
 const miam::RobotPosition JARDINIERE_COORD[3] =
 {
     // Jardiniere
-    miam::RobotPosition(CHASSIS_MARGIN, 1700, M_PI),
+    miam::RobotPosition(CHASSIS_MARGIN, 1400, M_PI),
     miam::RobotPosition(3000 - CHASSIS_MARGIN, 600, 0),
     miam::RobotPosition(300, 2000 - CHASSIS_MARGIN, M_PI_2)
 };
@@ -69,8 +69,9 @@ bool DropPlantsAction::performAction()
 
 void DropPlantsToJarnidiereAction::updateStartCondition()
 {
-    startPosition_ = JARDINIERE_COORD[zoneId_] +
-        RobotPosition(-250, 0, 0).rotate(JARDINIERE_COORD[zoneId_].theta);
+    RobotPosition offset = RobotPosition(-250, 0, 0).rotate(JARDINIERE_COORD[zoneId_].theta);
+    offset.theta = 0;
+    startPosition_ = JARDINIERE_COORD[zoneId_] + offset;
 
     // Action is only possible if there are plants present,
     // no plants in this jardiniere, and if the pots were cleared
@@ -102,16 +103,18 @@ void DropPlantsToJarnidiereAction::actionStartTrigger()
 bool DropPlantsToJarnidiereAction::performAction()
 {
     double const MARGIN = 100;
-    RobotPosition const target = JARDINIERE_COORD[zoneId_] +
+    RobotPosition target = JARDINIERE_COORD[zoneId_] +
         RobotPosition(-MARGIN, 0, 0).rotate(JARDINIERE_COORD[zoneId_].theta);
+    target.theta -= JARDINIERE_COORD[zoneId_].theta;
 
-    if (!robot_->getMotionController()->goToStraightLine(target))
+    if (!robot_->getMotionController()->goToStraightLine(target, true))
         return false;
     if (!robot_->getMotionController()->goStraight(MARGIN))
         return false;
 
     servoManager_->openClaws(isDroppingFront_);
     robot_->gameState_.nPlantsCollected[3 + zoneId_] += robot_->gameState_.clearClawContent(isDroppingFront_);
+
     robot_->getMotionController()->goStraight(-MARGIN);
 
     // Action should never be done again
