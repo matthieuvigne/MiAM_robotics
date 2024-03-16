@@ -93,7 +93,31 @@ TrajectoryVector MotionPlanner::planMotion(
             bool useTrajectoryRoundedCorners)
 {
     // pathPlanner_.printMap();
-    std::vector<RobotPosition > planned_path = pathPlanner_.planPath(currentPosition, targetPosition);
+
+    std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
+
+    // To enforce end angle, try to reach a position offsetted from the true target.
+    std::vector<RobotPosition > planned_path;
+    if (false)
+    // if (ensureEndAngle)
+    {
+        double const OFFSET_DISTANCE = 100;
+        RobotPosition offsetPosition = targetPosition - RobotPosition(OFFSET_DISTANCE, 0, 0).rotate(targetPosition.theta);
+        planned_path = pathPlanner_.planPath(currentPosition, offsetPosition);
+        if (planned_path.size() > 0)
+        {
+            planned_path.push_back(targetPosition);
+        }
+        else
+            *logger_ << "[PathPlanner] Planning with angle offset failed, try to replan to target" << std::endl;
+    }
+    // If planning failed, or if no offset was asked, plan toward true target.
+    if (planned_path.size() == 0)
+        planned_path = pathPlanner_.planPath(currentPosition, targetPosition);
+
+    std::chrono::high_resolution_clock::time_point astarTime = std::chrono::high_resolution_clock::now();
+    *logger_ << "A* solved in: " << std::chrono::duration_cast<std::chrono::duration<double>>(astarTime - startTime).count() << std::endl;
+
     pathPlanner_.printMap(planned_path, currentPosition, targetPosition);
 
 #ifdef MOTIONCONTROLLER_UNITTEST

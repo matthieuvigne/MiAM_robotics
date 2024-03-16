@@ -7,7 +7,7 @@ const miam::RobotPosition PLANT_DROP_COORD[3] =
     // Jardiniere
     miam::RobotPosition(200, 200, 0),
     miam::RobotPosition(200, 1800, 0),
-    miam::RobotPosition(2700, 100, 0)
+    miam::RobotPosition(2700, 1500, 0)
 };
 
 #define CHASSIS_MARGIN 150
@@ -17,7 +17,7 @@ const miam::RobotPosition JARDINIERE_COORD[3] =
     // Jardiniere
     miam::RobotPosition(CHASSIS_MARGIN, 1400, M_PI),
     miam::RobotPosition(3000 - CHASSIS_MARGIN, 600, 0),
-    miam::RobotPosition(300, 2000 - CHASSIS_MARGIN, M_PI_2)
+    miam::RobotPosition(760, 2000 - CHASSIS_MARGIN, M_PI_2)
 };
 
 void DropPlantsAction::updateStartCondition()
@@ -76,10 +76,11 @@ void DropPlantsToJarnidiereAction::updateStartCondition()
     // Action is only possible if there are plants present,
     // no plants in this jardiniere, and if the pots were cleared
     bool isPossible = robot_->gameState_.nPlantsInRobot() > 0 && robot_->gameState_.nPlantsCollected[zoneId_ + 3] == 0;
-    if (zoneId_ < 3)
-        isPossible &= robot_->gameState_.nPotsInPile[zoneId_] == 0;
+    // TODO: clear pots
+    // if (zoneId_ < 2)
+    //     isPossible &= robot_->gameState_.nPotsInPile[zoneId_] == 0;
 
-    if (isPossible)
+    if (!isPossible)
     {
         priority_ = -1;
     }
@@ -107,14 +108,18 @@ bool DropPlantsToJarnidiereAction::performAction()
         RobotPosition(-MARGIN, 0, 0).rotate(JARDINIERE_COORD[zoneId_].theta);
     target.theta -= JARDINIERE_COORD[zoneId_].theta;
 
-    if (!robot_->getMotionController()->goToStraightLine(target, true))
+    if (!robot_->getMotionController()->goToStraightLine(target, 1.0, false, true))
         return false;
-    if (!robot_->getMotionController()->goStraight(MARGIN))
+    if (!robot_->getMotionController()->goStraight(MARGIN + 10, 0.5))
         return false;
 
+    servoManager_->setClawPosition((isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::MEDIUM_POSITION);
+    robot_->wait(0.5);
     servoManager_->openClaws(isDroppingFront_);
     robot_->gameState_.nPlantsCollected[3 + zoneId_] += robot_->gameState_.clearClawContent(isDroppingFront_);
 
+    robot_->wait(2.5);
+    servoManager_->setClawPosition((isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
     robot_->getMotionController()->goStraight(-MARGIN);
 
     // Action should never be done again

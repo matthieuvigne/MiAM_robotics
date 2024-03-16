@@ -11,7 +11,16 @@ void PickupPlantsAction::updateStartCondition()
 
     startPosition_ = PLANT_COLLECT_COORD[zoneId_];
 
-    double const angle = std::atan2(startPosition_.y - currentPose.y, startPosition_.x - currentPose.x);
+    double angle = std::atan2(startPosition_.y - currentPose.y, startPosition_.x - currentPose.x);
+
+    // For the zones on the line, only grab the plants horizontally.
+    if (std::abs(startPosition_.x - 1500) > 10)
+    {
+        if (angle > -M_PI_2 || angle < M_PI_2)
+            angle = 0;
+        else
+            angle = M_PI;
+    }
     startPosition_.x -= RADIUS * std::cos(angle);
     startPosition_.y -= RADIUS * std::sin(angle);
     startPosition_.theta = angle;
@@ -39,6 +48,7 @@ bool PickupPlantsAction::performAction()
 
     servoManager_->waitForTurret();
     servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::LOW_POSITION);
+    robot_->wait(0.8);
 
     bool isFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
     robot_->logger_ << "Is front" << isFront << std::endl;
@@ -49,8 +59,8 @@ bool PickupPlantsAction::performAction()
 
     RobotPosition targetPosition = currentPose;
     targetPosition.theta = angle;
-    targetPosition.x += 150 * std::cos(angle);
-    targetPosition.y += 150 * std::sin(angle);
+    targetPosition.x += 200 * std::cos(angle);
+    targetPosition.y += 200 * std::sin(angle);
     robot_->getMotionController()->goToStraightLine(targetPosition, 0.5);
 
     servoManager_->closeClaws(isFront);

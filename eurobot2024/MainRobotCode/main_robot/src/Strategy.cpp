@@ -19,6 +19,7 @@
 
 #include "main_robot/PickupPlantsAction.h"
 #include "main_robot/DropPlantsAction.h"
+#include "main_robot/SolarPanelsAction.h"
 
 using namespace miam::trajectory;
 using miam::RobotPosition;
@@ -68,6 +69,7 @@ bool Strategy::setup(RobotInterface *robot)
             actions_.push_back(std::make_shared<DropPlantsAction>(robot, &servoManager_, i));
             actions_.push_back(std::make_shared<DropPlantsToJarnidiereAction>(robot, &servoManager_, i));
         }
+        actions_.push_back(std::make_shared<SolarPanelsAction>(robot, &servoManager_));
     }
 
     // Wait until turret is calibrating.

@@ -482,7 +482,7 @@ double MotionController::minDistancePositionToObstacle(RobotPosition position, b
 }
 
 
-bool MotionController::goToStraightLine(RobotPosition const& position, bool const& enforceEndAngle, double const& speedFactor, bool const& backward)
+bool MotionController::goToStraightLine(RobotPosition const& position, double const& speedFactor, bool const& backward, bool const& enforceEndAngle)
 {
     // Don't go faster than maximum
     double const clampedFactor = std::clamp(speedFactor, 0.0, 1.75);
@@ -512,5 +512,5 @@ bool MotionController::goStraight(double const& distance, double const& speedFac
     double const angle = targetPosition.theta + (distance < 0 ? M_PI : 0);
     targetPosition.x += std::cos(angle) * std::abs(distance);
     targetPosition.y += std::sin(angle) * std::abs(distance);
-    return goToStraightLine(targetPosition, false, speedFactor, distance < 0);
+    return goToStraightLine(targetPosition, speedFactor, distance < 0, false);
 }
