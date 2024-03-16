@@ -9,7 +9,7 @@
 
 double const REDUCTION_RATIO = 25 / 65.0;
 
-void ServoManager::init(RobotInterface *robot)
+void ServoManager::init(RobotInterface *robot, bool const& isTurretAlreadyCalibrated)
 {
     robot_ = robot;
     servos_ = robot->getServos();
@@ -25,6 +25,7 @@ void ServoManager::init(RobotInterface *robot)
       robot_->wait(0.1);
     }
     openClaws(true);
+    openClaws(false);
     setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
     setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
     raiseSolarPanelArm();
@@ -33,67 +34,51 @@ void ServoManager::init(RobotInterface *robot)
     // Change P gain of the turret servo to prevent vibrations
     servos_->setPIDGains(TURRET_ID, 15, 5, 0);
 
-    std::thread th(&ServoManager::turretMotionThread, this);
+    std::thread th(&ServoManager::turretMotionThread, this, isTurretAlreadyCalibrated);
     ThreadHandler::addThread(th);
 
 }
 
 
+int clawOpen[6] = {435, 445, 570, 665, 370, 405};
+int clawDirection[6] = {-1, 1, 1, -1, 1, 1};
+
 void ServoManager::openClaw(int const& clawId)
 {
-    switch(clawId)
-    {
-        case 2:
-            servos_->setTargetPosition(clawId, 435);
-            break;
-        case 3:
-            servos_->setTargetPosition(clawId, 445);
-            break;
-        case 4:
-            servos_->setTargetPosition(clawId, 570);
-            break;
-        default:
-            std::cout << "Failed to open claw." << std::endl;
-    }
+    int const idx = clawId - 2;
+    if (idx < 6 && idx >= 0)
+            servos_->setTargetPosition(clawId, clawOpen[idx]);
 }
 
 
 void ServoManager::closeClaw(int const& clawId)
 {
-    switch(clawId)
-    {
-        case 2:
-            servos_->setTargetPosition(clawId, 365);
-            break;
-        case 3:
-            servos_->setTargetPosition(clawId, 515);
-            break;
-        case 4:
-            servos_->setTargetPosition(clawId, 640);
-            break;
-        default:
-            std::cout << "Failed to close claw." << std::endl;
-    }
+    int const CLAW_MOTION = 90;
+    int const idx = clawId - 2;
+
+    if (idx < 6 && idx >= 0)
+            servos_->setTargetPosition(clawId, clawOpen[idx] + clawDirection[idx] * CLAW_MOTION);
 }
 
 void ServoManager::openClaws(bool const& front)
 {
-    std::cout << "openClaws" << std::endl;
-    openClaw(2);
-    robot_->wait(0.050);
-    openClaw(3);
-    robot_->wait(0.050);
-    openClaw(4);
+    int offset = (front ? 2 : 5);
+    for (int i = 0; i < 3; i++)
+    {
+        robot_->wait(0.005);
+        openClaw(offset + i);
+    }
 }
 
 
 void ServoManager::closeClaws(bool const& front)
 {
-    closeClaw(2);
-    robot_->wait(0.050);
-    closeClaw(3);
-    robot_->wait(0.050);
-    closeClaw(4);
+    int offset = (front ? 2 : 5);
+    for (int i = 0; i < 3; i++)
+    {
+        robot_->wait(0.005);
+        closeClaw(offset + i);
+    }
 }
 
 void ServoManager::updateClawContent(bool const& front, GameState & gameState)
@@ -124,19 +109,19 @@ void ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
         case ClawPosition::LOW_POSITION:
             servos_->setTargetPosition(servoId, 1625);
             robot_->wait(0.030);
-            servos_->setTargetPosition(servoId + 1, 3432);
+            servos_->setTargetPosition(servoId + 1, 2432);
             robot_->wait(0.030);
             break;
         case ClawPosition::MEDIUM_POSITION:
-            servos_->setTargetPosition(servoId, 2335);
+            servos_->setTargetPosition(servoId, 2250);
             robot_->wait(0.030);
-            servos_->setTargetPosition(servoId + 1, 2550);
+            servos_->setTargetPosition(servoId + 1, 1770);
             robot_->wait(0.030);
             break;
         case ClawPosition::HIGH_POSITION:
             servos_->setTargetPosition(servoId, 2755);
             robot_->wait(0.030);
-            servos_->setTargetPosition(servoId + 1, 2352);
+            servos_->setTargetPosition(servoId + 1, 1352);
             robot_->wait(0.030);
             break;
         default:
@@ -174,7 +159,7 @@ void ServoManager::waitForTurret()
 }
 
 
-void ServoManager::turretMotionThread()
+void ServoManager::turretMotionThread(bool const& isTurretAlreadyCalibrated)
 {
 #ifdef SIMULATION
     turretState_ = turret::state::IDLE;
@@ -186,68 +171,43 @@ void ServoManager::turretMotionThread()
     robot_->wait(0.3);
 
     // Perform calibration
-    turretState_ = turret::state::CALIBRATING;
-    servos_->setMode(TURRET_ID, STS::Mode::VELOCITY);
-
-    // Hit fast, then slow
-    while (RPi_readGPIO(TURRET_START_SWITCH_ID) == 1)
-        servos_->setTargetVelocity(TURRET_ID, -1023);
-    for (int i = 0; i <5; i++)
+    if (isTurretAlreadyCalibrated)
     {
-        servos_->setTargetVelocity(TURRET_ID, 1000);
-        robot_->wait(0.1);
+        servos_->setMode(TURRET_ID, STS::Mode::STEP);
+        currentTurretPosition_ = 0.0;
+        turretState_ = turret::state::IDLE;
     }
-    robot_->wait(0.5);
-    while (RPi_readGPIO(TURRET_START_SWITCH_ID) == 1)
-        servos_->setTargetVelocity(TURRET_ID, -300);
+    else
+    {
+        turretState_ = turret::state::CALIBRATING;
+        servos_->setMode(TURRET_ID, STS::Mode::VELOCITY);
 
-    servos_->setTargetVelocity(TURRET_ID, 0);
-    robot_->wait(0.050);
-    servos_->setMode(TURRET_ID, STS::Mode::STEP);
-    robot_->wait(0.050);
+        // Hit fast, then slow
+        while (RPi_readGPIO(TURRET_START_SWITCH_ID) == 1)
+            servos_->setTargetVelocity(TURRET_ID, -1023);
+        for (int i = 0; i <5; i++)
+        {
+            servos_->setTargetVelocity(TURRET_ID, 1000);
+            robot_->wait(0.1);
+        }
+        robot_->wait(0.5);
+        while (RPi_readGPIO(TURRET_START_SWITCH_ID) == 1)
+            servos_->setTargetVelocity(TURRET_ID, -300);
 
-    double const deltaAngle = -3.47;
-    int const nStep = static_cast<int>(-deltaAngle / REDUCTION_RATIO * 4096 / 2 / M_PI);
-    servos_->setTargetPosition(TURRET_ID, nStep);
-    robot_->wait(1.0);
-    while (servos_->isMoving(TURRET_ID))
+        servos_->setTargetVelocity(TURRET_ID, 0);
         robot_->wait(0.050);
-    currentTurretPosition_ = 0.0;
+        servos_->setMode(TURRET_ID, STS::Mode::STEP);
+        robot_->wait(0.050);
 
-    turretState_ = turret::state::IDLE;
-    while (true)
-    {
-        // robot_->wait(0.020);
-        // int pos = servos_->getCurrentPosition(TURRET_ID);
+        double const deltaAngle = -3.47;
+        int const nStep = static_cast<int>(-deltaAngle / REDUCTION_RATIO * 4096 / 2 / M_PI);
+        servos_->setTargetPosition(TURRET_ID, nStep);
+        robot_->wait(1.0);
+        while (servos_->isMoving(TURRET_ID))
+            robot_->wait(0.050);
+        currentTurretPosition_ = 0.0;
 
-        // std::cout << "pos" << pos << std::endl;
-
-        // updateTurretPosition();
-        // std::cout << "isMoving" << servos_->isMoving(TURRET_ID) << std::endl;
-        // robot_->log("ServoManager.turretAngle", currentTurretPosition_);
-        // robot_->log("ServoManager.turretState", static_cast<int>(turretState_));
-        // robot_->log("TurrentSwitch", RPi_readGPIO(TURRET_START_SWITCH_ID));
-    }
-    while (true)
-    {
-        // robot_->wait(0.020);
-
-        // if (turretState_ == turret::state::MOVING_CLOCKWISE || turretState_ == turret::state::MOVING_COUNTER_CLOCKWISE)
-        // {
-        //     int const turretMotionSign = (turretState_ == turret::state::MOVING_CLOCKWISE ? 1 : -1);
-
-        //     if (turretMotionSign * (currentTurretPosition_ - targetTurretPosition_) > 0)
-        //         servos_->setTargetVelocity(TURRET_ID, turretMotionSign * 2000);
-        //     else
-        //     {
-        //         servos_->setTargetVelocity(TURRET_ID, 0);
-        //         turretState_ = turret::state::IDLE;
-        //     }
-        // }
-        // else
-        //     servos_->setTargetVelocity(TURRET_ID, 0);
-
-        // updateTurretPosition();
+        turretState_ = turret::state::IDLE;
     }
 }
 

@@ -71,35 +71,35 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
         }
         // Configure servos
         writeRegister(0xFE, STS::registers::WRITE_LOCK, 0);
-        usleep(1000);
-        // Set a return delay of 40us.
-        writeRegister(0xFE, STS::registers::RESPONSE_DELAY, 200);
-        usleep(1000);
+        usleep(2000);
+        // Set a return delay of 4us.
+        writeRegister(0xFE, STS::registers::RESPONSE_DELAY, 2);
+        usleep(2000);
         // Set a return status level of 0.
         writeRegister(0xFE, STS::registers::RESPONSE_STATUS_LEVEL, 0);
-        usleep(1000);
+        usleep(2000);
         // Set voltage limit to  8.5V
         writeRegister(0xFE, STS::registers::MAXIMUM_VOLTAGE, 85);
-        usleep(1000);
+        usleep(2000);
         // Set all protections on
         writeRegister(0xFE, STS::registers::UNLOADING_CONDITION, 44);
-        usleep(1000);
+        usleep(2000);
         // Lock EEPROM
         writeRegister(0xFE, STS::registers::WRITE_LOCK, 1);
-        usleep(1000);
+        usleep(2000);
         writeRegister(0xFE, STS::registers::MINIMUM_ANGLE, 0);
-        usleep(1000);
+        usleep(2000);
         writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 1, 0);
-        usleep(1000);
+        usleep(2000);
         writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 2, 0);
-        usleep(1000);
+        usleep(2000);
         writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 3, 0);
-        usleep(1000);
+        usleep(2000);
         // Disable all servos
         disable(0xFE);
 
         // Give some time for the servos to configure themselves.
-        usleep(10000);
+        usleep(20000);
         return true;
     }
     return false;
@@ -279,13 +279,13 @@ bool STSServoDriver::setTargetVelocity(unsigned char const& servoId, int16_t con
             // Not implemented, this messes us the servo configuration and is not used for now anyway.
             return false;
             // writeRegister(servoId, STS::registers::MINIMUM_ANGLE, 0);
-            // usleep(1000);
+            // usleep(2000);
             // writeRegister(servoId, STS::registers::MINIMUM_ANGLE + 1, 0);
-            // usleep(1000);
+            // usleep(2000);
             // writeRegister(servoId, STS::registers::MINIMUM_ANGLE + 2, 0);
-            // usleep(1000);
+            // usleep(2000);
             // writeRegister(servoId, STS::registers::MINIMUM_ANGLE + 3, 0);
-            // usleep(1000);
+            // usleep(2000);
             // return writeTwoBytesRegister(servoId, STS::registers::RUNNING_TIME, velocity, asynchronous);
         default:
             return false;

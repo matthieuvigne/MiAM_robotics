@@ -40,7 +40,7 @@ class ServoManager
 public:
     ServoManager() {}
 
-    void init(RobotInterface *robot);
+    void init(RobotInterface *robot, bool const& isTurretAlreadyCalibrated);
 
     void openClaw(int const& clawId);
     void closeClaw(int const& clawId);
@@ -70,7 +70,7 @@ private:
     RobotInterface *robot_;
     STSServoDriver *servos_;
 
-    void turretMotionThread();
+    void turretMotionThread(bool const& isTurretAlreadyCalibrated);
 
     turret::state turretState_{turret::state::CALIBRATING};
 

@@ -50,8 +50,8 @@
 #define MPC_CONSECUTIVE_POINT_TOLERANCE 1 // mm
 #define MPC_CONSECUTIVE_ANGLE_TOLERANCE 0.05 // rad
 
-#define MPC_VELOCITY_OVERHEAD_PCT 0.7
-#define MPC_ACCELERATION_OVERHEAD_PCT 0.6
+#define MPC_VELOCITY_OVERHEAD_PCT 0.9
+#define MPC_ACCELERATION_OVERHEAD_PCT 0.9
 
 /* Global variables used by the solver. */
 ACADOvariables acadoVariables;
@@ -170,11 +170,8 @@ TrajectoryVector MotionPlanner::planMotion(
     {
         *logger_ << "[MotionPlanner] " << "Smoothing path using trajectory rounded corners" << std::endl;
 
-        miam::trajectory::TrajectoryConfig cplan = robotParams_.getTrajConf();
-        cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
-
         st = computeTrajectoryRoundedCorner(
-            cplan,
+            robotParams_.getTrajConf(),
             planned_path,
             200
         );
@@ -267,8 +264,8 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
 
     // parameterize solver
     miam::trajectory::TrajectoryConfig cplan = robotParams_.getTrajConf();
-    cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give 20% overhead to the controller
-    cplan.maxWheelAcceleration *= MPC_ACCELERATION_OVERHEAD_PCT; // give 20% overhead to the controller
+    cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give some overhead to the controller
+    cplan.maxWheelAcceleration *= MPC_ACCELERATION_OVERHEAD_PCT; // give some overhead to the controller
 
     // create trajectory interpolating waypoints
     std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
@@ -296,9 +293,6 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
 
     int nIterMax = ceil(traj.getDuration() / (HORIZON_T - 2 * DELTA_T)) + 2; // enable that many iterations
     int nIter = 0;
-
-    cout << "Duration of the reference path: " << traj.getDuration() << endl;
-    cout << "nIterMax: " << nIterMax << endl;
 
     // proceed by increments of HORIZON_T - 2 * DELTA_T (not taking the last point since the final
     // constraint might make the solver brutally go towards the final point

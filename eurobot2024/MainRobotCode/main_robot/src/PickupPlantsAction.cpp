@@ -45,13 +45,13 @@ void PickupPlantsAction::actionStartTrigger()
 bool PickupPlantsAction::performAction()
 {
     robot_->logger_ << "[PickupPlantsAction] Performing action" << std::endl;
-
     servoManager_->waitForTurret();
-    servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::LOW_POSITION);
-    robot_->wait(0.8);
 
     bool isFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
     robot_->logger_ << "Is front" << isFront << std::endl;
+
+    servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
+    robot_->wait(0.8);
 
     // Grab three plants, moving toward the center of the zone.
     RobotPosition currentPose = robot_->getMotionController()->getCurrentPosition();
@@ -67,7 +67,7 @@ bool PickupPlantsAction::performAction()
 
     // See what has been grabbed
     robot_->wait(0.15);
-    servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
+    servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
     servoManager_->updateClawContent(isFront, robot_->gameState_);
     robot_->gameState_.nPlantsPerZone[zoneId_] -= 3;
 
@@ -86,7 +86,10 @@ bool PickupPlantsAction::performAction()
         shouldRetry = true;
         isFront = !isFront;
         servoManager_->moveTurret(isFront ? 0 :M_PI);
+        robot_->wait(1.0);
         servoManager_->waitForTurret();
+        servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
+        servoManager_->openClaws(isFront);
     }
 
     if (shouldRetry)
@@ -101,6 +104,9 @@ bool PickupPlantsAction::performAction()
         servoManager_->updateClawContent(isFront, robot_->gameState_);
         robot_->gameState_.nPlantsPerZone[zoneId_] -= 3;
     }
+
+    servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
+    servoManager_->setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
 
     // Action should not be done again
     return true;

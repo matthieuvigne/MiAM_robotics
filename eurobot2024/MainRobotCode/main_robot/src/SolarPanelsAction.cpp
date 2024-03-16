@@ -9,7 +9,7 @@ void SolarPanelsAction::updateStartCondition()
 {
     startPosition_ = RobotPosition(PANELS_Y_COORD[0] - 60, LATERAL_DISTANCE, 0);
 
-    priority_ = 10;
+    priority_ = -1;
 
 }
 

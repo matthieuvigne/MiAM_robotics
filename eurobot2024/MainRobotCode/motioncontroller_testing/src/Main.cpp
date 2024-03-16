@@ -5,8 +5,9 @@
 
 int main (int argc, char *argv[])
 {
-    miam::RobotPosition startPosition(310.0, 1690.0, 0.0);
-    miam::RobotPosition targetPosition(900.0, 1300.0, -0.5);
+    miam::RobotPosition startPosition(1505.0, 880.0, 0.0);
+    miam::RobotPosition targetPosition(688.0, 1635.0, 0.0);
+    // miam::RobotPosition targetPosition(900.0, 1300.0, -0.5);
 
     Logger logger;
 
