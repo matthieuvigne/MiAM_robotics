@@ -7,7 +7,7 @@
 
 #define SOLAR_PANEL_WHEEL 21
 
-double const REDUCTION_RATIO = 25 / 65.0;
+double const REDUCTION_RATIO = 23 / 60.0;
 
 void ServoManager::init(RobotInterface *robot, bool const& isTurretAlreadyCalibrated)
 {
@@ -43,30 +43,34 @@ void ServoManager::init(RobotInterface *robot, bool const& isTurretAlreadyCalibr
 int clawOpen[6] = {435, 445, 570, 665, 370, 405};
 int clawDirection[6] = {-1, 1, 1, -1, 1, 1};
 
-void ServoManager::openClaw(int const& clawId)
+int const CLAW_MOTION = 90;
+
+void ServoManager::openClaw(int const& clawId, bool const& halfOpen)
 {
     int const idx = clawId - 2;
     if (idx < 6 && idx >= 0)
-            servos_->setTargetPosition(clawId, clawOpen[idx]);
+    {
+        int const offset = (halfOpen ? 0.3 * CLAW_MOTION * clawDirection[idx] : 0);
+        servos_->setTargetPosition(clawId, clawOpen[idx] + offset);
+    }
 }
 
 
 void ServoManager::closeClaw(int const& clawId)
 {
-    int const CLAW_MOTION = 90;
     int const idx = clawId - 2;
 
     if (idx < 6 && idx >= 0)
             servos_->setTargetPosition(clawId, clawOpen[idx] + clawDirection[idx] * CLAW_MOTION);
 }
 
-void ServoManager::openClaws(bool const& front)
+void ServoManager::openClaws(bool const& front, bool const& halfOpen)
 {
     int offset = (front ? 2 : 5);
     for (int i = 0; i < 3; i++)
     {
         robot_->wait(0.005);
-        openClaw(offset + i);
+        openClaw(offset + i, halfOpen);
     }
 }
 
@@ -113,9 +117,9 @@ void ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
             robot_->wait(0.030);
             break;
         case ClawPosition::MEDIUM_POSITION:
-            servos_->setTargetPosition(servoId, 2250);
+            servos_->setTargetPosition(servoId, 2230);
             robot_->wait(0.030);
-            servos_->setTargetPosition(servoId + 1, 1770);
+            servos_->setTargetPosition(servoId + 1, 1850);
             robot_->wait(0.030);
             break;
         case ClawPosition::HIGH_POSITION:
@@ -199,7 +203,7 @@ void ServoManager::turretMotionThread(bool const& isTurretAlreadyCalibrated)
         servos_->setMode(TURRET_ID, STS::Mode::STEP);
         robot_->wait(0.050);
 
-        double const deltaAngle = -3.47;
+        double const deltaAngle = -3.5;
         int const nStep = static_cast<int>(-deltaAngle / REDUCTION_RATIO * 4096 / 2 / M_PI);
         servos_->setTargetPosition(TURRET_ID, nStep);
         robot_->wait(1.0);
@@ -233,7 +237,7 @@ void ServoManager::updateTurretPosition()
 
 void ServoManager::raiseSolarPanelArm()
 {
-    servos_->setTargetPosition(20, 1200);
+    servos_->setTargetPosition(20, 800);
 }
 
 void ServoManager::lowerSolarPanelArm()
@@ -243,5 +247,5 @@ void ServoManager::lowerSolarPanelArm()
 
 void ServoManager::spinSolarPanel(bool const& spin)
 {
-    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (spin ? -1023 : 0));
+    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (spin ? -1500 : 0));
 }

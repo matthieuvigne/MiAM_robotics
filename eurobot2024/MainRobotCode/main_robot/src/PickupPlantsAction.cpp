@@ -59,8 +59,8 @@ bool PickupPlantsAction::performAction()
 
     RobotPosition targetPosition = currentPose;
     targetPosition.theta = angle;
-    targetPosition.x += 200 * std::cos(angle);
-    targetPosition.y += 200 * std::sin(angle);
+    targetPosition.x += 160 * std::cos(angle);
+    targetPosition.y += 160 * std::sin(angle);
     robot_->getMotionController()->goToStraightLine(targetPosition, 0.5);
 
     servoManager_->closeClaws(isFront);
@@ -86,10 +86,11 @@ bool PickupPlantsAction::performAction()
         shouldRetry = true;
         isFront = !isFront;
         servoManager_->moveTurret(isFront ? 0 :M_PI);
-        robot_->wait(1.0);
+        robot_->wait(0.5);
         servoManager_->waitForTurret();
         servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
         servoManager_->openClaws(isFront);
+        robot_->wait(0.8);
     }
 
     if (shouldRetry)

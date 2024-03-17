@@ -190,8 +190,8 @@ void Robot::shutdown()
     areMotorsLocked_ = true;
     if (isLidarInit_)
         lidar_.stop();
-    servos_.disable(0xFE);
     strategy_->shutdown();
+    servos_.disable(0xFE);
     logger_.close();
 }
 

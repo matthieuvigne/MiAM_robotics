@@ -114,11 +114,12 @@ bool DropPlantsToJarnidiereAction::performAction()
         return false;
 
     servoManager_->setClawPosition((isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::MEDIUM_POSITION);
-    robot_->wait(0.4);
-    servoManager_->openClaws(isDroppingFront_);
+    robot_->wait(0.6);
+    // Half open claws
+    servoManager_->openClaws(isDroppingFront_, true);
     robot_->gameState_.nPlantsCollected[3 + zoneId_] += robot_->gameState_.clearClawContent(isDroppingFront_);
-
     robot_->wait(0.3);
+    servoManager_->openClaws(isDroppingFront_);
     servoManager_->setClawPosition((isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
     robot_->getMotionController()->goStraight(-MARGIN);
 

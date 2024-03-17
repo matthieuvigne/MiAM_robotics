@@ -42,10 +42,10 @@ public:
 
     void init(RobotInterface *robot, bool const& isTurretAlreadyCalibrated);
 
-    void openClaw(int const& clawId);
+    void openClaw(int const& clawId, bool const& halfOpen);
     void closeClaw(int const& clawId);
 
-    void openClaws(bool const& front);
+    void openClaws(bool const& front, bool const& halfOpen = false);
     void closeClaws(bool const& front);
 
     void updateClawContent(bool const& front, GameState & gameState);
