@@ -24,104 +24,141 @@ enum MessageType
   
 int main() 
 { 
-    // creating socket 
-    int serverSocket = socket(AF_INET, SOCK_DGRAM, 0); 
-  
-    // specifying the address 
-    sockaddr_in serverAddress; 
-    serverAddress.sin_family = AF_INET; 
-    serverAddress.sin_port = htons(778); 
-    serverAddress.sin_addr.s_addr = INADDR_ANY; 
-  
-    // binding socket. 
-    bind(serverSocket, (struct sockaddr*)&serverAddress, 
-         sizeof(serverAddress)); 
-    
-    for (;;)
+
+    sockaddr_in si_me, si_other;
+    int s;
+    s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    int port=779;
+    int broadcast=1;
+
+    setsockopt(s, SOL_SOCKET, SO_BROADCAST,
+                &broadcast, sizeof broadcast);
+
+    memset(&si_me, 0, sizeof(si_me));
+    si_me.sin_family = AF_INET;
+    si_me.sin_port = htons(port);
+    si_me.sin_addr.s_addr = INADDR_ANY;
+
+    bind(s, (sockaddr *)&si_me, sizeof(sockaddr));
+
+    int length=0;
+
+    while(1)
     {
-        // listening to the assigned socket 
-        listen(serverSocket, 5); 
-    
-        // accepting connection request 
-        int clientSocket 
-            = accept(serverSocket, nullptr, nullptr); 
-    
-        // recieving data 
-        std::vector<float > tmpvec;
-        float* buffer = new float[SIZE_OF_BUFFER](); 
+        char buf[10000];
+        unsigned slen=sizeof(sockaddr);
+        length = recvfrom(s, buf, sizeof(buf)-1, 0, (sockaddr *)&si_other, &slen);
 
-        int sizeofreceiveddata;
-
-        while((sizeofreceiveddata = recv(clientSocket, buffer, SIZE_OF_BUFFER*4, 0)) > 0)
-        {
-            cout << "Receiving: " << sizeofreceiveddata << std::endl; 
-            // cout << "Message from client: " << buffer 
-            //         << endl; 
-            for (int i = 0; i < SIZE_OF_BUFFER; i++)
-            {
-                float f = buffer[i];
-                // cout << f << endl;
-                tmpvec.push_back(f);
-            }
-        }
-
-        // for (int i=0; i < tmpvec.size(); i++)
-        // {
-        //     std::cout << tmpvec.at(i);
-        //     if (i > 0 && i % 5 == 0)
-        //         std::cout << std::endl;
-        // }
-        
-        MessageType mt = MessageType::ERROR;
-        if (tmpvec.at(0) == 0)
-        {
-            mt = MessageType::NEW_TRAJECTORY;
-        }
-        else if (tmpvec.at(0) == 1)
-        {
-            mt = MessageType::SET_ID;
-        }
-        else if (tmpvec.at(0) == 2)
-        {
-            mt = MessageType::NEW_TRAJECTORY_SAVE;
-        }
-        
-        cout << "MessageType : " << mt << endl;
-
-        if (mt == MessageType::NEW_TRAJECTORY || mt == MessageType::NEW_TRAJECTORY_SAVE)
-        {
-            int size_of_trajectory = tmpvec.at(1);
-            float duration_of_trajectory = tmpvec.at(2);
-
-            cout << "Size of trajectory: " << size_of_trajectory << endl;
-            cout << "Duration of trajectory: " << duration_of_trajectory << endl;
-
-            std::vector<TrajectoryPoint > trajectoryPoints;
-            // int serializationIndex = 2;
-            for (int i = 0; i < size_of_trajectory; i++)
-            {
-                TrajectoryPoint tp;
-                tp.position.x = tmpvec.at(3 + 5*i);
-                tp.position.y = tmpvec.at(3 + 5*i + 1);
-                tp.position.theta = tmpvec.at(3 + 5*i + 2);
-                tp.linearVelocity = tmpvec.at(3 + 5*i + 3);
-                tp.angularVelocity = tmpvec.at(3 + 5*i + 4);
-                trajectoryPoints.push_back(tp);
-            }
-
-            for (auto& tp : trajectoryPoints)
-            {
-                std::cout << tp << std::endl;
-            }
-        }
-        else if (mt == MessageType::SET_ID)
-        {
-            cout << "NewID: " << (int)tmpvec.at(1) << endl;
-        }
+        printf("recv: %s, length %d\n", buf, length);
     }
+    // // creating socket 
+    // int serverSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); 
   
-    // closing the socket. 
-    close(serverSocket); 
+    // int broadcast=1;
+
+    // setsockopt(serverSocket, SOL_SOCKET, SO_BROADCAST,
+    //             &broadcast, sizeof broadcast);
+
+    // // specifying the address 
+    // sockaddr_in serverAddress; 
+    // serverAddress.sin_family = AF_INET; 
+    // serverAddress.sin_port = htons(779); 
+    // serverAddress.sin_addr.s_addr = INADDR_ANY; 
+  
+    // std::cout << "Binding" << std::endl;
+
+    // // binding socket. 
+    // bind(serverSocket, (struct sockaddr*)&serverAddress, 
+    //      sizeof(serverAddress)); 
+    
+    // for (;;)
+    // {
+    //     // listening to the assigned socket 
+    //     listen(serverSocket, 5); 
+
+    //     std::cout << "Accepting connection" << std::endl;
+    
+    //     // accepting connection request 
+    //     int clientSocket 
+    //         = accept(serverSocket, nullptr, nullptr); 
+    
+    //     std::cout << "Receiving data" << std::endl;
+    //     // recieving data 
+    //     std::vector<float > tmpvec;
+    //     float* buffer = new float[SIZE_OF_BUFFER](); 
+
+    //     int sizeofreceiveddata;
+
+    //     while((sizeofreceiveddata = recv(clientSocket, buffer, SIZE_OF_BUFFER*4, 0)) > 0)
+    //     {
+    //         cout << "Receiving: " << sizeofreceiveddata << std::endl; 
+    //         // cout << "Message from client: " << buffer 
+    //         //         << endl; 
+    //         for (int i = 0; i < SIZE_OF_BUFFER; i++)
+    //         {
+    //             float f = buffer[i];
+    //             // cout << f << endl;
+    //             tmpvec.push_back(f);
+    //         }
+    //     }
+
+    //     // for (int i=0; i < tmpvec.size(); i++)
+    //     // {
+    //     //     std::cout << tmpvec.at(i);
+    //     //     if (i > 0 && i % 5 == 0)
+    //     //         std::cout << std::endl;
+    //     // }
+        
+    //     MessageType mt = MessageType::ERROR;
+    //     if (tmpvec.at(0) == 0)
+    //     {
+    //         mt = MessageType::NEW_TRAJECTORY;
+    //     }
+    //     else if (tmpvec.at(0) == 1)
+    //     {
+    //         mt = MessageType::SET_ID;
+    //     }
+    //     else if (tmpvec.at(0) == 2)
+    //     {
+    //         mt = MessageType::NEW_TRAJECTORY_SAVE;
+    //     }
+        
+    //     cout << "MessageType : " << mt << endl;
+
+    //     if (mt == MessageType::NEW_TRAJECTORY || mt == MessageType::NEW_TRAJECTORY_SAVE)
+    //     {
+    //         int size_of_trajectory = tmpvec.at(1);
+    //         float duration_of_trajectory = tmpvec.at(2);
+
+    //         cout << "Size of trajectory: " << size_of_trajectory << endl;
+    //         cout << "Duration of trajectory: " << duration_of_trajectory << endl;
+
+    //         std::vector<TrajectoryPoint > trajectoryPoints;
+    //         // int serializationIndex = 2;
+    //         for (int i = 0; i < size_of_trajectory; i++)
+    //         {
+    //             TrajectoryPoint tp;
+    //             tp.position.x = tmpvec.at(3 + 5*i);
+    //             tp.position.y = tmpvec.at(3 + 5*i + 1);
+    //             tp.position.theta = tmpvec.at(3 + 5*i + 2);
+    //             tp.linearVelocity = tmpvec.at(3 + 5*i + 3);
+    //             tp.angularVelocity = tmpvec.at(3 + 5*i + 4);
+    //             trajectoryPoints.push_back(tp);
+    //         }
+
+    //         for (auto& tp : trajectoryPoints)
+    //         {
+    //             std::cout << tp << std::endl;
+    //         }
+    //     }
+    //     else if (mt == MessageType::SET_ID)
+    //     {
+    //         cout << "NewID: " << (int)tmpvec.at(1) << endl;
+    //     }
+    // }
+  
+    // // closing the socket. 
+    // close(serverSocket); 
   
     return 0; 
 }

@@ -410,9 +410,9 @@ void Viewer::setActiveTimeButtonClicked()
 
         std::cout << "Size in float number: " << serializationResultsSizeInFloatNumber << std::endl;
 
-        std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
-        std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
-        message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
+        std::string str_ip_address = "10.42.0.255";
+        std::cout << "Sending trajectory to IP " << "10.42.0.255" << std::endl;
+        message_sender::send_message_udp(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
     }
     else
     {
