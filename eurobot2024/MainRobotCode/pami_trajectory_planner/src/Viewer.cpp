@@ -60,6 +60,8 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     // default recipient ID
     recipientIDTextView->get_buffer()->set_text("0");
 
+    refGlade->get_widget("matchTimeTextView", matchTimeTextView);
+
     //create the tree
 	treeModel = Gtk::ListStore::create(objectrow);
 	treeView->set_model(treeModel);
@@ -114,6 +116,11 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
 
     refGlade->get_widget("deletePointButton", button);
     button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::deletePointButtonClicked));
+
+    refGlade->get_widget("setActiveTimeButton", button);
+    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::setActiveTimeButtonClicked));
+    refGlade->get_widget("stopMatchButton", button);
+    button->signal_clicked().connect(sigc::mem_fun(this, &Viewer::stopMatchButtonClicked));
 
     // Load images.
     tableImage = Gdk::Pixbuf::create_from_file(tableImagePath, -1, -1);
@@ -290,7 +297,16 @@ void Viewer::serializeAndSendButtonClicked()
     int serializationIndex = 0;
 
     // first 3 bytes are size of trajectory (nb of pts) and duration
-    serializationResults.get()[serializationIndex++] = MessageType::NEW_TRAJECTORY;
+    if (switchButton->get_active())
+    {
+        std::cout << "Trajectory saving enabled" << std::endl;
+        serializationResults.get()[serializationIndex++] = MessageType::NEW_TRAJECTORY_SAVE;
+    }
+    else
+    {
+        std::cout << "Trajectory saving disabled" << std::endl;
+        serializationResults.get()[serializationIndex++] = MessageType::NEW_TRAJECTORY;
+    }
     serializationResults.get()[serializationIndex++] = N+1;
     serializationResults.get()[serializationIndex++] = newTrajectory.getDuration();
 
@@ -374,4 +390,49 @@ void Viewer::sendIDButtonClicked()
     {
         std::cout << "ID is not a number: " << newID << std::endl;
     }
+}
+
+void Viewer::setActiveTimeButtonClicked()
+{
+    // get match time
+    std::string newMatchTime = matchTimeTextView->get_buffer()->get_text();
+    
+    if (is_number(newMatchTime)) 
+    {
+        float matchTime = std::stof(newMatchTime);
+        serializationResultsSizeInFloatNumber = 3;
+        serializationResults.reset(new float[serializationResultsSizeInFloatNumber]());
+
+        int serializationIndex = 0;
+        serializationResults.get()[serializationIndex++] = MessageType::MATCH_STATE;
+        serializationResults.get()[serializationIndex++] = (float)true;
+        serializationResults.get()[serializationIndex++] = matchTime;
+
+        std::cout << "Size in float number: " << serializationResultsSizeInFloatNumber << std::endl;
+
+        std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
+        std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
+        message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
+    }
+    else
+    {
+        std::cout << "Match time is not a number: " << newMatchTime << std::endl;
+    }
+}
+
+void Viewer::stopMatchButtonClicked()
+{
+    serializationResultsSizeInFloatNumber = 3;
+    serializationResults.reset(new float[serializationResultsSizeInFloatNumber]());
+
+    int serializationIndex = 0;
+    serializationResults.get()[serializationIndex++] = MessageType::MATCH_STATE;
+    serializationResults.get()[serializationIndex++] = (float)false;
+    serializationResults.get()[serializationIndex++] = 0.0;
+
+    std::cout << "Size in float number: " << serializationResultsSizeInFloatNumber << std::endl;
+
+    std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
+    std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
+    message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
 }

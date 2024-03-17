@@ -30,4 +30,26 @@ namespace message_sender
         // closing socket 
         close(clientSocket); 
     }
+
+    void send_message_udp(float* message, int message_size_in_float_number, const char* str_ip_addr)
+    {
+        // creating socket 
+        int clientSocket = socket(AF_INET, SOCK_DGRAM, 0); 
+
+        // specifying address 
+        sockaddr_in serverAddress; 
+        serverAddress.sin_family = AF_INET; 
+        serverAddress.sin_port = htons(779); 
+        serverAddress.sin_addr.s_addr = INADDR_ANY;
+    
+        // sending connection request 
+        std::cout << "Connect: " << connect(clientSocket, (struct sockaddr*)&serverAddress, 
+                sizeof(serverAddress)) << std::endl; 
+    
+        // sending data 
+        std::cout << "Send: " << send(clientSocket, message, message_size_in_float_number*4, 0) << std::endl; 
+    
+        // closing socket 
+        close(clientSocket); 
+    }
 }

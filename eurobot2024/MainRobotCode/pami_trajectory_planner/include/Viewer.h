@@ -14,6 +14,8 @@ enum MessageType
 {
     NEW_TRAJECTORY = 0,
     SET_ID = 1,
+    NEW_TRAJECTORY_SAVE = 2,
+    MATCH_STATE = 3,
     ERROR = 99
 };
 
@@ -65,6 +67,10 @@ private:
     Gtk::TextView *maxVelocityTextView;
     Gtk::TextView *maxAccelerationTextView;
     Gtk::TextView *recipientIDTextView;
+
+    Gtk::TextView *matchTimeTextView;
+    void setActiveTimeButtonClicked();
+    void stopMatchButtonClicked();
 
     Glib::RefPtr<Gtk::ListStore> treeModel; // the model for the tree
     Gtk::TreeView *treeView;

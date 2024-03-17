@@ -17,13 +17,15 @@ enum MessageType
 {
     NEW_TRAJECTORY = 0,
     SET_ID = 1,
+    NEW_TRAJECTORY_SAVE = 2,
+    MATCH_STATE = 3,
     ERROR = 99
 };
   
 int main() 
 { 
     // creating socket 
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0); 
+    int serverSocket = socket(AF_INET, SOCK_DGRAM, 0); 
   
     // specifying the address 
     sockaddr_in serverAddress; 
@@ -79,10 +81,14 @@ int main()
         {
             mt = MessageType::SET_ID;
         }
+        else if (tmpvec.at(0) == 2)
+        {
+            mt = MessageType::NEW_TRAJECTORY_SAVE;
+        }
         
         cout << "MessageType : " << mt << endl;
 
-        if (mt == MessageType::NEW_TRAJECTORY)
+        if (mt == MessageType::NEW_TRAJECTORY || mt == MessageType::NEW_TRAJECTORY_SAVE)
         {
             int size_of_trajectory = tmpvec.at(1);
             float duration_of_trajectory = tmpvec.at(2);
