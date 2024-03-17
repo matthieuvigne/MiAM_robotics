@@ -122,6 +122,11 @@
                 guiState_.currentActionName = actionName;
             }
 
+            RobotMeasurements *getMeasurements()
+            {
+                return &measurements_;
+            }
+
         protected:
 #ifdef SIMULATION
             FakeMetronome metronome_;

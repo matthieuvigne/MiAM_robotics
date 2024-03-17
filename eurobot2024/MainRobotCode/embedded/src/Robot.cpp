@@ -62,7 +62,18 @@ bool Robot::initSystem()
         isEncodersInit_ = rightEncoderInit && leftEncoderInit;
     }
 
-    // TODO
+    if (!isVlxInit_)
+    {
+        isVlxInit_ = vlxSensor_.init(&RPI_I2C);
+        if (!isVlxInit_)
+            guiState_.debugStatus += "VLX init failed\n";
+        else
+        {
+            std::thread measureThread = std::thread(&Robot::updateRangeMeasurement, this);
+            measureThread.detach();
+        }
+    }
+
     if (!isINAInit_)
     {
         isINAInit_ = ina226_.init(&RPI_I2C);
@@ -136,6 +147,7 @@ void Robot::updateSensorData()
         logger_.log("Robot.battery.voltage", currentTime_, inaReading.voltage);
         logger_.log("Robot.battery.current", currentTime_, inaReading.current);
         logger_.log("Robot.battery.power", currentTime_, inaReading.power);
+        logger_.log("Robot.vlxDistance", currentTime_, measurements_.vlxDistance);
     }
 }
 
@@ -195,3 +207,29 @@ void Robot::shutdown()
     logger_.close();
 }
 
+
+void Robot::updateRangeMeasurement()
+{
+    // Offset from measurement to position of center of robot.
+    // To update this: place the robot a fixed distance (e.g. 10cm) from
+    // a flat surface, and look at the measurement value.
+    // Don't forget to add robot width.
+    // This offset thus integrates sensor position, sensor offset...
+    int const OFFSET = 121;
+
+    // Perform average of last N values.
+    #define N_AVG 3
+    int oldValues[N_AVG];
+    for (int j = 0; j < N_AVG; j++)
+        oldValues[j] = 0;
+    while (true)
+    {
+        for (int j = 1; j < N_AVG; j++)
+            oldValues[j - 1] = oldValues[j];
+        oldValues[N_AVG - 1] = vlxSensor_.getMeasurement() + OFFSET;
+        int average = 0;
+        for (int j = 0; j < N_AVG; j++)
+            average += oldValues[j];
+        measurements_.vlxDistance = static_cast<double>(average) / N_AVG;
+    }
+}

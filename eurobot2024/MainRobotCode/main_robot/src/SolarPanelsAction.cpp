@@ -1,13 +1,14 @@
 #include "main_robot/SolarPanelsAction.h"
 
 
-#define LATERAL_DISTANCE 200
+#define LATERAL_DISTANCE 190
 
-double PANELS_Y_COORD[6] = {270, 500, 725, 1275, 1500, 1725};
+double const PANELS_X_COORD[6] = {270, 500, 725, 1275, 1500, 1725};
+double const ROBOT_ARM_OFFSET = 20.0;
 
 void SolarPanelsAction::updateStartCondition()
 {
-    startPosition_ = RobotPosition(PANELS_Y_COORD[0] - 40, LATERAL_DISTANCE, M_PI);
+    startPosition_ = RobotPosition(PANELS_X_COORD[0] - 40, LATERAL_DISTANCE, M_PI);
     priority_ = -1;
 }
 
@@ -23,22 +24,53 @@ bool SolarPanelsAction::performAction()
 
     servoManager_->waitForTurret();
 
-    // TODO VLX...
     for (int i = 0; i< 6; i++)
     {
-        RobotPosition const target(PANELS_Y_COORD[i], LATERAL_DISTANCE, M_PI);
+        // Read VLX
+        double const vlxY = robot_->getMeasurements()->vlxDistance;
+        RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
+        if (std::abs(currentPosition.y - vlxY) < 20.0)
+        {
+            robot_->logger_ << "[Strategy] Resetting robot y position: " << vlxY << " instead of " << currentPosition.y << std::endl;
+            currentPosition.y = vlxY;
+            robot_->getMotionController()->resetPosition(currentPosition, false, true, false);
+        }
 
-        if (!robot_->getMotionController()->goToStraightLine(target, 1, true, true))
-            return false;
+        RobotPosition const target(PANELS_X_COORD[i] + ROBOT_ARM_OFFSET, LATERAL_DISTANCE, M_PI);
 
+        if (i == 3)
+        {
+            // Avoid pots which are present in this zone
+            std::vector<RobotPosition> positions;
+            positions.push_back(currentPosition);
+            RobotPosition avoidPosition((currentPosition.x + target.x) / 2, currentPosition.y + 150, 0);
+            positions.push_back(avoidPosition);
+            positions.push_back(target);
+            TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
+                robot_->getMotionController()->robotParams_.getTrajConf(),
+                positions,
+                100.0,
+                0.4,    // Transition velocity
+                true,    // backward
+                true    // enforce end angle
+            );
+            robot_->getMotionController()->setTrajectoryToFollow(traj);
+            if (!robot_->getMotionController()->waitForTrajectoryFinished())
+                return false;
+        }
+        else
+            if (!robot_->getMotionController()->goToStraightLine(target, 1, true, true))
+                return false;
+
+        robot_->wait(0.1);
         servoManager_->lowerSolarPanelArm();
-        robot_->wait(0.4);
-
+        robot_->wait(0.2);
         servoManager_->spinSolarPanel(true);
         robot_->wait(0.5);
         robot_->updateScore(5);
         servoManager_->spinSolarPanel(false);
         servoManager_->raiseSolarPanelArm();
+        robot_->wait(0.7);
     }
 
     // Action should not be done again
