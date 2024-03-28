@@ -52,6 +52,7 @@ void ServoManager::openClaw(int const& clawId, bool const& halfOpen)
     {
         int const offset = (halfOpen ? 0.3 * CLAW_MOTION * clawDirection[idx] : 0);
         servos_->setTargetPosition(clawId, clawOpen[idx] + offset);
+        isClawServoClosed_[idx] = false;
     }
 }
 
@@ -61,7 +62,10 @@ void ServoManager::closeClaw(int const& clawId)
     int const idx = clawId - 2;
 
     if (idx < 6 && idx >= 0)
-            servos_->setTargetPosition(clawId, clawOpen[idx] + clawDirection[idx] * CLAW_MOTION);
+    {
+        isClawServoClosed_[idx] = true;
+        servos_->setTargetPosition(clawId, clawOpen[idx] + clawDirection[idx] * CLAW_MOTION);
+    }
 }
 
 void ServoManager::openClaws(bool const& front, bool const& halfOpen)
@@ -89,14 +93,35 @@ void ServoManager::updateClawContent(bool const& front, GameState & gameState)
 {
     int offset = (front ? 0 : 3);
 
-    // TODO: for now, grab is considered perfect
-    // for (int j = 0; j < 3; j++)
-    //     gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+#ifdef SIMULATION
+    In simulation, grab is considered perfect
+    for (int j = 0; j < 3; j++)
+        gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+    return;
+#endif
 
     for (int j = 0; j < 3; j++)
     {
-        // if (((double) rand() / (RAND_MAX)) > 0.5)
-            gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+        int const idx = offset + j;
+        if (!isClawServoClosed_[idx])
+        {
+            gameState.robotClawContent[idx] = ClawContent::EMPTY;
+        }
+        else
+        {
+            std::cout << idx << std::endl;
+            int const currentPosition = servos_->getCurrentPosition(2 + idx);
+            int const targetClosePosition = clawOpen[idx] + clawDirection[idx] * CLAW_MOTION;
+            std::cout << currentPosition << " " << targetClosePosition << std::endl;
+            if (std::abs(currentPosition - targetClosePosition) > 10)
+            {
+                gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+            }
+            else
+            {
+                gameState.robotClawContent[offset + j] = ClawContent::EMPTY;
+            }
+        }
     }
 }
 

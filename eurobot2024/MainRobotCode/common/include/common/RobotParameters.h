@@ -11,7 +11,10 @@
 
         // Robot update period, in ns
         #define ROBOT_UPDATE_PERIOD 5e6
-        #define UNDERVOLTAGE_LEVEL 16.5
+        // Discharge voltage, i.e. voltage at which we refuse to start a match.
+        // For typical LiPo, 3.5V corresponds to about 15% of remaining capacity
+        // and is typically used as low voltage warning on drones.
+        #define UNDERVOLTAGE_LEVEL 17.5
 
 
         // Parameters defining a robot
