@@ -5,6 +5,7 @@
 #include "main_robot/AbstractAction.h"
 #include "main_robot/ServoManager.h"
 
+
 class DropPlantsAction: public AbstractAction
 {
 public:
@@ -27,6 +28,7 @@ public:
 private:
     ServoManager *servoManager_;
     int zoneId_;
+    bool isDroppingFront_;
 };
 
 
@@ -52,7 +54,6 @@ public:
 private:
     ServoManager *servoManager_;
     int zoneId_;
-
     bool isDroppingFront_;
 };
 

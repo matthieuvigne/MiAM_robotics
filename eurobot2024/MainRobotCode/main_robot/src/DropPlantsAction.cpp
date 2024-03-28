@@ -1,69 +1,124 @@
 #include "main_robot/DropPlantsAction.h"
 
-
+#define CHASSIS_MARGIN 150
+#define POT_MARGIN 130
 
 const miam::RobotPosition PLANT_DROP_COORD[3] =
 {
-    // Jardiniere
-    miam::RobotPosition(200, 200, 0),
-    miam::RobotPosition(200, 1800, 0),
-    miam::RobotPosition(2700, 1500, 0)
+    miam::RobotPosition(CHASSIS_MARGIN + POT_MARGIN + 100, 612, 0),
+    miam::RobotPosition(CHASSIS_MARGIN + POT_MARGIN + 100, 1388, 0),
+    miam::RobotPosition(3000 - (CHASSIS_MARGIN + POT_MARGIN + 100), 612, M_PI)
 };
-
-#define CHASSIS_MARGIN 150
 
 const miam::RobotPosition JARDINIERE_COORD[3] =
 {
     // Jardiniere
-    miam::RobotPosition(CHASSIS_MARGIN, 1400, M_PI),
     miam::RobotPosition(3000 - CHASSIS_MARGIN, 600, 0),
+    miam::RobotPosition(CHASSIS_MARGIN, 1400, M_PI),
     miam::RobotPosition(760, 2000 - CHASSIS_MARGIN, M_PI_2)
 };
+
+const int DROP_PRIORITY_PREFERENCE[6] = {
+    0, // This zone is used for the solar panels, and might be used at the end.
+    4,
+    1,
+    1,
+    2,
+    5
+    };
+
+void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int zoneId)
+{
+    servos->waitForTurret();
+    servos->openClaws(dropFront);
+    int nPlants = -servos->updateClawContent(dropFront, robot->gameState_);
+    robot->gameState_.nPlantsCollected[zoneId] += nPlants;
+    robot->updateScore(3 * nPlants);
+}
 
 void DropPlantsAction::updateStartCondition()
 {
     startPosition_ = PLANT_DROP_COORD[zoneId_];
 
     // Action is only possible if there are plants present.
-    if (robot_->gameState_.nPlantsInRobot() <= 0)
+    bool isPossible = robot_->gameState_.nPlantsInRobot() > 0 && robot_->gameState_.nPlantsCollected[zoneId_] == 0;
+
+    if (!isPossible)
     {
         priority_ = -1;
     }
     else if (robot_->gameState_.nPlantsInRobot() > 4)
     {
-        priority_ = 2;
+        priority_ = 5 + DROP_PRIORITY_PREFERENCE[zoneId_];
     }
     else
     {
-        priority_ = 0;
+        priority_ = DROP_PRIORITY_PREFERENCE[zoneId_];
     }
 }
 
 
 void DropPlantsAction::actionStartTrigger()
 {
-    // TODO: we should move turret in advance
+    isDroppingFront_ = robot_->gameState_.isFrontClawMostFull();
+    // Action will be done backward.
+    servoManager_->moveTurret(isDroppingFront_ ? M_PI : 0);
 }
 
 bool DropPlantsAction::performAction()
 {
-    // RobotPosition targetPosition = PLANT_DROP_COORD[zoneId_];
-    // targetPosition.x = 140;
+    // Push pots, moving backward.
+    RobotPosition offset = RobotPosition(-50, 0, 0).rotate(PLANT_DROP_COORD[zoneId_].theta);
+    offset.theta = 0;
+    RobotPosition target = PLANT_DROP_COORD[zoneId_] + offset;
 
-    // robot_->getMotionController()->goToStraightLine(targetPosition);
+    if (!robot_->getMotionController()->goToStraightLine(target, 1.0, true, true))
+        return false;
+    if (!robot_->getMotionController()->goStraight(-50, 0.5))
+        return false;
 
-    servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::LOW_POSITION);
-    robot_->wait(0.5);
-    servoManager_->openClaws(true);
-    robot_->gameState_.nPlantsCollected[zoneId_] += robot_->gameState_.nPlantsInRobot();
+    // Grab pots with arm
+    servoManager_->closeElectromagnetArms();
 
-    for (int i = 0; i < 6; i++)
-        robot_->gameState_.robotClawContent[i] = ClawContent::EMPTY;
+    if (!robot_->getMotionController()->goStraight(30))
+        return false;
 
-    robot_->getMotionController()->goStraight(-100);
+    // Go to zone, pushing the pots
+    target = robot_->getMotionController()->getCurrentPosition();
+    std::vector<RobotPosition> positions;
+    int yInvert = (zoneId_ == 1 ? 1 : -1);
+    int xInvert = (zoneId_ == 0 ? -1 : 1);
 
-    // Action should not be done again if there are more than 3 plants.
-    return robot_->gameState_.nPlantsCollected[zoneId_] > 3;
+    target.y += 150 * yInvert;
+    target.x += 100 * xInvert;
+    positions.push_back(target);
+    target.y += 150 * yInvert;
+    positions.push_back(target);
+
+    if (!robot_->getMotionController()->goToRoundedCorners(positions, 200, 0.5, true))
+    {
+        // In the unlikely event of a failure here: drop everything in place.
+        servoManager_->openElectromagnetArms();
+        return false;
+    }
+    robot_->gameState_.nPotsInPile[zoneId_] = 0;
+
+    // Drop plants
+    dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_);
+    servoManager_->openElectromagnetArms();
+
+    // Are there other plants to drop ?
+    isDroppingFront_ = !isDroppingFront_;
+
+    if (robot_->gameState_.nPlantsInRobot() > 0)
+    {
+        robot_->getMotionController()->goStraight(90);
+        servoManager_->moveTurret(isDroppingFront_ ? M_PI : 0);
+        robot_->wait(1.0);
+        dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_);
+    }
+    robot_->getMotionController()->goStraight(50);
+    return true;
 }
 
 
@@ -76,9 +131,9 @@ void DropPlantsToJarnidiereAction::updateStartCondition()
     // Action is only possible if there are plants present,
     // no plants in this jardiniere, and if the pots were cleared
     bool isPossible = robot_->gameState_.nPlantsInRobot() > 0 && robot_->gameState_.nPlantsCollected[zoneId_ + 3] == 0;
-    // TODO: clear pots
-    // if (zoneId_ < 2)
-    //     isPossible &= robot_->gameState_.nPotsInPile[zoneId_] == 0;
+    // A:ction is only possible if pots have been cleared.
+    if (zoneId_ < 2)
+        isPossible &= robot_->gameState_.nPotsInPile[zoneId_] == 0;
 
     if (!isPossible)
     {
@@ -86,14 +141,13 @@ void DropPlantsToJarnidiereAction::updateStartCondition()
     }
     else if (robot_->gameState_.nPlantsInRobot() > 4)
     {
-        priority_ = 2;
+        priority_ = 5 + DROP_PRIORITY_PREFERENCE[3 + zoneId_];
     }
     else
     {
-        priority_ = 0;
+        priority_ = DROP_PRIORITY_PREFERENCE[3 + zoneId_];
     }
 }
-
 
 void DropPlantsToJarnidiereAction::actionStartTrigger()
 {
@@ -113,14 +167,10 @@ bool DropPlantsToJarnidiereAction::performAction()
     if (!robot_->getMotionController()->goStraight(MARGIN + 10, 0.5))
         return false;
 
+    servoManager_->waitForTurret();
     servoManager_->setClawPosition((isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::MEDIUM_POSITION);
     robot_->wait(0.6);
-    // Half open claws
-    servoManager_->openClaws(isDroppingFront_, true);
-    robot_->gameState_.nPlantsCollected[3 + zoneId_] += robot_->gameState_.clearClawContent(isDroppingFront_);
-    robot_->wait(0.3);
-    servoManager_->openClaws(isDroppingFront_);
-    servoManager_->setClawPosition((isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
+    dropPlants(robot_, servoManager_, isDroppingFront_, 3 + zoneId_);
     robot_->getMotionController()->goStraight(-MARGIN);
 
     // Action should never be done again

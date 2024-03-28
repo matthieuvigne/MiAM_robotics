@@ -116,6 +116,20 @@
             bool goStraight(double const& distance, double const& speedRatio = 1.0);
 
 
+            /// @brief  Follow a specific rounded corner path
+            /// @details This function is blocking, and returns once the motion has completed.
+            /// @param positions Position setpoints (not including starting position)
+            /// \param[in] radius Circle radius - the same is used at each point.
+            /// \param[in] transitionVelocityFactor Percentage of the maximum velocity along the circle at which to do the transition.
+            /// \param[in] enforceEndAngle If set, add point turn at the end to reach the desired angle.
+            /// @return True is move is successful, false otherwise
+            bool goToRoundedCorners(std::vector<RobotPosition> const& positions,
+                                    double radius = 200,
+                                    double transitionVelocityFactor = 0.5,
+                                    bool backward = false,
+                                    bool enforceEndAngle = false);
+
+
             /// \brief Compute next motor target.
             ///
             /// \param[in] measurements Latest robot measurements

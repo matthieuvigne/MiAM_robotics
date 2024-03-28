@@ -482,6 +482,28 @@ double MotionController::minDistancePositionToObstacle(RobotPosition position, b
 }
 
 
+bool MotionController::goToRoundedCorners(std::vector<RobotPosition> const& positions,
+                                          double radius,
+                                          double transitionVelocityFactor,
+                                          bool backward,
+                                          bool enforceEndAngle)
+{
+    std::vector<RobotPosition> trajPositions = positions;
+    trajPositions.insert(trajPositions.begin(), getCurrentPosition());
+
+    TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
+        robotParams_.getTrajConf(),
+        trajPositions,
+        radius,
+        transitionVelocityFactor,
+        backward,
+        enforceEndAngle
+    );
+    setTrajectoryToFollow(traj);
+    return waitForTrajectoryFinished();
+}
+
+
 bool MotionController::goToStraightLine(RobotPosition const& position, double const& speedFactor, bool const& backward, bool const& enforceEndAngle)
 {
     // Don't go faster than maximum

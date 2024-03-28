@@ -81,6 +81,13 @@ bool Robot::initSystem()
             guiState_.debugStatus += "Battery monitoring init failed\n";
     }
 
+    if (!isMCPInit_)
+    {
+        isMCPInit_ = mcpIOExpander_.init(&RPI_I2C);
+        if (!isMCPInit_)
+            guiState_.debugStatus += "MCP23008 init failed\n";
+    }
+
     if (!isServoInit_)
     {
         isServoInit_ = servos_.init("/dev/ttyAMA0", -1);
@@ -186,6 +193,7 @@ void Robot::applyMotorTarget(DrivetrainTarget const& target)
 
 void Robot::matchEnd()
 {
+    mcpIOExpander_.setOutputs(0);
     if (!testMode_ || !disableLidar_)
         lidar_.stop();
 }
@@ -205,6 +213,7 @@ void Robot::shutdown()
     strategy_->shutdown();
     servos_.disable(0xFE);
     logger_.close();
+    mcpIOExpander_.setOutputs(0);
 }
 
 

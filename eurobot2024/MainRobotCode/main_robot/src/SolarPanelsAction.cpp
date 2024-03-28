@@ -9,7 +9,12 @@ double const ROBOT_ARM_OFFSET = 20.0;
 void SolarPanelsAction::updateStartCondition()
 {
     startPosition_ = RobotPosition(PANELS_X_COORD[0] - 40, LATERAL_DISTANCE, M_PI);
-    priority_ = -1;
+    if (robot_->getMatchTime() < 20)
+        priority_ = -1;
+    else if (robot_->getMatchTime() > 50)
+        priority_ = 20;
+    else
+        priority_ = 1;
 }
 
 

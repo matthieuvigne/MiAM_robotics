@@ -121,7 +121,8 @@ void Strategy::goBackToBase()
         targetPosition.x = 250;
         targetPosition.y = 250;
     }
-    go_to_straight_line(targetPosition);
+    robot->getMotionController()->goToStraightLine(targetPosition);
+    robot->updateScore(10);
 }
 
 

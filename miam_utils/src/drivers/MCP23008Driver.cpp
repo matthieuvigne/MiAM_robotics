@@ -43,6 +43,9 @@ void MCP23008::setPin(unsigned char const& portId, bool const& high)
 
 void MCP23008::setOutputs(unsigned char const& bitMask)
 {
-    currentState_ = bitMask;
-    i2c_writeRegister(adapter_, address_, GPIO_REG, currentState_);
+    if (isInit_)
+    {
+        currentState_ = bitMask;
+        i2c_writeRegister(adapter_, address_, GPIO_REG, currentState_);
+    }
 }
