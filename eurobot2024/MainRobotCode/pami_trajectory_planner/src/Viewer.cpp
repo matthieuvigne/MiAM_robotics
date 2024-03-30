@@ -6,6 +6,7 @@
 #include <sstream>
 #include "Parameters.h"
 #include "MessageSender.h"
+#include <Message.hpp>
 
 double const MATCH_TIME = 100.0;
 double const TRAJ_SERIALIZATION_INTERVAL = 0.1;
@@ -300,7 +301,7 @@ void Viewer::serializeAndSendButtonClicked()
     if (switchButton->get_active())
     {
         std::cout << "Trajectory saving enabled" << std::endl;
-        serializationResults.get()[serializationIndex++] = MessageType::NEW_TRAJECTORY_SAVE;
+        serializationResults.get()[serializationIndex++] = MessageType::NEW_TRAJECTORY;
     }
     else
     {
@@ -367,29 +368,29 @@ bool is_number(const std::string& s)
 
 void Viewer::sendIDButtonClicked()
 {
-    // get id
-    std::string newID = recipientIDTextView->get_buffer()->get_text();
+    // // get id
+    // std::string newID = recipientIDTextView->get_buffer()->get_text();
     
-    if (is_number(newID)) 
-    {
-        int newID_number = std::stoi(newID);
-        serializationResultsSizeInFloatNumber = 2;
-        serializationResults.reset(new float[serializationResultsSizeInFloatNumber]());
+    // if (is_number(newID)) 
+    // {
+    //     int newID_number = std::stoi(newID);
+    //     serializationResultsSizeInFloatNumber = 2;
+    //     serializationResults.reset(new float[serializationResultsSizeInFloatNumber]());
 
-        int serializationIndex = 0;
-        serializationResults.get()[serializationIndex++] = MessageType::SET_ID;
-        serializationResults.get()[serializationIndex++] = (float)newID_number;
+    //     int serializationIndex = 0;
+    //     serializationResults.get()[serializationIndex++] = MessageType::SET_ID;
+    //     serializationResults.get()[serializationIndex++] = (float)newID_number;
 
-        std::cout << "Size in float number: " << serializationResultsSizeInFloatNumber << std::endl;
+    //     std::cout << "Size in float number: " << serializationResultsSizeInFloatNumber << std::endl;
 
-        std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
-        std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
-        message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
-    }
-    else
-    {
-        std::cout << "ID is not a number: " << newID << std::endl;
-    }
+    //     std::string str_ip_address = recipientIPTextView->get_buffer()->get_text();
+    //     std::cout << "Sending trajectory to IP " << recipientIPTextView->get_buffer()->get_text() << std::endl;
+    //     message_sender::send_message(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
+    // }
+    // else
+    // {
+    //     std::cout << "ID is not a number: " << newID << std::endl;
+    // }
 }
 
 void Viewer::setActiveTimeButtonClicked()
@@ -400,18 +401,24 @@ void Viewer::setActiveTimeButtonClicked()
     if (is_number(newMatchTime)) 
     {
         float matchTime = std::stof(newMatchTime);
-        serializationResultsSizeInFloatNumber = 3;
-        serializationResults.reset(new float[serializationResultsSizeInFloatNumber]());
 
-        int serializationIndex = 0;
-        serializationResults.get()[serializationIndex++] = MessageType::MATCH_STATE;
-        serializationResults.get()[serializationIndex++] = (float)true;
-        serializationResults.get()[serializationIndex++] = matchTime;
+        // Serialize message
+        MatchStateMessage message(true, matchTime);
+        VecFloat res = message.serialize();
+
+        serializationResults.reset(new float[res.size()]());
+        for (int i=0; i<res.size(); i++)
+        {
+            serializationResults.get()[i] = res.at(i);
+        }
+        int serializationResultsSizeInFloatNumber = res.size();
 
         std::cout << "Size in float number: " << serializationResultsSizeInFloatNumber << std::endl;
 
-        std::string str_ip_address = "10.42.0.255";
-        std::cout << "Sending trajectory to IP " << "10.42.0.255" << std::endl;
+        // std::string str_ip_address = "10.42.1.255";
+        // std::string str_ip_address = "192.168.0.255";
+        std::string str_ip_address = "42.42.0.255";
+        std::cout << "Sending trajectory to IP " << str_ip_address << std::endl;
         message_sender::send_message_udp(serializationResults.get(), serializationResultsSizeInFloatNumber, str_ip_address.c_str());
     }
     else
@@ -422,13 +429,16 @@ void Viewer::setActiveTimeButtonClicked()
 
 void Viewer::stopMatchButtonClicked()
 {
-    serializationResultsSizeInFloatNumber = 3;
-    serializationResults.reset(new float[serializationResultsSizeInFloatNumber]());
+    // Serialize message
+    MatchStateMessage message(false, 0.0);
+    VecFloat res = message.serialize();
 
-    int serializationIndex = 0;
-    serializationResults.get()[serializationIndex++] = MessageType::MATCH_STATE;
-    serializationResults.get()[serializationIndex++] = (float)false;
-    serializationResults.get()[serializationIndex++] = 0.0;
+    serializationResults.reset(new float[res.size()]());
+    for (int i=0; i<res.size(); i++)
+    {
+        serializationResults.get()[i] = res.at(i);
+    }
+    int serializationResultsSizeInFloatNumber = res.size();
 
     std::cout << "Size in float number: " << serializationResultsSizeInFloatNumber << std::endl;
 

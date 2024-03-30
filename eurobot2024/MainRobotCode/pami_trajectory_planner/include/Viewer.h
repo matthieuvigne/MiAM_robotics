@@ -10,14 +10,15 @@
 #include <miam_utils/Types.h>
 #include <common/MotionPlanner.h>
 
-enum MessageType
-{
-    NEW_TRAJECTORY = 0,
-    SET_ID = 1,
-    NEW_TRAJECTORY_SAVE = 2,
-    MATCH_STATE = 3,
-    ERROR = 99
-};
+// enum MessageType
+// {
+//     CONFIGURATION = 0,
+//     NEW_TRAJECTORY = 1,
+//     MATCH_STATE = 2,
+//     SET_ID = 80,
+//     NEW_TRAJECTORY_SAVE = 81,
+//     ERROR = 99
+// };
 
 // #include "ViewerRobot.h"
 
