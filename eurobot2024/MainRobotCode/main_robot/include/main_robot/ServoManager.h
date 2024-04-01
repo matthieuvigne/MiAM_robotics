@@ -71,6 +71,11 @@ public:
 
     void openElectromagnetArms();
     void closeElectromagnetArms();
+
+    void turnOnMagnets();
+    void turnOffMagnets();
+
+
 private:
     RobotInterface *robot_;
     STSServoDriver *servos_;

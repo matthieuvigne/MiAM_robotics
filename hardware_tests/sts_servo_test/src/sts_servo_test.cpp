@@ -65,16 +65,23 @@ int main(int argc, char* argv[])
       return 0;
   }
 
+  if (!robot.getMPC23008()->init(&RPI_I2C))
+  {
+      std::cout << "Failed to init communication with MCP IO expander." << std::endl;
+      return 0;
+  }
+
   // Instantiate the servo manager
   ServoManager servo_manager;
-  servo_manager.init(&robot);
+  servo_manager.init(&robot, true);
 
   servo_manager.waitForTurret();
 
   std::cout << "Turret calibrated" << std::endl;
   robot.wait(1.0);
 
-  // Sequence
+  GameState gameState;
+
   while (true)
   {
   servo_manager.moveTurret(0); // Initialisation a faire avec l'interrupteur

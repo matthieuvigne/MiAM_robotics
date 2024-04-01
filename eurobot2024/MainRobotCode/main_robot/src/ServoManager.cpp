@@ -30,6 +30,7 @@ void ServoManager::init(RobotInterface *robot, bool const& isTurretAlreadyCalibr
     setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
     raiseSolarPanelArm();
     openElectromagnetArms();
+    turnOffMagnets();
     servos_->setMode(SOLAR_PANEL_WHEEL, STS::Mode::VELOCITY);
 
     // Change P gain of the turret servo to prevent vibrations
@@ -286,12 +287,23 @@ void ServoManager::spinSolarPanel(bool const& spin)
 
 void ServoManager::openElectromagnetArms()
 {
-    // TODO
-    robot_->getMPC23008()->setOutputs(0xFF);
+    servos_->setTargetPosition(30, 2048);
+    servos_->setTargetPosition(31, 2048);
 }
 
 void ServoManager::closeElectromagnetArms()
 {
+    int const increment = 1100;
+    servos_->setTargetPosition(30, 2048 + increment);
+    servos_->setTargetPosition(31, 2048 - increment);
+}
+
+void ServoManager::turnOnMagnets()
+{
+    robot_->getMPC23008()->setOutputs(0xFF);
+}
+
+void ServoManager::turnOffMagnets()
+{
     robot_->getMPC23008()->setOutputs(0x00);
-    // TODO
 }
