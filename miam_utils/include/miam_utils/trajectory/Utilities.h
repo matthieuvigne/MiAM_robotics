@@ -17,7 +17,7 @@
             enum flags{
                 BACKWARD         = 0x01, ///< Move backward
                 IGNORE_END_ANGLE = 0x02, ///< Used by some planning function to ignore the angle of the target
-                WAIT_FOR_END     = 0x04, ///< Used for trajectory following: specify if the call should block or not
+                NO_WAIT_FOR_END  = 0x04, ///< Used for trajectory following: specify if the call should block or not
                 DEFAULT          = 0     ///< No specific options
             };
 
