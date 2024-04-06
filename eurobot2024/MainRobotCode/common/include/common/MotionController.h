@@ -115,6 +115,8 @@
             /// @return True is move is successful, false otherwise
             bool goStraight(double const& distance, double const& speedRatio = 1.0);
 
+            bool pointTurn(double const& angle, double const& speedRatio = 1.0);
+
 
             /// @brief  Follow a specific rounded corner path
             /// @details This function is blocking, and returns once the motion has completed.

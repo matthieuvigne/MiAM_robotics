@@ -1,7 +1,7 @@
 #include "main_robot/DropPlantsAction.h"
 
 #define CHASSIS_MARGIN 150
-#define POT_MARGIN 130
+#define POT_MARGIN 110
 
 const miam::RobotPosition PLANT_DROP_COORD[3] =
 {
@@ -27,9 +27,14 @@ const int DROP_PRIORITY_PREFERENCE[6] = {
     5
     };
 
-void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int zoneId)
+void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int zoneId, bool dropGround = false)
 {
     servos->waitForTurret();
+    if (dropGround)
+    {
+        servos->setClawPosition((dropFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
+        robot->wait(1.0);
+    }
     servos->openClaws(dropFront);
     int nPlants = -servos->updateClawContent(dropFront, robot->gameState_);
     robot->gameState_.nPlantsCollected[zoneId] += nPlants;
@@ -39,6 +44,7 @@ void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int
 void DropPlantsAction::updateStartCondition()
 {
     startPosition_ = PLANT_DROP_COORD[zoneId_];
+    isStartMotionBackward_ = true;
 
     // Action is only possible if there are plants present.
     bool isPossible = robot_->gameState_.nPlantsInRobot() > 0 && robot_->gameState_.nPlantsCollected[zoneId_] == 0;
@@ -74,23 +80,26 @@ bool DropPlantsAction::performAction()
 
     if (!robot_->getMotionController()->goToStraightLine(target, 1.0, true, true))
         return false;
-    if (!robot_->getMotionController()->goStraight(-50, 0.5))
+    if (!robot_->getMotionController()->goStraight(-50, 0.4))
         return false;
-
-    // Grab pots with arm
+    servoManager_->turnOnMagnets();
     servoManager_->closeElectromagnetArms();
+    robot_->wait(0.5);
+    if (!robot_->getMotionController()->goStraight(-40, 0.4))
+        return false;
+    robot_->wait(1.0);
 
-    if (!robot_->getMotionController()->goStraight(30))
+    if (!robot_->getMotionController()->goStraight(40))
         return false;
 
     // Go to zone, pushing the pots
     target = robot_->getMotionController()->getCurrentPosition();
     std::vector<RobotPosition> positions;
     int yInvert = (zoneId_ == 1 ? 1 : -1);
-    int xInvert = (zoneId_ == 0 ? -1 : 1);
+    int xInvert = (zoneId_ == 0 ? 1 : -1);
 
-    target.y += 150 * yInvert;
-    target.x += 100 * xInvert;
+    target.y += 200 * yInvert;
+    target.x += 55 * xInvert;
     positions.push_back(target);
     target.y += 150 * yInvert;
     positions.push_back(target);
@@ -105,6 +114,7 @@ bool DropPlantsAction::performAction()
 
     // Drop plants
     dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_);
+    servoManager_->turnOffMagnets();
     servoManager_->openElectromagnetArms();
 
     // Are there other plants to drop ?
@@ -112,12 +122,18 @@ bool DropPlantsAction::performAction()
 
     if (robot_->gameState_.nPlantsInRobot() > 0)
     {
-        robot_->getMotionController()->goStraight(90);
-        servoManager_->moveTurret(isDroppingFront_ ? M_PI : 0);
-        robot_->wait(1.0);
-        dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_);
+        robot_->getMotionController()->goStraight(150);
+        servoManager_->moveTurret(isDroppingFront_ ? 0 : M_PI);
+        robot_->getMotionController()->pointTurn(M_PI);
+        dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_, true);
+        robot_->getMotionController()->goStraight(-80);
+        servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::HIGH_POSITION);
+        robot_->wait(0.8);
     }
-    robot_->getMotionController()->goStraight(50);
+    else
+    {
+        robot_->getMotionController()->goStraight(80);
+    }
     return true;
 }
 
@@ -172,6 +188,7 @@ bool DropPlantsToJarnidiereAction::performAction()
     robot_->wait(0.6);
     dropPlants(robot_, servoManager_, isDroppingFront_, 3 + zoneId_);
     robot_->getMotionController()->goStraight(-MARGIN);
+    servoManager_->setClawPosition((isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
 
     // Action should never be done again
     return true;

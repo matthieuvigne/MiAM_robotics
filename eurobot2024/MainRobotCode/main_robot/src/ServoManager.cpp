@@ -293,7 +293,7 @@ void ServoManager::openElectromagnetArms()
 
 void ServoManager::closeElectromagnetArms()
 {
-    int const increment = 1100;
+    int const increment = 1300;
     servos_->setTargetPosition(30, 2048 + increment);
     servos_->setTargetPosition(31, 2048 - increment);
 }

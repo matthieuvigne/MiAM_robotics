@@ -1,7 +1,7 @@
 #include "main_robot/SolarPanelsAction.h"
 
 
-#define LATERAL_DISTANCE 190
+#define LATERAL_DISTANCE 180
 
 double const PANELS_X_COORD[6] = {270, 500, 725, 1275, 1500, 1725};
 double const ROBOT_ARM_OFFSET = 20.0;

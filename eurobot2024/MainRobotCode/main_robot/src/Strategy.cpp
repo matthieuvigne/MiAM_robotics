@@ -121,6 +121,8 @@ void Strategy::goBackToBase()
         targetPosition.x = 250;
         targetPosition.y = 250;
     }
+    servoManager_.spinSolarPanel(false);
+    servoManager_.raiseSolarPanelArm();
     robot->getMotionController()->goToStraightLine(targetPosition);
     robot->updateScore(10);
 }
@@ -225,7 +227,10 @@ bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & acti
     robot->logger_ << "[Strategy] Performing action: " << *action << std::endl;
     // Go to the start of the action
     TrajectoryVector traj;
-    traj = robot->getMotionController()->computeMPCTrajectory(action->startPosition_, robot->getMotionController()->getDetectedObstacles(), true);
+    traj = robot->getMotionController()->computeMPCTrajectory(
+        action->startPosition_,
+        robot->getMotionController()->getDetectedObstacles(),
+        !action->isStartMotionBackward_);
     if (traj.empty())
     {
         robot->logger_ << "[Strategy] Motion planning to action failed!" << std::endl;

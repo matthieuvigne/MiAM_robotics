@@ -536,3 +536,22 @@ bool MotionController::goStraight(double const& distance, double const& speedFac
     targetPosition.y += std::sin(angle) * std::abs(distance);
     return goToStraightLine(targetPosition, speedFactor, distance < 0, false);
 }
+
+bool MotionController::pointTurn(double const& angle, double const& speedFactor)
+{
+    // Don't go faster than maximum
+    double const clampedFactor = std::clamp(speedFactor, 0.0, 1.75);
+
+    miam::trajectory::TrajectoryConfig conf = robotParams_.getTrajConf();
+    conf.maxWheelVelocity *= clampedFactor;
+    conf.maxWheelAcceleration *= clampedFactor;
+    RobotPosition currentPosition = getCurrentPosition();
+    double const endAngle = currentPosition.theta + angle;
+
+    TrajectoryVector traj;
+    traj.push_back(std::shared_ptr<Trajectory>(
+        new PointTurn(conf, currentPosition, endAngle)));
+
+    setTrajectoryToFollow(traj);
+    return waitForTrajectoryFinished();
+}
