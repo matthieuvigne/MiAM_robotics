@@ -92,6 +92,11 @@ if(BUILD_CAMERA_CALIBRATION)
   target_link_libraries(calibrate_camera ${LIBRARY_NAME} ${Eigen_LIBRARIES})
 endif()
 
+# Scripts
+
+add_executable(test_solar_panels scripts/test_camera_solar_panels.cpp)
+target_link_libraries(test_solar_panels ${OpenCV_LIBRARIES} ${Eigen_LIBRARIES})
+
 # Tests
 
 if(BUILD_TESTS)
