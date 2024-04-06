@@ -119,7 +119,8 @@ namespace miam{
                                                         std::vector<RobotPosition> const& positions,
                                                         double radius,
                                                         double transitionVelocityFactor,
-                                                        bool backward)
+                                                        bool backward,
+                                                        bool enforceEndAngle)
         {
             TrajectoryVector trajectories;
             if(positions.size() < 2)
@@ -207,6 +208,12 @@ namespace miam{
             RobotPosition endPoint = positions.back();
             std::shared_ptr<StraightLine> line(new StraightLine(config, currentPoint, endPoint, (positions.size() == 2 ? 0 : transitionLinearVelocity), 0.0, backward));
             trajectories.push_back(line);
+
+            // Add final rotation if needed
+            if (enforceEndAngle)
+            {
+                trajectories.push_back(std::shared_ptr<Trajectory>(new PointTurn(config, trajectories.getEndPoint().position, endPoint.theta)));
+            }
 
             return trajectories;
         }

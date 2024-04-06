@@ -36,6 +36,7 @@ MotionControllerTestingViewer::MotionControllerTestingViewer(BaseObjectType* cob
     refGlade->get_widget("checkStraight", buttonShowStraightLine);
     refGlade->get_widget("checkRounded", buttonShowRounded);
     refGlade->get_widget("checkMPC", buttonShowMPC);
+    refGlade->get_widget("checkEEA", buttonEnforceEndAngle);
 
     Gtk::Button *button;
     refGlade->get_widget("runButton", button);
@@ -46,6 +47,7 @@ MotionControllerTestingViewer::MotionControllerTestingViewer(BaseObjectType* cob
     buttonShowStraightLine->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::refresh));
     buttonShowRounded->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::refresh));
     buttonShowMPC->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::refresh));
+    buttonEnforceEndAngle->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::recompute));
 
 
     refGlade->get_widget("drawingArea", drawingArea);
@@ -82,7 +84,6 @@ void MotionControllerTestingViewer::setStartPosition(RobotPosition const& pos)
 {
     startPosition_ = pos;
     recompute();
-    refresh();
 }
 
 
@@ -90,7 +91,6 @@ void MotionControllerTestingViewer::setEndPosition(RobotPosition const& pos)
 {
     endPosition_ = pos;
     recompute();
-    refresh();
 }
 
 
@@ -318,7 +318,6 @@ bool MotionControllerTestingViewer::mouseClicked(GdkEventButton* buttonEvent)
         if (!hasErased)
             obstacles_.push_back(Obstacle(currentEditPosition_, OBSTACLE_SIZE));
         recompute();
-        refresh();
     }
     drawingArea->queue_draw();
     return true;
@@ -349,8 +348,11 @@ void MotionControllerTestingViewer::recompute()
     nIter++;
 
     motionController_->resetPosition(startPosition_);
-    mpcTrajectory_ = motionController_->computeMPCTrajectory(
+    mpcTrajectory_ = motionController_->computeMPCAvoidanceTrajectory(
         endPosition_,
         obstacles_,
-        true);
+        true,
+        false,
+        buttonEnforceEndAngle->get_active());
+    refresh();
 }

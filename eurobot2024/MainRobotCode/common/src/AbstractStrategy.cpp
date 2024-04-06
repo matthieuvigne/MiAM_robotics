@@ -14,76 +14,7 @@
 using namespace miam;
 using namespace miam::trajectory;
 
-//--------------------------------------------------------------------------------------------------
 
-bool AbstractStrategy::go_to_straight_line(RobotPosition position, double factor, bool backward)
-{
-    // Don't go faster than maximum
-    factor = std::clamp(factor, 0.0, 1.75);
-    miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
-    conf.maxWheelVelocity *= factor;
-    conf.maxWheelAcceleration *= factor;
-    RobotPosition currentPosition = motionController->getCurrentPosition();
-    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(
-        conf,
-        currentPosition, // start
-        position, // end
-        0.0, // no velocity at end point
-        backward // or forward
-  );
-
-  motionController->setTrajectoryToFollow(traj);
-
-  return motionController->waitForTrajectoryFinished();
-}
-
-//--------------------------------------------------------------------------------------------------
-
-bool AbstractStrategy::turn_around_point(double angle_rad, double factor)
-{
-  miam::trajectory::TrajectoryConfig conf = motionController->robotParams_.getTrajConf();
-  conf.maxWheelVelocity *= factor;
-  conf.maxWheelAcceleration *= factor;
-  RobotPosition currentPosition = motionController->getCurrentPosition();
-  TrajectoryVector traj;
-  traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(conf, currentPosition,
-    currentPosition.theta + angle_rad)));
-  motionController->setTrajectoryToFollow(traj);
-  return motionController->waitForTrajectoryFinished();
-}
-
-//--------------------------------------------------------------------------------------------------
-
-bool AbstractStrategy::go_to_rounded_corner(std::vector<RobotPosition> positions, bool backwards)
-{
-    TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
-        robot->getParameters().getTrajConf(),
-        positions,
-        200,
-        0.2,
-        backwards
-    );
-
-    motionController->setTrajectoryToFollow(traj);
-
-    return motionController->waitForTrajectoryFinished();
-}
-
-//--------------------------------------------------------------------------------------------------
-
-bool AbstractStrategy::go_forward(double distance)
-{
-    RobotPosition currentPosition = motionController->getCurrentPosition();
-    TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLine(
-        robot->getParameters().getTrajConf(),
-        currentPosition, // start
-        distance
-    );
-
-    motionController->setTrajectoryToFollow(traj);
-
-    return motionController->waitForTrajectoryFinished();
-}
 
 //--------------------------------------------------------------------------------------------------
 

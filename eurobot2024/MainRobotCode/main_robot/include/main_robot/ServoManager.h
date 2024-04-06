@@ -48,7 +48,9 @@ public:
     void openClaws(bool const& front, bool const& halfOpen = false);
     void closeClaws(bool const& front);
 
-    void updateClawContent(bool const& front, GameState & gameState);
+    /// @brief Update the claw content, returning the number of plants that changed since
+    ///        the last call.
+    int updateClawContent(bool const& front, GameState & gameState);
 
     void setClawPosition(ClawSide const& side, ClawPosition const& claw_position);
 
@@ -66,6 +68,14 @@ public:
     void raiseSolarPanelArm();
     void lowerSolarPanelArm();
     void spinSolarPanel(bool const& spin);
+
+    void openElectromagnetArms();
+    void closeElectromagnetArms();
+
+    void turnOnMagnets();
+    void turnOffMagnets();
+
+
 private:
     RobotInterface *robot_;
     STSServoDriver *servos_;
@@ -77,6 +87,8 @@ private:
     double currentTurretPosition_{0.0};
     double targetTurretPosition_{0.0};
     int lastTurretPosition_{0};
+
+    bool isClawServoClosed_[6] = {false, false, false, false, false, false};
 
     void updateTurretPosition();
 };

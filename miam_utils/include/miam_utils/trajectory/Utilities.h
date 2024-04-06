@@ -101,12 +101,14 @@
             ///                      for the first position.
             /// \param[in] radius Circle radius - the same is used at each point.
             /// \param[in] transitionVelocityFactor Percentage of the maximum velocity along the circle at which to do the transition.
+            /// \param[in] enforceEndAngle If set, add point turn at the end to reach the desired angle.
             /// \return Vector of pointer toward the full trajectory.
             TrajectoryVector computeTrajectoryRoundedCorner(TrajectoryConfig const& config,
                                                             std::vector<RobotPosition> const& positions,
                                                             double radius,
                                                             double transitionVelocityFactor = 0.5,
-                                                            bool backward = false);
+                                                            bool backward = false,
+                                                            bool enforceEndAngle = false);
 
             /// \brief Compute a simple trajectory: going forward for a given distance.
             ///

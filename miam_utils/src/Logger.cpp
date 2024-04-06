@@ -101,6 +101,10 @@ void Logger::loggerThread(std::string const& filename)
     }
     for (auto d : datasets_)
         d.flush();
+    datasets_.clear();
+    names_.clear();
+    queuedDatapoints_.clear();
+    queuedText_.clear();
     textHandler.flush();
     file.close();
 }

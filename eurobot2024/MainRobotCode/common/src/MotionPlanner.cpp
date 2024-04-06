@@ -101,16 +101,20 @@ TrajectoryVector MotionPlanner::planMotion(
     if (false)
     // if (ensureEndAngle)
     {
-        double const OFFSET_DISTANCE = 100;
+        double const OFFSET_DISTANCE = 50;
         RobotPosition offsetPosition = targetPosition - RobotPosition(OFFSET_DISTANCE, 0, 0).rotate(targetPosition.theta);
-        planned_path = pathPlanner_.planPath(currentPosition, offsetPosition);
-        if (planned_path.size() > 0)
+        if ((offsetPosition - currentPosition).norm() < (targetPosition - currentPosition).norm())
         {
-            planned_path.push_back(targetPosition);
+            planned_path = pathPlanner_.planPath(currentPosition, offsetPosition);
+            if (planned_path.size() > 0)
+            {
+                planned_path.push_back(targetPosition);
+            }
+            else
+                *logger_ << "[PathPlanner] Planning with angle offset failed, try to replan to target" << std::endl;
         }
-        else
-            *logger_ << "[PathPlanner] Planning with angle offset failed, try to replan to target" << std::endl;
     }
+    // ensureEndAngle = true;
     // If planning failed, or if no offset was asked, plan toward true target.
     if (planned_path.size() == 0)
         planned_path = pathPlanner_.planPath(currentPosition, targetPosition);
@@ -345,10 +349,6 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
         distance += (p.at(i+1) - p.at(i)).norm();
     }
 
-#ifdef VERBOSE
-    cout << "computeTrajectoryBasicPath: Planning path of distance " << distance << " to target: " << p.back() << std::endl;
-#endif
-
     // make a trapezoid of velocity
     Trapezoid tp = Trapezoid(
         distance,
@@ -391,17 +391,6 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
             startSpeed,
             endSpeed, false));
 
-#ifdef VERBOSE
-        cout << "Point index " << i << " : endSpeed " << endSpeed << " start at " << line->getCurrentPoint(0) << " end at " << line->getEndPoint() << endl;
-
-        if (i == 0)
-        {
-            cout << "Checking first straightline: " << endl;
-            for (double stime = 0; stime <= line->getDuration(); stime+=0.1)
-                cout << line->getCurrentPoint(stime) << endl;
-        }
-#endif
-
         // Go from point to point.
         vector.push_back(std::shared_ptr<Trajectory>(line));
 
@@ -409,20 +398,6 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
         startPointTrapezoid += line->getDuration();
     }
 
-#ifdef VERBOSE
-    cout << "Computed TrajectoryVector: " << endl;
-    for (double stime = 0; stime <= vector.getDuration(); stime+=0.1)
-        cout << vector.getCurrentPoint(stime) << endl;
-    cout << vector.getEndPoint() << endl;
-#endif
-
-#ifdef VERBOSE
-    for (double t=0; t <= vector.getDuration(); t+=0.2)
-    {
-        *logger_ << "[MotionPlanner] " << "t: " << t << " " << vector.getCurrentPoint(t) << std::endl;
-    }
-    *logger_ << "[MotionPlanner] " << "t: " << vector.getDuration() << " " << vector.getEndPoint() << std::endl;
-#endif
     return vector;
 };
 

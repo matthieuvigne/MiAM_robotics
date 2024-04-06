@@ -68,8 +68,7 @@ bool PickupPlantsAction::performAction()
     // See what has been grabbed
     robot_->wait(0.15);
     servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
-    servoManager_->updateClawContent(isFront, robot_->gameState_);
-    robot_->gameState_.nPlantsPerZone[zoneId_] -= 3;
+    robot_->gameState_.nPlantsPerZone[zoneId_] -= servoManager_->updateClawContent(isFront, robot_->gameState_);
 
     robot_->getMotionController()->goStraight(-80, 0.5);
 
@@ -98,12 +97,10 @@ bool PickupPlantsAction::performAction()
         robot_->getMotionController()->goStraight(200, 0.5);
 
         servoManager_->closeClaws(isFront);
-        robot_->logger_ << "Is front" << isFront << std::endl;
 
         // See what has been grabbed
         robot_->wait(0.3);
-        servoManager_->updateClawContent(isFront, robot_->gameState_);
-        robot_->gameState_.nPlantsPerZone[zoneId_] -= 3;
+        robot_->gameState_.nPlantsPerZone[zoneId_] -= servoManager_->updateClawContent(isFront, robot_->gameState_);
     }
 
     servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);

@@ -48,6 +48,7 @@
     struct RobotMeasurements{
         DrivetrainMeasurements drivetrainMeasurements;
         double batteryVoltage = 0.0;
+        double vlxDistance = 0.0;
     };
 
  #endif

@@ -227,17 +227,21 @@ namespace miam{
 
             if (checkPath && robotPositionToVec2i(start) == path.back() && robotPositionToVec2i(end) == path.front())
             {
+                double const GRID_DIAGONAL = config_.astar_resolution_mm * 1.4142;
+
+                positions.push_back(start);
                 for (auto coordinate = path.rbegin(); coordinate != path.rend(); ++coordinate)
                 {
                     targetPosition = vec2iToRobotPosition(*coordinate);
-                    positions.push_back(targetPosition);
+                    // Don't add points that are less than one grid coordinate from start / end.
+                    // This is done to avoid artifacts due to the start / end being off-grid.
+                    if ((targetPosition - start).norm() > 1.5 * GRID_DIAGONAL &&
+                        (targetPosition - end).norm() > 1.5 * GRID_DIAGONAL)
+                        positions.push_back(targetPosition);
                 }
+                positions.push_back(end);
 
-                // remplacer extremites par start et end
-                positions.front() = start;
-                positions.back() = end;
-
-                // Give to each point the angle corresponding to the line going to thext point.
+                // Give to each point the angle corresponding to the line going to the next point.
                 for (unsigned int i = 1; i < positions.size(); i++)
                 {
                     double const dx = positions.at(i).x - positions.at(i-1).x;

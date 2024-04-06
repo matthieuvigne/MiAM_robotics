@@ -3,8 +3,8 @@
 ///
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
-#ifndef PCA9685_DRIVER
-    #define PCA9685_DRIVER
+#ifndef INA226_DRIVER
+    #define INA226_DRIVER
     #include "miam_utils/drivers/I2C-Wrapper.h"
 
     struct INA226Reading{

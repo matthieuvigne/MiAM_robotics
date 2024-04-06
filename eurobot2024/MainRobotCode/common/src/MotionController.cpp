@@ -482,6 +482,28 @@ double MotionController::minDistancePositionToObstacle(RobotPosition position, b
 }
 
 
+bool MotionController::goToRoundedCorners(std::vector<RobotPosition> const& positions,
+                                          double radius,
+                                          double transitionVelocityFactor,
+                                          bool backward,
+                                          bool enforceEndAngle)
+{
+    std::vector<RobotPosition> trajPositions = positions;
+    trajPositions.insert(trajPositions.begin(), getCurrentPosition());
+
+    TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
+        robotParams_.getTrajConf(),
+        trajPositions,
+        radius,
+        transitionVelocityFactor,
+        backward,
+        enforceEndAngle
+    );
+    setTrajectoryToFollow(traj);
+    return waitForTrajectoryFinished();
+}
+
+
 bool MotionController::goToStraightLine(RobotPosition const& position, double const& speedFactor, bool const& backward, bool const& enforceEndAngle)
 {
     // Don't go faster than maximum
@@ -513,4 +535,23 @@ bool MotionController::goStraight(double const& distance, double const& speedFac
     targetPosition.x += std::cos(angle) * std::abs(distance);
     targetPosition.y += std::sin(angle) * std::abs(distance);
     return goToStraightLine(targetPosition, speedFactor, distance < 0, false);
+}
+
+bool MotionController::pointTurn(double const& angle, double const& speedFactor)
+{
+    // Don't go faster than maximum
+    double const clampedFactor = std::clamp(speedFactor, 0.0, 1.75);
+
+    miam::trajectory::TrajectoryConfig conf = robotParams_.getTrajConf();
+    conf.maxWheelVelocity *= clampedFactor;
+    conf.maxWheelAcceleration *= clampedFactor;
+    RobotPosition currentPosition = getCurrentPosition();
+    double const endAngle = currentPosition.theta + angle;
+
+    TrajectoryVector traj;
+    traj.push_back(std::shared_ptr<Trajectory>(
+        new PointTurn(conf, currentPosition, endAngle)));
+
+    setTrajectoryToFollow(traj);
+    return waitForTrajectoryFinished();
 }

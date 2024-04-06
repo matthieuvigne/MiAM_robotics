@@ -35,3 +35,6 @@ target_link_libraries(test_as5045 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF
 
 add_executable(test_ina226 TestINA226.cpp)
 target_link_libraries(test_ina226 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")
+
+add_executable(test_mcp23008 TestMCP23008.cpp)
+target_link_libraries(test_mcp23008 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")

@@ -80,14 +80,18 @@
             NautilusWrapper rightMotor_;
             NautilusWrapper leftMotor_;
             INA226 ina226_;
+            VL53L0X vlxSensor_;
+
+            void updateRangeMeasurement(); // Thread handling VLX acquisition
 
             // Init variables.
-            bool isMCPInit_ = false;
             bool isMotorsInit_ = false;
             bool isEncodersInit_ = false;
             bool isLidarInit_ = false; ///< Boolean representing the initialization of the lidar.
             bool isServoInit_ = false;
             bool isINAInit_ = false;
+            bool isVlxInit_ = false;
+            bool isMCPInit_ = false;
 
             bool areMotorsLocked_ = false;
     };

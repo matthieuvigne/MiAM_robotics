@@ -29,6 +29,8 @@ void ServoManager::init(RobotInterface *robot, bool const& isTurretAlreadyCalibr
     setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
     setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
     raiseSolarPanelArm();
+    openElectromagnetArms();
+    turnOffMagnets();
     servos_->setMode(SOLAR_PANEL_WHEEL, STS::Mode::VELOCITY);
 
     // Change P gain of the turret servo to prevent vibrations
@@ -52,6 +54,7 @@ void ServoManager::openClaw(int const& clawId, bool const& halfOpen)
     {
         int const offset = (halfOpen ? 0.3 * CLAW_MOTION * clawDirection[idx] : 0);
         servos_->setTargetPosition(clawId, clawOpen[idx] + offset);
+        isClawServoClosed_[idx] = false;
     }
 }
 
@@ -61,7 +64,10 @@ void ServoManager::closeClaw(int const& clawId)
     int const idx = clawId - 2;
 
     if (idx < 6 && idx >= 0)
-            servos_->setTargetPosition(clawId, clawOpen[idx] + clawDirection[idx] * CLAW_MOTION);
+    {
+        isClawServoClosed_[idx] = true;
+        servos_->setTargetPosition(clawId, clawOpen[idx] + clawDirection[idx] * CLAW_MOTION);
+    }
 }
 
 void ServoManager::openClaws(bool const& front, bool const& halfOpen)
@@ -85,19 +91,48 @@ void ServoManager::closeClaws(bool const& front)
     }
 }
 
-void ServoManager::updateClawContent(bool const& front, GameState & gameState)
+int ServoManager::updateClawContent(bool const& front, GameState & gameState)
 {
     int offset = (front ? 0 : 3);
 
-    // TODO: for now, grab is considered perfect
-    // for (int j = 0; j < 3; j++)
-    //     gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+
+    int oldPlantNumber = 0;
+    for (int j = 0; j < 3; j++)
+        if (gameState.robotClawContent[offset + j] != ClawContent::EMPTY)
+            oldPlantNumber++;
+
 
     for (int j = 0; j < 3; j++)
     {
-        // if (((double) rand() / (RAND_MAX)) > 0.5)
+        int const idx = offset + j;
+        if (!isClawServoClosed_[idx])
+        {
+            gameState.robotClawContent[idx] = ClawContent::EMPTY;
+        }
+        else
+        {
+#ifdef SIMULATION
             gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+#else
+            int const currentPosition = servos_->getCurrentPosition(2 + idx);
+            int const targetClosePosition = clawOpen[idx] + clawDirection[idx] * CLAW_MOTION;
+            if (std::abs(currentPosition - targetClosePosition) > 10)
+            {
+                gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
+            }
+            else
+            {
+                gameState.robotClawContent[offset + j] = ClawContent::EMPTY;
+            }
+#endif
+        }
     }
+
+    int newPlantNumber = 0;
+    for (int j = 0; j < 3; j++)
+        if (gameState.robotClawContent[offset + j] != ClawContent::EMPTY)
+            newPlantNumber++;
+    return newPlantNumber - oldPlantNumber;
 }
 
 double ServoManager::getTurretPosition() const
@@ -248,4 +283,27 @@ void ServoManager::lowerSolarPanelArm()
 void ServoManager::spinSolarPanel(bool const& spin)
 {
     servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (spin ? -1500 : 0));
+}
+
+void ServoManager::openElectromagnetArms()
+{
+    servos_->setTargetPosition(30, 2048);
+    servos_->setTargetPosition(31, 2048);
+}
+
+void ServoManager::closeElectromagnetArms()
+{
+    int const increment = 1300;
+    servos_->setTargetPosition(30, 2048 + increment);
+    servos_->setTargetPosition(31, 2048 - increment);
+}
+
+void ServoManager::turnOnMagnets()
+{
+    robot_->getMPC23008()->setOutputs(0xFF);
+}
+
+void ServoManager::turnOffMagnets()
+{
+    robot_->getMPC23008()->setOutputs(0x00);
 }

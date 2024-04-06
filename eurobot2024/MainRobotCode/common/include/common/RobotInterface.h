@@ -9,6 +9,7 @@
      #define ROBOT_INTERFACE_H
 
     #include <miam_utils/drivers/STSServoDriver.h>
+    #include <miam_utils/drivers/MCP23008Driver.h>
     #include <unistd.h>
     #include <mutex>
     #include "common/RobotParameters.h"
@@ -99,6 +100,7 @@
 
             MotionController* getMotionController() { return &motionController_;}
             STSServoDriver* getServos() { return &servos_;}
+            MCP23008* getMPC23008() { return &mcpIOExpander_;}
             RobotPosition getStartPosition() { return gui_->getStartPosition();}
 
             /// \brief Get time in current match.
@@ -122,6 +124,11 @@
                 guiState_.currentActionName = actionName;
             }
 
+            RobotMeasurements *getMeasurements()
+            {
+                return &measurements_;
+            }
+
         protected:
 #ifdef SIMULATION
             FakeMetronome metronome_;
@@ -130,6 +137,8 @@
 #endif
             MotionController motionController_;
             STSServoDriver servos_;
+            MCP23008 mcpIOExpander_;
+
             RobotGUI *gui_;
             AbstractStrategy *strategy_;
 

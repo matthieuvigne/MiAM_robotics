@@ -60,6 +60,7 @@ private:
     Gtk::CheckButton *buttonShowStraightLine;
     Gtk::CheckButton *buttonShowRounded;
     Gtk::CheckButton *buttonShowMPC;
+    Gtk::CheckButton *buttonEnforceEndAngle;
 
     TrajectoryVector mpcTrajectory_;
 

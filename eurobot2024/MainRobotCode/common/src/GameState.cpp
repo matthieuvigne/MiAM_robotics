@@ -2,25 +2,34 @@
 
 const miam::RobotPosition PLANT_COLLECT_COORD[6] =
 {
-        miam::RobotPosition(1500, 1500),
-        miam::RobotPosition(1000, 1300),
-        miam::RobotPosition(2000, 1300),
-        miam::RobotPosition(1000, 700),
-        miam::RobotPosition(2000, 700),
-        miam::RobotPosition(1500, 500)
+    miam::RobotPosition(1500, 1500),
+    miam::RobotPosition(1000, 1300),
+    miam::RobotPosition(2000, 1300),
+    miam::RobotPosition(1000, 700),
+    miam::RobotPosition(2000, 700),
+    miam::RobotPosition(1500, 500)
 };
 
 const miam::RobotPosition PLANT_DROP_DISPLAY_COORD[6] =
 {
-        miam::RobotPosition(800, 1900),
-        miam::RobotPosition(225, 1785),
-        miam::RobotPosition(50, 1400),
-        miam::RobotPosition(2785, 1000),
-        miam::RobotPosition(2900, 600),
-        miam::RobotPosition(225, 225)
+    miam::RobotPosition(225, 225),
+    miam::RobotPosition(225, 1785),
+    miam::RobotPosition(2785, 1000),
+    miam::RobotPosition(2900, 600),
+    miam::RobotPosition(50, 1400),
+    miam::RobotPosition(800, 1900)
 };
 
-void drawText(Cairo::RefPtr<Cairo::Context> const& cr, std::string const& text)
+
+const miam::RobotPosition POTS_DISPLAY_COORD[4] =
+{
+    miam::RobotPosition(2700, 600),
+    miam::RobotPosition(250, 1400),
+    miam::RobotPosition(250, 600),
+    miam::RobotPosition(2700, 1400),
+};
+
+void drawText(Cairo::RefPtr<Cairo::Context> const& cr, std::string const& text, double const& r = 0.0, double const& g = 0.0, double const& b=0.0)
 {
     cr->set_font_size(100);
     cr->text_path(text);
@@ -28,7 +37,7 @@ void drawText(Cairo::RefPtr<Cairo::Context> const& cr, std::string const& text)
     cr->set_source_rgb(1.0, 1.0, 1.0);
     cr->stroke_preserve();
     cr->set_line_width(10.0);
-    cr->set_source_rgb(0.0, 0.0, 0.0);
+    cr->set_source_rgb(r, g, b);
     cr->stroke();
 }
 
@@ -42,6 +51,12 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
         drawText(cr, std::to_string(nPlantsPerZone[i]));
         cr->move_to(PLANT_DROP_DISPLAY_COORD[i].x, 2000. - PLANT_DROP_DISPLAY_COORD[i].y);
         drawText(cr, std::to_string(nPlantsCollected[i]));
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        cr->move_to(POTS_DISPLAY_COORD[i].x, 2000. - POTS_DISPLAY_COORD[i].y);
+        drawText(cr, std::to_string(nPotsInPile[i]), 0.5, 0.5, 0.5);
     }
 
 

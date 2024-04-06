@@ -2,6 +2,7 @@
 /// \copyright GNU GPLv3
 #include "miam_utils/drivers/VL53L0XDriver.h"
 #include <iostream>
+#include <unistd.h>
 
 // This driver is inspired from the official ST API and the arduino code at https://github.com/pololu/vl53l0x-arduino
 
@@ -806,6 +807,7 @@ int VL53L0X::getMeasurement(void)
       did_timeout = true;
       return 65535;
     }
+    usleep(1500);
   }
 
   // assumptions: Linearity Corrective Gain is 1000 (default);
