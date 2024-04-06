@@ -173,9 +173,20 @@
             void clearPersistentObstacles();
             void popBackPersistentObstacles();
 
-            TrajectoryVector computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
+            /// @brief Compute a trajectory using MPC going to the target position
+            /// @param targetPosition Position to reach
+            /// @param detectedObstacles Obstacles that were detected
+            /// @param forward TODO update me
+            /// @param ensureEndAngle TODO update me
+            /// @param initialBackwardMotionMargin Positive margin of backward motion for the robot (used for avoidance)
+            /// @return The computed trajectory vector
+            TrajectoryVector computeMPCTrajectory(
+                RobotPosition const targetPosition,
+                std::vector<Obstacle> const detectedObstacles,
+                bool const forward,
+                bool const ensureEndAngle = true,
+                double const initialBackwardMotionMargin = 0);
 
-            TrajectoryVector computeMPCAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward, bool avoidanceEnabled = false, bool ensureEndAngle = true);
             TrajectoryVector computeBasicAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
 
             std::vector<miam::RobotPosition> filteredDetectedObstacles_; ///< Detected obstables ; angle is M_PI if outside table else 0.

@@ -348,11 +348,10 @@ void MotionControllerTestingViewer::recompute()
     nIter++;
 
     motionController_->resetPosition(startPosition_);
-    mpcTrajectory_ = motionController_->computeMPCAvoidanceTrajectory(
+    mpcTrajectory_ = motionController_->computeMPCTrajectory(
         endPosition_,
         obstacles_,
         true,
-        false,
         buttonEnforceEndAngle->get_active());
     refresh();
 }

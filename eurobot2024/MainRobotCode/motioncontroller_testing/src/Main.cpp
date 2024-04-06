@@ -5,9 +5,13 @@
 
 int main (int argc, char *argv[])
 {
-    miam::RobotPosition startPosition(688.0, 1635.0, 0.0);
-    miam::RobotPosition targetPosition(1505.0, 880.0, 0.0);
+    miam::RobotPosition startPosition(200.0, 1850.0, 0.0);
+    miam::RobotPosition targetPosition(650.0, 1300.0, 0.0);
     // miam::RobotPosition targetPosition(900.0, 1300.0, -0.5);
+
+// [4.180789] [MotionController] >> MotionController : current position : x: 200.005 y: 1850 theta: 0.000113081
+// [4.180840] [MotionController] >> MotionController : target position : x: 650 y: 1300 theta: 0
+
 
     Logger logger;
 
