@@ -81,6 +81,17 @@ void ServoManager::openClaws(bool const& front, bool const& halfOpen)
     }
 }
 
+void ServoManager::openAvailableClaws(bool const& front, GameState & gameState)
+{
+    int const servoOffset = (front ? 2 : 5);
+    int const gameOffset = (front ? 0 : 3);
+    for (int i = 0; i < 3; i++)
+    {
+        if (gameState.robotClawContent[gameOffset + i] == ClawContent::EMPTY)
+            openClaw(servoOffset + i, false);
+    }
+}
+
 
 void ServoManager::closeClaws(bool const& front)
 {
@@ -283,6 +294,8 @@ void ServoManager::lowerSolarPanelArm()
 
 void ServoManager::spinSolarPanel(bool const& spin)
 {
+    servos_->setMode(SOLAR_PANEL_WHEEL, STS::Mode::VELOCITY);
+    robot_->wait(0.005);
     servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (spin ? -1500 : 0));
     
     // [TODO] Add with camera

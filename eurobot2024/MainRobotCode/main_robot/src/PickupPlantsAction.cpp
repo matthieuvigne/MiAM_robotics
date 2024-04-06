@@ -51,6 +51,7 @@ bool PickupPlantsAction::performAction()
     robot_->logger_ << "Is front" << isFront << std::endl;
 
     servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
+    servoManager_->openAvailableClaws(isFront, robot_->gameState_);
     robot_->wait(0.8);
 
     // Grab three plants, moving toward the center of the zone.
@@ -88,12 +89,12 @@ bool PickupPlantsAction::performAction()
         robot_->wait(0.5);
         servoManager_->waitForTurret();
         servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
-        servoManager_->openClaws(isFront);
         robot_->wait(0.8);
     }
 
     if (shouldRetry)
     {
+        servoManager_->openAvailableClaws(isFront, robot_->gameState_);
         robot_->getMotionController()->goStraight(200, 0.5);
 
         servoManager_->closeClaws(isFront);

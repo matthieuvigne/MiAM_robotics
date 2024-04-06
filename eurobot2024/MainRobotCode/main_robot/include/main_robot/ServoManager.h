@@ -46,6 +46,8 @@ public:
     void closeClaw(int const& clawId);
 
     void openClaws(bool const& front, bool const& halfOpen = false);
+    void openAvailableClaws(bool const& front, GameState & gameState);
+
     void closeClaws(bool const& front);
 
     /// @brief Update the claw content, returning the number of plants that changed since

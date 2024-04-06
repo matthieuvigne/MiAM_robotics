@@ -43,7 +43,7 @@
                 for (int j = 0; j < 3; j++)
                     if (robotClawContent[(isFront ? 0 : 3) + j] == ClawContent::EMPTY)
                         i++;
-                return i >= 2;
+                return i >= 3;
             }
 
 

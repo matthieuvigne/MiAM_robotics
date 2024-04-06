@@ -34,7 +34,7 @@ bool SolarPanelsAction::performAction()
         // Read VLX
         double const vlxY = robot_->getMeasurements()->vlxDistance;
         RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
-        if (std::abs(currentPosition.y - vlxY) < 20.0)
+        if (std::abs(currentPosition.y - vlxY) < 40.0)
         {
             robot_->logger_ << "[Strategy] Resetting robot y position: " << vlxY << " instead of " << currentPosition.y << std::endl;
             currentPosition.y = vlxY;
@@ -73,6 +73,9 @@ bool SolarPanelsAction::performAction()
         robot_->wait(0.5);
         robot_->updateScore(5);
         servoManager_->spinSolarPanel(false);
+        robot_->wait(0.050);
+        servoManager_->raiseSolarPanelArm();
+        robot_->wait(0.050);
         servoManager_->raiseSolarPanelArm();
         robot_->wait(0.7);
     }
