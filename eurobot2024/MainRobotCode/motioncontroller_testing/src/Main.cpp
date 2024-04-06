@@ -5,8 +5,8 @@
 
 int main (int argc, char *argv[])
 {
-    miam::RobotPosition startPosition(688.0, 1635.0, 0.0);
-    miam::RobotPosition targetPosition(1505.0, 880.0, 0.0);
+    miam::RobotPosition startPosition(200.0, 1850.0, 0.0);
+    miam::RobotPosition targetPosition(650.0, 1300.0, 0.0);
     // miam::RobotPosition targetPosition(900.0, 1300.0, -0.5);
 
     Logger logger;
@@ -29,7 +29,7 @@ int main (int argc, char *argv[])
         motionController.computeMPCTrajectory(
             targetPosition,
             motionController.getDetectedObstacles(),
-            true);
+            tf::DEFAULT);
         return 0;
     }
 

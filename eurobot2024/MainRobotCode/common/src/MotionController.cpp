@@ -485,8 +485,7 @@ double MotionController::minDistancePositionToObstacle(RobotPosition position, b
 bool MotionController::goToRoundedCorners(std::vector<RobotPosition> const& positions,
                                           double radius,
                                           double transitionVelocityFactor,
-                                          bool backward,
-                                          bool enforceEndAngle)
+                                          tf const& flags)
 {
     std::vector<RobotPosition> trajPositions = positions;
     trajPositions.insert(trajPositions.begin(), getCurrentPosition());
@@ -496,15 +495,18 @@ bool MotionController::goToRoundedCorners(std::vector<RobotPosition> const& posi
         trajPositions,
         radius,
         transitionVelocityFactor,
-        backward,
-        enforceEndAngle
+        flags
     );
     setTrajectoryToFollow(traj);
-    return waitForTrajectoryFinished();
+    if (!(flags & tf::NO_WAIT_FOR_END))
+        return waitForTrajectoryFinished();
+    return true;
 }
 
 
-bool MotionController::goToStraightLine(RobotPosition const& position, double const& speedFactor, bool const& backward, bool const& enforceEndAngle)
+bool MotionController::goToStraightLine(RobotPosition const& position,
+                                        double const& speedFactor,
+                                        tf const& flags)
 {
     // Don't go faster than maximum
     double const clampedFactor = std::clamp(speedFactor, 0.0, 1.75);
@@ -518,26 +520,27 @@ bool MotionController::goToStraightLine(RobotPosition const& position, double co
         currentPosition, // start
         position, // end
         0.0, // no velocity at end point
-        backward // or forward
+        flags
     );
-    if (enforceEndAngle)
-    {
-        traj.push_back(std::shared_ptr<Trajectory>(new PointTurn(conf, traj.getEndPoint().position, position.theta)));
-    }
     setTrajectoryToFollow(traj);
-    return waitForTrajectoryFinished();
+    if (!(flags & tf::NO_WAIT_FOR_END))
+        return waitForTrajectoryFinished();
+    return true;
 }
 
-bool MotionController::goStraight(double const& distance, double const& speedFactor)
+bool MotionController::goStraight(double const& distance, double const& speedFactor, tf const& flags)
 {
     RobotPosition targetPosition = getCurrentPosition();
     double const angle = targetPosition.theta + (distance < 0 ? M_PI : 0);
     targetPosition.x += std::cos(angle) * std::abs(distance);
     targetPosition.y += std::sin(angle) * std::abs(distance);
-    return goToStraightLine(targetPosition, speedFactor, distance < 0, false);
+    tf flg= flags;
+    if (distance < 0)
+        flg = static_cast<tf>(flg | tf::BACKWARD);
+    return goToStraightLine(targetPosition, speedFactor, flg);
 }
 
-bool MotionController::pointTurn(double const& angle, double const& speedFactor)
+bool MotionController::pointTurn(double const& angle, double const& speedFactor, tf const& flags)
 {
     // Don't go faster than maximum
     double const clampedFactor = std::clamp(speedFactor, 0.0, 1.75);
@@ -553,5 +556,7 @@ bool MotionController::pointTurn(double const& angle, double const& speedFactor)
         new PointTurn(conf, currentPosition, endAngle)));
 
     setTrajectoryToFollow(traj);
-    return waitForTrajectoryFinished();
+    if (!(flags & tf::NO_WAIT_FOR_END))
+        return waitForTrajectoryFinished();
+    return true;
 }

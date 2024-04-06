@@ -13,6 +13,14 @@
     namespace miam{
         namespace trajectory{
 
+            ///< Parameter flags used by some trajectory generation functions, and path following.
+            enum flags{
+                BACKWARD         = 0x01, ///< Move backward
+                IGNORE_END_ANGLE = 0x02, ///< Used by some planning function to ignore the angle of the target
+                WAIT_FOR_END     = 0x04, ///< Used for trajectory following: specify if the call should block or not
+                DEFAULT          = 0     ///< No specific options
+            };
+
             /// \brief Simple class for working with vectors of trajectories>
             class TrajectoryVector: public std::vector<std::shared_ptr<Trajectory>>
             {
@@ -83,13 +91,13 @@
             /// \param[in] startPosition Starting position
             /// \param[in] endPosition Final position - angle is not taken into account.
             /// \param[in] endVelocity Final velocity.
-            /// \param[in] backward If translation should be done backward.
+            /// \param[in] trajectoryFlags Used to specify: backward, ignore end angle (otherwise a point turn is added at the end)
             /// \return Vector of pointer toward two trajectories: rotation then translation.
             TrajectoryVector computeTrajectoryStraightLineToPoint(TrajectoryConfig const& config,
                                                                   RobotPosition const& startPosition,
                                                                   RobotPosition const& endPosition,
                                                                   double const& endVelocity = 0.0,
-                                                                  bool const& backward = false);
+                                                                  flags const& trajectoryFlags = flags::DEFAULT);
 
             /// \brief Given a list of points, compute a polyline going from the first point to the last, with rounded
             ///        corners.
@@ -101,14 +109,13 @@
             ///                      for the first position.
             /// \param[in] radius Circle radius - the same is used at each point.
             /// \param[in] transitionVelocityFactor Percentage of the maximum velocity along the circle at which to do the transition.
-            /// \param[in] enforceEndAngle If set, add point turn at the end to reach the desired angle.
+            /// \param[in] trajectoryFlags Used to specify: backward, ignore end angle (otherwise a point turn is added at the end)
             /// \return Vector of pointer toward the full trajectory.
             TrajectoryVector computeTrajectoryRoundedCorner(TrajectoryConfig const& config,
                                                             std::vector<RobotPosition> const& positions,
                                                             double radius,
                                                             double transitionVelocityFactor = 0.5,
-                                                            bool backward = false,
-                                                            bool enforceEndAngle = false);
+                                                            flags const& trajectoryFlags = flags::DEFAULT);
 
             /// \brief Compute a simple trajectory: going forward for a given distance.
             ///

@@ -55,6 +55,8 @@
 
     typedef std::tuple<RobotPosition, double> Obstacle;
 
+    using tf = miam::trajectory::flags;
+
     class MotionController
     {
         public:
@@ -99,38 +101,48 @@
             /// \brief Get status of last trajectory following.
             bool wasTrajectoryFollowingSuccessful();
 
-            /// @brief  Go to a target position in a straight line.
-            /// @details This function is blocking, and returns once the motion has completed.
-            /// @param targetPosition Target position
-            /// @param enforceEndAngle If set, a final rotation is added to match the end angle
-            /// @param speedRatio Ratio of maximum speed
-            /// @param backward Forward or backward motion
-            /// @return True is move is successful, false otherwise
-            bool goToStraightLine(RobotPosition const& targetPosition, double const& speedRatio = 1.0, bool const& backward = false, bool const& enforceEndAngle = false);
-
-            /// @brief  Move a certain distance is a straight line.
-            /// @details This function is blocking, and returns once the motion has completed.
-            /// @param distance Distance - negative to go backward
-            /// @param speedRatio Ratio of maximum speed
-            /// @return True is move is successful, false otherwise
-            bool goStraight(double const& distance, double const& speedRatio = 1.0);
-
-            bool pointTurn(double const& angle, double const& speedRatio = 1.0);
-
-
             /// @brief  Follow a specific rounded corner path
             /// @details This function is blocking, and returns once the motion has completed.
-            /// @param positions Position setpoints (not including starting position)
+            /// @details This function can be set to blocking (default) or not, depending on the flag value
             /// \param[in] radius Circle radius - the same is used at each point.
             /// \param[in] transitionVelocityFactor Percentage of the maximum velocity along the circle at which to do the transition.
-            /// \param[in] enforceEndAngle If set, add point turn at the end to reach the desired angle.
+            /// @param flags Trajectory flags.
             /// @return True is move is successful, false otherwise
             bool goToRoundedCorners(std::vector<RobotPosition> const& positions,
                                     double radius = 200,
                                     double transitionVelocityFactor = 0.5,
-                                    bool backward = false,
-                                    bool enforceEndAngle = false);
+                                    tf const& flags = tf::DEFAULT);
 
+            /// @brief  Go to a target position in a straight line.
+            /// @details This function can be set to blocking (default) or not, depending on the flag value
+            /// @param targetPosition Target position
+            /// @param enforceEndAngle If set, a final rotation is added to match the end angle
+            /// @param speedRatio Ratio of maximum speed
+            /// @param flags Trajectory flags (backward, end angle, blocking or not)
+            /// @return True is move is successful, false otherwise ; if non-blocking always returns true.
+            bool goToStraightLine(RobotPosition const& targetPosition,
+                                  double const& speedRatio = 1.0,
+                                  tf const& flags = tf::DEFAULT);
+
+            /// @brief  Move a certain distance is a straight line.
+            /// @details This function can be set to blocking (default) or not, depending on the flag value
+            /// @param distance Distance - negative to go backward
+            /// @param speedRatio Ratio of maximum speed
+            /// @param flags Trajectory flags. Note that backward is overwritten by the sign of the distance.
+            /// @return True is move is successful, false otherwise
+            bool goStraight(double const& distance,
+                            double const& speedRatio = 1.0,
+                            tf const& flags = tf::DEFAULT);
+
+            /// @brief  Turn a certain angle.
+            /// @details This function can be set to blocking (default) or not, depending on the flag value
+            /// @param angle Distance - negative to go backward
+            /// @param speedRatio Ratio of maximum speed
+            /// @param flags Trajectory flags.
+            /// @return True is move is successful, false otherwise
+            bool pointTurn(double const& angle,
+                           double const& speedRatio = 1.0,
+                           tf const& flags = tf::DEFAULT);
 
             /// \brief Compute next motor target.
             ///
@@ -173,10 +185,22 @@
             void clearPersistentObstacles();
             void popBackPersistentObstacles();
 
-            TrajectoryVector computeMPCTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
+            /// @brief Compute a trajectory using MPC going to the target position
+            /// @param targetPosition Position to reach
+            /// @param detectedObstacles Obstacles that were detected
+            /// @param flags Flags to configure the motion (backward, end angle)
+            /// @param initialBackwardMotionMargin Positive margin of backward motion for the robot (used for avoidance)
+            /// @return The computed trajectory vector
+            TrajectoryVector computeMPCTrajectory(
+                RobotPosition const targetPosition,
+                std::vector<Obstacle> const detectedObstacles,
+                tf const& flags,
+                double const initialBackwardMotionMargin = 0);
 
-            TrajectoryVector computeMPCAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward, bool avoidanceEnabled = false, bool ensureEndAngle = true);
-            TrajectoryVector computeBasicAvoidanceTrajectory(RobotPosition targetPosition, std::vector<Obstacle> detectedObstacles, bool forward);
+            TrajectoryVector computeBasicAvoidanceTrajectory(
+                RobotPosition targetPosition,
+                std::vector<Obstacle> detectedObstacles,
+                tf const& flags);
 
             std::vector<miam::RobotPosition> filteredDetectedObstacles_; ///< Detected obstables ; angle is M_PI if outside table else 0.
 
