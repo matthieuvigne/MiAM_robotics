@@ -61,7 +61,7 @@ bool PickupPlantsAction::performAction()
     targetPosition.theta = angle;
     targetPosition.x += 160 * std::cos(angle);
     targetPosition.y += 160 * std::sin(angle);
-    robot_->getMotionController()->goToStraightLine(targetPosition, 0.5);
+    robot_->getMotionController()->goToStraightLine(targetPosition, 0.5, tf::IGNORE_END_ANGLE);
 
     servoManager_->closeClaws(isFront);
 

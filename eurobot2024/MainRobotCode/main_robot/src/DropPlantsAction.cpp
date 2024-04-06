@@ -1,6 +1,6 @@
 #include "main_robot/DropPlantsAction.h"
 
-#define CHASSIS_MARGIN 150
+#define CHASSIS_MARGIN 140
 #define POT_MARGIN 110
 
 const miam::RobotPosition PLANT_DROP_COORD[3] =
@@ -78,7 +78,7 @@ bool DropPlantsAction::performAction()
     offset.theta = 0;
     RobotPosition target = PLANT_DROP_COORD[zoneId_] + offset;
 
-    if (!robot_->getMotionController()->goToStraightLine(target, 1.0, true, true))
+    if (!robot_->getMotionController()->goToStraightLine(target, 1.0, tf::BACKWARD))
         return false;
     if (!robot_->getMotionController()->goStraight(-50, 0.4))
         return false;
@@ -104,7 +104,7 @@ bool DropPlantsAction::performAction()
     target.y += 150 * yInvert;
     positions.push_back(target);
 
-    if (!robot_->getMotionController()->goToRoundedCorners(positions, 200, 0.5, true))
+    if (!robot_->getMotionController()->goToRoundedCorners(positions, 200, 0.5, static_cast<tf>(tf::BACKWARD | tf::IGNORE_END_ANGLE)))
     {
         // In the unlikely event of a failure here: drop everything in place.
         servoManager_->openElectromagnetArms();
@@ -178,7 +178,7 @@ bool DropPlantsToJarnidiereAction::performAction()
         RobotPosition(-MARGIN, 0, 0).rotate(JARDINIERE_COORD[zoneId_].theta);
     target.theta -= JARDINIERE_COORD[zoneId_].theta;
 
-    if (!robot_->getMotionController()->goToStraightLine(target, 1.0, false, true))
+    if (!robot_->getMotionController()->goToStraightLine(target, 1.0))
         return false;
     if (!robot_->getMotionController()->goStraight(MARGIN + 10, 0.5))
         return false;

@@ -89,7 +89,7 @@ MotionPlanner::MotionPlanner(RobotParameters const& robotParameters, Logger* log
 TrajectoryVector MotionPlanner::planMotion(
             RobotPosition const& currentPosition,
             RobotPosition const& targetPosition,
-            bool ensureEndAngle,
+            tf const& flags,
             bool useTrajectoryRoundedCorners)
 {
     // pathPlanner_.printMap();
@@ -187,7 +187,7 @@ TrajectoryVector MotionPlanner::planMotion(
         planned_path.back().theta = targetPosition.theta;   // this makes the MPC try to ensure the end angle
                                                             // but end angle is often not reachable so the angle
                                                             // is then ensured with a point turn afterwards
-        st = solveTrajectoryFromWaypoints(planned_path, ensureEndAngle, targetPosition.theta);
+        st = solveTrajectoryFromWaypoints(planned_path, flags);
     }
 
 #ifdef MOTIONCONTROLLER_UNITTEST
@@ -236,7 +236,7 @@ TrajectoryVector MotionPlanner::planMotion(
 #ifdef MOTIONCONTROLLER_UNITTEST
     UNITTEST_ROUNDED_TRAJ.insert(UNITTEST_ROUNDED_TRAJ.begin(), pt_sub_start);
 #endif
-        if (ensureEndAngle)
+        if (!(flags & tf::IGNORE_END_ANGLE))
         {
             // at end, perform a point turn to get the right angle
             std::shared_ptr<PointTurn > pt_sub_end(
@@ -260,8 +260,7 @@ TrajectoryVector MotionPlanner::planMotion(
 
 TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     std::vector<RobotPosition> waypoints,
-    bool const& tryEnsureEndAngle,
-    double const& endAngle
+    tf const& flags
 )
 {
     trajectory::TrajectoryVector traj;
@@ -307,8 +306,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
             start_position,
             target_position,
             nIter * (HORIZON_T - 2 * DELTA_T),
-            tryEnsureEndAngle,
-            endAngle
+            flags
         );
 
         // this is the case in which the solved MPC iteration has some
@@ -406,8 +404,7 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
     TrajectoryPoint start_position,
     TrajectoryPoint target_position,
     double const& start_time,
-    bool const& tryEnsureEndAngle,
-    double const& endAngle
+    tf const& flags
 )
 {
     acado_mutex.lock();

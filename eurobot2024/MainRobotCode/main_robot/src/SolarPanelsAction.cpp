@@ -56,15 +56,14 @@ bool SolarPanelsAction::performAction()
                 positions,
                 100.0,
                 0.4,    // Transition velocity
-                true,    // backward
-                true    // enforce end angle
+                tf::BACKWARD
             );
             robot_->getMotionController()->setTrajectoryToFollow(traj);
             if (!robot_->getMotionController()->waitForTrajectoryFinished())
                 return false;
         }
         else
-            if (!robot_->getMotionController()->goToStraightLine(target, 1, true, true))
+            if (!robot_->getMotionController()->goToStraightLine(target, 1, tf::BACKWARD))
                 return false;
 
         robot_->wait(0.1);

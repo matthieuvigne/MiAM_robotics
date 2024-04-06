@@ -16,6 +16,8 @@ extern TrajectoryVector UNITTEST_POINTTURN_TRAJ;
 extern TrajectoryVector UNITTEST_ROUNDED_TRAJ;
 #endif
 
+using tf = miam::trajectory::flags;
+
 class MotionPlanner{
 
     public:
@@ -25,7 +27,7 @@ class MotionPlanner{
         TrajectoryVector planMotion(
             RobotPosition const& currentPosition,
             RobotPosition const& targetPosition,
-            bool ensureEndAngle,
+            tf const& flags,
             bool useTrajectoryRoundedCorners = false);
 
 
@@ -54,8 +56,7 @@ class MotionPlanner{
 
         TrajectoryVector solveTrajectoryFromWaypoints(
             std::vector<RobotPosition> waypoints,
-            bool const& tryEnsureEndAngle,
-            double const& endAngle
+            tf const& flags
         );
 
         std::shared_ptr<SampledTrajectory > solveMPCIteration(
@@ -63,8 +64,7 @@ class MotionPlanner{
             TrajectoryPoint start_position,
             TrajectoryPoint target_position,
             double const& start_time,
-            bool const& tryEnsureEndAngle,
-            double const& endAngle
+            tf const& flags
         );
 
         Logger* logger_;

@@ -37,6 +37,7 @@ MotionControllerTestingViewer::MotionControllerTestingViewer(BaseObjectType* cob
     refGlade->get_widget("checkRounded", buttonShowRounded);
     refGlade->get_widget("checkMPC", buttonShowMPC);
     refGlade->get_widget("checkEEA", buttonEnforceEndAngle);
+    refGlade->get_widget("checkBackward", buttonBackward);
 
     Gtk::Button *button;
     refGlade->get_widget("runButton", button);
@@ -48,6 +49,7 @@ MotionControllerTestingViewer::MotionControllerTestingViewer(BaseObjectType* cob
     buttonShowRounded->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::refresh));
     buttonShowMPC->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::refresh));
     buttonEnforceEndAngle->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::recompute));
+    buttonBackward->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::recompute));
 
 
     refGlade->get_widget("drawingArea", drawingArea);
@@ -348,10 +350,15 @@ void MotionControllerTestingViewer::recompute()
     nIter++;
 
     motionController_->resetPosition(startPosition_);
+    tf flags = tf::DEFAULT;
+    if (!buttonEnforceEndAngle->get_active())
+        flags = static_cast<tf>(flags | tf::IGNORE_END_ANGLE);
+    if (buttonBackward->get_active())
+        flags = static_cast<tf>(flags | tf::BACKWARD);
+
     mpcTrajectory_ = motionController_->computeMPCTrajectory(
         endPosition_,
         obstacles_,
-        true,
-        buttonEnforceEndAngle->get_active());
+        flags);
     refresh();
 }

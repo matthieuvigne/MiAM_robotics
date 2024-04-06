@@ -104,14 +104,18 @@ namespace miam{
                                                               RobotPosition const& startPosition,
                                                               RobotPosition const& endPosition,
                                                               double const& endVelocity,
-                                                              bool const& backward)
+                                                              flags const& trajectoryFlags)
         {
             TrajectoryVector vector;
-            std::shared_ptr<StraightLine> line(new StraightLine(config, startPosition, endPosition, 0.0, endVelocity, backward));
+            std::shared_ptr<StraightLine> line(new StraightLine(config, startPosition, endPosition, 0.0, endVelocity, trajectoryFlags & flags::BACKWARD));
 
             // Get angle from straight line as rotation target.
             vector.push_back(std::shared_ptr<Trajectory>(new PointTurn(config, startPosition, line->getAngle())));
             vector.push_back(std::shared_ptr<Trajectory>(line));
+            if (!(trajectoryFlags & flags::IGNORE_END_ANGLE))
+            {
+                vector.push_back(std::shared_ptr<Trajectory>(new PointTurn(config, vector.getEndPoint().position, endPosition.theta)));
+            }
             return vector;
         }
 
@@ -119,8 +123,7 @@ namespace miam{
                                                         std::vector<RobotPosition> const& positions,
                                                         double radius,
                                                         double transitionVelocityFactor,
-                                                        bool backward,
-                                                        bool enforceEndAngle)
+                                                        flags const& trajectoryFlags)
         {
             TrajectoryVector trajectories;
             if(positions.size() < 2)
@@ -136,10 +139,13 @@ namespace miam{
             double transitionAngularVelocity = transitionLinearVelocity / (std::abs(radius) + config.robotWheelSpacing);
 
             // Compute first rotation to be aligned with second point.
-            TrajectoryVector straightLine = computeTrajectoryStraightLineToPoint(config, positions.at(0),
+            TrajectoryVector straightLine = computeTrajectoryStraightLineToPoint(
+                config,
+                positions.at(0),
                 positions.at(1),
                 transitionLinearVelocity,
-                backward);
+                static_cast<flags>(trajectoryFlags & flags::BACKWARD));
+
             trajectories.push_back(straightLine[0]);
 
             // For each remaining pair of points, computed the line and rounded corner to go there.
@@ -179,7 +185,7 @@ namespace miam{
                 rotationside side = rotationside::LEFT;
                 if(firstVector.cross(secondVector) > 0.0)
                     side = rotationside::RIGHT;
-                if (backward)
+                if (trajectoryFlags & flags::BACKWARD)
                 {
                     if (side == rotationside::RIGHT)
                         side = rotationside::LEFT;
@@ -194,23 +200,23 @@ namespace miam{
                 else
                     endAngle += M_PI_2;
 
-                if (backward)
+                if (trajectoryFlags & flags::BACKWARD)
                     endAngle += M_PI;
 
                 // Compute trajectory.
-                std::shared_ptr<StraightLine> line(new StraightLine(config, startPoint, circleIntersection, (i == 1 ? 0.0 : transitionLinearVelocity), transitionLinearVelocity, backward));
+                std::shared_ptr<StraightLine> line(new StraightLine(config, startPoint, circleIntersection, (i == 1 ? 0.0 : transitionLinearVelocity), transitionLinearVelocity, trajectoryFlags & flags::BACKWARD));
                 trajectories.push_back(line);
-                std::shared_ptr<ArcCircle> circle(new ArcCircle(config, circleIntersection, circleRadius, side, endAngle, transitionAngularVelocity, transitionAngularVelocity, backward));
+                std::shared_ptr<ArcCircle> circle(new ArcCircle(config, circleIntersection, circleRadius, side, endAngle, transitionAngularVelocity, transitionAngularVelocity, trajectoryFlags & flags::BACKWARD));
                 trajectories.push_back(circle);
             }
             // Append final straight line.
             RobotPosition currentPoint = trajectories.back()->getEndPoint().position;
             RobotPosition endPoint = positions.back();
-            std::shared_ptr<StraightLine> line(new StraightLine(config, currentPoint, endPoint, (positions.size() == 2 ? 0 : transitionLinearVelocity), 0.0, backward));
+            std::shared_ptr<StraightLine> line(new StraightLine(config, currentPoint, endPoint, (positions.size() == 2 ? 0 : transitionLinearVelocity), 0.0, trajectoryFlags & flags::BACKWARD));
             trajectories.push_back(line);
 
             // Add final rotation if needed
-            if (enforceEndAngle)
+            if (!(trajectoryFlags & flags::IGNORE_END_ANGLE))
             {
                 trajectories.push_back(std::shared_ptr<Trajectory>(new PointTurn(config, trajectories.getEndPoint().position, endPoint.theta)));
             }
