@@ -27,7 +27,7 @@ const int DROP_PRIORITY_PREFERENCE[6] = {
     5
     };
 
-void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int zoneId, bool dropGround = false)
+void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int zoneId, bool dropGround)
 {
     servos->waitForTurret();
     if (dropGround)
@@ -35,8 +35,6 @@ void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int
         servos->setClawPosition((dropFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
         robot->wait(1.0);
     }
-    // servos->openClaws(dropFront, true);
-    // robot->wait(0.3);
     servos->openClaws(dropFront);
     robot->wait(0.6);
 
@@ -70,8 +68,18 @@ void DropPlantsAction::updateStartCondition()
 
 void DropPlantsAction::actionStartTrigger()
 {
-    isDroppingFront_ = robot_->gameState_.isFrontClawMostFull();
-    // Action will be done backward.
+
+    // Drop the most full claw only - or the one already placed.
+    bool const isPlacedFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
+
+    int const clawDiff = robot_->gameState_.frontToBackClawDiff();
+    if (clawDiff == 0)
+    {
+        // Don't move turret if both are the same.
+        isDroppingFront_ = !isPlacedFront;
+    }
+    else
+        isDroppingFront_ = clawDiff > 0;
     servoManager_->moveTurret(isDroppingFront_ ? M_PI : 0);
 }
 
@@ -129,7 +137,7 @@ bool DropPlantsAction::performAction()
         servoManager_->moveTurret(isDroppingFront_ ? 0 : M_PI);
         robot_->getMotionController()->pointTurn(M_PI);
         dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_, true);
-        robot_->getMotionController()->goStraight(-80);
+        robot_->getMotionController()->goStraight(-100);
         servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::HIGH_POSITION);
         robot_->wait(0.8);
         flag = tf::BACKWARD;
@@ -197,7 +205,18 @@ void DropPlantsToJarnidiereAction::updateStartCondition()
 
 void DropPlantsToJarnidiereAction::actionStartTrigger()
 {
-    isDroppingFront_ = robot_->gameState_.isFrontClawMostFull();
+    // Drop the most full claw only - or the one already placed.
+    bool const isPlacedFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
+
+    int const clawDiff = robot_->gameState_.frontToBackClawDiff();
+    if (clawDiff == 0)
+    {
+        // Don't move turret if both are the same.
+        isDroppingFront_ = isPlacedFront;
+    }
+    else
+        isDroppingFront_ = clawDiff > 0;
+
     servoManager_->moveTurret(isDroppingFront_ ? 0 : M_PI);
 }
 

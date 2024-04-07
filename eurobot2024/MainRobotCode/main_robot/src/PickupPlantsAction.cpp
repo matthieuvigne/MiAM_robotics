@@ -35,11 +35,14 @@ void PickupPlantsAction::updateStartCondition()
 void PickupPlantsAction::actionStartTrigger()
 {
     robot_->logger_ << "Computing action " << robot_->gameState_.isClawAvailable(true) << std::endl;
-    // Move the turret in advance
-    if (robot_->gameState_.isClawAvailable(true))
-        servoManager_->moveTurret(0);
-    else
+    // Move the turret in advance, but turn it only if needed
+    bool const isFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
+
+    int const clawDiff = robot_->gameState_.frontToBackClawDiff();
+    if (clawDiff < 0 && isFront)
         servoManager_->moveTurret(M_PI);
+    else if (clawDiff > 0 && !isFront)
+        servoManager_->moveTurret(0);
 }
 
 bool PickupPlantsAction::performAction()

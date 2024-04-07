@@ -33,6 +33,8 @@ bool SolarPanelsAction::performAction()
     servoManager_->spinSolarPanel(true);
     robot_->wait(0.010);
 
+    tf flags = (robot_->isPlayingRightSide() ? tf::BACKWARD : tf::DEFAULT);
+
     for (int i = 0; i< 6; i++)
     {
         // Read VLX
@@ -60,14 +62,14 @@ bool SolarPanelsAction::performAction()
                 positions,
                 100.0,
                 0.2,    // Transition velocity
-                tf::BACKWARD
+                flags
             );
             robot_->getMotionController()->setTrajectoryToFollow(traj);
             if (!robot_->getMotionController()->waitForTrajectoryFinished())
                 return false;
         }
         else
-            if (!robot_->getMotionController()->goToStraightLine(target, 1, tf::BACKWARD))
+            if (!robot_->getMotionController()->goToStraightLine(target, 1, flags))
                 return false;
 
         servoManager_->lowerSolarPanelArm();

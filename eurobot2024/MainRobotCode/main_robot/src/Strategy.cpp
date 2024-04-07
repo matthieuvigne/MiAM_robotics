@@ -113,18 +113,39 @@ void Strategy::goBackToBase()
     RobotPosition targetPosition;
     if (robot->getStartPosition().y < 700)
     {
-        targetPosition.x = 250;
+        targetPosition.x = 220;
         targetPosition.y = 1750;
     }
     else
     {
-        targetPosition.x = 250;
+        targetPosition.x = 220;
         targetPosition.y = 250;
     }
     servoManager_.spinSolarPanel(false);
     servoManager_.raiseSolarPanelArm();
-    robot->getMotionController()->goToStraightLine(targetPosition, 1.0, tf::IGNORE_END_ANGLE);
+    // Prepare to drop plants
+    bool isFront = robot->gameState_.nPlantsInClaw(true) > 0;
+    if (robot->gameState_.nPlantsInRobot() > 0)
+        servoManager_.moveTurret(isFront ? 0 : M_PI);
+
+    robot->getMotionController()->goToStraightLine(targetPosition);
     robot->updateScore(10);
+
+    if (robot->gameState_.nPlantsInRobot() > 0)
+    {
+        dropPlants(robot, &servoManager_, isFront, 0, true);
+    }
+
+    if (robot->gameState_.nPlantsInRobot() > 0)
+    {
+        robot->getMotionController()->goStraight(-130);
+        servoManager_.setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
+        robot->wait(1.0);
+        isFront = !isFront;
+        servoManager_.moveTurret(isFront ? 0 : M_PI);
+        robot->wait(1.0);
+        dropPlants(robot, &servoManager_, isFront, 0, true);
+    }
 }
 
 

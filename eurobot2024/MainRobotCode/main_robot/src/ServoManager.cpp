@@ -90,7 +90,10 @@ void ServoManager::openAvailableClaws(bool const& front, GameState & gameState)
     for (int i = 0; i < 3; i++)
     {
         if (gameState.robotClawContent[gameOffset + i] == ClawContent::EMPTY)
+        {
             openClaw(servoOffset + i, false);
+            robot_->wait(0.005);
+        }
     }
 }
 

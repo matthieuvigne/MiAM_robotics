@@ -47,6 +47,16 @@
             }
 
 
+            int nPlantsInClaw(bool const isFront) const
+            {
+                int i = 0;
+                for (int j = 0; j < 3; j++)
+                    if (robotClawContent[(isFront ? 0 : 3) + j] != ClawContent::EMPTY)
+                        i++;
+                return i;
+            }
+
+
             int nPlantsInRobot()
             {
                 int nPlants = 0;
@@ -66,6 +76,18 @@
                     if (robotClawContent[3 + j] != ClawContent::EMPTY)
                         nBack++;
                 return nFront >= nBack;
+            }
+
+            int frontToBackClawDiff()
+            {
+                int nFront = 0, nBack = 0;
+                for (int j = 0; j < 3; j++)
+                    if (robotClawContent[j] != ClawContent::EMPTY)
+                        nFront++;
+                for (int j = 0; j < 3; j++)
+                    if (robotClawContent[3 + j] != ClawContent::EMPTY)
+                        nBack++;
+                return nFront - nBack;
             }
 
             int clearClawContent(bool const& isFront)

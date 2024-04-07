@@ -5,6 +5,8 @@
 #include "main_robot/AbstractAction.h"
 #include "main_robot/ServoManager.h"
 
+void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int zoneId, bool dropGround = false);
+
 
 class DropPlantsAction: public AbstractAction
 {
