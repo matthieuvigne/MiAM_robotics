@@ -17,6 +17,8 @@
 #include "common/ArmInverseKinematics.hpp"
 #include "common/ThreadHandler.h"
 
+#include "common/solar_panel_camera.hpp"
+
 #include "main_robot/PickupPlantsAction.h"
 #include "main_robot/DropPlantsAction.h"
 #include "main_robot/SolarPanelsAction.h"
@@ -153,6 +155,12 @@ void Strategy::goBackToBase()
 
 void Strategy::match_impl()
 {
+    // vision::SolarPanelCamera camera("/dev/video0");
+    // while (true)
+    // {
+    //     double angle_deg = camera.getSolarPanelOrientation(true);
+    //     std::cout << angle_deg << std::endl;
+    // }
     // testSquare();
     // robot->getMotionController()->goStraight(-600);
     // while (true) ;;

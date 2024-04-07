@@ -64,6 +64,7 @@ link_directories(
 
 # Include source files from src directory.
 file(GLOB_RECURSE COMMON_SOURCES "../common/src/*.cpp"
+                                 "../../../vision/src/common/*.cpp"
                                  "src/Robot.cpp")
 
 file(GLOB_RECURSE MAIN_SOURCES "../main_robot/src/*.cpp" "src/MainRobotMain.cpp")
@@ -78,6 +79,7 @@ include_directories(../../../a-star/source
     ../../../qpoases
     ../../../qpoases/INCLUDE
     ../../../qpoases/SRC
+    ../../../vision/include
     ../common/acado_solver)
 
 FILE( GLOB LIB_SOURCES ../../../a-star/source/*.cpp )
@@ -106,8 +108,8 @@ target_link_libraries(mainRobotCode
   ${MIAM_UTILS_LIBRARIES}
   ${MIAM_VISION_LIBRARIES}
   ${OpenCV_LIBRARIES}
-  ${RPLIDAR_LIBRARIES} 
-  ${GTK_LIBRARIES} 
+  ${RPLIDAR_LIBRARIES}
+  ${GTK_LIBRARIES}
   ${HDF5LIB_LIBRARIES}
 AStar acado_solver "-lhdf5_cpp")
 

@@ -8,23 +8,21 @@
 namespace vision {
 
 class SolarPanelCamera {
-  
+
   public:
     SolarPanelCamera() = delete;
     SolarPanelCamera(
-      std::string const& camera_name,
-      bool is_playing_right_side);
-  
+      std::string const& camera_name);
+
   public:
-    double getSolarPanelOrientation();
+    double getSolarPanelOrientation(bool const& isPlayingRightSide);
 
   private:
-    bool is_playing_right_side_; // Yellow = true | Blue = false
     cv::VideoCapture camera_;
     cv::Ptr<cv::aruco::Dictionary> dictionary_;
     cv::Ptr<cv::aruco::DetectorParameters> detector_params_;
     cv::Mat distortion_coeffs_;
-  
+
 }; // class SolarPanelCamera
 
 } // namespace vision
