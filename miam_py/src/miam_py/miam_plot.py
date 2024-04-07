@@ -10,12 +10,14 @@ from miam_py import LogLoader
 import argparse
 import os
 
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
 from fnmatch import filter
 from scipy.fftpack import fft
+
+from .utils import sorted_nicely
+
 
 def my_fft(data, dt):
     # Number of sample points
@@ -44,7 +46,7 @@ def main():
     logname = main_arguments.input
     if logname == 'latest':
         logfiles = [i for i in os.listdir('.') if i.startswith('log')]
-        logname = sorted(logfiles)[-1]
+        logname = sorted_nicely(logfiles)[-1]
         print("Loading log: {}".format(logname))
     logfile = LogLoader(logname)
 
