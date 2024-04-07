@@ -1,7 +1,7 @@
 #include "main_robot/SolarPanelsAction.h"
 
 
-#define LATERAL_DISTANCE 180
+#define LATERAL_DISTANCE 170
 
 double const PANELS_X_COORD[6] = {270, 500, 725, 1275, 1500, 1725};
 double const ROBOT_ARM_OFFSET = 20.0;
@@ -12,7 +12,7 @@ void SolarPanelsAction::updateStartCondition()
     if (robot_->getMatchTime() < 20)
         priority_ = -1;
     else if (robot_->getMatchTime() > 50)
-        priority_ = 20;
+        priority_ = 25;
     else
         priority_ = 1;
 }
@@ -28,6 +28,10 @@ bool SolarPanelsAction::performAction()
     robot_->logger_ << "[SolarPanelsAction] Performing action" << std::endl;
 
     servoManager_->waitForTurret();
+    servoManager_->raiseSolarPanelArm(true);
+    robot_->wait(0.010);
+    servoManager_->spinSolarPanel(true);
+    robot_->wait(0.010);
 
     for (int i = 0; i< 6; i++)
     {
@@ -55,7 +59,7 @@ bool SolarPanelsAction::performAction()
                 robot_->getMotionController()->robotParams_.getTrajConf(),
                 positions,
                 100.0,
-                0.4,    // Transition velocity
+                0.2,    // Transition velocity
                 tf::BACKWARD
             );
             robot_->getMotionController()->setTrajectoryToFollow(traj);
@@ -66,19 +70,15 @@ bool SolarPanelsAction::performAction()
             if (!robot_->getMotionController()->goToStraightLine(target, 1, tf::BACKWARD))
                 return false;
 
-        robot_->wait(0.1);
         servoManager_->lowerSolarPanelArm();
-        robot_->wait(0.2);
-        servoManager_->spinSolarPanel(true);
-        robot_->wait(0.5);
+        robot_->wait(0.010);
+        servoManager_->lowerSolarPanelArm();
+        robot_->wait(0.3);
         robot_->updateScore(5);
-        servoManager_->spinSolarPanel(false);
-        robot_->wait(0.050);
-        servoManager_->raiseSolarPanelArm();
-        robot_->wait(0.050);
-        servoManager_->raiseSolarPanelArm();
-        robot_->wait(0.7);
+        servoManager_->raiseSolarPanelArm(true);
+        robot_->wait(0.4);
     }
+    servoManager_->raiseSolarPanelArm();
 
     // Action should not be done again
     return true;

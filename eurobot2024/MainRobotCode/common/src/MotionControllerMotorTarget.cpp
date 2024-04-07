@@ -37,7 +37,8 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     BaseSpeed currentSpeed = kinematics_.forwardKinematics(speed, true);
     log("MotionController.currentVelocityLinear", currentSpeed.linear);
     log("MotionController.currentVelocityAngular", currentSpeed.angular);
-
+    log("MotionController.encoderVelocityRight", speed.right);
+    log("MotionController.encoderVelocityLeft", speed.left);
 
     // Rotate by -theta to express the error in the tangent frame.
     RobotPosition rotatedError = error.rotate(-targetPoint.position.theta);
@@ -59,10 +60,10 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     log("trackingTransverseError",trackingTransverseError);
     log("trackingAngleError",trackingAngleError);
 
-    // If we are beyond trajectory end, look to see if we are close enough to the target point to stop.
-    if (traj->getDuration() <= curvilinearAbscissa_)
+    // If we are beyond the end of the trajectory vector, look to see if we are close enough to the target point to stop.
+    if (traj->getDuration() <= curvilinearAbscissa_ && currentTrajectories_.size() == 1)
     {
-        if (trackingLongitudinalError < 2 && trackingAngleError < 0.01 && measurements.encoderSpeed.right < 0.5 && measurements.encoderSpeed.left < 0.5)
+        if (trackingLongitudinalError < 2 && trackingAngleError < 0.01 && speed.right < 0.5 && speed.left < 0.5)
         {
             // Just stop the robot.
             target.motorSpeed[0] = 0.0;
@@ -118,7 +119,6 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
 
     log("MotionController.linearPIDCorrection",pidLinearCorrection);
     log("MotionController.angularPIDCorrection",PIDAngular_.getCorrection());
-
 
     return false;
 }

@@ -132,6 +132,20 @@ void Strategy::goBackToBase()
 
 void Strategy::match_impl()
 {
+    // testSquare();
+    // robot->getMotionController()->goStraight(-600);
+    // while (true) ;;
+
+    // // robot->getMotionController()->pointTurn(M_PI);
+    // robot->getMotionController()->pointTurn(-M_PI + 1e-6);
+    // robot->wait(1.0);
+    // RobotPosition pos;
+    // pos.theta = 0;
+    // robot->getMotionController()->resetPosition(pos, false, false, true);
+    // robot->getMotionController()->pointTurn(M_PI);
+    // robot->getMotionController()->pointTurn(-M_PI + 1e-6);
+    // while (true) ;;
+
     while (!actions_.empty())
     {
         int highestPriorityAction = -1;

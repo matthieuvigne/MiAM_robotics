@@ -68,13 +68,11 @@ bool PickupPlantsAction::performAction()
 
     // See what has been grabbed
     robot_->wait(0.15);
-    servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
     robot_->gameState_.nPlantsPerZone[zoneId_] -= servoManager_->updateClawContent(isFront, robot_->gameState_);
-
-    robot_->getMotionController()->goStraight(-80, 0.5);
 
     // Let's see if we need to go for a second grab round.
     bool shouldRetry = false;
+    double forwardAmount = 120;
     if (robot_->gameState_.isClawAvailable(isFront))
     {
         // Retry with same claw
@@ -83,6 +81,14 @@ bool PickupPlantsAction::performAction()
     else if (robot_->gameState_.isClawAvailable(!isFront))
     {
         // Retry with other claw
+
+        // First raise the current claw
+        servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
+
+        // Go back to avoid dropping a claw on some plants
+        robot_->getMotionController()->goStraight(-50, 0.5);
+        forwardAmount += 50;
+
         shouldRetry = true;
         isFront = !isFront;
         servoManager_->moveTurret(isFront ? 0 :M_PI);
@@ -95,7 +101,7 @@ bool PickupPlantsAction::performAction()
     if (shouldRetry)
     {
         servoManager_->openAvailableClaws(isFront, robot_->gameState_);
-        robot_->getMotionController()->goStraight(200, 0.5);
+        robot_->getMotionController()->goStraight(forwardAmount, 0.5);
 
         servoManager_->closeClaws(isFront);
 

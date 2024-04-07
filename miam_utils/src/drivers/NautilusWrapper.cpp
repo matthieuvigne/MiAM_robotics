@@ -20,8 +20,13 @@ NautilusWrapper::~NautilusWrapper()
 
 bool NautilusWrapper::init(bool & isEncoderInit)
 {
-    NautilusReply rep = nautilus_.stop();
+    // Note: enabeling nautilus disables the encoder, so we check the
+    // status only after having enabled the motor.
+    stop();
+    usleep(15000);
+    NautilusReply rep = readRegister(Register::measuredVelocity);
     isEncoderInit = rep.isValid && rep.isEncoderValid;
+    isInit_ = rep.isValid & isEncoderInit;
     return rep.isValid;
 }
 
@@ -83,12 +88,15 @@ NautilusReply NautilusWrapper::readRegister(nautilus::Register const& reg, int n
 {
     NautilusReply rep;
     int i = 0;
-    while (!rep.isValid && i < nRetries)
+    while (!rep.isValid && !rep.isEncoderValid && i < nRetries)
     {
         rep = nautilus_.readRegister(reg);
         i++;
     }
-    if (!hadValidMeasurement_ && rep.isValid)
+    if (isInit_ && !rep.isEncoderValid)
+        nEncoderInvalid_ ++;
+
+    if (!hadValidMeasurement_ && rep.isEncoderValid)
     {
         hadValidMeasurement_ = true;
         lastMeasurements_.currentMode = rep.mode;

@@ -14,6 +14,7 @@ enum class ClawPosition{
     LOW_POSITION = 0,
     MEDIUM_POSITION = 1,
     HIGH_POSITION = 2,
+    MEDIUM_POSITION_PLUS = 3,
 };
 
 enum class ClawSide{
@@ -67,7 +68,7 @@ public:
 
     double getTurretPosition() const;
 
-    void raiseSolarPanelArm();
+    void raiseSolarPanelArm(bool const& medium = false);
     void lowerSolarPanelArm();
     void spinSolarPanel(bool const& spin);
 

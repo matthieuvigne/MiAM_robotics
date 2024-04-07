@@ -1,7 +1,8 @@
 #include "main_robot/ServoManager.h"
 #include "common/ThreadHandler.h"
+#include "common/solar_panel_camera.hpp"
+
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
-#include <common/solar_panel_camera.hpp>
 
 #define TURRET_ID 10
 #define TURRET_START_SWITCH_ID 23
@@ -52,7 +53,8 @@ void ServoManager::openClaw(int const& clawId, bool const& halfOpen)
     int const idx = clawId - 2;
     if (idx < 6 && idx >= 0)
     {
-        int const offset = (halfOpen ? 0.3 * CLAW_MOTION * clawDirection[idx] : 0);
+        servos_->writeTwoBytesRegister(clawId, STS::registers::RUNNING_SPEED, 300);
+        int const offset = (halfOpen ? 0.4 * CLAW_MOTION * clawDirection[idx] : 0);
         servos_->setTargetPosition(clawId, clawOpen[idx] + offset);
         isClawServoClosed_[idx] = false;
     }
@@ -66,6 +68,7 @@ void ServoManager::closeClaw(int const& clawId)
     if (idx < 6 && idx >= 0)
     {
         isClawServoClosed_[idx] = true;
+        servos_->writeTwoBytesRegister(clawId, STS::registers::RUNNING_SPEED, 5000);
         servos_->setTargetPosition(clawId, clawOpen[idx] + clawDirection[idx] * CLAW_MOTION);
     }
 }
@@ -157,15 +160,22 @@ void ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
     switch(claw_position)
     {
         case ClawPosition::LOW_POSITION:
-            servos_->setTargetPosition(servoId, 1625);
+            servos_->setTargetPosition(servoId, 1725);
             robot_->wait(0.030);
-            servos_->setTargetPosition(servoId + 1, 2432);
+            servos_->setTargetPosition(servoId + 1, 2332);
             robot_->wait(0.030);
             break;
         case ClawPosition::MEDIUM_POSITION:
+            // Unfold this arm first to avoid hitting bound
+            servos_->setTargetPosition(servoId + 1, 1850);
+            robot_->wait(0.200);
             servos_->setTargetPosition(servoId, 2230);
             robot_->wait(0.030);
-            servos_->setTargetPosition(servoId + 1, 1850);
+            break;
+        case ClawPosition::MEDIUM_POSITION_PLUS:
+            servos_->setTargetPosition(servoId, 2280);
+            robot_->wait(0.030);
+            servos_->setTargetPosition(servoId + 1, 1800);
             robot_->wait(0.030);
             break;
         case ClawPosition::HIGH_POSITION:
@@ -281,9 +291,12 @@ void ServoManager::updateTurretPosition()
 }
 
 
-void ServoManager::raiseSolarPanelArm()
+void ServoManager::raiseSolarPanelArm(bool const& mediumPosition)
 {
-    servos_->setTargetPosition(20, 800);
+    if (mediumPosition)
+        servos_->setTargetPosition(20, 1700);
+    else
+        servos_->setTargetPosition(20, 800);
 }
 
 void ServoManager::lowerSolarPanelArm()
@@ -295,8 +308,8 @@ void ServoManager::spinSolarPanel(bool const& spin)
 {
     servos_->setMode(SOLAR_PANEL_WHEEL, STS::Mode::VELOCITY);
     robot_->wait(0.005);
-    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (spin ? -1500 : 0));
-    
+    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (spin ? -2000 : 0));
+
     // [TODO] Add with camera
     // [TODO] Add playing side
     //~ vision::SolarPanelCamera camera("/dev/camera0", true);

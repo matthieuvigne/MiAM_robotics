@@ -30,14 +30,14 @@ void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
     RobotPosition endPosition = position;
     endPosition.x += squareDimension;
     TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        position, endPosition);
+        position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
     motionController->setTrajectoryToFollow(traj);
     motionController->waitForTrajectoryFinished();
 
     position = endPosition;
     endPosition.y -= sgn*squareDimension;
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        position, endPosition);
+        position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
     motionController->setTrajectoryToFollow(traj);
     motionController->waitForTrajectoryFinished();
 
@@ -45,7 +45,7 @@ void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
     position.theta = -sgn * M_PI_2;
     endPosition.x -= squareDimension;
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        position, endPosition);
+        position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
     motionController->setTrajectoryToFollow(traj);
     motionController->waitForTrajectoryFinished();
 
@@ -54,7 +54,7 @@ void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
     position.theta = -sgn * M_PI;
     endPosition.y += sgn*squareDimension;
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        position, endPosition);
+        position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
     motionController->setTrajectoryToFollow(traj);
     motionController->waitForTrajectoryFinished();
 
@@ -62,7 +62,7 @@ void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
     position.theta = -sgn * 3 * M_PI_2;
     endPosition.x += squareDimension;
     traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        position, endPosition);
+        position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
     traj.pop_back();
     motionController->setTrajectoryToFollow(traj);
     motionController->waitForTrajectoryFinished();

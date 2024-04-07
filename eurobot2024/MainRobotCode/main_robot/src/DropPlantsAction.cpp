@@ -35,7 +35,11 @@ void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int
         servos->setClawPosition((dropFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
         robot->wait(1.0);
     }
+    // servos->openClaws(dropFront, true);
+    // robot->wait(0.3);
     servos->openClaws(dropFront);
+    robot->wait(0.6);
+
     int nPlants = -servos->updateClawContent(dropFront, robot->gameState_);
     robot->gameState_.nPlantsCollected[zoneId] += nPlants;
     robot->updateScore(3 * nPlants);
@@ -101,7 +105,7 @@ bool DropPlantsAction::performAction()
     target.y += 160 * yInvert;
     positions.push_back(target);
 
-    if (!robot_->getMotionController()->goToRoundedCorners(positions, 200, 0.3, static_cast<tf>(tf::BACKWARD | tf::IGNORE_END_ANGLE)))
+    if (!robot_->getMotionController()->goToRoundedCorners(positions, 200, 0.2, static_cast<tf>(tf::BACKWARD | tf::IGNORE_END_ANGLE)))
     {
         // In the unlikely event of a failure here: drop everything in place.
         servoManager_->openElectromagnetArms();
@@ -125,7 +129,7 @@ bool DropPlantsAction::performAction()
         servoManager_->moveTurret(isDroppingFront_ ? 0 : M_PI);
         robot_->getMotionController()->pointTurn(M_PI);
         dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_, true);
-        robot_->getMotionController()->goStraight(-50);
+        robot_->getMotionController()->goStraight(-80);
         servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::HIGH_POSITION);
         robot_->wait(0.8);
         flag = tf::BACKWARD;
@@ -146,13 +150,13 @@ bool DropPlantsAction::performAction()
     servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::LOW_POSITION);
 
     positions.clear();
-    target.x += -(50 + POT_MARGIN) * xInvert;
+    target.x += -(30 + POT_MARGIN) * xInvert;
     target.y += 200 * yInvert;
     positions.push_back(target);
     target.y += 250 * yInvert;
     positions.push_back(target);
 
-    if (robot_->getMotionController()->goToRoundedCorners(positions, 100, 0.3, tf::IGNORE_END_ANGLE))
+    if (robot_->getMotionController()->goToRoundedCorners(positions, 100, 0.2, tf::IGNORE_END_ANGLE))
     {
         robot_->gameState_.nPotsInPile[zoneId_] = 0;
         robot_->getMotionController()->goStraight(-50);
@@ -211,8 +215,11 @@ bool DropPlantsToJarnidiereAction::performAction()
 
     servoManager_->waitForTurret();
     servoManager_->setClawPosition((isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::MEDIUM_POSITION);
-    robot_->wait(0.6);
+    robot_->wait(1.0);
     dropPlants(robot_, servoManager_, isDroppingFront_, 3 + zoneId_);
+
+    servoManager_->setClawPosition((isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::MEDIUM_POSITION_PLUS);
+    robot_->wait(0.2);
     robot_->getMotionController()->goStraight(-MARGIN);
     servoManager_->setClawPosition((isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
 

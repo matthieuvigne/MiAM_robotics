@@ -113,7 +113,6 @@ void Robot::wait(double const& waitTimeS)
 
 void Robot::updateSensorData()
 {
-
     NautilusMeasurements rightMeasurements = rightMotor_.updateMeasurements();
     NautilusMeasurements leftMeasurements = leftMotor_.updateMeasurements();
 
@@ -121,10 +120,8 @@ void Robot::updateSensorData()
     leftMeasurements.encoderPosition *= motionController_.robotParams_.leftEncoderDirection;
 
     // Wheel asymmetry handling
-    rightMeasurements.encoderPosition *= 1.0;
-    leftMeasurements.encoderPosition *= 0.988;
-
-
+    rightMeasurements.encoderPosition *= 1.015;
+    leftMeasurements.encoderPosition *= 1.0;
 
     measurements_.drivetrainMeasurements.encoderSpeed.right = rightMeasurements.encoderPosition - measurements_.drivetrainMeasurements.encoderPosition[side::RIGHT];
     measurements_.drivetrainMeasurements.encoderSpeed.left = leftMeasurements.encoderPosition - measurements_.drivetrainMeasurements.encoderPosition[side::LEFT];
@@ -145,11 +142,13 @@ void Robot::updateSensorData()
         logger_.log("Robot.rightMotor.batteryVoltage", currentTime_, rightMeasurements.batteryVoltage);
         logger_.log("Robot.rightMotor.currentMode", currentTime_, rightMeasurements.currentMode);
         logger_.log("Robot.rightMotor.nCommunicationFailed", currentTime_, rightMeasurements.nCommunicationFailed);
+        logger_.log("Robot.rightMotor.nEncoderInvalid", currentTime_, rightMotor_.nEncoderInvalid_);
 
         logger_.log("Robot.leftMotor.motorCurrent", currentTime_, leftMeasurements.motorCurrent);
         logger_.log("Robot.leftMotor.batteryVoltage", currentTime_, leftMeasurements.batteryVoltage);
         logger_.log("Robot.leftMotor.currentMode", currentTime_, leftMeasurements.currentMode);
         logger_.log("Robot.leftMotor.nCommunicationFailed", currentTime_, leftMeasurements.nCommunicationFailed);
+        logger_.log("Robot.leftMotor.nEncoderInvalid", currentTime_, leftMotor_.nEncoderInvalid_);
 
         logger_.log("Robot.battery.voltage", currentTime_, inaReading.voltage);
         logger_.log("Robot.battery.current", currentTime_, inaReading.current);

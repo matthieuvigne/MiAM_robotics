@@ -37,6 +37,8 @@
             /// @brief Disable the motor, applying no torque.
             void disable();
 
+            int nEncoderInvalid_ = 0;
+
         private:
             /// @brief Try to read a register, retrying up to N timesuntil it worked.
             /// @param reg Register to read
@@ -51,6 +53,8 @@
 
             double oldEncoderPosition_{0.0};
             double motorReductionRatio_;
+
+            bool isInit_{false};
     };
 #endif
 
