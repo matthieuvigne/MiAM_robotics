@@ -123,8 +123,50 @@ void Robot::updateSensorData()
     rightMeasurements.encoderPosition *= 1.015;
     leftMeasurements.encoderPosition *= 1.0;
 
-    measurements_.drivetrainMeasurements.encoderSpeed.right = rightMeasurements.encoderPosition - measurements_.drivetrainMeasurements.encoderPosition[side::RIGHT];
-    measurements_.drivetrainMeasurements.encoderSpeed.left = leftMeasurements.encoderPosition - measurements_.drivetrainMeasurements.encoderPosition[side::LEFT];
+    WheelSpeed baseSpeed;
+
+    WheelSpeed motorPosition;
+    motorPosition.right = motionController_.robotParams_.rightMotorDirection * rightMeasurements.motorPosition;
+    motorPosition.left = motionController_.robotParams_.leftMotorDirection * leftMeasurements.motorPosition;
+
+    bool isCurrentEncoderValid = rightMeasurements.isEncoderPositionValid && leftMeasurements.isEncoderPositionValid;
+
+    if (!isCurrentEncoderValid && !isEncoderInvalid_)
+    {
+        logger_ << "[Robot] Error: encoder invalid, fallback to motor reading" << std::endl;
+        isEncoderInvalid_ = !isCurrentEncoderValid;
+    }
+
+    if (isEncoderInvalid_)
+    {
+        // Invalid encoder: use motor speed instead, using the drivetrain kinematics to fake the velocity.
+        baseSpeed.right = motorPosition.right - lastMotorReading_.right;
+        baseSpeed.left = motorPosition.left - lastMotorReading_.left;
+
+        baseSpeed = motionController_.getKinematics().inverseKinematics(
+            motionController_.getKinematics().forwardKinematics(baseSpeed, false), true);
+
+        isEncoderInvalid_ = !isCurrentEncoderValid;
+        if (!isEncoderInvalid_)
+        {
+            logger_ << "[Robot] Encoders are valid again, leaving fallback" << std::endl;
+        }
+    }
+    else
+    {
+        baseSpeed.right = rightMeasurements.encoderPosition - lastEncoderReading_.right;
+        baseSpeed.left = leftMeasurements.encoderPosition - lastEncoderReading_.left;
+    }
+
+    // Update state.
+    isEncoderInvalid_ = !isCurrentEncoderValid;
+
+    lastEncoderReading_.right = rightMeasurements.encoderPosition;
+    lastEncoderReading_.left = leftMeasurements.encoderPosition;
+    lastMotorReading_ = motorPosition;
+
+
+    measurements_.drivetrainMeasurements.encoderSpeed = baseSpeed;
 
     measurements_.drivetrainMeasurements.motorSpeed[side::RIGHT] = motionController_.robotParams_.rightMotorDirection * rightMeasurements.motorVelocity;
     measurements_.drivetrainMeasurements.motorSpeed[side::LEFT] = motionController_.robotParams_.leftMotorDirection * leftMeasurements.motorVelocity;
@@ -140,20 +182,26 @@ void Robot::updateSensorData()
         lidar_.update();
         measurements_.drivetrainMeasurements.lidarDetection = lidar_.detectedRobots_;
     }
+
     // Log
     if (currentTime_ > 0.0)
     {
+        logger_.log("Robot.rightMotor.rawEncoder", currentTime_, rightMeasurements.encoderPosition);
+        logger_.log("Robot.rightMotor.motorPosition", currentTime_, rightMeasurements.motorPosition);
         logger_.log("Robot.rightMotor.motorCurrent", currentTime_, rightMeasurements.motorCurrent);
         logger_.log("Robot.rightMotor.batteryVoltage", currentTime_, rightMeasurements.batteryVoltage);
         logger_.log("Robot.rightMotor.currentMode", currentTime_, rightMeasurements.currentMode);
         logger_.log("Robot.rightMotor.nCommunicationFailed", currentTime_, rightMeasurements.nCommunicationFailed);
         logger_.log("Robot.rightMotor.nEncoderInvalid", currentTime_, rightMotor_.nEncoderInvalid_);
 
+        logger_.log("Robot.leftMotor.rawEncoder", currentTime_, leftMeasurements.encoderPosition);
+        logger_.log("Robot.leftMotor.motorPosition", currentTime_, leftMeasurements.motorPosition);
         logger_.log("Robot.leftMotor.motorCurrent", currentTime_, leftMeasurements.motorCurrent);
         logger_.log("Robot.leftMotor.batteryVoltage", currentTime_, leftMeasurements.batteryVoltage);
         logger_.log("Robot.leftMotor.currentMode", currentTime_, leftMeasurements.currentMode);
         logger_.log("Robot.leftMotor.nCommunicationFailed", currentTime_, leftMeasurements.nCommunicationFailed);
         logger_.log("Robot.leftMotor.nEncoderInvalid", currentTime_, leftMotor_.nEncoderInvalid_);
+        logger_.log("Robot.isEncoderInvalid", currentTime_, isEncoderInvalid_);
 
         logger_.log("Robot.battery.voltage", currentTime_, inaReading.voltage);
         logger_.log("Robot.battery.current", currentTime_, inaReading.current);

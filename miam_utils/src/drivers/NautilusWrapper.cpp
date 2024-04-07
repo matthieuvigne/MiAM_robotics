@@ -33,11 +33,14 @@ bool NautilusWrapper::init(bool & isEncoderInit)
 
 NautilusMeasurements NautilusWrapper::updateMeasurements()
 {
-    hadValidMeasurement_ = false;
+    lastMeasurements_.isEncoderPositionValid = false;
     NautilusReply rep = readRegister(Register::measuredVelocity);
-    lastMeasurements_.motorVelocity = rep.data;
     if (rep.isValid)
         lastMeasurements_.motorVelocity = rep.data / motorReductionRatio_;
+
+    rep = readRegister(Register::measuredPosition);
+    if (rep.isValid)
+        lastMeasurements_.motorPosition = rep.data / motorReductionRatio_;
 
     rep = readRegister(Register::measuredIQ);
     if (rep.isValid)
@@ -96,9 +99,9 @@ NautilusReply NautilusWrapper::readRegister(nautilus::Register const& reg, int n
     if (isInit_ && !rep.isEncoderValid)
         nEncoderInvalid_ ++;
 
-    if (!hadValidMeasurement_ && rep.isEncoderValid)
+    if (!lastMeasurements_.isEncoderPositionValid && rep.isEncoderValid)
     {
-        hadValidMeasurement_ = true;
+        lastMeasurements_.isEncoderPositionValid = true;
         lastMeasurements_.currentMode = rep.mode;
 
         double const encoderPosition = rep.encoderPosition * ENC_TICK_TO_RAD;

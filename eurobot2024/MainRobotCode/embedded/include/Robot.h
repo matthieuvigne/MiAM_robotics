@@ -94,5 +94,9 @@
             bool isMCPInit_ = false;
 
             bool areMotorsLocked_ = false;
+
+            WheelSpeed lastEncoderReading_;
+            WheelSpeed lastMotorReading_;
+            bool isEncoderInvalid_ = false;
     };
  #endif

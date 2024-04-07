@@ -7,6 +7,8 @@
 
     struct NautilusMeasurements{
         double encoderPosition = 0.0; // rad
+        bool isEncoderPositionValid = false;
+        double motorPosition = 0.0; // rad
         double motorVelocity = 0.0; // rad/s
         double motorCurrent = 0.0; // A
         double batteryVoltage = 0.0; // V
