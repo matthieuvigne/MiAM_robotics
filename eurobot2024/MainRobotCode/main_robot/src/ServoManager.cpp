@@ -325,6 +325,13 @@ void ServoManager::openElectromagnetArms()
     servos_->setTargetPosition(31, 2048);
 }
 
+void ServoManager::halfOpenElectromagnetArms()
+{
+    int const increment = 300;
+    servos_->setTargetPosition(30, 2048 + increment);
+    servos_->setTargetPosition(31, 2048 - increment);
+}
+
 void ServoManager::closeElectromagnetArms()
 {
     int const increment = 1300;
@@ -334,10 +341,12 @@ void ServoManager::closeElectromagnetArms()
 
 void ServoManager::turnOnMagnets()
 {
+    robot_->logger_ << "Turning on magnets" << std::endl;
     robot_->getMPC23008()->setOutputs(0xFF);
 }
 
 void ServoManager::turnOffMagnets()
 {
+    robot_->logger_ << "Turning off magnets" << std::endl;
     robot_->getMPC23008()->setOutputs(0x00);
 }

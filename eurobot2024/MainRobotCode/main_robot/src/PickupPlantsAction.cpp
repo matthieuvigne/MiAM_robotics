@@ -39,9 +39,9 @@ void PickupPlantsAction::actionStartTrigger()
     bool const isFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
 
     int const clawDiff = robot_->gameState_.frontToBackClawDiff();
-    if (clawDiff < 0 && isFront)
+    if (clawDiff > 0 && isFront)
         servoManager_->moveTurret(M_PI);
-    else if (clawDiff > 0 && !isFront)
+    else if (clawDiff < 0 && !isFront)
         servoManager_->moveTurret(0);
 }
 

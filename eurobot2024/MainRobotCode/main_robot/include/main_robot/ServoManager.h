@@ -72,6 +72,7 @@ public:
     void lowerSolarPanelArm();
     void spinSolarPanel(bool const& spin);
 
+    void halfOpenElectromagnetArms();
     void openElectromagnetArms();
     void closeElectromagnetArms();
 

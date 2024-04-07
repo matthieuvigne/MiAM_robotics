@@ -8,7 +8,7 @@ double const ROBOT_ARM_OFFSET = 20.0;
 
 void SolarPanelsAction::updateStartCondition()
 {
-    startPosition_ = RobotPosition(PANELS_X_COORD[0] - 40, LATERAL_DISTANCE, M_PI);
+    startPosition_ = RobotPosition(PANELS_X_COORD[0] - 40, LATERAL_DISTANCE, (robot_->isPlayingRightSide() ? 0: M_PI));
     if (robot_->getMatchTime() < 20)
         priority_ = -1;
     else if (robot_->getMatchTime() > 50)
@@ -33,7 +33,8 @@ bool SolarPanelsAction::performAction()
     servoManager_->spinSolarPanel(true);
     robot_->wait(0.010);
 
-    tf flags = (robot_->isPlayingRightSide() ? tf::BACKWARD : tf::DEFAULT);
+    tf flags = (robot_->isPlayingRightSide() ? tf::DEFAULT : tf::BACKWARD);
+    double finalAngle = (robot_->isPlayingRightSide() ? 0: M_PI);
 
     for (int i = 0; i< 6; i++)
     {
@@ -47,14 +48,14 @@ bool SolarPanelsAction::performAction()
             robot_->getMotionController()->resetPosition(currentPosition, false, true, false);
         }
 
-        RobotPosition const target(PANELS_X_COORD[i] + ROBOT_ARM_OFFSET, LATERAL_DISTANCE, M_PI);
+        RobotPosition const target(PANELS_X_COORD[i] + ROBOT_ARM_OFFSET, LATERAL_DISTANCE, finalAngle);
 
         if (i == 3)
         {
             // Avoid pots which are present in this zone
             std::vector<RobotPosition> positions;
             positions.push_back(currentPosition);
-            RobotPosition avoidPosition((currentPosition.x + target.x) / 2, currentPosition.y + 150, 0);
+            RobotPosition avoidPosition((currentPosition.x + target.x) / 2, currentPosition.y + 150, finalAngle);
             positions.push_back(avoidPosition);
             positions.push_back(target);
             TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(

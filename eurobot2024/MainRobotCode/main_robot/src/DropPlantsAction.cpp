@@ -1,7 +1,7 @@
 #include "main_robot/DropPlantsAction.h"
 
 #define CHASSIS_MARGIN 140
-#define POT_MARGIN 110
+#define POT_MARGIN 125
 
 const miam::RobotPosition PLANT_DROP_COORD[3] =
 {
@@ -100,6 +100,7 @@ bool DropPlantsAction::performAction()
         return false;
     if (!robot_->getMotionController()->goStraight(50))
         return false;
+    servoManager_->halfOpenElectromagnetArms();
 
     // Go to zone, pushing the pots
     target = robot_->getMotionController()->getCurrentPosition();
@@ -110,7 +111,7 @@ bool DropPlantsAction::performAction()
     target.y += 200 * yInvert;
     target.x += 45 * xInvert;
     positions.push_back(target);
-    target.y += 160 * yInvert;
+    target.y += 140 * yInvert;
     positions.push_back(target);
 
     if (!robot_->getMotionController()->goToRoundedCorners(positions, 200, 0.2, static_cast<tf>(tf::BACKWARD | tf::IGNORE_END_ANGLE)))
@@ -123,7 +124,7 @@ bool DropPlantsAction::performAction()
 
     // Drop plants
     servoManager_->turnOffMagnets();
-    robot_->getMotionController()->goStraight(20);
+    // robot_->getMotionController()->goStraight(20);
     dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_);
     servoManager_->openElectromagnetArms();
 
@@ -137,7 +138,7 @@ bool DropPlantsAction::performAction()
         servoManager_->moveTurret(isDroppingFront_ ? 0 : M_PI);
         robot_->getMotionController()->pointTurn(M_PI);
         dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_, true);
-        robot_->getMotionController()->goStraight(-100);
+        robot_->getMotionController()->goStraight(-120);
         servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::HIGH_POSITION);
         robot_->wait(0.8);
         flag = tf::BACKWARD;

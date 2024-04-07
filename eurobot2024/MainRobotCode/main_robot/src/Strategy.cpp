@@ -123,12 +123,20 @@ void Strategy::goBackToBase()
         targetPosition.x = 220;
         targetPosition.y = 250;
     }
+    targetPosition.theta = M_PI;
     servoManager_.spinSolarPanel(false);
     servoManager_.raiseSolarPanelArm();
+    robot->getMPC23008()->setOutputs(0);
+
     // Prepare to drop plants
     bool isFront = robot->gameState_.nPlantsInClaw(true) > 0;
     if (robot->gameState_.nPlantsInRobot() > 0)
         servoManager_.moveTurret(isFront ? 0 : M_PI);
+    else
+    {
+        servoManager_.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
+        servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
+    }
 
     robot->getMotionController()->goToStraightLine(targetPosition);
     robot->updateScore(10);

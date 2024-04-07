@@ -209,7 +209,8 @@ bool Robot::isStartingSwitchPluggedIn() const
 
 void Robot::shutdown()
 {
-    stopMotors();
+    // No need to stop motors, they will stop by themselves.
+
     // Hack: lock motors to prevent override.
     areMotorsLocked_ = true;
     if (isLidarInit_)
