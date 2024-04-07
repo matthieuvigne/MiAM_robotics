@@ -5,6 +5,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
 
+namespace vision {
+
 class SolarPanelCamera {
   
   public:
@@ -24,5 +26,7 @@ class SolarPanelCamera {
     cv::Mat distortion_coeffs_;
   
 }; // class SolarPanelCamera
+
+} // namespace vision
 
 #endif

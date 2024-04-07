@@ -1,7 +1,7 @@
 #include "main_robot/ServoManager.h"
 #include "common/ThreadHandler.h"
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
-#include <vision/common/get_solar_panel_orientation.hpp>
+#include <common/solar_panel_camera.hpp>
 
 #define TURRET_ID 10
 #define TURRET_START_SWITCH_ID 23
@@ -39,7 +39,6 @@ void ServoManager::init(RobotInterface *robot, bool const& isTurretAlreadyCalibr
 
     std::thread th(&ServoManager::turretMotionThread, this, isTurretAlreadyCalibrated);
     ThreadHandler::addThread(th);
-
 }
 
 
@@ -299,6 +298,9 @@ void ServoManager::spinSolarPanel(bool const& spin)
     servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (spin ? -1500 : 0));
     
     // [TODO] Add with camera
+    // [TODO] Add playing side
+    //~ vision::SolarPanelCamera camera("/dev/camera0", true);
+    //~ double angle_deg = camera.getSolarPanelOrientation();
 }
 
 void ServoManager::openElectromagnetArms()
