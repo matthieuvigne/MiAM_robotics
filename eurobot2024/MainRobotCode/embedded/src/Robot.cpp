@@ -135,6 +135,11 @@ void Robot::updateSensorData()
 
     measurements_.batteryVoltage = inaReading.voltage;
 
+    if (!disableLidar_)
+    {
+        lidar_.update();
+        measurements_.drivetrainMeasurements.lidarDetection = lidar_.detectedRobots_;
+    }
     // Log
     if (currentTime_ > 0.0)
     {
