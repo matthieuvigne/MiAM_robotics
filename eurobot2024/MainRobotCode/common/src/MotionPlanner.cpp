@@ -92,14 +92,11 @@ TrajectoryVector MotionPlanner::planMotion(
             tf const& flags,
             bool useTrajectoryRoundedCorners)
 {
-    // pathPlanner_.printMap();
-
     std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
 
     // To enforce end angle, try to reach a position offsetted from the true target.
     std::vector<RobotPosition > planned_path;
     if (false)
-    // if (ensureEndAngle)
     {
         double const OFFSET_DISTANCE = 50;
         RobotPosition offsetPosition = targetPosition - RobotPosition(OFFSET_DISTANCE, 0, 0).rotate(targetPosition.theta);
@@ -145,7 +142,9 @@ TrajectoryVector MotionPlanner::planMotion(
     UNITTEST_ROUNDED_TRAJ = computeTrajectoryRoundedCorner(
             robotParams_.getTrajConf(),
             planned_path,
-            200
+            200,
+            0.5,
+            flags
         );
 #endif
 
@@ -165,37 +164,38 @@ TrajectoryVector MotionPlanner::planMotion(
     }
 #endif
 
-    TrajectoryVector res;
 
     // compute the trajectory from the waypoints
-    TrajectoryVector st;
+    TrajectoryVector solvedTrajectory;
 
     if (useTrajectoryRoundedCorners)
     {
         *logger_ << "[MotionPlanner] " << "Smoothing path using trajectory rounded corners" << std::endl;
 
-        st = computeTrajectoryRoundedCorner(
+        solvedTrajectory = computeTrajectoryRoundedCorner(
             robotParams_.getTrajConf(),
             planned_path,
-            200
+            200,
+            0.5,
+            flags
         );
     }
     else
     {
-        *logger_ << "[MotionPlanner] " << "Smoothing path using staight lines" << std::endl;
+        *logger_ << "[MotionPlanner] " << "Smoothing path using MPC" << std::endl;
 
         planned_path.back().theta = targetPosition.theta;   // this makes the MPC try to ensure the end angle
                                                             // but end angle is often not reachable so the angle
                                                             // is then ensured with a point turn afterwards
-        st = solveTrajectoryFromWaypoints(planned_path, flags);
+        solvedTrajectory = solveTrajectoryFromWaypoints(planned_path, flags);
     }
 
 #ifdef MOTIONCONTROLLER_UNITTEST
     // Store corresponding path
     double t = 0;
-    while (t <= st.getDuration())
+    while (t <= solvedTrajectory.getDuration())
     {
-        TrajectoryPoint p = st.getCurrentPoint(t);
+        TrajectoryPoint p = solvedTrajectory.getCurrentPoint(t);
         logger_->log("MPCOutput.x", t, p.position.x);
         logger_->log("MPCOutput.y", t, p.position.y);
         logger_->log("MPCOutput.theta", t, p.position.theta);
@@ -213,25 +213,25 @@ TrajectoryVector MotionPlanner::planMotion(
     }
 #endif
 
-    if (st.getDuration() > 0)
+
+    TrajectoryVector finalTrajectory;
+
+    if (solvedTrajectory.getDuration() > 0)
     {
         *logger_ << "[MotionPlanner] " << "Solved trajectory: " << std::endl;
-        // for (double t = 0; t <=st.getDuration(); t += 0.1) {
-        //     *logger_ << "[MotionPlanner] " << st.getCurrentPoint(t) << std::endl;
-        // }
-        *logger_ << "[MotionPlanner] " << "Duration: " << st.getDuration() << std::endl;
-        *logger_ << "[MotionPlanner] " << "Start: " << st.getCurrentPoint(0.0) << std::endl;
-        *logger_ << "[MotionPlanner] " << "End: " << st.getEndPoint() << std::endl;
+        *logger_ << "[MotionPlanner] " << "Duration: " << solvedTrajectory.getDuration() << std::endl;
+        *logger_ << "[MotionPlanner] " << "Start: " << solvedTrajectory.getCurrentPoint(0.0) << std::endl;
+        *logger_ << "[MotionPlanner] " << "End: " << solvedTrajectory.getEndPoint() << std::endl;
 
 
         // at start, perform a point turn to get the right angle
         std::shared_ptr<PointTurn > pt_sub_start(
             new PointTurn(robotParams_.getTrajConf(),
-            currentPosition, st.getCurrentPoint(0.0).position.theta));
-        res.push_back(pt_sub_start);
+            currentPosition, solvedTrajectory.getCurrentPoint(0.0).position.theta));
+        finalTrajectory.push_back(pt_sub_start);
 
         // insert solved trajectory
-        res.insert( res.end(), st.begin(), st.end() );
+        finalTrajectory = finalTrajectory + solvedTrajectory;
 
 #ifdef MOTIONCONTROLLER_UNITTEST
     UNITTEST_ROUNDED_TRAJ.insert(UNITTEST_ROUNDED_TRAJ.begin(), pt_sub_start);
@@ -239,11 +239,12 @@ TrajectoryVector MotionPlanner::planMotion(
         if (!(flags & tf::IGNORE_END_ANGLE))
         {
             // at end, perform a point turn to get the right angle
-            std::shared_ptr<PointTurn > pt_sub_end(
+            std::shared_ptr<PointTurn> pt_sub_end(
                 new PointTurn(robotParams_.getTrajConf(),
-                res.getEndPoint().position, targetPosition.theta)
+                finalTrajectory.getEndPoint().position,
+                targetPosition.theta)
             );
-            res.push_back(pt_sub_end);
+            finalTrajectory.push_back(pt_sub_end);
 #ifdef MOTIONCONTROLLER_UNITTEST
     UNITTEST_ROUNDED_TRAJ.push_back(pt_sub_end);
 #endif
@@ -254,7 +255,7 @@ TrajectoryVector MotionPlanner::planMotion(
         *logger_ << "[MotionPlanner] " << "Solver failed" << std::endl;
     }
 
-    return res;
+    return finalTrajectory;
 }
 
 
@@ -272,7 +273,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
 
     // create trajectory interpolating waypoints
     std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
-    traj = computeTrajectoryBasicPath(cplan, waypoints, 0);
+    traj = computeTrajectoryBasicPath(cplan, waypoints, 0, flags);
 
 #ifdef MOTIONCONTROLLER_UNITTEST
     // Store corresponding path
@@ -301,7 +302,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     // constraint might make the solver brutally go towards the final point
     while (nIter < nIterMax)
     {
-        std::shared_ptr<SampledTrajectory > st = solveMPCIteration(
+        std::shared_ptr<SampledTrajectory > solvedTrajectory = solveMPCIteration(
             traj,
             start_position,
             target_position,
@@ -313,17 +314,17 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
         // stationary points ; the function truncates these points, which renders the duration less
         // than horizon_t
         // todo : maybe add some conditions about being close to the target?
-        if (st->getDuration() < HORIZON_T)
+        if (solvedTrajectory->getDuration() < HORIZON_T)
         {
-            res.push_back(st);
+            res.push_back(solvedTrajectory);
             break;
         }
 
         // remove last 2 points
-        st->removePoints(2);
-        res.push_back(st);
+        solvedTrajectory->removePoints(2);
+        res.push_back(solvedTrajectory);
 
-        start_position = st->getCurrentPoint(HORIZON_T - 2 * DELTA_T);
+        start_position = solvedTrajectory->getCurrentPoint(HORIZON_T - 2 * DELTA_T);
         nIter++;
     }
     std::chrono::high_resolution_clock::time_point mpcTime = std::chrono::high_resolution_clock::now();
@@ -336,18 +337,19 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
 TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
     TrajectoryConfig const& config,
     std::vector<RobotPosition> p,
-    double initialSpeed)
+    double initialSpeed,
+    tf const& flags)
 {
-    TrajectoryVector vector;
+    bool const& backward = flags & tf::BACKWARD;
 
-    // get total distance
+    // Get total distance
     double distance = 0;
     for (unsigned int i = 0; i < p.size() - 1; i++)
     {
         distance += (p.at(i+1) - p.at(i)).norm();
     }
 
-    // make a trapezoid of velocity
+    // Build corresponding velocity trapezoid
     Trapezoid tp = Trapezoid(
         distance,
         initialSpeed,
@@ -360,10 +362,17 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
     double endPointCurvilinearAbscissa = 0.0;
     double startPointTrapezoid = 0.0;
 
+    TrajectoryVector vector;
     for (long unsigned int i = 0; i < p.size() - 1; i++)
     {
-        RobotPosition const p1 = p.at(i);
-        RobotPosition const p2 = p.at(i+1);
+        RobotPosition p1 = p.at(i);
+        RobotPosition p2 = p.at(i+1);
+
+        if (backward)
+        {
+            p1.theta += M_PI;
+            p2.theta += M_PI;
+        }
 
         endPointCurvilinearAbscissa += (p2 - p1).norm();
 
@@ -386,8 +395,9 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
 
         std::shared_ptr<StraightLine> line(new StraightLine(
             config, p1, p2,
-            startSpeed,
-            endSpeed, false));
+            std::abs(startSpeed),
+            endSpeed,
+            backward));
 
         // Go from point to point.
         vector.push_back(std::shared_ptr<Trajectory>(line));
@@ -587,13 +597,13 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
     double duration = std::max(0.0, (outputPoints.size()-1) * DELTA_T);
     if (VERBOSE)
         cout << "Duration of SampledTrajectory generated: " << duration << endl;
-    std::shared_ptr<SampledTrajectory > st(new SampledTrajectory(config, outputPoints, duration));
+    std::shared_ptr<SampledTrajectory > solvedTrajectory(new SampledTrajectory(config, outputPoints, duration));
 
 
 
     acado_mutex.unlock();
 
-    return st;
+    return solvedTrajectory;
 }
 
 

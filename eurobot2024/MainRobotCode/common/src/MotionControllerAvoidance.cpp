@@ -175,25 +175,11 @@ TrajectoryVector MotionController::computeMPCTrajectory(
     {
         *logger_ << "[MotionController] " << "Target too close, doing a straight line to point" << std::endl;
 
-        traj = computeTrajectoryStraightLineToPoint(
+        return computeTrajectoryStraightLineToPoint(
             robotParams_.getTrajConf(),
             currentPosition, // start
             targetPosition,
-            static_cast<tf>(flags & tf::IGNORE_END_ANGLE)
-        );
-
-        *logger_ << "[MotionController] " << "computeTrajectoryStraightLineToPoint ends at " << traj.getEndPoint().position << std::endl;
-
-        // add a point turn to keep the end angle info
-        std::shared_ptr<PointTurn > pt_sub_end(
-            new PointTurn(robotParams_.getTrajConf(),
-            traj.getEndPoint().position, targetPosition.theta)
-        );
-        traj.push_back(pt_sub_end);
-
-        *logger_ << "[MotionController] " << "pt_sub_end ends at " << traj.getEndPoint().position << std::endl;
-
-        return traj;
+            flags);
     }
 
     double minDistanceToObstacle = 10000;
@@ -201,7 +187,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
 
     // update obstacle map
     motionPlanner_.pathPlanner_.resetCollisions();
-    for (auto obstacle : detectedObstacles)
+    for (auto const& obstacle : detectedObstacles)
     {
         motionPlanner_.pathPlanner_.addCollision(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
         minDistanceToObstacle = std::min(minDistanceToObstacle, (std::get<0>(obstacle) - currentPosition).norm());
@@ -218,9 +204,24 @@ TrajectoryVector MotionController::computeMPCTrajectory(
 
     if ((distanceToGoBack > 0))
     {
-        if (!(flags & tf::BACKWARD))
+        // Determine if it's better to go backward or forward, depending on obstacle position.
+        RobotPosition forwardPosition(distanceToGoBack, 0.0, 0.0);
+        forwardPosition = currentPosition + forwardPosition.rotate(currentPosition.theta);
+
+        RobotPosition backwardPosition(-distanceToGoBack, 0.0, 0.0);
+        backwardPosition = currentPosition + backwardPosition.rotate(currentPosition.theta);
+
+        double forwardDistance = 1.0e5;
+        double backwardDistance = 1.0e5;
+        for (auto const& obstacle : detectedObstacles)
         {
-            *logger_ << "[MotionController] " << ">> Needing to go back " << distanceToGoBack << " mm" << std::endl;
+            forwardDistance = std::min(forwardDistance, (std::get<0>(obstacle) - forwardPosition).norm());
+            backwardDistance = std::min(backwardDistance, (std::get<0>(obstacle) - backwardPosition).norm());
+        }
+
+        if (backwardDistance > forwardDistance)
+        {
+            *logger_ << "[MotionController] " << "Obstacle too close: moving back " << distanceToGoBack << " mm" << std::endl;
             traj =  traj + miam::trajectory::computeTrajectoryStraightLine(
                 robotParams_.getTrajConf(),
                 currentPosition, // start
@@ -229,7 +230,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
         }
         else
         {
-            *logger_ << "[MotionController] " << ">> Needing to go forward " << distanceToGoBack << " mm" << std::endl;
+            *logger_ << "[MotionController] " << "Obstacle too close: moving fprward " << distanceToGoBack << " mm" << std::endl;
             traj = traj + miam::trajectory::computeTrajectoryStraightLine(
                 robotParams_.getTrajConf(),
                 currentPosition, // start
@@ -240,11 +241,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
         newStartPoint = traj.getEndPoint().position;
     }
 
-    *logger_ << "[MotionController] " << "currentPosition: " << currentPosition << std::endl;
-    *logger_ << "[MotionController] " << "newStartPoint: " << newStartPoint << std::endl;
-
     // plan motion
-    newStartPoint.theta = currentPosition.theta;
     TrajectoryVector mpcTrajectory = motionPlanner_.planMotion(
         newStartPoint,
         targetPosition,

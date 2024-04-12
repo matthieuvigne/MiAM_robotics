@@ -49,10 +49,12 @@ class MotionPlanner{
         RobotParameters robotParams_;
         PathPlanner pathPlanner_;
 
+        /// @brief Compute interpolation trajectory between a list of points, ignoring rotations.
         TrajectoryVector computeTrajectoryBasicPath(
             TrajectoryConfig const& config,
             std::vector<RobotPosition> p,
-            double initialSpeed);
+            double initialSpeed,
+            tf const& flags);
 
         TrajectoryVector solveTrajectoryFromWaypoints(
             std::vector<RobotPosition> waypoints,
