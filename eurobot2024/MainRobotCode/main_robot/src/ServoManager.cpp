@@ -1,6 +1,5 @@
 #include "main_robot/ServoManager.h"
 #include "common/ThreadHandler.h"
-#include "common/solar_panel_camera.hpp"
 
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
 

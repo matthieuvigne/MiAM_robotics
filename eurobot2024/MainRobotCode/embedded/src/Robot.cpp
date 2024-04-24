@@ -164,10 +164,10 @@ void Robot::updateSensorData()
 
     measurements_.drivetrainMeasurements.encoderSpeed = baseSpeed;
 
-    measurements_.drivetrainMeasurements.motorSpeed[side::RIGHT] = motionController_.robotParams_.rightMotorDirection * rightMeasurements.motorVelocity;
-    measurements_.drivetrainMeasurements.motorSpeed[side::LEFT] = motionController_.robotParams_.leftMotorDirection * leftMeasurements.motorVelocity;
-    measurements_.drivetrainMeasurements.encoderPosition[side::RIGHT] = rightMeasurements.encoderPosition;
-    measurements_.drivetrainMeasurements.encoderPosition[side::LEFT] = leftMeasurements.encoderPosition;
+    measurements_.drivetrainMeasurements.motorSpeed.right = motionController_.robotParams_.rightMotorDirection * rightMeasurements.motorVelocity;
+    measurements_.drivetrainMeasurements.motorSpeed.left = motionController_.robotParams_.leftMotorDirection * leftMeasurements.motorVelocity;
+    measurements_.drivetrainMeasurements.encoderPosition.right = rightMeasurements.encoderPosition;
+    measurements_.drivetrainMeasurements.encoderPosition.left = leftMeasurements.encoderPosition;
 
     INA226Reading inaReading = ina226_.read();
 

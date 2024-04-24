@@ -64,6 +64,11 @@
             double left; ///< Left wheel speed, by convention in rad/s.
     };
 
+    inline WheelSpeed operator* (float const& x, WheelSpeed const& speed)
+    {
+        return WheelSpeed(x * speed.right, x * speed.left);
+    }
+
     /// \brief Kinematics of a two-wheel drivetrain with optional encoders.
     /// \details The position of the drivetrain is defined by a cartesian coordinate and an angle, grouped into
     ///          a RobotPosition object. It's velocity contains two composants, a linear and an angular velocity.

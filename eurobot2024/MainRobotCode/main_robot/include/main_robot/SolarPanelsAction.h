@@ -5,7 +5,9 @@
 #include "main_robot/AbstractAction.h"
 #include "main_robot/ServoManager.h"
 
+#ifndef SIMULATION
 #include "common/solar_panel_camera.hpp"
+#endif
 
 class SolarPanelsAction: public AbstractAction
 {
@@ -37,8 +39,10 @@ public:
     /// @param zoneCenter Center of the zone from which to pick-up the plants
     SolarPanelsWithCameraAction(RobotInterface *robot, ServoManager *servoManager):
         AbstractAction("Solar panels, camera", robot),
-        servoManager_(servoManager),
-        camera("/dev/video0")
+        servoManager_(servoManager)
+#ifndef SIMULATION
+        ,camera("/dev/video0")
+#endif
     {}
 
     // /// @brief This function is called before choosing the action in the list,
@@ -52,7 +56,9 @@ public:
 private:
     ServoManager *servoManager_;
 
+#ifndef SIMULATION
     vision::SolarPanelCamera camera;
+#endif
 };
 
 

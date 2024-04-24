@@ -35,11 +35,6 @@
     using miam::trajectory::TrajectoryPoint;
     using miam::trajectory::TrajectoryVector;
 
-    namespace side{
-        int const RIGHT = 0;
-        int const LEFT = 1;
-    }
-
     enum AvoidanceMode {
         AVOIDANCE_BASIC,
         AVOIDANCE_MPC,

@@ -158,10 +158,10 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     // Log input
     currentTime_ += dt;
     log("timeIncrement",dt);
-    log("encoderRight",measurements.encoderPosition[side::RIGHT]);
-    log("encoderLeft",measurements.encoderPosition[side::LEFT]);
-    log("motorVelocityRight", measurements.motorSpeed[side::RIGHT]);
-    log("motorVelocityLeft", measurements.motorSpeed[side::LEFT]);
+    log("encoderRight",measurements.encoderPosition.right);
+    log("encoderLeft",measurements.encoderPosition.left);
+    log("motorVelocityRight", measurements.motorSpeed.right);
+    log("motorVelocityLeft", measurements.motorSpeed.left);
 
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderSpeed);
