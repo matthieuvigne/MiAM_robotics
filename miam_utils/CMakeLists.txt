@@ -9,6 +9,7 @@ set(PROJECT_DESCRIPTION "C++ utility library to use a Beaglebone Black / Raspber
 
 option(CROSS_COMPILE "True to cross compile to arm, false to compile on current platform" ON)
 option(UNIT_TESTS "Enable unit tests (ignored when cross-compiling)" OFF)
+option(ENABLE_TELEPLOT "Enable unit tests (ignored when cross-compiling)" OFF)
 
 # Set compiler and library name.
 
@@ -27,6 +28,11 @@ endif()
 
 # Set compiler flags.
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -fdiagnostics-color -lpthread -lm")
+
+if (ENABLE_TELEPLOT)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_TELEPLOT")
+endif()
+
 
 # Set build-type specific flags
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")

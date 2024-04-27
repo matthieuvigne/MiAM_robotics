@@ -7,8 +7,7 @@
     #include <vector>
     #include <mutex>
     #include <thread>
-
-    #include "Teleplot.h"
+    #include <sstream>
 
     #include "miam_utils/LogVariable.h"
 
@@ -43,11 +42,27 @@
             /// @param origin Time origin.
             void setTimeOrigin(timespec const& origin);
 
-            /// @brief  Log a variable value
-            /// @param name Variable name
+            /// @brief Register a variable, obtaining an id that can be used for futur logging.
+            /// @details Note that this function may be called several times safely, the same
+            ///          id is returned.
+            /// @param[in] name Variable name.
+            /// @return Variable id, to be used when calling the log method.
+            uint16_t registerVariable(std::string const& name)
+            {
+                return getVariableId(name);
+            }
+
+            /// @brief Log a variable value base on its id
+            /// @param idx Variable id, as returned by registerVariable
             /// @param time Timestamp (s)
             /// @param value Value
             void log(uint16_t const& idx, double const& time, double const& value);
+
+            /// @brief  Log a variable value
+            /// @details This method performs a name lookup, and is thus slower than the id-based version.
+            /// @param name Variable name
+            /// @param time Timestamp (s)
+            /// @param value Value
             void log(std::string const& name, double const& time, double const& value);
 
             /// @brief Flush and close the file.
@@ -74,8 +89,6 @@
 
             uint16_t getVariableId(std::string const& varName);
 
-
-            Teleplot teleplot_;
             std::string teleplotPrefix_;
             std::string cliPrefix_;
 

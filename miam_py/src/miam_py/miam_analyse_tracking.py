@@ -17,6 +17,7 @@ import matplotlib.image as mpimg
 from matplotlib.backend_bases import NavigationToolbar2
 
 from .tabbed_figure import TabbedFigure
+from .utils import get_most_recent_log
 
 # Custom home button to fix home view.
 def new_home(self, *args, **kwargs):
@@ -57,8 +58,7 @@ def main():
     # Load log file.
     logname = args.input
     if logname == 'latest':
-        logfiles = [i for i in os.listdir('.') if 'log' in i]
-        logname = sorted(logfiles)[-1]
+        logname = get_most_recent_log()
         print("Loading log: {}".format(logname))
 
     logfile = miam_py.LogLoader(logname)

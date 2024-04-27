@@ -40,6 +40,7 @@ STSServoDriver::STSServoDriver(double const& readTimeout):
     for (int i = 0; i < 256; i++)
     {
         lastCommands_[(unsigned char) i] = -1;
+        servoType_[i] = STS::ServoType::UNKNOWN;
     }
 }
 

@@ -38,6 +38,8 @@ void RobotInterface::initLogger()
 
 void RobotInterface::lowLevelLoop()
 {
+    pthread_setname_np(pthread_self(), "robot_lll");
+
     // Initalize / reset everything.
     initLogger();
     motionController_.init(RobotPosition());

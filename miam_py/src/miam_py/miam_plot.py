@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from fnmatch import filter
 from scipy.fftpack import fft
 
-from .utils import sorted_nicely
+from .utils import get_most_recent_log
 
 
 def my_fft(data, dt):
@@ -45,8 +45,7 @@ def main():
     # Process latest argument.
     logname = main_arguments.input
     if logname == 'latest':
-        logfiles = [i for i in os.listdir('.') if i.startswith('log')]
-        logname = sorted_nicely(logfiles)[-1]
+        logname = get_most_recent_log()
         print("Loading log: {}".format(logname))
     logfile = LogLoader(logname)
 

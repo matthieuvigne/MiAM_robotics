@@ -14,16 +14,21 @@
 //      String corresponding to text messages (i.e. terminal output). The content is simply the string raw data.
 
 #include "miam_utils/Logger.h"
-#include <iostream>
-#include <string>
-#include <algorithm>
 
+#include <iostream>
+#include <cstring>
+#include <unistd.h>
+#include <iomanip>
+#include <algorithm>
 #include <fstream>
 
 double const FLUSH_INTERVAL = 1.0;
 
+#ifdef ENABLE_TELEPLOT
+#include "Teleplot.h"
+#endif
+
 Logger::Logger():
-    teleplot_(Teleplot::localhost()),
     teleplotPrefix_(),
     names_(),
     queuedDatapoints_(),
@@ -107,7 +112,9 @@ void Logger::loggerThread(std::string const& filename)
         for (auto const& p : newDataPoints)
         {
             variables_[p.idx].addPoint(p.timestamp, p.value);
-            teleplot_.update(teleplotPrefix_ + names_.at(p.idx), p.value);
+#ifdef ENABLE_TELEPLOT
+            Teleplot::localhost().update(teleplotPrefix_ + names_.at(p.idx), p.value);
+#endif
         }
 
         // Process strings

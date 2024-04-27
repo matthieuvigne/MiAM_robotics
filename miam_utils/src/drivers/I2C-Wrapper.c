@@ -81,7 +81,7 @@ bool i2c_writeRegisters(I2CAdapter *adapter, unsigned char const& address, unsig
 
 unsigned char i2c_readRegister(I2CAdapter *adapter, unsigned char const& address, unsigned char const& registerAddress)
 {
-    unsigned char registerValue;
+    unsigned char registerValue = 0;
     i2c_readRegisters(adapter, address, registerAddress, 1, &registerValue);
     return registerValue;
 }

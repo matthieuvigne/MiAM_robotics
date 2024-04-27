@@ -22,7 +22,7 @@ int main (int argc, char *argv[])
         std::cout << currentTime << " " << dt << " " << dtMax << std::endl;
 
         for (int i = 0; i < 50; i++)
-            logger.log(std::to_string(i), 42.0 + 0.1 * i, 2 * currentTime);
+            logger.log(std::to_string(i), currentTime, i * currentTime);
     }
     logger.close();
     return 0;

@@ -86,6 +86,7 @@ void Strategy::shutdown()
 
 void Strategy::match()
 {
+    pthread_setname_np(pthread_self(), "strat_match");
     robot->logger_ << "Strategy thread started." << std::endl;
 
 
@@ -161,6 +162,7 @@ void Strategy::goBackToBase()
 
 void Strategy::match_impl()
 {
+    pthread_setname_np(pthread_self(), "strat_matchImpl");
     // vision::SolarPanelCamera camera("/dev/video0");
     // while (true)
     // {

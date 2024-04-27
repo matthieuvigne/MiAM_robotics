@@ -268,6 +268,8 @@ void Robot::shutdown()
 
 void Robot::updateRangeMeasurement()
 {
+    pthread_setname_np(pthread_self(), "robot_vlx");
+
     // Offset from measurement to position of center of robot.
     // To update this: place the robot a fixed distance (e.g. 10cm) from
     // a flat surface, and look at the measurement value.

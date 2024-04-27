@@ -39,11 +39,13 @@ bool INA226::init(I2CAdapter *device, unsigned char const& address)
 INA226Reading INA226::read()
 {
     INA226Reading readings;
+    if (isInit_)
+    {
+        readings.voltage = readU16Register(0x02) * 0.00125;
 
-    readings.voltage = readU16Register(0x02) * 0.00125;
-
-    readings.current = static_cast<int16_t>(readU16Register(0x04)) * currentLSB;
-    readings.power = readU16Register(0x03) * currentLSB * 25;
+        readings.current = static_cast<int16_t>(readU16Register(0x04)) * currentLSB;
+        readings.power = readU16Register(0x03) * currentLSB * 25;
+    }
 
     return readings;
 }
