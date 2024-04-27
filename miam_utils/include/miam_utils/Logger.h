@@ -10,13 +10,16 @@
 
     #include "Teleplot.h"
 
-    #include "miam_utils/DatasetHandler.h"
+    #include "miam_utils/LogVariable.h"
 
     struct Datapoint{
-        std::string name;
+        uint16_t idx;
         double timestamp;
         double value;
     };
+    namespace logger{
+        int const MAX_VARIABLES = 200;
+    }
 
     /// \brief Telemetry class, for logging robot data to a csv file.
     /// \details The user specifies a list of headers and, at run time, a value for each element to log.
@@ -44,6 +47,7 @@
             /// @param name Variable name
             /// @param time Timestamp (s)
             /// @param value Value
+            void log(uint16_t const& idx, double const& time, double const& value);
             void log(std::string const& name, double const& time, double const& value);
 
             /// @brief Flush and close the file.
@@ -68,10 +72,16 @@
             void loggerThread(std::string const& filename);
             double getElapsedTime();
 
+            uint16_t getVariableId(std::string const& varName);
+
+
             Teleplot teleplot_;
             std::string teleplotPrefix_;
             std::string cliPrefix_;
-            std::vector<DatasetHandler> datasets_;
+
+            LogVariable variables_[logger::MAX_VARIABLES];
+            int nRegisteredVariables_ = 0;
+
             std::vector<std::string> names_;
             std::vector<Datapoint> queuedDatapoints_;
             std::vector<std::string> queuedText_;

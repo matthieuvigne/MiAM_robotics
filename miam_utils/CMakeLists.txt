@@ -1,7 +1,7 @@
   cmake_minimum_required(VERSION 3.1)
 
 #Configure project
-project(miam_utils VERSION 2.8.0)
+project(miam_utils VERSION 2.9.0)
 set(PROJECT_DESCRIPTION "C++ utility library to use a Beaglebone Black / Raspberry Pi for Eurobot - low-level drivers and some higher level utilities")
 
 # Option to choose between cross-compiling or compiling for local computer.
@@ -16,6 +16,7 @@ if(CROSS_COMPILE)
     set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
     set(LIBRARY_NAME ${PROJECT_NAME}_arm)
 else()
+    add_subdirectory(log_converter)
     # Add unit test only if not cross-compiling
     if(UNIT_TESTS)
         add_subdirectory(unit)
@@ -61,7 +62,6 @@ if(CROSS_COMPILE)
 else()
     pkg_search_module(RPLIDARLIB REQUIRED rplidar)
 endif()
-pkg_search_module(HDF5LIB REQUIRED hdf5)
 message(STATUS "Found rplidar v." ${RPLIDARLIB_VERSION})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
@@ -70,10 +70,10 @@ FILE( GLOB LIB_HEADERS ../a-star/source/*.hpp )
 include_directories(../a-star/source)
 ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
 
-include_directories(${RPLIDARLIB_INCLUDE_DIRS} ${HDF5LIB_INCLUDE_DIRS})
-link_directories(${RPLIDARLIB_LIBRARY_DIRS} ${HDF5LIB_LIBRARY_DIRS})
+include_directories(${RPLIDARLIB_INCLUDE_DIRS})
+link_directories(${RPLIDARLIB_LIBRARY_DIRS})
 
-target_link_libraries(${LIBRARY_NAME} ${RPLIDARLIB_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar)
+target_link_libraries(${LIBRARY_NAME} ${RPLIDARLIB_LIBRARIES} AStar)
 
 # Create package config file from template.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/miam_utilsTemplate.pc" "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}.pc")

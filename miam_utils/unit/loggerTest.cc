@@ -5,7 +5,27 @@
 
 #include "miam_utils/Logger.h"
 
-std::string const FILENAME = "test.hdf5";
+#include <libgen.h>         // dirname
+#include <unistd.h>         // readlink
+#include <linux/limits.h>   // PATH_MAX
+
+
+std::string const FILENAME = "test.miam";
+std::string const FILENAME_HDF5 = "test.hdf5";
+
+// Helper: get path of converter utility
+std::string getConverterPath()
+{
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    const char *path;
+    if (count != -1) {
+        path = dirname(result);
+    }
+    std::string fullPath(result);
+    fullPath += "/../log_converter/miam_log_converter";
+    return fullPath;
+}
 
 TEST(Logger, LogData)
 {
@@ -18,9 +38,11 @@ TEST(Logger, LogData)
         logger.log("iSquared", i, i * i);
     }
     logger.close();
+    std::string cmd =  getConverterPath() + " " + FILENAME;
+    ASSERT_EQ(system(cmd.c_str()), 0);
 
     // Read and check file content
-    H5::H5File file(FILENAME, H5F_ACC_RDONLY);
+    H5::H5File file(FILENAME_HDF5, H5F_ACC_RDONLY);
 
     H5::DataSet iData = file.openDataSet("i");
     H5::DataSet iSquaredData = file.openDataSet("iSquared");
@@ -69,9 +91,11 @@ TEST(Logger, TextLog)
         logger << "Data: " << i << std::endl;
     }
     logger.close();
+    std::string cmd =  getConverterPath() + " " + FILENAME;
+    ASSERT_EQ(system(cmd.c_str()), 0);
 
     // Read and check file content
-    H5::H5File file(FILENAME, H5F_ACC_RDONLY);
+    H5::H5File file(FILENAME_HDF5, H5F_ACC_RDONLY);
 
     H5::DataSet textData = file.openGroup("textLog").openDataSet("log");
 

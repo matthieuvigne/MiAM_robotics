@@ -1,16 +1,30 @@
-/// \author MiAM Robotique, Matthieu Vigne
-/// \copyright GNU GPLv3
+// `.miam` format specification:
+// A `.miam` is a binary file containing both data (numbers) and messages (string).
+// The file starts by the word 'miam', in ASCII, followed by one byte indicating
+// version number (currently 1).
+// The file is then composed of a serie of chunk ; each chunk starts with a 2-bytes int16
+// indicating its size (no counting these two bytes), followed by a single byte indicating its type.
+// The content then varies depending on the type.
+//
+// - Type 'n' (0x6E): name
+//      Gives the name of a dataset. The next two bytes are the dataset ID. The rest is the name (ASCII string)
+// - Type 'd' (0x64): data
+//      Data timeserie. The first two bytes are the dataset ID. The rest is a serie of 2 double (time, value)
+// - Type 's' (0x73): string
+//      String corresponding to text messages (i.e. terminal output). The content is simply the string raw data.
+
 #include "miam_utils/Logger.h"
 #include <iostream>
 #include <string>
 #include <algorithm>
+
+#include <fstream>
 
 double const FLUSH_INTERVAL = 1.0;
 
 Logger::Logger():
     teleplot_(Teleplot::localhost()),
     teleplotPrefix_(),
-    datasets_(),
     names_(),
     queuedDatapoints_(),
     mutex_()
@@ -52,69 +66,104 @@ double Logger::getElapsedTime()
 
 void Logger::loggerThread(std::string const& filename)
 {
-    H5::H5File file(filename, H5F_ACC_TRUNC);
-    TextLogHandler textHandler(file);
+    pthread_setname_np(pthread_self(), "miam_logger");
+    std::ofstream file(filename, std::ios::out | std::ios::binary);
+    char header[5] = {'m', 'i', 'a', 'm', 1};
+    file.write(header, 5);
+    file.flush();
+
+    for (unsigned int i = 0; i < logger::MAX_VARIABLES; i++)
+        variables_[i].init(&file, i);
+    nRegisteredVariables_ = 0;
+
     double lastFlush = 0.0;
 
     while (!askForTerminate_ || queuedDatapoints_.size() > 0 || queuedText_.size() > 0)
     {
         std::vector<Datapoint> newDataPoints;
         std::vector<std::string> newStrings;
+        std::vector<std::string> newNames;
 
         mutex_.lock();
-        newDataPoints = queuedDatapoints_;
-        queuedDatapoints_.clear();
-        newStrings = queuedText_;
-        queuedText_.clear();
+        newDataPoints.swap(queuedDatapoints_);
+        newStrings.swap(queuedText_);
+        newNames.insert(newNames.begin(), names_.begin() + nRegisteredVariables_, names_.end());
         mutex_.unlock();
 
-        // Process data points
-        for (auto p : newDataPoints)
+        // Write new variable names to file
+        for (auto const& names : newNames)
         {
-            // Lookup name - if it doesn't exist, add a new entry.
-            int id = 0;
-            auto itr = std::find(names_.begin(), names_.end(), p.name);
-            if (itr == names_.end())
-            {
-                id = names_.size();
-                names_.push_back(p.name);
-                datasets_.push_back(DatasetHandler(file, p.name));
-            }
-            else
-                id = itr - names_.begin();
-
-            datasets_.at(id).addPoint(p.timestamp, p.value);
-            teleplot_.update(teleplotPrefix_ + p.name, p.value);
+            uint16_t const size = 3 + names.size();
+            char chunk[2 + size];
+            memcpy(chunk, &size, sizeof(uint16_t));
+            chunk[2] = 'n';
+            memcpy(chunk + 3, &nRegisteredVariables_, sizeof(uint16_t));
+            memcpy(chunk + 5, names.data(), names.size());
+            file.write(chunk, size + 2);
+            nRegisteredVariables_ ++;
         }
-        for (auto s : newStrings)
-            textHandler.append(s);
+
+        // Process data points
+        for (auto const& p : newDataPoints)
+        {
+            variables_[p.idx].addPoint(p.timestamp, p.value);
+            teleplot_.update(teleplotPrefix_ + names_.at(p.idx), p.value);
+        }
+
+        // Process strings
+        for (auto const& s : newStrings)
+        {
+            uint16_t const size = 1 + s.size();
+
+            char chunk[2 + size];
+            memcpy(chunk, &size, sizeof(uint16_t));
+            chunk[2] = 's';
+            memcpy(chunk + 3, s.data(), s.size());
+            file.write(chunk, size + 2);
+        }
 
         // Flush everything at least at the specified time interval.
         if (getElapsedTime() - lastFlush > FLUSH_INTERVAL)
         {
-            for (auto d : datasets_)
-                d.flush();
-            textHandler.flush();
+            for (uint16_t i = 0; i < nRegisteredVariables_; i++)
+                variables_[i].maybe_flush();
+            file.flush();
             lastFlush = getElapsedTime();
         }
         usleep(1000);
     }
-    for (auto d : datasets_)
-        d.flush();
-    datasets_.clear();
+    for (uint16_t i = 0; i < nRegisteredVariables_; i++)
+        variables_[i].flush();
     names_.clear();
     queuedDatapoints_.clear();
     queuedText_.clear();
-    textHandler.flush();
     file.close();
+}
+
+uint16_t Logger::getVariableId(std::string const& varName)
+{
+    auto itr = std::find(names_.begin(), names_.end(), varName);
+    if (itr == names_.end())
+    {
+        names_.push_back(varName);
+        return names_.size() - 1;
+    }
+    else
+     return itr - names_.begin();
+}
+
+
+void Logger::log(uint16_t const& idx, double const& time, double const& value)
+{
+    mutex_.lock();
+    queuedDatapoints_.push_back(Datapoint{idx, time, value});
+    mutex_.unlock();
 }
 
 
 void Logger::log(std::string const& name, double const& time, double const& value)
 {
-    mutex_.lock();
-    queuedDatapoints_.push_back(Datapoint{name, time, value});
-    mutex_.unlock();
+    log(getVariableId(name), time, value);
 }
 
 void Logger::close()

@@ -31,7 +31,7 @@ void RobotInterface::initLogger()
     std::filesystem::path logDir{"logs/"};
     for (auto& p __attribute__ ((unused)) : std::filesystem::directory_iterator(logDir))
         count++;
-    std::string filename = "logs/log" + std::to_string(count) + "_" + std::string(timestamp) + "_" + motionController_.robotParams_.name + ".hdf5";
+    std::string filename = "logs/log" + std::to_string(count) + "_" + std::string(timestamp) + "_" + motionController_.robotParams_.name + ".miam";
     logger_.start(filename);
     logger_.start(filename, teleplotPrefix_);
 }

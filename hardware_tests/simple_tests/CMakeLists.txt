@@ -21,23 +21,23 @@ find_package(PkgConfig REQUIRED)
 pkg_search_module(MIAM_UTILS REQUIRED miam_utils_arm >= 2.6.1)
 message(STATUS "Found miam_utils v." ${MIAM_UTILS_VERSION})
 
-# Find GTK+ headers/library files - cross-compiled
-set(ENV{PKG_CONFIG_PATH} "/usr/lib/arm-linux-gnueabihf/pkgconfig")
-pkg_search_module(HDF5LIB REQUIRED hdf5-serial)
 
-include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_INCLUDE_DIRS} ${HDF5LIB_INCLUDE_DIRS})
-link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS} ${HDF5LIB_LIBRARY_DIRS})
+include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_INCLUDE_DIRS})
+link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS})
 
 # Build executables
 add_executable(test_as5045 TestAS5045.cpp)
-target_link_libraries(test_as5045 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")
+target_link_libraries(test_as5045 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
 
 
 add_executable(test_ina226 TestINA226.cpp)
-target_link_libraries(test_ina226 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")
+target_link_libraries(test_ina226 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
 
 add_executable(test_mcp23008 TestMCP23008.cpp)
-target_link_libraries(test_mcp23008 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")
+target_link_libraries(test_mcp23008 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
 
 add_executable(test_as5048B TestAS5048B.cpp)
-target_link_libraries(test_as5048B ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${HDF5LIB_LIBRARIES} "-lhdf5_cpp")
+target_link_libraries(test_as5048B ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
+
+add_executable(test_logger TestLogger.cpp)
+target_link_libraries(test_logger ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
