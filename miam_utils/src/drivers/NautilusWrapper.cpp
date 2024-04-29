@@ -96,22 +96,25 @@ NautilusReply NautilusWrapper::readRegister(nautilus::Register const& reg, int n
         rep = nautilus_.readRegister(reg);
         i++;
     }
-    if (isInit_ && !rep.isEncoderValid)
+    if (isInit_ && rep.isValid && !rep.isEncoderValid)
         nEncoderInvalid_ ++;
 
-    if (!lastMeasurements_.isEncoderPositionValid && rep.isEncoderValid)
+    if (rep.isValid)
     {
-        lastMeasurements_.isEncoderPositionValid = true;
         lastMeasurements_.currentMode = rep.mode;
+        if (!lastMeasurements_.isEncoderPositionValid && rep.isEncoderValid)
+        {
+            lastMeasurements_.isEncoderPositionValid = true;
 
-        double const encoderPosition = rep.encoderPosition * ENC_TICK_TO_RAD;
-        double increment = encoderPosition - oldEncoderPosition_;
-        if (increment > M_PI)
-            increment = increment - 2 * M_PI;
-        if (increment < -M_PI)
-            increment = increment + 2 * M_PI;
-        oldEncoderPosition_ = encoderPosition;
-        lastMeasurements_.encoderPosition += increment;
+            double const encoderPosition = rep.encoderPosition * ENC_TICK_TO_RAD;
+            double increment = encoderPosition - oldEncoderPosition_;
+            if (increment > M_PI)
+                increment = increment - 2 * M_PI;
+            if (increment < -M_PI)
+                increment = increment + 2 * M_PI;
+            oldEncoderPosition_ = encoderPosition;
+            lastMeasurements_.encoderPosition += increment;
+        }
     }
     return rep;
 }
