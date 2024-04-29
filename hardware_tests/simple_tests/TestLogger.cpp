@@ -2,6 +2,8 @@
 #include <miam_utils/Logger.h>
 #include <miam_utils/Metronome.h>
 
+#include <iostream>
+
 
 int main (int argc, char *argv[])
 {

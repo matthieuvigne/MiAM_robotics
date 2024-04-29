@@ -41,3 +41,15 @@ target_link_libraries(test_as5048B ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
 
 add_executable(test_logger TestLogger.cpp)
 target_link_libraries(test_logger ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
+
+# Vision test requires opencv
+find_package(OpenCV REQUIRED)
+message(STATUS "Found OpenCV v." ${OpenCV_VERSION})
+set(OpenCV_INCLUDE_DIRS "/usr/local/include/opencv4")
+set(OpenCV_LIBRARY_DIRS "/usr/local/lib")
+include_directories(${OpenCV_INCLUDE_DIRS})
+link_directories(${OpenCV_LIBRARY_DIRS})
+
+include_directories(../../vision/include)
+add_executable(test_camera TestSolarPanelCamera.cpp ../../vision/src/common/solar_panel_camera.cpp)
+target_link_libraries(test_camera ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES} ${OpenCV_LIBRARIES})
