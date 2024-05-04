@@ -70,7 +70,8 @@ public:
 
     void raiseSolarPanelArm(bool const& medium = false);
     void lowerSolarPanelArm();
-    void spinSolarPanel(bool const& spin);
+    void spinSolarPanel(bool const& isPlayingRightSide);
+    void stopSolarPanel();
 
     void halfOpenElectromagnetArms();
     void openElectromagnetArms();

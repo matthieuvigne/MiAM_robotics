@@ -60,9 +60,9 @@ void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int
 
     // On ground, 2/3 of the plants are not valid -> each plant gives 1 point on average
     if (dropGround)
-        robot->updateScore(nPlants);
+        robot->updateScore(nPlants, "plants dropped on ground");
     else
-        robot->updateScore(2 * nPlants); // Heuristic: half the plants are valid
+        robot->updateScore(2 * nPlants, "plants dropped in jardiniere"); // Heuristic: half the plants are valid
 }
 
 void DropPlantsWithPotAction::updateStartCondition()
@@ -168,7 +168,7 @@ bool DropPlantsWithPotAction::performAction()
     robot_->wait(0.4);
     int nPlants = -servoManager_->updateClawContent(isDroppingFront_, robot_->gameState_);
     robot_->logger_ << "[DropPlantsWithPotAction] Dropped " << nPlants << " plants." << std::endl;
-    robot_->updateScore(4 * nPlants);
+    robot_->updateScore(4 * nPlants, "plants dropped in pot");
 
     // Are there other plants to drop ?
     isDroppingFront_ = !isDroppingFront_;

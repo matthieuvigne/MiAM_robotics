@@ -8,7 +8,8 @@ double const ROBOT_ARM_OFFSET = 20.0;
 
 void SolarPanelsAction::updateStartCondition()
 {
-    startPosition_ = RobotPosition(PANELS_X_COORD[0] + ROBOT_ARM_OFFSET, LATERAL_DISTANCE, (robot_->isPlayingRightSide() ? 0: M_PI));
+    int const sign = robot_->isPlayingRightSide() ? -1 : 1;
+    startPosition_ = RobotPosition(PANELS_X_COORD[0] + ROBOT_ARM_OFFSET * sign, LATERAL_DISTANCE, (robot_->isPlayingRightSide() ? 0: M_PI));
     isStartMotionBackward_ = !robot_->isPlayingRightSide();
 
     RobotPosition const robotStartPosition = robot_->getStartPosition();
@@ -37,12 +38,14 @@ void SolarPanelsAction::actionStartTrigger()
 
 bool SolarPanelsAction::performAction()
 {
+
+    int const sign = robot_->isPlayingRightSide() ? -1 : 1;
     robot_->logger_ << "[SolarPanelsAction] Performing action" << std::endl;
 
     servoManager_->waitForTurret();
     servoManager_->raiseSolarPanelArm(true);
     robot_->wait(0.010);
-    servoManager_->spinSolarPanel(true);
+    servoManager_->spinSolarPanel(robot_->isPlayingRightSide());
     robot_->wait(0.010);
 
     tf flags = (robot_->isPlayingRightSide() ? tf::DEFAULT : tf::BACKWARD);
@@ -62,7 +65,7 @@ bool SolarPanelsAction::performAction()
                 robot_->getMotionController()->resetPosition(currentPosition, false, true, false);
             }
 
-            RobotPosition const target(PANELS_X_COORD[i] + ROBOT_ARM_OFFSET, LATERAL_DISTANCE, finalAngle);
+            RobotPosition const target(PANELS_X_COORD[i] + ROBOT_ARM_OFFSET * sign, LATERAL_DISTANCE, finalAngle);
 
             if (i == 3)
             {
@@ -92,12 +95,12 @@ bool SolarPanelsAction::performAction()
         robot_->wait(0.010);
         servoManager_->lowerSolarPanelArm();
         robot_->wait(0.250);
-        robot_->updateScore(5);
+        robot_->updateScore(5, "solar panel");
         servoManager_->raiseSolarPanelArm(true);
         robot_->wait(0.4);
     }
     servoManager_->raiseSolarPanelArm();
-    servoManager_->spinSolarPanel(false);
+    servoManager_->stopSolarPanel();
 
     // Action should not be done again
     return true;

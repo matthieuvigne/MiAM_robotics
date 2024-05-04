@@ -134,7 +134,8 @@ bool RobotGUI::doUpdate()
         if (robotData.state == robotstate::WAITING_FOR_START)
         {
             box_.pack_start(sideButton_);
-            box_.pack_start(startPositionButton_);
+            // Remove, we never change zone.
+            // box_.pack_start(startPositionButton_);
             box_.pack_start(blockMotorsButton_);
             box_.pack_start(drawingArea_);
         }
@@ -189,7 +190,10 @@ void RobotGUI::blockMotorsButtonClicked()
 
 miam::RobotPosition RobotGUI::getStartPosition()
 {
-    return START_POSITIONS[startPositionIdx_];
+    miam::RobotPosition startPos = START_POSITIONS[startPositionIdx_];
+    if (startPositionIdx_ == 2 && isPlayingRightSide_)
+        startPos.theta = 0;
+    return startPos;
 }
 
 bool RobotGUI::getBlockMotors()

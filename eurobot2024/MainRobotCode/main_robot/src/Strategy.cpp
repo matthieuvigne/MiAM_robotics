@@ -131,7 +131,7 @@ void Strategy::goBackToBase()
         targetPosition.y = 400;
     }
     targetPosition.theta = M_PI;
-    servoManager_.spinSolarPanel(false);
+    servoManager_.stopSolarPanel();
     servoManager_.raiseSolarPanelArm();
     robot->getMPC23008()->setOutputs(0);
 
@@ -166,7 +166,7 @@ void Strategy::goBackToBase()
         candidateId  = (candidateId + 1) % 2;
     }
     if (targetReached)
-        robot->updateScore(10);
+        robot->updateScore(10, "back to base");
 
     if (robot->gameState_.nPlantsInRobot() > 0)
     {
@@ -174,15 +174,16 @@ void Strategy::goBackToBase()
         robot->getMotionController()->goStraight(-120);
     }
 
-    if (robot->gameState_.nPlantsInRobot() > 0)
-    {
-        servoManager_.setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
-        robot->wait(1.0);
-        isFront = !isFront;
-        servoManager_.moveTurret(isFront ? 0 : M_PI);
-        robot->wait(1.0);
-        dropPlants(robot, &servoManager_, isFront, 0, true);
-    }
+    // No final motion so we don't kill PAMI.
+    // if (robot->gameState_.nPlantsInRobot() > 0)
+    // {
+    //     servoManager_.setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
+    //     robot->wait(1.0);
+    //     isFront = !isFront;
+    //     servoManager_.moveTurret(isFront ? 0 : M_PI);
+    //     robot->wait(1.0);
+    //     dropPlants(robot, &servoManager_, isFront, 0, true);
+    // }
 }
 
 

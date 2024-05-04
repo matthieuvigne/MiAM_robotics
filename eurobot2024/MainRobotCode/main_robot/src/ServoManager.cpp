@@ -310,17 +310,18 @@ void ServoManager::lowerSolarPanelArm()
     servos_->setTargetPosition(20, 2048);
 }
 
-void ServoManager::spinSolarPanel(bool const& spin)
+void ServoManager::spinSolarPanel(bool const& isPlayingRightSide)
 {
     servos_->setMode(SOLAR_PANEL_WHEEL, STS::Mode::VELOCITY);
     robot_->wait(0.005);
-    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (spin ? -2000 : 0));
-
-    // [TODO] Add with camera
-    // [TODO] Add playing side
-    //~ vision::SolarPanelCamera camera("/dev/camera0", true);
-    //~ double angle_deg = camera.getSolarPanelOrientation();
+    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (isPlayingRightSide ? 2000 : -2000));
 }
+
+void ServoManager::stopSolarPanel()
+{
+    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, 0);
+}
+
 
 void ServoManager::openElectromagnetArms()
 {

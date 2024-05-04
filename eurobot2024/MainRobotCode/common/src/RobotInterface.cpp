@@ -116,9 +116,11 @@ void RobotInterface::lowLevelLoop()
             // If playing right side: invert right/left encoders)
             if (motionController_.isPlayingRightSide_)
             {
+                double const encoderRatio = getParameters().rightEncoderWheelRadius / getParameters().leftEncoderWheelRadius;
+
                 double temp = measurements_.drivetrainMeasurements.encoderSpeed.right;
-                measurements_.drivetrainMeasurements.encoderSpeed.right = measurements_.drivetrainMeasurements.encoderSpeed.left;
-                measurements_.drivetrainMeasurements.encoderSpeed.left = temp;
+                measurements_.drivetrainMeasurements.encoderSpeed.right = measurements_.drivetrainMeasurements.encoderSpeed.left / encoderRatio;
+                measurements_.drivetrainMeasurements.encoderSpeed.left = temp * encoderRatio;
             }
 
             // Compute motion target.
@@ -165,12 +167,13 @@ bool RobotInterface::getTestMode() const
 }
 
 
-void RobotInterface::updateScore(int const& scoreIncrement)
+void RobotInterface::updateScore(int const& scoreIncrement, std::string const& pointsOrigin)
 {
     mutex_.lock();
     guiState_.score += scoreIncrement;
     mutex_.unlock();
     gui_->update(guiState_);
+    logger_ << "[Score update] +" << scoreIncrement << ", reason: " << pointsOrigin << std::endl;
 }
 
 bool RobotInterface::isPlayingRightSide() const

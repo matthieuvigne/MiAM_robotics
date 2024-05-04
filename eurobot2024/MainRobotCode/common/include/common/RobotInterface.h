@@ -91,7 +91,8 @@
             /// \details This function increments the score then updates the display accordingly.
             ///
             /// \param[in] scoreIncrement Amount to increment the score, both positive or negative.
-            void updateScore(int const& scoreIncrement);
+            /// \param[in] pointsOrigin Reason why the points were scored.
+            void updateScore(int const& scoreIncrement, std::string const& pointsOrigin);
 
             RobotParameters getParameters() const;
 
