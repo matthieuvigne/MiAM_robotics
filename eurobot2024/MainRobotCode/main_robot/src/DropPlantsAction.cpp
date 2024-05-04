@@ -3,11 +3,27 @@
 #define CHASSIS_MARGIN 140
 #define POT_MARGIN 125
 
+/////////////////////////////////////
+// Zone placement
+//      5
+//  _____________________
+//  |1                  |
+// 4|                   |
+//  |                   | 2
+//  |                   | 3
+//  |0__________________|
 const miam::RobotPosition PLANT_DROP_COORD[3] =
 {
     miam::RobotPosition(CHASSIS_MARGIN + POT_MARGIN + 100, 612, 0),
     miam::RobotPosition(CHASSIS_MARGIN + POT_MARGIN + 100, 1388, 0),
     miam::RobotPosition(3000 - (CHASSIS_MARGIN + POT_MARGIN + 100), 612, M_PI)
+};
+
+const miam::RobotPosition PLANT_DROP_NOPOTS_COORD[3] =
+{
+    miam::RobotPosition(250, 250, M_PI),
+    miam::RobotPosition(250, 2000 - 250, M_PI),
+    miam::RobotPosition(3000 - 250, 1000, 0)
 };
 
 const miam::RobotPosition JARDINIERE_COORD[3] =
@@ -19,12 +35,12 @@ const miam::RobotPosition JARDINIERE_COORD[3] =
 };
 
 const int DROP_PRIORITY_PREFERENCE[6] = {
-    0, // This zone is used for the solar panels, and might be used at the end.
+    5,
     4,
     1,
     1,
     2,
-    5
+    3
     };
 
 void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int zoneId, bool dropGround)
@@ -43,7 +59,7 @@ void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int
     robot->updateScore(3 * nPlants);
 }
 
-void DropPlantsAction::updateStartCondition()
+void DropPlantsWithPotAction::updateStartCondition()
 {
     startPosition_ = PLANT_DROP_COORD[zoneId_];
     isStartMotionBackward_ = true;
@@ -66,7 +82,7 @@ void DropPlantsAction::updateStartCondition()
 }
 
 
-void DropPlantsAction::actionStartTrigger()
+void DropPlantsWithPotAction::actionStartTrigger()
 {
 
     // Drop the most full claw only - or the one already placed.
@@ -80,10 +96,11 @@ void DropPlantsAction::actionStartTrigger()
     }
     else
         isDroppingFront_ = clawDiff > 0;
+    isDroppingFront_ = false;
     servoManager_->moveTurret(isDroppingFront_ ? M_PI : 0);
 }
 
-bool DropPlantsAction::performAction()
+bool DropPlantsWithPotAction::performAction()
 {
     // Push pots, moving backward.
     RobotPosition offset = RobotPosition(-50, 0, 0).rotate(PLANT_DROP_COORD[zoneId_].theta);
@@ -95,12 +112,13 @@ bool DropPlantsAction::performAction()
 
     servoManager_->turnOnMagnets();
     servoManager_->closeElectromagnetArms();
-    robot_->wait(0.3);
+    robot_->wait(0.4);
     if (!robot_->getMotionController()->goStraight(-50, 0.4))
         return false;
+    servoManager_->openElectromagnetArms();
+    robot_->wait(0.4);
     if (!robot_->getMotionController()->goStraight(50))
         return false;
-    servoManager_->halfOpenElectromagnetArms();
 
     // Go to zone, pushing the pots
     target = robot_->getMotionController()->getCurrentPosition();
@@ -108,10 +126,7 @@ bool DropPlantsAction::performAction()
     int yInvert = (zoneId_ == 0 ? -1 : 1);
     int xInvert = (zoneId_ == 2 ? -1 : 1);
 
-    target.y += 200 * yInvert;
-    target.x += 45 * xInvert;
-    positions.push_back(target);
-    target.y += 140 * yInvert;
+    target.y += 350 * yInvert;
     positions.push_back(target);
 
     if (!robot_->getMotionController()->goToRoundedCorners(positions, 200, 0.2, static_cast<tf>(tf::BACKWARD | tf::IGNORE_END_ANGLE)))
@@ -124,9 +139,20 @@ bool DropPlantsAction::performAction()
 
     // Drop plants
     servoManager_->turnOffMagnets();
+
+    // Drop plants in pots.
+    servoManager_->setClawPosition(ClawSide::BACK, ClawPosition::MEDIUM_POSITION);
+    servoManager_->moveTurret(-0.2);
+    robot_->wait(0.5);
+    servoManager_->waitForTurret();
+    servoManager_->openClaw(6, false);
+    robot_->wait(0.020);
+    servoManager_->openClaw(7, false);
+    robot_->wait(0.2);
+
     // robot_->getMotionController()->goStraight(20);
-    dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_);
-    servoManager_->openElectromagnetArms();
+    // dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_);
+    // servoManager_->openElectromagnetArms();
 
     // Are there other plants to drop ?
     isDroppingFront_ = !isDroppingFront_;
@@ -149,29 +175,94 @@ bool DropPlantsAction::performAction()
     }
 
     // Finish by pusing the pots out of the way
-    target = PLANT_DROP_COORD[zoneId_];
-    target.y += - 300 * yInvert;
+    // target = PLANT_DROP_COORD[zoneId_];
+    // target.y += - 300 * yInvert;
 
-    // Action is done, pots simply weren't pushed
-    if (!robot_->getMotionController()->goToStraightLine(target, 1.0, static_cast<tf>(flag | tf::IGNORE_END_ANGLE)))
-        return true;
+    // // Action is done, pots simply weren't pushed
+    // if (!robot_->getMotionController()->goToStraightLine(target, 1.0, static_cast<tf>(flag | tf::IGNORE_END_ANGLE)))
+    //     return true;
 
-    servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::LOW_POSITION);
+    // servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::LOW_POSITION);
 
-    positions.clear();
-    target.x += -(30 + POT_MARGIN) * xInvert;
-    target.y += 200 * yInvert;
-    positions.push_back(target);
-    target.y += 250 * yInvert;
-    positions.push_back(target);
+    // positions.clear();
+    // target.x += -(30 + POT_MARGIN) * xInvert;
+    // target.y += 200 * yInvert;
+    // positions.push_back(target);
+    // target.y += 250 * yInvert;
+    // positions.push_back(target);
 
-    if (robot_->getMotionController()->goToRoundedCorners(positions, 100, 0.2, tf::IGNORE_END_ANGLE))
+    // if (robot_->getMotionController()->goToRoundedCorners(positions, 100, 0.2, tf::IGNORE_END_ANGLE))
+    // {
+    //     robot_->gameState_.nPotsInPile[zoneId_] = 0;
+    //     robot_->getMotionController()->goStraight(-50);
+    // }
+
+    // servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::HIGH_POSITION);
+
+    return true;
+}
+
+
+void DropPlantsWithoutPotsAction::updateStartCondition()
+{
+    startPosition_ = PLANT_DROP_NOPOTS_COORD[zoneId_];
+    isStartMotionBackward_ = false;
+
+    // Action is only possible if there are plants present.
+    bool isPossible = robot_->gameState_.nPlantsInRobot() > 0 && robot_->gameState_.nPlantsCollected[zoneId_] == 0;
+
+    if (!isPossible)
     {
-        robot_->gameState_.nPotsInPile[zoneId_] = 0;
-        robot_->getMotionController()->goStraight(-50);
+        priority_ = -1;
+    }
+    else if (robot_->gameState_.nPlantsInRobot() > 4)
+    {
+        priority_ = 5 + DROP_PRIORITY_PREFERENCE[zoneId_];
+    }
+    else
+    {
+        priority_ = DROP_PRIORITY_PREFERENCE[zoneId_];
+    }
+}
+
+
+void DropPlantsWithoutPotsAction::actionStartTrigger()
+{
+    // TODO
+    servoManager_->moveTurret(0);
+
+    // // Drop the most full claw only - or the one already placed.
+    // bool const isPlacedFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
+
+    // int const clawDiff = robot_->gameState_.frontToBackClawDiff();
+    // if (clawDiff == 0)
+    // {
+    //     // Don't move turret if both are the same.
+    //     isDroppingFront_ = !isPlacedFront;
+    // }
+    // else
+    //     isDroppingFront_ = clawDiff > 0;
+    // servoManager_->moveTurret(isDroppingFront_ ? M_PI : 0);
+}
+
+bool DropPlantsWithoutPotsAction::performAction()
+{
+    // Drop front plants if there are any
+    if (robot_->gameState_.nPlantsInClaw(true) > 0)
+    {
+        dropPlants(robot_, servoManager_, true, zoneId_, true);
+        robot_->getMotionController()->goStraight(-150);
+        servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
     }
 
-    servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::HIGH_POSITION);
+    if (robot_->gameState_.nPlantsInClaw(false) > 0)
+    {
+        servoManager_->moveTurret(M_PI);
+        robot_->wait(0.5);
+        dropPlants(robot_, servoManager_, false, zoneId_, true);
+        robot_->getMotionController()->goStraight(-150);
+        servoManager_->setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
+    }
 
     return true;
 }

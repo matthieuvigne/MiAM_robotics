@@ -16,7 +16,7 @@ void PickupPlantsAction::updateStartCondition()
     // For the zones on the line, only grab the plants horizontally.
     if (std::abs(startPosition_.x - 1500) > 10)
     {
-        if (angle > -M_PI_2 || angle < M_PI_2)
+        if (currentPose.x < startPosition_.x)
             angle = 0;
         else
             angle = M_PI;

@@ -73,7 +73,8 @@ int main(int argc, char* argv[])
 
   // Instantiate the servo manager
   ServoManager servo_manager;
-  servo_manager.init(&robot, true);
+  servo_manager.init(&robot, false);
+  robot.wait(1.0);
 
   servo_manager.waitForTurret();
 
@@ -82,17 +83,27 @@ int main(int argc, char* argv[])
 
   GameState gameState;
 
+  servo_manager.closeClaws(false);
+  robot.wait(2.0);
+  servo_manager.setClawPosition(ClawSide::BACK, ClawPosition::MEDIUM_POSITION);
+  servo_manager.moveTurret(-0.2);
+  robot.wait(2.0);
+  servo_manager.waitForTurret();
+  servo_manager.openClaw(6, false);
+  robot.wait(0.050);
+  servo_manager.openClaw(7, false);
+
   while (true)
   {
-  servo_manager.moveTurret(0); // Initialisation a faire avec l'interrupteur
-  robot.wait(1.0);
-  servo_manager.waitForTurret();
-  robot.wait(1.0);
+  // servo_manager.moveTurret(0); // Initialisation a faire avec l'interrupteur
+  // robot.wait(1.0);
+  // servo_manager.waitForTurret();
+  // robot.wait(1.0);
 
-  servo_manager.moveTurret(M_PI_2); // Initialisation a faire avec l'interrupteur
-  robot.wait(1.0);
-  servo_manager.waitForTurret();
-  robot.wait(1.0);
+  // servo_manager.moveTurret(M_PI_2); // Initialisation a faire avec l'interrupteur
+  // robot.wait(1.0);
+  // servo_manager.waitForTurret();
+  // robot.wait(1.0);
   }
 
   servo_manager.waitForTurret();

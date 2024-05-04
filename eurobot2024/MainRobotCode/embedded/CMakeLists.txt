@@ -35,10 +35,10 @@ message(STATUS "Miam_vision_arm dirs: " ${MIAM_VISION_LIBRARY_DIRS})
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 
 # Find opencv
-find_package(OpenCV REQUIRED)
-message(STATUS "Found OpenCV v." ${OpenCV_VERSION})
-set(OpenCV_INCLUDE_DIRS "/usr/local/include/opencv4")
-set(OpenCV_LIBRARY_DIRS "/usr/local/lib")
+# find_package(OpenCV REQUIRED)
+# message(STATUS "Found OpenCV v." ${OpenCV_VERSION})
+# set(OpenCV_INCLUDE_DIRS "/usr/local/include/opencv4")
+# set(OpenCV_LIBRARY_DIRS "/usr/local/lib")
 
 # Find GTK+ headers/library files - cross-compiled
 set(ENV{PKG_CONFIG_PATH} "/usr/lib/arm-linux-gnueabihf/pkgconfig")
@@ -51,20 +51,20 @@ include_directories(
   ${RPLIDAR_INCLUDE_DIRS}
   ${MIAM_UTILS_INCLUDE_DIRS}
   ${MIAM_VISION_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
+  # ${OpenCV_INCLUDE_DIRS}
   ${GTK_INCLUDE_DIRS}
   ${HDF5LIB_INCLUDE_DIRS})
 link_directories(
   ${RPLIDAR_LIBRARY_DIRS}
   ${MIAM_UTILS_LIBRARY_DIRS}
   ${MIAM_VISION_LIBRARY_DIRS}
-  ${OpenCV_LIBRARY_DIRS}
+  # ${OpenCV_LIBRARY_DIRS}
   ${GTK_LIBRARY_DIRS}
   ${HDF5LIB_LIBRARY_DIRS})
 
 # Include source files from src directory.
 file(GLOB_RECURSE COMMON_SOURCES "../common/src/*.cpp"
-                                 "../../../vision/src/common/*.cpp"
+                                #  "../../../vision/src/common/*.cpp"
                                  "src/Robot.cpp")
 
 file(GLOB_RECURSE MAIN_SOURCES "../main_robot/src/*.cpp" "src/MainRobotMain.cpp")
@@ -79,7 +79,7 @@ include_directories(../../../a-star/source
     ../../../qpoases
     ../../../qpoases/INCLUDE
     ../../../qpoases/SRC
-    ../../../vision/include
+    # ../../../vision/include
     ../common/acado_solver)
 
 FILE( GLOB LIB_SOURCES ../../../a-star/source/*.cpp )
@@ -107,7 +107,7 @@ add_executable(mainRobotCode ${MAIN_SOURCES} ${COMMON_SOURCES})
 target_link_libraries(mainRobotCode
   ${MIAM_UTILS_LIBRARIES}
   ${MIAM_VISION_LIBRARIES}
-  ${OpenCV_LIBRARIES}
+  # ${OpenCV_LIBRARIES}
   ${RPLIDAR_LIBRARIES}
   ${GTK_LIBRARIES}
   ${HDF5LIB_LIBRARIES}

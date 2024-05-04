@@ -1,7 +1,7 @@
 #include "main_robot/SolarPanelsAction.h"
 
 
-#define LATERAL_DISTANCE 170
+#define LATERAL_DISTANCE 160
 
 double const PANELS_X_COORD[6] = {270, 500, 725, 1275, 1500, 1725};
 double const ROBOT_ARM_OFFSET = 20.0;
@@ -87,12 +87,13 @@ bool SolarPanelsAction::performAction()
         servoManager_->lowerSolarPanelArm();
         robot_->wait(0.010);
         servoManager_->lowerSolarPanelArm();
-        robot_->wait(0.3);
+        robot_->wait(0.250);
         robot_->updateScore(5);
         servoManager_->raiseSolarPanelArm(true);
         robot_->wait(0.4);
     }
     servoManager_->raiseSolarPanelArm();
+    servoManager_->spinSolarPanel(false);
 
     // Action should not be done again
     return true;

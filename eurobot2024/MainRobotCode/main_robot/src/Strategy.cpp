@@ -61,15 +61,21 @@ bool Strategy::setup(RobotInterface *robot)
         // Load actions into action vector.
         actions_.clear();
 
-        for (int i = 0; i < 6; i++)
-        {
-            actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, i));
-        }
+        // Ignore the two rightmost zones.
+        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, 0));
+        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, 1));
+        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, 3));
+        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, 5));
+
+        actions_.push_back(std::make_shared<DropPlantsWithoutPotsAction>(robot, &servoManager_, 0));
+        actions_.push_back(std::make_shared<DropPlantsWithPotAction>(robot, &servoManager_, 1));
+        actions_.push_back(std::make_shared<DropPlantsWithoutPotsAction>(robot, &servoManager_, 2));
+
         for (int i = 0; i < 3; i++)
         {
-            actions_.push_back(std::make_shared<DropPlantsAction>(robot, &servoManager_, i));
             actions_.push_back(std::make_shared<DropPlantsToJarnidiereAction>(robot, &servoManager_, i));
         }
+
         actions_.push_back(std::make_shared<SolarPanelsAction>(robot, &servoManager_));
     }
 
@@ -113,13 +119,13 @@ void Strategy::goBackToBase()
     RobotPosition targetPosition;
     if (robot->getStartPosition().y < 700)
     {
-        targetPosition.x = 220;
-        targetPosition.y = 1750;
+        targetPosition.x = 450;
+        targetPosition.y = 1600;
     }
     else
     {
-        targetPosition.x = 220;
-        targetPosition.y = 250;
+        targetPosition.x = 450;
+        targetPosition.y = 400;
     }
     targetPosition.theta = M_PI;
     servoManager_.spinSolarPanel(false);
@@ -136,12 +142,24 @@ void Strategy::goBackToBase()
         servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
     }
 
-    RobotPosition targetPositions[2] = {targetPosition, RobotPosition(1780, 1000, 0)};
-    int candidateId = 0;
+    RobotPosition targetPositions[2] = {targetPosition, RobotPosition(2780, 1000, 0)};
+    int candidateId = 1;
     bool targetReached = false;
     while (!targetReached && robot->getMatchTime() < 90)
     {
-        targetReached = robot->getMotionController()->goToStraightLine(targetPositions[candidateId]);
+
+        TrajectoryVector traj;
+        traj = robot->getMotionController()->computeMPCTrajectory(
+            targetPositions[candidateId],
+            robot->getMotionController()->getDetectedObstacles(),
+            tf::DEFAULT);
+        if (!traj.empty())
+        {
+            robot->getMotionController()->setTrajectoryToFollow(traj);
+            targetReached = robot->getMotionController()->waitForTrajectoryFinished();
+        }
+        else
+            targetReached = robot->getMotionController()->goToStraightLine(targetPositions[candidateId]);
         candidateId  = (candidateId + 1) % 2;
     }
     if (targetReached)

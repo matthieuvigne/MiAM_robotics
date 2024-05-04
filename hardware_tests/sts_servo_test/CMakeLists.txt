@@ -35,11 +35,10 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 # Find GTK+ headers/library files - cross-compiled
 set(ENV{PKG_CONFIG_PATH} "/usr/lib/arm-linux-gnueabihf/pkgconfig")
 pkg_search_module(GTK REQUIRED gtkmm-3.0)
-pkg_search_module(HDF5LIB REQUIRED hdf5-serial)
 
 find_package(Eigen3 REQUIRED)
-include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_INCLUDE_DIRS} ${MIAM_VISION_INCLUDE_DIRS} ${GTK_INCLUDE_DIRS} ${HDF5LIB_INCLUDE_DIRS})
-link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS} ${MIAM_VISION_LIBRARY_DIRS} ${GTK_LIBRARY_DIRS} ${HDF5LIB_LIBRARY_DIRS})
+include_directories(${Eigen_INCLUDE_DIRS} ${RPLIDAR_INCLUDE_DIRS} ${MIAM_UTILS_INCLUDE_DIRS} ${MIAM_VISION_INCLUDE_DIRS} ${GTK_INCLUDE_DIRS})
+link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS} ${MIAM_VISION_LIBRARY_DIRS} ${GTK_LIBRARY_DIRS})
 
 # Include source files from src directory.
 file(GLOB_RECURSE COMMON_SOURCES "../../eurobot2024/MainRobotCode/common/src/*.cpp"
@@ -75,7 +74,7 @@ ADD_LIBRARY( qpoases ${LIB_SOURCES} ${LIB_HEADERS} )
 # acado_solver
 FILE( GLOB LIB_SOURCES ../../eurobot2024/MainRobotCode/common/acado_solver/*.cpp
                        ../../eurobot2024/MainRobotCode/common/acado_solver/*.c )
-FILE( GLOB LIB_HEADERS ../../eurobot2024/MainRobotCode/common/acado_solver/*.hpp 
+FILE( GLOB LIB_HEADERS ../../eurobot2024/MainRobotCode/common/acado_solver/*.hpp
                        ../../eurobot2024/MainRobotCode/common/acado_solver/*.h )
 set_source_files_properties(${LIB_SOURCES} PROPERTIES LANGUAGE CXX )
 ADD_LIBRARY( acado_solver ${LIB_SOURCES} ${LIB_HEADERS} )
@@ -85,7 +84,7 @@ message(${RPLIDAR_INCLUDE_DIRS})
 
 # Set executable target and link libraries.
 add_executable(sts_servo_test ${MAIN_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(sts_servo_test ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} ${HDF5LIB_LIBRARIES}
-AStar acado_solver "-lhdf5_cpp")
+target_link_libraries(sts_servo_test ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES}
+AStar acado_solver)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")
