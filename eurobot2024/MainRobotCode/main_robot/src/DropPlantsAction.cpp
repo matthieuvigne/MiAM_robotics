@@ -105,8 +105,8 @@ bool DropPlantsAction::performAction()
     // Go to zone, pushing the pots
     target = robot_->getMotionController()->getCurrentPosition();
     std::vector<RobotPosition> positions;
-    int yInvert = (zoneId_ == 1 ? 1 : -1);
-    int xInvert = (zoneId_ == 0 ? -1 : 1);
+    int yInvert = (zoneId_ == 0 ? -1 : 1);
+    int xInvert = (zoneId_ == 2 ? -1 : 1);
 
     target.y += 200 * yInvert;
     target.x += 45 * xInvert;

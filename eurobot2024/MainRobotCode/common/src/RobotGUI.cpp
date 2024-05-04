@@ -13,7 +13,7 @@
 std::vector<miam::RobotPosition> START_POSITIONS({
     miam::RobotPosition(CHASSIS_OFFSET, 1550 + CHASSIS_OFFSET, 0.0),
     miam::RobotPosition(3000 - CHASSIS_OFFSET, 750 + CHASSIS_OFFSET, M_PI),
-    miam::RobotPosition(CHASSIS_OFFSET, 450 - CHASSIS_OFFSET, 0)
+    miam::RobotPosition(CHASSIS_OFFSET, 450 - CHASSIS_OFFSET - 100, M_PI)
 });
 
 RobotGUI::RobotGUI()

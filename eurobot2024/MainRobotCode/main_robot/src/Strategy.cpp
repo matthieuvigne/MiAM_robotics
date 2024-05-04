@@ -93,7 +93,7 @@ void Strategy::match()
     std::thread stratMain(&Strategy::match_impl, this);
     pthread_t handle = ThreadHandler::addThread(stratMain);
 
-    double const FALLBACK_TIME = 85.0;
+    double const FALLBACK_TIME = 82.0;
     robot->wait(FALLBACK_TIME);
     if (!MATCH_COMPLETED)
         pthread_cancel(handle);
@@ -102,7 +102,6 @@ void Strategy::match()
     {
         robot->logger_ << "Match almost done, auto-triggering fallback strategy" << std::endl;
     }
-    // TODO: don't go there if you already are
     robot->setGUIActionName("[Match End] Back to base");
     goBackToBase();
 }
@@ -137,8 +136,16 @@ void Strategy::goBackToBase()
         servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
     }
 
-    robot->getMotionController()->goToStraightLine(targetPosition);
-    robot->updateScore(10);
+    RobotPosition targetPositions[2] = {targetPosition, RobotPosition(1780, 1000, 0)};
+    int candidateId = 0;
+    bool targetReached = false;
+    while (!targetReached && robot->getMatchTime() < 90)
+    {
+        targetReached = robot->getMotionController()->goToStraightLine(targetPositions[candidateId]);
+        candidateId  = (candidateId + 1) % 2;
+    }
+    if (targetReached)
+        robot->updateScore(10);
 
     if (robot->gameState_.nPlantsInRobot() > 0)
     {

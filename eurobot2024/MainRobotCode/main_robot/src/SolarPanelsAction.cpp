@@ -9,12 +9,23 @@ double const ROBOT_ARM_OFFSET = 20.0;
 void SolarPanelsAction::updateStartCondition()
 {
     startPosition_ = RobotPosition(PANELS_X_COORD[0] - 40, LATERAL_DISTANCE, (robot_->isPlayingRightSide() ? 0: M_PI));
-    if (robot_->getMatchTime() < 20)
-        priority_ = -1;
-    else if (robot_->getMatchTime() > 50)
-        priority_ = 25;
+    isStartMotionBackward_ = !robot_->isPlayingRightSide();
+
+    RobotPosition const robotStartPosition = robot_->getStartPosition();
+    if (robotStartPosition.y < 500)
+    {
+        // Do this action first when starting on the lower left corner
+        priority_ = 100.;
+    }
     else
-        priority_ = 1;
+    {
+        if (robot_->getMatchTime() < 20)
+            priority_ = -1;
+        else if (robot_->getMatchTime() > 50)
+            priority_ = 25;
+        else
+            priority_ = 1;
+    }
 }
 
 

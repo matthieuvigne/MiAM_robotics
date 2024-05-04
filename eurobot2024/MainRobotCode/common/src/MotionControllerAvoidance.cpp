@@ -179,6 +179,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
             robotParams_.getTrajConf(),
             currentPosition, // start
             targetPosition,
+            0.0,
             flags);
     }
 
