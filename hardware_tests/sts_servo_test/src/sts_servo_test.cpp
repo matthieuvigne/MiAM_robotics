@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 
   // Instantiate the servo manager
   ServoManager servo_manager;
-  servo_manager.init(&robot, false);
+  servo_manager.init(&robot, true);
   robot.wait(1.0);
 
   servo_manager.waitForTurret();
@@ -85,13 +85,19 @@ int main(int argc, char* argv[])
 
   servo_manager.closeClaws(false);
   robot.wait(2.0);
-  servo_manager.setClawPosition(ClawSide::BACK, ClawPosition::MEDIUM_POSITION);
-  servo_manager.moveTurret(-0.2);
+  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::LOW_POSITION);
   robot.wait(2.0);
-  servo_manager.waitForTurret();
-  servo_manager.openClaw(6, false);
-  robot.wait(0.050);
-  servo_manager.openClaw(7, false);
+  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::MEDIUM_POSITION);
+  robot.wait(2.0);
+  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::MEDIUM_POSITION_PLUS);
+  robot.wait(2.0);
+  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
+  robot.wait(2.0);
+  //~ servo_manager.moveTurret(-0.2);
+  //~ servo_manager.waitForTurret();
+  //~ servo_manager.openClaw(6, false);
+  //~ robot.wait(0.050);
+  //~ servo_manager.openClaw(7, false);
 
   while (true)
   {

@@ -162,10 +162,18 @@ void ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
     switch(claw_position)
     {
         case ClawPosition::LOW_POSITION:
-            servos_->setTargetPosition(servoId, 1725);
-            robot_->wait(0.030);
-            servos_->setTargetPosition(servoId + 1, 2332);
-            robot_->wait(0.030);
+            if(side == ClawSide::BACK)
+            {
+              servos_->setTargetPosition(servoId, 1725);
+              robot_->wait(0.030);
+              servos_->setTargetPosition(servoId + 1, 2332);
+              robot_->wait(0.030);
+            } else {
+              servos_->setTargetPosition(servoId, 1675);
+              robot_->wait(0.030);
+              servos_->setTargetPosition(servoId + 1, 2376);
+              robot_->wait(0.030);
+            }
             break;
         case ClawPosition::MEDIUM_POSITION:
             // Unfold this arm first to avoid hitting bound
