@@ -49,14 +49,20 @@ void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int
     if (dropGround)
     {
         servos->setClawPosition((dropFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
-        robot->wait(1.0);
+        robot->wait(0.8);
     }
     servos->openClaws(dropFront);
-    robot->wait(0.6);
+    robot->wait(0.5);
 
     int nPlants = -servos->updateClawContent(dropFront, robot->gameState_);
     robot->gameState_.nPlantsCollected[zoneId] += nPlants;
-    robot->updateScore(3 * nPlants);
+    robot->logger_ << "Dropped " << nPlants << " plants." << std::endl;
+
+    // On ground, 2/3 of the plants are not valid -> each plant gives 1 point on average
+    if (dropGround)
+        robot->updateScore(nPlants);
+    else
+        robot->updateScore(2 * nPlants); // Heuristic: half the plants are valid
 }
 
 void DropPlantsWithPotAction::updateStartCondition()
@@ -141,18 +147,28 @@ bool DropPlantsWithPotAction::performAction()
     servoManager_->turnOffMagnets();
 
     // Drop plants in pots.
-    servoManager_->setClawPosition(ClawSide::BACK, ClawPosition::MEDIUM_POSITION);
-    servoManager_->moveTurret(-0.2);
-    robot_->wait(0.5);
-    servoManager_->waitForTurret();
-    servoManager_->openClaw(6, false);
-    robot_->wait(0.020);
-    servoManager_->openClaw(7, false);
-    robot_->wait(0.2);
-
-    // robot_->getMotionController()->goStraight(20);
-    // dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_);
-    // servoManager_->openElectromagnetArms();
+    if (isDroppingFront_)
+    {
+        servoManager_->moveTurret(M_PI -0.2);
+        robot_->wait(0.2);
+        servoManager_->waitForTurret();
+        servoManager_->openClaw(2, false);
+        robot_->wait(0.020);
+        servoManager_->openClaw(3, false);
+    }
+    else
+    {
+        servoManager_->moveTurret(-0.2);
+        robot_->wait(0.2);
+        servoManager_->waitForTurret();
+        servoManager_->openClaw(6, false);
+        robot_->wait(0.020);
+        servoManager_->openClaw(7, false);
+    }
+    robot_->wait(0.4);
+    int nPlants = -servoManager_->updateClawContent(isDroppingFront_, robot_->gameState_);
+    robot_->logger_ << "[DropPlantsWithPotAction] Dropped " << nPlants << " plants." << std::endl;
+    robot_->updateScore(4 * nPlants);
 
     // Are there other plants to drop ?
     isDroppingFront_ = !isDroppingFront_;
@@ -228,38 +244,25 @@ void DropPlantsWithoutPotsAction::updateStartCondition()
 
 void DropPlantsWithoutPotsAction::actionStartTrigger()
 {
-    // TODO
-    servoManager_->moveTurret(0);
-
-    // // Drop the most full claw only - or the one already placed.
-    // bool const isPlacedFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
-
-    // int const clawDiff = robot_->gameState_.frontToBackClawDiff();
-    // if (clawDiff == 0)
-    // {
-    //     // Don't move turret if both are the same.
-    //     isDroppingFront_ = !isPlacedFront;
-    // }
-    // else
-    //     isDroppingFront_ = clawDiff > 0;
-    // servoManager_->moveTurret(isDroppingFront_ ? M_PI : 0);
+    // drop front claw if there is something there.
+    isDroppingFront_ = robot_->gameState_.nPlantsInClaw(true) > 0;
+    servoManager_->moveTurret(isDroppingFront_ ? 0 : M_PI);
 }
 
 bool DropPlantsWithoutPotsAction::performAction()
 {
-    // Drop front plants if there are any
-    if (robot_->gameState_.nPlantsInClaw(true) > 0)
-    {
-        dropPlants(robot_, servoManager_, true, zoneId_, true);
-        robot_->getMotionController()->goStraight(-150);
-        servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
-    }
+    // Drop plants
+    dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_, true);
+    robot_->getMotionController()->goStraight(-120);
+    servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::HIGH_POSITION);
 
-    if (robot_->gameState_.nPlantsInClaw(false) > 0)
+    // Drop other plants, if needed
+    isDroppingFront_ = !isDroppingFront_;
+    if (robot_->gameState_.nPlantsInClaw(isDroppingFront_) > 0)
     {
-        servoManager_->moveTurret(M_PI);
+        servoManager_->moveTurret(isDroppingFront_ ? 0 : M_PI);
         robot_->wait(0.5);
-        dropPlants(robot_, servoManager_, false, zoneId_, true);
+        dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_, true);
         robot_->getMotionController()->goStraight(-150);
         servoManager_->setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
     }

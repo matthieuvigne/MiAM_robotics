@@ -83,16 +83,17 @@ int main(int argc, char* argv[])
 
   GameState gameState;
 
-  servo_manager.closeClaws(false);
+  // servo_manager.closeClaws(false);
   robot.wait(2.0);
-  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::LOW_POSITION);
+  servo_manager.closeClaws(true);
   robot.wait(2.0);
   servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::MEDIUM_POSITION);
   robot.wait(2.0);
+  servo_manager.openClaws(true, false);
+  robot.wait(0.3);
+  servo_manager.closeClaws(true);
   servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::MEDIUM_POSITION_PLUS);
-  robot.wait(2.0);
-  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
-  robot.wait(2.0);
+
   //~ servo_manager.moveTurret(-0.2);
   //~ servo_manager.waitForTurret();
   //~ servo_manager.openClaw(6, false);

@@ -222,10 +222,6 @@ void ServoManager::waitForTurret()
 {
     while (turretState_ == turret::state::CALIBRATING || servos_->isMoving(TURRET_ID))
         robot_->wait(0.050);
-    // std::cout << "waitForTurret" << std::endl;
-
-    // while (turretState_ != turret::state::IDLE)
-    //     robot_->wait(0.010);
 }
 
 

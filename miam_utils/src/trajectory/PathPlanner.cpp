@@ -182,6 +182,17 @@ namespace miam{
                     generator_.addCollision({config_.astar_grid_size_x-1-k, j});
                 }
             }
+
+            // PAMI start zone
+            int xStart = 850 / config_.astar_resolution_mm;
+            int xEnd = 2150 / config_.astar_resolution_mm;
+            int yEnd = 350 / config_.astar_resolution_mm;
+            for (int x = xStart; x < xEnd; x++)
+                for (int y = 0; y < yEnd; y++)
+                {
+                    generator_.addCollision({x, config_.astar_grid_size_y-y});
+
+                }
         }
 
         std::vector<RobotPosition> PathPlanner::planPath(RobotPosition const& start, RobotPosition const& end)

@@ -209,10 +209,23 @@ void Robot::updateSensorData()
 void Robot::applyMotorTarget(DrivetrainTarget const& target)
 {
     static bool wasRunning = true;
-    if (!hasMatchStarted_ || areMotorsLocked_)
+    if (areMotorsLocked_)
     {
         rightMotor_.stop();
         leftMotor_.stop();
+    }
+    else if (!hasMatchStarted_)
+    {
+        if (gui_->getBlockMotors())
+        {
+            rightMotor_.stop();
+            leftMotor_.stop();
+        }
+        else
+        {
+            rightMotor_.disable();
+            leftMotor_.disable();
+        }
     }
     else
     {

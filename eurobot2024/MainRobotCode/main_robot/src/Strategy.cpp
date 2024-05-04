@@ -115,6 +115,9 @@ void Strategy::match()
 
 void Strategy::goBackToBase()
 {
+    // Clear current trajectory
+    robot->getMotionController()->stopCurrentTrajectoryTracking();
+
     // Target depends on start position
     RobotPosition targetPosition;
     if (robot->getStartPosition().y < 700)
@@ -142,7 +145,7 @@ void Strategy::goBackToBase()
         servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
     }
 
-    RobotPosition targetPositions[2] = {targetPosition, RobotPosition(2780, 1000, 0)};
+    RobotPosition targetPositions[2] = {targetPosition, RobotPosition(2700, 1000, M_PI_2)};
     int candidateId = 1;
     bool targetReached = false;
     while (!targetReached && robot->getMatchTime() < 90)
@@ -168,11 +171,11 @@ void Strategy::goBackToBase()
     if (robot->gameState_.nPlantsInRobot() > 0)
     {
         dropPlants(robot, &servoManager_, isFront, 0, true);
+        robot->getMotionController()->goStraight(-120);
     }
 
     if (robot->gameState_.nPlantsInRobot() > 0)
     {
-        robot->getMotionController()->goStraight(-130);
         servoManager_.setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
         robot->wait(1.0);
         isFront = !isFront;

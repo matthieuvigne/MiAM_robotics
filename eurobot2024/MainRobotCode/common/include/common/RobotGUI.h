@@ -32,9 +32,12 @@
 
                 miam::RobotPosition getStartPosition();
 
+                /// @brief Block motor during init phase
+                bool getBlockMotors();
             protected:
                 void sideButtonClicked();
                 void startPositionButtonClicked();
+                void blockMotorsButtonClicked();
 
             private:
                 bool doUpdate();
@@ -54,6 +57,9 @@
 
                 Gtk::Button sideButton_;
                 Gtk::Button startPositionButton_;
+                Gtk::Button blockMotorsButton_;
+
+                bool areMotorsBlocked_ = false;
 
                 TableDrawing drawingArea_;
 

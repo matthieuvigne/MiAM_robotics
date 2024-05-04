@@ -20,5 +20,5 @@ setup(
         ],
     },
     data_files=[('images', ['images/table.png'])],
-    install_requires=["numpy", "matplotlib", "scipy", "tk", "h5py", "paramiko", "tqdm"],
+    install_requires=["numpy", "matplotlib", "scipy", "tk", "h5py", "paramiko", "tqdm", "PyQt5"],
     zip_safe=False)

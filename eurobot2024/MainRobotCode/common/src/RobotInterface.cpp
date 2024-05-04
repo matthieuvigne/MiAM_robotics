@@ -61,8 +61,8 @@ void RobotInterface::lowLevelLoop()
     metronome_.hasReset_ = false;
 #else
     metronome_ = Metronome(ROBOT_UPDATE_PERIOD);
+    logger_.setTimeOrigin(metronome_.getStartTime());
 #endif
-
     currentTime_ = 0.0;
 
     logger_ << "Low-level loop started." << std::endl;

@@ -89,6 +89,8 @@
             /// \return true if trajectory following was successful, false otherwise.
             bool waitForTrajectoryFinished();
 
+            /// @brief When set, stop the tracking of the current trajectory, clearing the current trajectory buffer.
+            void stopCurrentTrajectoryTracking();
 
             /// \brief Get status of last trajectory following.
             bool isTrajectoryFinished();
@@ -308,6 +310,7 @@
             bool lowAvoidanceZoneEnabled_;
             Obstacle lowAvoidanceZone_;
 
+            bool askedForTrackingStop_ = false;
 
     };
  #endif

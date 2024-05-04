@@ -60,6 +60,9 @@ RobotGUI::RobotGUI()
     startPositionButton_ = Gtk::Button("Next start position");
     startPositionButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::startPositionButtonClicked));
 
+    blockMotorsButton_ = Gtk::Button("Block motors");
+    blockMotorsButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::blockMotorsButtonClicked));
+
     scoreLabel_.set_name("score");
     add(box_);
 
@@ -132,6 +135,7 @@ bool RobotGUI::doUpdate()
         {
             box_.pack_start(sideButton_);
             box_.pack_start(startPositionButton_);
+            box_.pack_start(blockMotorsButton_);
             box_.pack_start(drawingArea_);
         }
         if (robotData.state == robotstate::MATCH)
@@ -173,11 +177,25 @@ void RobotGUI::startPositionButtonClicked()
 }
 
 
+void RobotGUI::blockMotorsButtonClicked()
+{
+    areMotorsBlocked_ = !areMotorsBlocked_;
+    if (areMotorsBlocked_)
+        blockMotorsButton_.set_label("Free motors");
+    else
+        blockMotorsButton_.set_label("Block motors");
+}
+
+
 miam::RobotPosition RobotGUI::getStartPosition()
 {
     return START_POSITIONS[startPositionIdx_];
 }
 
+bool RobotGUI::getBlockMotors()
+{
+    return areMotorsBlocked_;
+}
 
 bool TableDrawing::on_draw(Cairo::RefPtr<Cairo::Context> const& cr)
 {

@@ -36,6 +36,11 @@
             /// \brief Reset the time target to remove delay catchup.
             virtual void resetLag();
 
+            struct timespec getStartTime()
+            {
+                return startTime_;
+            }
+
         protected:
             int nPeriod_; ///< Metronome period, in nanoseconds.
 

@@ -102,15 +102,23 @@ bool MotionController::setTrajectoryToFollow(TrajectoryVector const &trajectorie
     newTrajectoryMutex_.lock();
     newTrajectories_ = trajectories;
     wasTrajectoryFollowingSuccessful_ = true;
-    currentTargetEndPosition_ = newTrajectories_.back()->getEndPoint().position;
+    if (!newTrajectories_.empty())
+        currentTargetEndPosition_ = newTrajectories_.back()->getEndPoint().position;
     newTrajectoryMutex_.unlock();
     return true;
+}
+
+void MotionController::stopCurrentTrajectoryTracking()
+{
+    newTrajectoryMutex_.lock();
+    askedForTrackingStop_ = true;
+    newTrajectoryMutex_.unlock();
 }
 
 bool MotionController::waitForTrajectoryFinished()
 {
     while (!isTrajectoryFinished())
-        usleep(15000);
+        usleep(2000);
     return wasTrajectoryFollowingSuccessful_;
 }
 
@@ -222,6 +230,13 @@ void MotionController::changeMotionControllerState()
         motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
     }
 
+    if (askedForTrackingStop_)
+    {
+        askedForTrackingStop_ = false;
+        currentTrajectories_.clear();
+        motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
+    }
+
     MotionControllerState nextMotionControllerState = motionControllerState_;
 
     if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
@@ -241,7 +256,9 @@ void MotionController::changeMotionControllerState()
             nextMotionControllerState = CONTROLLER_TRAJECTORY_TRACKING;
         }
     }
-    else if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
+    newTrajectoryMutex_.unlock();
+
+    if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
     {
 
         // transition to STOP
@@ -366,9 +383,6 @@ void MotionController::changeMotionControllerState()
 
         }
     }
-
-    newTrajectoryMutex_.unlock();
-
 
     // print and change
     if (motionControllerState_ != nextMotionControllerState)
