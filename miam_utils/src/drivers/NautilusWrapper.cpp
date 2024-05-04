@@ -118,3 +118,13 @@ NautilusReply NautilusWrapper::readRegister(nautilus::Register const& reg, int n
     }
     return rep;
 }
+
+std::string NautilusWrapper::getDebugStatus()
+{
+    NautilusReply rep = nautilus_.readRegister(nautilus::Register::faultCode);
+    std::string output = "current mode: " + std::to_string(static_cast<int>(rep.mode));
+    output += " fault code: " + std::to_string(reinterpret_cast<uint32_t &>(rep.data));
+    rep = nautilus_.readRegister(nautilus::Register::drvStatus);
+    output += " DRV status: " + std::to_string(reinterpret_cast<uint32_t &>(rep.data));
+    return output;
+}

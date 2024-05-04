@@ -116,6 +116,15 @@ void Robot::updateSensorData()
     NautilusMeasurements rightMeasurements = rightMotor_.updateMeasurements();
     NautilusMeasurements leftMeasurements = leftMotor_.updateMeasurements();
 
+    if (rightMeasurements.currentMode == static_cast<uint16_t>(nautilus::Mode::Fault))
+    {
+        logger_ << "[ERROR] Right motor in fault: " << rightMotor_.getDebugStatus() << std::endl;
+    }
+    if (leftMeasurements.currentMode == static_cast<uint16_t>(nautilus::Mode::Fault))
+    {
+        logger_ << "[ERROR] Right motor in fault: " << leftMotor_.getDebugStatus() << std::endl;
+    }
+
     rightMeasurements.encoderPosition *= motionController_.robotParams_.rightEncoderDirection;
     leftMeasurements.encoderPosition *= motionController_.robotParams_.leftEncoderDirection;
 

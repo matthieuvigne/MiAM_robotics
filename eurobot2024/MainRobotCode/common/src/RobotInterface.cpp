@@ -36,6 +36,16 @@ void RobotInterface::initLogger()
     logger_.start(filename, teleplotPrefix_);
 }
 
+std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
+
+
+double getTime()
+{
+
+    std::chrono::high_resolution_clock::time_point astarTime = std::chrono::high_resolution_clock::now();
+    return std::chrono::duration_cast<std::chrono::duration<double>>(astarTime - startTime).count();
+}
+
 void RobotInterface::lowLevelLoop()
 {
     pthread_setname_np(pthread_self(), "robot_lll");
@@ -73,12 +83,16 @@ void RobotInterface::lowLevelLoop()
     std::thread strategyThread;
     pthread_t strategyHandle = 0;
 
+    double debugTimeBeforeWait, debugTimeAfterWait, debugTimeBeforeSensor;
+    double debugTimeAfterSensor, debugTimeAfterCompute, debugTimeAfterApply;
     // Loop until start of the match, then for 100 seconds after the start of the match.
     while(!hasMatchStarted_ || (currentTime_ < 100.0 + matchStartTime_))
     {
         // Wait for next tick.
         lastTime = currentTime_;
+        debugTimeBeforeWait = getTime();
         metronome_.wait();
+        debugTimeAfterWait = getTime();
 #ifdef SIMULATION
         if (metronome_.hasReset_)
         {
@@ -90,6 +104,16 @@ void RobotInterface::lowLevelLoop()
         currentTime_ = metronome_.getElapsedTime();
         dt_ = currentTime_ - lastTime;
 
+        if (dt_ > 0.50)
+        {
+            logger_ << "[LAG SPIKE] dt value: " << dt_ << std::endl;
+            logger_ << "[LAG SPIKE] debugTimeBeforeWait: " << debugTimeBeforeWait;
+            logger_ << "debugTimeAfterWait: " << debugTimeAfterWait;
+            logger_ << "debugTimeBeforeSensor: " << debugTimeBeforeSensor << std::endl;
+            logger_ << "[LAG SPIKE] debugTimeAfterSensor: " << debugTimeAfterSensor;
+            logger_ << "debugTimeAfterCompute: " << debugTimeAfterCompute;
+            logger_ << "debugTimeAfterApply: " << debugTimeAfterApply << std::endl;
+        }
         // If match hasn't started, perform setup and wait for switch.
         if (!hasMatchStarted_)
         {
@@ -111,7 +135,9 @@ void RobotInterface::lowLevelLoop()
         // Can run only after init
         if (guiState_.state != robotstate::INIT)
         {
+            debugTimeBeforeSensor = getTime();
             updateSensorData();
+            debugTimeAfterSensor = getTime();
 
             // If playing right side: invert right/left encoders)
             if (motionController_.isPlayingRightSide_)
@@ -125,9 +151,11 @@ void RobotInterface::lowLevelLoop()
 
             // Compute motion target.
             DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements_.drivetrainMeasurements, dt_, hasMatchStarted_);
+            debugTimeAfterCompute = getTime();
 
             // Apply target to the robot
             applyMotorTarget(target);
+            debugTimeAfterApply = getTime();
         }
 
         // Update gui

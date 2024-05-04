@@ -41,6 +41,9 @@
 
             int nEncoderInvalid_ = 0;
 
+            /// @brief Get debug information about the system for printing
+            std::string getDebugStatus();
+
         private:
             /// @brief Try to read a register, retrying up to N timesuntil it worked.
             /// @param reg Register to read
