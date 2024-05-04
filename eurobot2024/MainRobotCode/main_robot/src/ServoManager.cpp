@@ -156,47 +156,52 @@ double ServoManager::getTurretPosition() const
   return currentTurretPosition_;
 }
 
-void ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& claw_position)
+bool ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& claw_position)
 {
     int servoId = (side == ClawSide::FRONT ? 11 : 13);
     switch(claw_position)
     {
         case ClawPosition::LOW_POSITION:
-            if(side == ClawSide::BACK)
-            {
-              servos_->setTargetPosition(servoId, 1725);
-              robot_->wait(0.030);
-              servos_->setTargetPosition(servoId + 1, 2332);
-              robot_->wait(0.030);
-            } else {
-              servos_->setTargetPosition(servoId, 1675);
-              robot_->wait(0.030);
-              servos_->setTargetPosition(servoId + 1, 2376);
-              robot_->wait(0.030);
-            }
+        {
+            int const firstTarget = (side == ClawSide::BACK ? 1725 : 1675);
+            int const secondTarget = (side == ClawSide::BACK ? 2332 : 2376);
+
+            servos_->setTargetPosition(servoId, firstTarget);
+            robot_->wait(0.010);
+            servos_->setTargetPosition(servoId + 1, secondTarget);
+            robot_->wait(0.100);
+            servos_->disable(servoId);
+            robot_->wait(0.700);
+            // Re-enable motor is no plant is present
+            if (servos_->getCurrentPosition(servoId) < firstTarget + 50)
+                servos_->setTargetPosition(servoId, firstTarget);
+            else
+                return false;
             break;
+        }
         case ClawPosition::MEDIUM_POSITION:
             // Unfold this arm first to avoid hitting bound
             servos_->setTargetPosition(servoId + 1, 1850);
-            robot_->wait(0.030);
+            robot_->wait(0.010);
             servos_->setTargetPosition(servoId, 2230);
-            robot_->wait(0.030);
+            robot_->wait(0.010);
             break;
         case ClawPosition::MEDIUM_POSITION_PLUS:
             servos_->setTargetPosition(servoId, 2280);
-            robot_->wait(0.030);
+            robot_->wait(0.010);
             servos_->setTargetPosition(servoId + 1, 1800);
-            robot_->wait(0.030);
+            robot_->wait(0.010);
             break;
         case ClawPosition::HIGH_POSITION:
             servos_->setTargetPosition(servoId, 2755);
-            robot_->wait(0.030);
+            robot_->wait(0.010);
             servos_->setTargetPosition(servoId + 1, 1352);
-            robot_->wait(0.030);
+            robot_->wait(0.010);
             break;
         default:
             std::cout << "Unknown target claw position." << std::endl;
     }
+    return true;
 }
 
 void ServoManager::moveTurret(double const& targetPosition)

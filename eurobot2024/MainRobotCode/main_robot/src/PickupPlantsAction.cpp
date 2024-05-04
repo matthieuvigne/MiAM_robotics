@@ -53,9 +53,16 @@ bool PickupPlantsAction::performAction()
     bool isFront = std::abs(servoManager_->getTurretPosition()) < 0.1;
     robot_->logger_ << "Is front" << isFront << std::endl;
 
-    servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
     servoManager_->openAvailableClaws(isFront, robot_->gameState_);
-    robot_->wait(0.8);
+    bool succeeded = servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
+    if (!succeeded)
+    {
+        // We landed on some plants: let's move back and try again.
+        servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
+        robot_->wait(0.3);
+        robot_->getMotionController()->goStraight(-80);
+        servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
+    }
 
     // Grab three plants, moving toward the center of the zone.
     RobotPosition currentPose = robot_->getMotionController()->getCurrentPosition();
@@ -97,8 +104,15 @@ bool PickupPlantsAction::performAction()
         servoManager_->moveTurret(isFront ? 0 :M_PI);
         robot_->wait(0.5);
         servoManager_->waitForTurret();
-        servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
-        robot_->wait(0.8);
+        succeeded = servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
+        if (!succeeded)
+        {
+            // We landed on some plants: let's move back and try again.
+            servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
+            robot_->wait(0.3);
+            robot_->getMotionController()->goStraight(-80);
+            servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
+        }
     }
 
     if (shouldRetry)

@@ -55,7 +55,7 @@ public:
     ///        the last call.
     int updateClawContent(bool const& front, GameState & gameState);
 
-    void setClawPosition(ClawSide const& side, ClawPosition const& claw_position);
+    bool setClawPosition(ClawSide const& side, ClawPosition const& claw_position);
 
     /// @brief Move turret to specified position, in rad.
     void moveTurret(double const& turretPos);

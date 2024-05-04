@@ -49,7 +49,6 @@ void dropPlants(RobotInterface *robot, ServoManager *servos, bool dropFront, int
     if (dropGround)
     {
         servos->setClawPosition((dropFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
-        robot->wait(0.8);
     }
     servos->openClaws(dropFront);
     robot->wait(0.5);
