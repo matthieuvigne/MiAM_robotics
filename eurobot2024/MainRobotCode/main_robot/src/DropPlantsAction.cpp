@@ -151,18 +151,18 @@ bool DropPlantsWithPotAction::performAction()
         servoManager_->moveTurret(M_PI -0.2);
         robot_->wait(0.2);
         servoManager_->waitForTurret();
-        servoManager_->openClaw(2, false);
+        servoManager_->openClaw(1, false);
         robot_->wait(0.020);
-        servoManager_->openClaw(3, false);
+        servoManager_->openClaw(2, false);
     }
     else
     {
         servoManager_->moveTurret(-0.2);
         robot_->wait(0.2);
         servoManager_->waitForTurret();
-        servoManager_->openClaw(6, false);
+        servoManager_->openClaw(4, false);
         robot_->wait(0.020);
-        servoManager_->openClaw(7, false);
+        servoManager_->openClaw(5, false);
     }
     robot_->wait(0.4);
     int nPlants = -servoManager_->updateClawContent(isDroppingFront_, robot_->gameState_);

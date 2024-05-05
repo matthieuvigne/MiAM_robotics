@@ -42,39 +42,36 @@ void ServoManager::init(RobotInterface *robot, bool const& isTurretAlreadyCalibr
 }
 
 
-int clawOpen[6] = {435, 445, 570, 665, 370, 405};
-int clawDirection[6] = {-1, 1, 1, -1, 1, 1};
+// Servo: front, back ; right to left when in back position.
+int const clawToServoId[6] = {2, 4, 3, 5, 7, 6};
+int const clawOpen[6] = {435, 570, 455, 665, 405, 370};
+int const clawDirection[6] = {-1, 1, 1, -1, 1, 1};
 
-int const CLAW_MOTION = 90;
+int const CLAW_MOTION = 100;
 
-void ServoManager::openClaw(int const& clawId, bool const& halfOpen)
+void ServoManager::openClaw(int const& idx, bool const& halfOpen)
 {
-    int const idx = clawId - 2;
     if (idx < 6 && idx >= 0)
     {
-        servos_->writeTwoBytesRegister(clawId, STS::registers::RUNNING_SPEED, 300);
         int const offset = (halfOpen ? 0.4 * CLAW_MOTION * clawDirection[idx] : 0);
-        servos_->setTargetPosition(clawId, clawOpen[idx] + offset);
+        servos_->setTargetPosition(clawToServoId[idx], clawOpen[idx] + offset);
         isClawServoClosed_[idx] = false;
     }
 }
 
 
-void ServoManager::closeClaw(int const& clawId)
+void ServoManager::closeClaw(int const& idx)
 {
-    int const idx = clawId - 2;
-
     if (idx < 6 && idx >= 0)
     {
         isClawServoClosed_[idx] = true;
-        servos_->writeTwoBytesRegister(clawId, STS::registers::RUNNING_SPEED, 5000);
-        servos_->setTargetPosition(clawId, clawOpen[idx] + clawDirection[idx] * CLAW_MOTION);
+        servos_->setTargetPosition(clawToServoId[idx], clawOpen[idx] + clawDirection[idx] * CLAW_MOTION);
     }
 }
 
 void ServoManager::openClaws(bool const& front, bool const& halfOpen)
 {
-    int offset = (front ? 2 : 5);
+    int const offset = (front ? 0 : 3);
     for (int i = 0; i < 3; i++)
     {
         robot_->wait(0.005);
@@ -84,13 +81,12 @@ void ServoManager::openClaws(bool const& front, bool const& halfOpen)
 
 void ServoManager::openAvailableClaws(bool const& front, GameState & gameState)
 {
-    int const servoOffset = (front ? 2 : 5);
-    int const gameOffset = (front ? 0 : 3);
+    int const offset = (front ? 0 : 3);
     for (int i = 0; i < 3; i++)
     {
-        if (gameState.robotClawContent[gameOffset + i] == ClawContent::EMPTY)
+        if (gameState.robotClawContent[offset + i] == ClawContent::EMPTY)
         {
-            openClaw(servoOffset + i, false);
+            openClaw(offset + i, false);
             robot_->wait(0.005);
         }
     }
@@ -99,7 +95,7 @@ void ServoManager::openAvailableClaws(bool const& front, GameState & gameState)
 
 void ServoManager::closeClaws(bool const& front)
 {
-    int offset = (front ? 2 : 5);
+    int const offset = (front ? 0 : 3);
     for (int i = 0; i < 3; i++)
     {
         robot_->wait(0.005);
@@ -109,8 +105,7 @@ void ServoManager::closeClaws(bool const& front)
 
 int ServoManager::updateClawContent(bool const& front, GameState & gameState)
 {
-    int offset = (front ? 0 : 3);
-
+    int const offset = (front ? 0 : 3);
 
     int oldPlantNumber = 0;
     for (int j = 0; j < 3; j++)
@@ -130,7 +125,7 @@ int ServoManager::updateClawContent(bool const& front, GameState & gameState)
 #ifdef SIMULATION
             gameState.robotClawContent[offset + j] = ClawContent::UNKNOWN_PLANT;
 #else
-            int const currentPosition = servos_->getCurrentPosition(2 + idx);
+            int const currentPosition = servos_->getCurrentPosition(clawToServoId[idx]);
             int const targetClosePosition = clawOpen[idx] + clawDirection[idx] * CLAW_MOTION;
             if (std::abs(currentPosition - targetClosePosition) > 10)
             {

@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
   bool testMode = true;
   bool noLidar = true;
   main_robot::Strategy strategy;
-  Robot robot(main_robot::generateParams(), &strategy, &gui, testMode, noLidar);
+  Robot robot(main_robot::generateParams(), &strategy, &gui, testMode, noLidar, false);
 
   if (!robot.getServos()->init("/dev/ttyAMA0", -1))
   {
@@ -73,7 +73,9 @@ int main(int argc, char* argv[])
 
   // Instantiate the servo manager
   ServoManager servo_manager;
-  servo_manager.init(&robot, true);
+  ServoManager *servoManager_ = &servo_manager;
+  Robot *robot_ = &robot;
+  servo_manager.init(&robot, false);
   robot.wait(1.0);
 
   servo_manager.waitForTurret();
@@ -82,6 +84,61 @@ int main(int argc, char* argv[])
   robot.wait(1.0);
 
   GameState gameState;
+
+  servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
+  servo_manager.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
+
+  // Test: drop plants to pot
+
+  bool isDroppingFront_ = false;
+
+  double turretOffset = (isDroppingFront_ ? M_PI : 0);
+  int servoOffset = (isDroppingFront_ ? 0 : 3);
+
+  // Drop plants in pots.
+  servoManager_->moveTurret(turretOffset - 0.2);
+  robot_->wait(0.2);
+  servoManager_->waitForTurret();
+  servoManager_->openClaw(servoOffset + 1, false);
+  robot_->wait(0.010);
+  servoManager_->openClaw(servoOffset + 2, false);
+  robot_->wait(0.4);
+
+  // TODO: drop in third pot
+
+  // Move back
+
+  // Move turret and drop
+  servoManager_->moveTurret(turretOffset - 0.4);
+  robot_->wait(0.2);
+  servoManager_->waitForTurret();
+  servoManager_->openClaw(servoOffset + 0, false);
+
+  robot_->wait(0.4);
+  int nPlants = -servoManager_->updateClawContent(isDroppingFront_, robot_->gameState_);
+  std::cout << "[DropPlantsWithPotAction] Dropped " << nPlants << " plants." << std::endl;
+
+
+  // Test claw object detection.
+  // while (true)
+  // {
+  //   servo_manager.closeClaws(true);
+  //   servo_manager.closeClaws(false);
+  //   robot.wait(1.0);
+  //   servo_manager.updateClawContent(true, robot.gameState_);
+  //   servo_manager.updateClawContent(false, robot.gameState_);
+
+  //   for (int i = 0; i < 6; i++)
+  //     if (robot.gameState_.robotClawContent[i] == ClawContent::EMPTY)
+  //       std::cout << "E ";
+  //     else
+  //       std::cout << "P ";
+  //   std::cout << std::endl;
+  //   servo_manager.openClaws(true, false);
+  //   servo_manager.openClaws(false, false);
+  //   robot.wait(1.0);
+  // }
+
 
   // servo_manager.closeClaws(false);
   robot.wait(2.0);
