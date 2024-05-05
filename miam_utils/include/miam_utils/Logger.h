@@ -36,7 +36,8 @@
             /// \param[in] filename Output filename
             /// \param[in] teleplotPrefix Optional prefix for variables in teleplot / stdout: used in simulation
             ///                           where several robots are logging.
-            void start(std::string const& filename, std::string const& teleplotPrefix = "");
+            /// \param[in] silent If set, logger does not output to teleplot nor std::cout
+            void start(std::string const& filename, std::string const& teleplotPrefix = "", bool const& silent = false);
 
             /// @brief Set the origin of time, used on text log line.
             /// @param origin Time origin.
@@ -106,5 +107,7 @@
             std::stringstream textData_;
 
             timespec timeOrigin_;
+
+            bool silent_ = false;
     };
 #endif

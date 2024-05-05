@@ -14,8 +14,8 @@
 /// @brief GPIO with the start switch.
 int const START_SWITCH = 17;
 
-Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar):
-    RobotInterface(parameters, gui, strategy, testMode),
+Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar, bool const& silent):
+    RobotInterface(parameters, gui, strategy, testMode, "", silent),
     lidar_(parameters.lidarOffset),
     disableLidar_(disableLidar),
     rightMotor_(RPI_SPI_01),

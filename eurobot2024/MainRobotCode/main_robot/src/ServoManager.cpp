@@ -163,15 +163,15 @@ bool ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
     {
         case ClawPosition::LOW_POSITION:
         {
-            int const firstTarget = (side == ClawSide::BACK ? 1725 : 1675);
-            int const secondTarget = (side == ClawSide::BACK ? 2332 : 2376);
+            int const firstTarget = 1725;
+            int const secondTarget = 2332;
 
             servos_->setTargetPosition(servoId, firstTarget);
-            robot_->wait(0.010);
-            servos_->setTargetPosition(servoId + 1, secondTarget);
             robot_->wait(0.100);
+            servos_->setTargetPosition(servoId + 1, secondTarget);
+            robot_->wait(0.150);
             servos_->disable(servoId);
-            robot_->wait(0.700);
+            robot_->wait(0.650);
             // Re-enable motor is no plant is present
             if (servos_->getCurrentPosition(servoId) < firstTarget + 50)
                 servos_->setTargetPosition(servoId, firstTarget);
@@ -196,6 +196,12 @@ bool ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
             servos_->setTargetPosition(servoId, 2755);
             robot_->wait(0.010);
             servos_->setTargetPosition(servoId + 1, 1352);
+            robot_->wait(0.010);
+            break;
+        case ClawPosition::START_POSITION:
+            servos_->setTargetPosition(servoId, 2825);
+            robot_->wait(0.010);
+            servos_->setTargetPosition(servoId + 1, 1225);
             robot_->wait(0.010);
             break;
         default:

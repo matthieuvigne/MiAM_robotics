@@ -44,9 +44,10 @@ Logger::~Logger()
         thread_.join();
 }
 
-void Logger::start(std::string const& filename, std::string const& teleplotPrefix)
+void Logger::start(std::string const& filename, std::string const& teleplotPrefix, bool const& silent)
 {
     teleplotPrefix_ = teleplotPrefix;
+    silent_ = silent;
     cliPrefix_ = "";
     if (teleplotPrefix_.length() > 0)
     {
@@ -113,7 +114,8 @@ void Logger::loggerThread(std::string const& filename)
         {
             variables_[p.idx].addPoint(p.timestamp, p.value);
 #ifdef ENABLE_TELEPLOT
-            Teleplot::localhost().update(teleplotPrefix_ + names_.at(p.idx), p.value);
+            if (!silent_)
+                Teleplot::localhost().update(teleplotPrefix_ + names_.at(p.idx), p.value);
 #endif
         }
 
@@ -185,7 +187,8 @@ Logger& Logger::operator<<(StandardEndLine manip)
 {
     std::stringstream time;
     time << "[" << std::fixed << std::setprecision(6) << getElapsedTime() << "] " << textData_.str();
-    std::cout << cliPrefix_ << time.str() << std::endl;
+    if (!silent_)
+        std::cout << cliPrefix_ << time.str() << std::endl;
     textData_.str("");
     mutex_.lock();
     queuedText_.push_back(time.str());

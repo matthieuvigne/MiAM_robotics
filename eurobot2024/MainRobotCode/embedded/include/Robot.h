@@ -52,7 +52,8 @@
                   AbstractStrategy *strategy,
                   RobotGUI *gui,
                   bool const& testMode,
-                  bool const& disableLidar);
+                  bool const& disableLidar,
+                  bool const& silent);
 
 
             /////////////////////////////////////

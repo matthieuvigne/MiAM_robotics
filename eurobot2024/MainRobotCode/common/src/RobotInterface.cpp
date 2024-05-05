@@ -8,14 +8,16 @@ RobotInterface::RobotInterface(RobotParameters const& robotParameters,
                                RobotGUI *gui,
                                AbstractStrategy *strategy,
                                bool const& testMode,
-                               std::string const& teleplotPrefix):
+                               std::string const& teleplotPrefix,
+                               bool const& silent):
     metronome_(ROBOT_UPDATE_PERIOD),
     motionController_(robotParameters, &logger_),
     servos_(),
     gui_(gui),
     strategy_(strategy),
     testMode_(testMode),
-    teleplotPrefix_(teleplotPrefix)
+    teleplotPrefix_(teleplotPrefix),
+    silent_(silent)
 {
 }
 
@@ -32,8 +34,7 @@ void RobotInterface::initLogger()
     for (auto& p __attribute__ ((unused)) : std::filesystem::directory_iterator(logDir))
         count++;
     std::string filename = "logs/log" + std::to_string(count) + "_" + std::string(timestamp) + "_" + motionController_.robotParams_.name + ".miam";
-    logger_.start(filename);
-    logger_.start(filename, teleplotPrefix_);
+    logger_.start(filename, teleplotPrefix_, silent_);
 }
 
 std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();

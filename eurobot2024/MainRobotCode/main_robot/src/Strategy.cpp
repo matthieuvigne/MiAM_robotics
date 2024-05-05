@@ -80,7 +80,13 @@ bool Strategy::setup(RobotInterface *robot)
     }
 
     // Wait until turret is calibrating.
-    return servoManager_.isTurretMotionless();
+    bool done = servoManager_.isTurretMotionless();
+    if (done)
+    {
+        servoManager_.setClawPosition(ClawSide::FRONT, ClawPosition::START_POSITION);
+        servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::START_POSITION);
+    }
+    return done;
 }
 
 //--------------------------------------------------------------------------------------------------

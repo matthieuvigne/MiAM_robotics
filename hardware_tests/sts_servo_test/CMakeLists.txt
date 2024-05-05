@@ -54,16 +54,11 @@ include_directories(../../eurobot2024/MainRobotCode/common/include)
 include_directories(../../eurobot2024/MainRobotCode/main_robot/include)
 include_directories(../../eurobot2024/MainRobotCode/embedded/include)
 include_directories(./include)
-include_directories(../../a-star/source
+include_directories(
     ../../qpoases
     ../../qpoases/INCLUDE
     ../../qpoases/SRC
     ../../eurobot2024/MainRobotCode/common/acado_solver)
-
-FILE( GLOB LIB_SOURCES ../../a-star/source/*.cpp )
-FILE( GLOB LIB_HEADERS ../../a-star/source/*.hpp )
-set_source_files_properties(${LIB_SOURCES} PROPERTIES LANGUAGE CXX )
-ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
 
 # qpoases
 FILE( GLOB LIB_SOURCES ../../qpoases/SRC/*.cpp )
@@ -84,7 +79,6 @@ message(${RPLIDAR_INCLUDE_DIRS})
 
 # Set executable target and link libraries.
 add_executable(sts_servo_test ${MAIN_SOURCES} ${COMMON_SOURCES})
-target_link_libraries(sts_servo_test ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES}
-AStar acado_solver)
+target_link_libraries(sts_servo_test ${MIAM_UTILS_LIBRARIES} ${MIAM_VISION_LIBRARIES} ${RPLIDAR_LIBRARIES} ${GTK_LIBRARIES} acado_solver)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")
