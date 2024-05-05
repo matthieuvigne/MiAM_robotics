@@ -43,7 +43,6 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 # Find GTK+ headers/library files - cross-compiled
 set(ENV{PKG_CONFIG_PATH} "/usr/lib/arm-linux-gnueabihf/pkgconfig")
 pkg_search_module(GTK REQUIRED gtkmm-3.0)
-pkg_search_module(HDF5LIB REQUIRED hdf5-serial)
 
 find_package(Eigen3 REQUIRED)
 include_directories(
@@ -53,14 +52,14 @@ include_directories(
   ${MIAM_VISION_INCLUDE_DIRS}
   # ${OpenCV_INCLUDE_DIRS}
   ${GTK_INCLUDE_DIRS}
-  ${HDF5LIB_INCLUDE_DIRS})
+  )
 link_directories(
   ${RPLIDAR_LIBRARY_DIRS}
   ${MIAM_UTILS_LIBRARY_DIRS}
   ${MIAM_VISION_LIBRARY_DIRS}
   # ${OpenCV_LIBRARY_DIRS}
   ${GTK_LIBRARY_DIRS}
-  ${HDF5LIB_LIBRARY_DIRS})
+  )
 
 # Include source files from src directory.
 file(GLOB_RECURSE COMMON_SOURCES "../common/src/*.cpp"
@@ -75,17 +74,13 @@ set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX )
 include_directories(../common/include)
 include_directories(../main_robot/include)
 include_directories(./include)
-include_directories(../../../a-star/source
+include_directories(
     ../../../qpoases
     ../../../qpoases/INCLUDE
     ../../../qpoases/SRC
     # ../../../vision/include
     ../common/acado_solver)
 
-FILE( GLOB LIB_SOURCES ../../../a-star/source/*.cpp )
-FILE( GLOB LIB_HEADERS ../../../a-star/source/*.hpp )
-set_source_files_properties(${LIB_SOURCES} PROPERTIES LANGUAGE CXX )
-ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
 
 # qpoases
 FILE( GLOB LIB_SOURCES ../../../qpoases/SRC/*.cpp )
@@ -110,7 +105,6 @@ target_link_libraries(mainRobotCode
   # ${OpenCV_LIBRARIES}
   ${RPLIDAR_LIBRARIES}
   ${GTK_LIBRARIES}
-  ${HDF5LIB_LIBRARIES}
-AStar acado_solver "-lhdf5_cpp")
+  acado_solver)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")

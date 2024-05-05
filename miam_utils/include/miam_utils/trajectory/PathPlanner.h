@@ -8,7 +8,7 @@
     #include "miam_utils/Logger.h"
     #include "RobotPosition.h"
     #include <vector>
-    #include <AStar.hpp>
+    #include "AStar.hpp"
 
     namespace miam{
         namespace trajectory{
@@ -37,9 +37,6 @@
                     /// distributors
                     void resetCollisions();
 
-                    /// @brief Prints a-star map
-                    void printMap();
-
                     /// @brief Prints a-star map along with a path
                     /// @param path path in robotposition
                     void printMap(
@@ -55,23 +52,10 @@
                     std::vector<RobotPosition> planPath(
                         RobotPosition const& start, RobotPosition const& end);
 
-                    /// @brief Converts robot position to a-star grid position
-                    /// @param position position in robotposition
-                    /// @return position in a-star grid
-                    AStar::Vec2i robotPositionToVec2i(RobotPosition position);
-
-
-                    /// @brief Converts a-star grid position to robot position
-                    /// @param vec2i position in a-star grid
-                    /// @return position in robotposition
-                    RobotPosition vec2iToRobotPosition(AStar::Vec2i vec2i);
-
-                protected:
+                private:
                     PathPlannerConfig config_;
                     AStar::Generator generator_;
                     Logger* logger_;
-
-                    void addCollisionsNoDuplicate(AStar::Vec2i collision);
             };
         }
     }

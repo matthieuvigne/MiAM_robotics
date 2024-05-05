@@ -7,9 +7,6 @@
 [submodule "miam_utils/HighFive"]
 	path = miam_utils/HighFive
 	url = https://github.com/BlueBrain/HighFive.git
-[submodule "a-star"]
-	path = a-star
-	url = https://github.com/14chanwa/a-star.git
 [submodule "qpoases"]
 	path = qpoases
 	url = https://github.com/14chanwa/qpoases.git

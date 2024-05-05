@@ -38,5 +38,5 @@ file(GLOB_RECURSE SOURCES "*.cc")
 add_executable(unit ${SOURCES})
 include_directories(BEFORE "../include")
 
-target_link_libraries(unit gtest_main miam_utils ${RPLIDARLIB_LIBRARIES} ${HDF5LIB_LIBRARIES} AStar hdf5_cpp)
+target_link_libraries(unit gtest_main miam_utils ${RPLIDARLIB_LIBRARIES} ${HDF5LIB_LIBRARIES} hdf5_cpp)
 add_test(NAME unit COMMAND unit)

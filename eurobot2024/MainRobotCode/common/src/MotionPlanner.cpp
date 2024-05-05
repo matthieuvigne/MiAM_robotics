@@ -71,19 +71,18 @@ bool is_acado_inited = false;
 std::mutex acado_mutex;
 
 
+PathPlannerConfig config({
+    25, // Grid size
+    table_dimensions::table_size_x / config.astar_resolution_mm,
+    table_dimensions::table_size_y / config.astar_resolution_mm,
+    1 // should be equal to robot radius
+    });
+
 MotionPlanner::MotionPlanner(RobotParameters const& robotParameters, Logger* logger) :
     robotParams_(robotParameters),
-    pathPlanner_(PathPlannerConfig(), logger_),
+    pathPlanner_(config, logger),
     logger_(logger)
 {
-
-    // create pathPlanner with correct grid
-    PathPlannerConfig config;
-    config.astar_resolution_mm = 25;
-    config.astar_grid_size_x = table_dimensions::table_size_x / config.astar_resolution_mm;
-    config.astar_grid_size_y = table_dimensions::table_size_y / config.astar_resolution_mm;
-    config.forbidden_border_size_mm = 1; // should be equal to robot radius
-    pathPlanner_ = PathPlanner(config, logger_);
 }
 
 TrajectoryVector MotionPlanner::planMotion(

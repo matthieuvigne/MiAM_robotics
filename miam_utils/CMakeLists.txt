@@ -45,12 +45,12 @@ endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 # Specify library content :
 # Recursively include all .c files
-file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.c" "src/*.cpp")
+file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.c"
+                                          "src/*.cpp")
 set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX )
 
 # Add directory containing the headers, and put all headers in a variable.
 include_directories(include)
-file(GLOB_RECURSE ${PROJECT_NAME}_HEADERS "include/*.h")
 
 # Teleplot
 include_directories(../teleplot/clients/cpp)
@@ -71,15 +71,10 @@ endif()
 message(STATUS "Found rplidar v." ${RPLIDARLIB_VERSION})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-FILE( GLOB LIB_SOURCES ../a-star/source/*.cpp )
-FILE( GLOB LIB_HEADERS ../a-star/source/*.hpp )
-include_directories(../a-star/source)
-ADD_LIBRARY( AStar ${LIB_SOURCES} ${LIB_HEADERS} )
-
 include_directories(${RPLIDARLIB_INCLUDE_DIRS})
 link_directories(${RPLIDARLIB_LIBRARY_DIRS})
 
-target_link_libraries(${LIBRARY_NAME} ${RPLIDARLIB_LIBRARIES} AStar)
+target_link_libraries(${LIBRARY_NAME} ${RPLIDARLIB_LIBRARIES})
 
 # Create package config file from template.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/miam_utilsTemplate.pc" "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}.pc")

@@ -7,283 +7,232 @@
 
 using AStar::Vec2i;
 
-namespace miam{
-    namespace trajectory{
-        PathPlanner::PathPlanner(PathPlannerConfig const& config, Logger *logger):
-            config_(config),
-            logger_(logger)
-        {
-            generator_.setWorldSize({config_.astar_grid_size_x, config_.astar_grid_size_y});
-            generator_.setHeuristic(AStar::Heuristic::euclidean);
-            generator_.setDiagonalMovement(true);
 
-            resetCollisions();
+namespace miam::trajectory{
+
+    // Utility functions: point coordinate conversion
+    RobotPosition vec2iToRobotPosition(AStar::Vec2i const& astarWaypoint, PathPlannerConfig const& config)
+    {
+        return RobotPosition(
+            astarWaypoint.x * config.astar_resolution_mm + config.astar_resolution_mm / 2,
+            astarWaypoint.y * config.astar_resolution_mm + config.astar_resolution_mm / 2,
+            0
+        );
+    }
+
+
+    AStar::Vec2i robotPositionToVec2i(RobotPosition const& position, PathPlannerConfig const& config)
+    {
+        // tail i, j is nearest to ((i + 0.5) * resolution, (j + 0.5) * resolution)
+        int i = round(position.x / config.astar_resolution_mm - 0.5);
+        int j = round(position.y / config.astar_resolution_mm - 0.5);
+        return {i, j};
+    }
+
+
+    PathPlanner::PathPlanner(PathPlannerConfig const& config, Logger *logger):
+        config_(config),
+        logger_(logger)
+    {
+        generator_.setWorldSize({config_.astar_grid_size_x, config_.astar_grid_size_y});
+        generator_.setHeuristic(AStar::Heuristic::euclidean);
+        generator_.setDiagonalMovement(true);
+
+        resetCollisions();
+    }
+
+    void PathPlanner::printMap(
+        std::vector<RobotPosition> path,
+        RobotPosition currentPosition,
+        RobotPosition targetPosition)
+    {
+        AStar::Vec2i worldSize = generator_.getWorldSize();
+        std::vector<AStar::Vec2i > pathInVec2i;
+        for (auto& position : path)
+        {
+            pathInVec2i.push_back(robotPositionToVec2i(position, config_));
         }
+        // *logger_ << "[PathPlanner] Path: " << std::endl;
+        // for (auto& position : pathInVec2i)
+        // {
+        //     *logger_ << "[PathPlanner] " <<position.x << " " << position.y << std::endl;
+        // }
 
-        void PathPlanner::printMap()
+
+        *logger_ << "[PathPlanner] World size: " << worldSize.x << ", " << worldSize.y << std::endl;
+        // *logger_ << "[PathPlanner] Collisions: " << std::endl;
+        // for (auto collision : generator_.getCollisions())
+        // {
+        //     *logger_ << "[PathPlanner] " <<collision.x << ", " << collision.y << std::endl;
+        // }
+
+        // std::vector<AStar::Vec2i > collisions = generator_.getCollisions();
+
+        Vec2i current_position = robotPositionToVec2i(currentPosition, config_);
+        Vec2i target_position = robotPositionToVec2i(targetPosition, config_);
+        *logger_ << "[PathPlanner] Current position RobotPosition: " << currentPosition << std::endl;
+        *logger_ << "[PathPlanner] Current position i, j: " << current_position.x << " " << current_position.y << std::endl;
+        *logger_ << "[PathPlanner] Target position RobotPosition: " << targetPosition << std::endl;
+        *logger_ << "[PathPlanner] Target position i, j: " << target_position.x << " " << target_position.y << std::endl;
+
+        int const xSize = generator_.getWorldSize().x;
+        int const ySize = generator_.getWorldSize().y;
+        char mapBuffer[ySize][xSize];
+        for (int j = 0; j < ySize; j++)
         {
-            AStar::Vec2i worldSize = generator_.getWorldSize();
-
-            *logger_ << "[PathPlanner] World size: " << worldSize.x << ", " << worldSize.y << std::endl;
-            // *logger_ << "[PathPlanner] Collisions: " << std::endl;
-            // for (auto collision : generator_.getCollisions())
-            // {
-            //     *logger_ << "[PathPlanner] " <<collision.x << ", " << collision.y << std::endl;
-            // }
-
-            std::vector<AStar::Vec2i > collisions = generator_.getCollisions();
-
-            for (int j = 0; j < generator_.getWorldSize().y; j++)
+            for (int i = 0; i < xSize; i++)
             {
-                for (int i = 0; i < generator_.getWorldSize().x; i++)
+                if (generator_.obstacleMap_(i, j) == 1)
+                    mapBuffer[j][i] = 'X';
+                else
+                    mapBuffer[j][i] = ' ';
+            }
+        }
+        for (auto const& coord : pathInVec2i)
+            mapBuffer[coord.y][coord.x] = 'o';
+        mapBuffer[current_position.y][current_position.x] = 'S';
+        mapBuffer[target_position.y][target_position.x] = 'S';
+
+        // Print buffer, reverse order
+        for (int j = ySize - 1; j >= 0; j--)
+            *logger_ << std::string(&mapBuffer[j][0], xSize) << std::endl;
+
+    }
+
+    void PathPlanner::addCollision(RobotPosition const& position, double radius)
+    {
+        // number of grid units to be taken into account
+        int grid_distance = ceil(radius / config_.astar_resolution_mm);
+        AStar::Vec2i center_position = robotPositionToVec2i(position, config_);
+
+        // in a big square around the center position, draw obstacle
+        for (int i = std::max(0, center_position.x - grid_distance);
+            i < std::min(config_.astar_grid_size_x, center_position.x + grid_distance + 1);
+            i++)
+        {
+            for (int j = std::max(0, center_position.y - grid_distance);
+                j < std::min(config_.astar_grid_size_y, center_position.y + grid_distance + 1);
+                j++)
+            {
+                RobotPosition obsPosition = vec2iToRobotPosition({i, j}, config_);
+                if ((position - obsPosition).norm() < radius)
                 {
-                    AStar::Vec2i target({i, j});
-                    if (std::find(
-                        collisions.begin(),
-                        collisions.end(),
-                        target) != collisions.end())
-                        {
-                            *logger_ << "X ";
-                        }
-                        else
-                        {
-                            *logger_ << "  ";
-                        }
-                }
-                *logger_ << std::endl;
-            }
-        }
-
-        void PathPlanner::printMap(
-            std::vector<RobotPosition> path,
-            RobotPosition currentPosition,
-            RobotPosition targetPosition)
-        {
-            AStar::Vec2i worldSize = generator_.getWorldSize();
-            std::vector<AStar::Vec2i > pathInVec2i;
-            for (auto& position : path)
-            {
-                pathInVec2i.push_back(robotPositionToVec2i(position));
-            }
-            // *logger_ << "[PathPlanner] Path: " << std::endl;
-            // for (auto& position : pathInVec2i)
-            // {
-            //     *logger_ << "[PathPlanner] " <<position.x << " " << position.y << std::endl;
-            // }
-
-
-            *logger_ << "[PathPlanner] World size: " << worldSize.x << ", " << worldSize.y << std::endl;
-            // *logger_ << "[PathPlanner] Collisions: " << std::endl;
-            // for (auto collision : generator_.getCollisions())
-            // {
-            //     *logger_ << "[PathPlanner] " <<collision.x << ", " << collision.y << std::endl;
-            // }
-
-            std::vector<AStar::Vec2i > collisions = generator_.getCollisions();
-
-            Vec2i current_position = robotPositionToVec2i(currentPosition);
-            Vec2i target_position = robotPositionToVec2i(targetPosition);
-            *logger_ << "[PathPlanner] Current position RobotPosition: " << currentPosition << std::endl;
-            *logger_ << "[PathPlanner] Current position i, j: " << current_position.x << " " << current_position.y << std::endl;
-            *logger_ << "[PathPlanner] Target position RobotPosition: " << targetPosition << std::endl;
-            *logger_ << "[PathPlanner] Target position i, j: " << target_position.x << " " << target_position.y << std::endl;
-
-            for (int j = generator_.getWorldSize().y - 1; j >= 0; j--)
-            {
-                for (int i = 0; i < generator_.getWorldSize().x; i++)
-                {
-                    AStar::Vec2i target({i, j});
-                    if (target == current_position)
-                    {
-                        *logger_ << "S";
-                    }
-                    else if (target == target_position)
-                    {
-                        *logger_ << "E";
-                    }
-                    else if (std::find(
-                        collisions.begin(),
-                        collisions.end(),
-                        target) != collisions.end())
-                    {
-                        *logger_ << "X";
-                    }
-                    else if (std::find(
-                        pathInVec2i.begin(),
-                        pathInVec2i.end(),
-                        target) != pathInVec2i.end())
-                    {
-                        *logger_ << "o";
-                    }
-                    else
-                    {
-                        *logger_ << " ";
-                    }
-                }
-                *logger_ << "" <<std::endl;
-            }
-        }
-
-        void PathPlanner::addCollisionsNoDuplicate(AStar::Vec2i collision)
-        {
-            AStar::CoordinateList existingCollisions = generator_.getCollisions();
-            if (!(std::find(existingCollisions.begin(), existingCollisions.end(), collision) != existingCollisions.end()))
-            {
-                generator_.addCollision(collision);
-            }
-        }
-
-        void PathPlanner::addCollision(RobotPosition const& position, double radius)
-        {
-            // number of grid units to be taken into account
-            int grid_distance = ceil(radius / config_.astar_resolution_mm);
-            AStar::Vec2i center_position = robotPositionToVec2i(position);
-
-            // in a big square around the center position, draw obstacle
-            for (int i = std::max(0, center_position.x - grid_distance);
-                i < std::min(config_.astar_grid_size_x, center_position.x + grid_distance + 1);
-                i++)
-            {
-                for (int j = std::max(0, center_position.y - grid_distance);
-                    j < std::min(config_.astar_grid_size_y, center_position.y + grid_distance + 1);
-                    j++)
-                {
-                    RobotPosition obsPosition = vec2iToRobotPosition({i, j});
-                    if ((position - obsPosition).norm() < radius)
-                    {
-                        addCollisionsNoDuplicate({i, j});
-                    }
+                    generator_.addCollision({i, j});
                 }
             }
         }
+    }
 
-        void PathPlanner::resetCollisions()
+    void PathPlanner::resetCollisions()
+    {
+        generator_.clearCollisions();
+
+        // obstacles table
+        // bordure exterieure
+        int forbidden_border_size_grid = config_.forbidden_border_size_mm / config_.astar_resolution_mm;
+
+        for (int i = 0; i < config_.astar_grid_size_x; i++)
         {
-            generator_.clearCollisions();
-
-            // obstacles table
-            // bordure exterieure
-            int forbidden_border_size_grid = config_.forbidden_border_size_mm / config_.astar_resolution_mm;
-
-            for (int i = 0; i < config_.astar_grid_size_x; i++)
+            for (int k = 0; k <= forbidden_border_size_grid; k++)
             {
-                for (int k = 0; k <= forbidden_border_size_grid; k++)
-                {
-                    generator_.addCollision({i, k});
-                    generator_.addCollision({i, config_.astar_grid_size_y-1-k});
+                generator_.addCollision({i, k});
+                generator_.addCollision({i, config_.astar_grid_size_y-1-k});
 
-                }
             }
-            for (int j = 0; j < config_.astar_grid_size_y; j++)
+        }
+        for (int j = 0; j < config_.astar_grid_size_y; j++)
+        {
+            for (int k = 0; k <= forbidden_border_size_grid; k++)
             {
-                for (int k = 0; k <= forbidden_border_size_grid; k++)
-                {
-                    generator_.addCollision({k, j});
-                    generator_.addCollision({config_.astar_grid_size_x-1-k, j});
-                }
+                generator_.addCollision({k, j});
+                generator_.addCollision({config_.astar_grid_size_x-1-k, j});
             }
-
-            // PAMI start zone
-            int xStart = 850 / config_.astar_resolution_mm;
-            int xEnd = 2150 / config_.astar_resolution_mm;
-            int yEnd = 350 / config_.astar_resolution_mm;
-            for (int x = xStart; x < xEnd; x++)
-                for (int y = 0; y < yEnd; y++)
-                {
-                    generator_.addCollision({x, config_.astar_grid_size_y-y});
-
-                }
         }
 
-        std::vector<RobotPosition> PathPlanner::planPath(RobotPosition const& start, RobotPosition const& end)
+        // PAMI start zone
+        int xStart = 850 / config_.astar_resolution_mm;
+        int xEnd = 2150 / config_.astar_resolution_mm;
+        int yEnd = 350 / config_.astar_resolution_mm;
+        for (int x = xStart; x < xEnd; x++)
+            for (int y = 0; y < yEnd; y++)
+            {
+                generator_.addCollision({x, config_.astar_grid_size_y-y});
+
+            }
+    }
+
+    std::vector<RobotPosition> PathPlanner::planPath(RobotPosition const& start, RobotPosition const& end)
+    {
+
+        std::vector<RobotPosition> positions;
+        RobotPosition targetPosition;
+
+        AStar::Vec2i startPoint = robotPositionToVec2i(start, config_);
+        AStar::Vec2i endPoint = robotPositionToVec2i(end, config_);
+
+        *logger_ << "[PathPlanner] Planning from: " << startPoint.x << " " << startPoint.y << std::endl;
+        *logger_ << "[PathPlanner] Planning to  : " << endPoint.x << " " << endPoint.y << std::endl;
+
+        // remove start position from obstacles
+        generator_.removeCollision(startPoint);
+
+        if (generator_.detectCollision(endPoint))
         {
-
-            std::vector<RobotPosition> positions;
-            RobotPosition targetPosition;
-
-            AStar::Vec2i startPoint = robotPositionToVec2i(start);
-            AStar::Vec2i endPoint = robotPositionToVec2i(end);
-
-            *logger_ << "[PathPlanner] Planning from: " << startPoint.x << " " << startPoint.y << std::endl;
-            *logger_ << "[PathPlanner] Planning to  : " << endPoint.x << " " << endPoint.y << std::endl;
-
-            // remove start position from obstacles
-            generator_.removeCollision(startPoint);
-
-            if (generator_.detectCollision(endPoint))
-            {
-                *logger_ << "[PathPlanner] PathPlanning failed: end point is in obstacle!" << std::endl;
-                return positions;
-            }
-
-            *logger_ << "[PathPlanner] Generate path ... " << std::endl;
-            auto path = generator_.findPath(
-                startPoint,
-                endPoint
-            );
-
-
-            bool checkPath = true;
-            for (unsigned int i = 0; i < path.size() - 1; i++)
-            {
-                AStar::Vec2i p1 = path.at(i);
-                AStar::Vec2i p2 = path.at(i+1);
-                if (abs(p1.x - p2.x) > 1 || abs(p1.y - p2.y) > 1)
-                {
-                    checkPath = false;
-                    break;
-                }
-            }
-
-
-            if (checkPath && robotPositionToVec2i(start) == path.back() && robotPositionToVec2i(end) == path.front())
-            {
-                double const GRID_DIAGONAL = config_.astar_resolution_mm * 1.4142;
-
-                positions.push_back(start);
-                for (auto coordinate = path.rbegin(); coordinate != path.rend(); ++coordinate)
-                {
-                    targetPosition = vec2iToRobotPosition(*coordinate);
-                    // Don't add points that are less than one grid coordinate from start / end.
-                    // This is done to avoid artifacts due to the start / end being off-grid.
-                    if ((targetPosition - start).norm() > 1.5 * GRID_DIAGONAL &&
-                        (targetPosition - end).norm() > 1.5 * GRID_DIAGONAL)
-                        positions.push_back(targetPosition);
-                }
-                positions.push_back(end);
-
-                // Give to each point the angle corresponding to the line going to the next point.
-                for (unsigned int i = 1; i < positions.size(); i++)
-                {
-                    double const dx = positions.at(i).x - positions.at(i-1).x;
-                    double const dy = positions.at(i).y - positions.at(i-1).y;
-                    positions.at(i).theta = std::atan2(dy, dx);
-                }
-                if (positions.size() > 1)
-                    positions.at(0).theta = positions.at(1).theta;
-            }
-            else
-            {
-                *logger_ << "[PathPlanner] Path planning failed" << std::endl;
-            }
-
+            *logger_ << "[PathPlanner] PathPlanning failed: end point is in obstacle!" << std::endl;
             return positions;
         }
 
-        RobotPosition PathPlanner::vec2iToRobotPosition(AStar::Vec2i astarWaypoint) {
-            return RobotPosition(
-                astarWaypoint.x * config_.astar_resolution_mm + config_.astar_resolution_mm / 2,
-                astarWaypoint.y * config_.astar_resolution_mm + config_.astar_resolution_mm / 2,
-                0
-            );
+        *logger_ << "[PathPlanner] Generate path ... " << std::endl;
+        auto path = generator_.findPath(
+            startPoint,
+            endPoint
+        );
+
+
+        bool checkPath = true;
+        for (unsigned int i = 0; i < path.size() - 1; i++)
+        {
+            AStar::Vec2i p1 = path.at(i);
+            AStar::Vec2i p2 = path.at(i+1);
+            if (abs(p1.x - p2.x) > 1 || abs(p1.y - p2.y) > 1)
+            {
+                checkPath = false;
+                break;
+            }
         }
 
-        AStar::Vec2i PathPlanner::robotPositionToVec2i(RobotPosition position) {
 
-            // tail i, j is nearest to ((i + 0.5) * resolution, (j + 0.5) * resolution)
-            int i = round(position.x / config_.astar_resolution_mm - 0.5);
-            int j = round(position.y / config_.astar_resolution_mm - 0.5);
-            return {i, j};
+        if (checkPath && robotPositionToVec2i(start, config_) == path.back() && robotPositionToVec2i(end, config_) == path.front())
+        {
+            double const GRID_DIAGONAL = config_.astar_resolution_mm * 1.4142;
+
+            positions.push_back(start);
+            for (auto coordinate = path.rbegin(); coordinate != path.rend(); ++coordinate)
+            {
+                targetPosition = vec2iToRobotPosition(*coordinate, config_);
+                // Don't add points that are less than one grid coordinate from start / end.
+                // This is done to avoid artifacts due to the start / end being off-grid.
+                if ((targetPosition - start).norm() > 1.5 * GRID_DIAGONAL &&
+                    (targetPosition - end).norm() > 1.5 * GRID_DIAGONAL)
+                    positions.push_back(targetPosition);
+            }
+            positions.push_back(end);
+
+            // Give to each point the angle corresponding to the line going to the next point.
+            for (unsigned int i = 1; i < positions.size(); i++)
+            {
+                double const dx = positions.at(i).x - positions.at(i-1).x;
+                double const dy = positions.at(i).y - positions.at(i-1).y;
+                positions.at(i).theta = std::atan2(dy, dx);
+            }
+            if (positions.size() > 1)
+                positions.at(0).theta = positions.at(1).theta;
         }
+        else
+        {
+            *logger_ << "[PathPlanner] Path planning failed" << std::endl;
+        }
+
+        return positions;
     }
 }
