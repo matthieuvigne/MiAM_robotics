@@ -16,6 +16,7 @@ enum class ClawPosition{
     HIGH_POSITION = 2,
     MEDIUM_POSITION_PLUS = 3,
     START_POSITION = 4,
+    TURN_POSITION = 5
 };
 
 enum class ClawSide{

@@ -188,6 +188,13 @@ bool ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
             robot_->wait(0.010);
             break;
         case ClawPosition::HIGH_POSITION:
+            servos_->setTargetPosition(servoId, 2755);
+            robot_->wait(0.010);
+            //~ servos_->setTargetPosition(servoId + 1, 1352);
+            servos_->setTargetPosition(servoId + 1, 1422);
+            robot_->wait(0.010);
+            break;
+        case ClawPosition::TURN_POSITION:
             servos_->setTargetPosition(servoId, 2770);
             robot_->wait(0.010);
             servos_->setTargetPosition(servoId + 1, 1400);
@@ -218,8 +225,8 @@ void ServoManager::moveTurret(double const& targetPosition)
     // Don't move turret before it's finish moving.
     waitForTurret();
     raiseSolarPanelArm();
-    setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
-    setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
+    setClawPosition(ClawSide::FRONT, ClawPosition::TURN_POSITION);
+    setClawPosition(ClawSide::BACK, ClawPosition::TURN_POSITION);
     //~ setClawPosition(ClawSide::FRONT, ClawPosition::MEDIUM_POSITION_PLUS);
     //~ setClawPosition(ClawSide::BACK, ClawPosition::MEDIUM_POSITION_PLUS);
 

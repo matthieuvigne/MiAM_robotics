@@ -159,6 +159,7 @@ bool DropPlantsWithPotAction::performAction()
         servoManager_->moveTurret(M_PI -0.2);
         robot_->wait(0.2);
         servoManager_->waitForTurret();
+        servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
         servoManager_->openClaw(1, false);
         robot_->wait(0.020);
         servoManager_->openClaw(2, false);
@@ -168,6 +169,7 @@ bool DropPlantsWithPotAction::performAction()
         servoManager_->moveTurret(-0.2);
         robot_->wait(0.2);
         servoManager_->waitForTurret();
+        servoManager_->setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
         servoManager_->openClaw(4, false);
         robot_->wait(0.020);
         servoManager_->openClaw(5, false);

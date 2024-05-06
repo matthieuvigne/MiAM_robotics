@@ -4,12 +4,13 @@
 #define LATERAL_DISTANCE 160
 
 double const PANELS_X_COORD[6] = {270, 500, 725, 1275, 1500, 1725};
-double const ROBOT_ARM_OFFSET = 20.0;
+double const ROBOT_ARM_OFFSET = 05.0;
+double const CONTACT_ARM_OFFSET = 25.0;
 
 void SolarPanelsAction::updateStartCondition()
 {
     int const sign = robot_->isPlayingRightSide() ? -1 : 1;
-    startPosition_ = RobotPosition(PANELS_X_COORD[0] + ROBOT_ARM_OFFSET * sign, LATERAL_DISTANCE, (robot_->isPlayingRightSide() ? 0: M_PI));
+    startPosition_ = RobotPosition(PANELS_X_COORD[0] + CONTACT_ARM_OFFSET + ROBOT_ARM_OFFSET * sign, LATERAL_DISTANCE, (robot_->isPlayingRightSide() ? 0: M_PI));
     isStartMotionBackward_ = !robot_->isPlayingRightSide();
 
     RobotPosition const robotStartPosition = robot_->getStartPosition();
@@ -65,7 +66,8 @@ bool SolarPanelsAction::performAction()
                 robot_->getMotionController()->resetPosition(currentPosition, false, true, false);
             }
 
-            RobotPosition const target(PANELS_X_COORD[i] + ROBOT_ARM_OFFSET * sign, LATERAL_DISTANCE, finalAngle);
+            RobotPosition const target(PANELS_X_COORD[i] + CONTACT_ARM_OFFSET + ROBOT_ARM_OFFSET * sign, LATERAL_DISTANCE, finalAngle);
+            std::cout << "Target position: " << target << std::endl;
 
             if (i == 3)
             {
