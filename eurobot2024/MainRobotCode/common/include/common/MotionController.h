@@ -64,7 +64,7 @@
 
             /// \brief Get current robot position.
             /// \return Current robot position.
-            RobotPosition getCurrentPosition();
+            RobotPosition getCurrentPosition() const;
 
             /// \brief Reset the position of the robot on the table.
             ///
@@ -312,5 +312,6 @@
 
             bool askedForTrackingStop_ = false;
 
+            std::mutex motionPlanningMutex_;
     };
  #endif

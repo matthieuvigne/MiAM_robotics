@@ -102,7 +102,7 @@
             public:
                 ProtectedPosition();
 
-                RobotPosition get();
+                RobotPosition get() const;
                 void set(RobotPosition const& p);
 
                 // Update the position by the given motion, return the updated position.
@@ -110,7 +110,7 @@
 
             private:
                 RobotPosition position_;
-                std::mutex mutex_;
+                mutable std::mutex mutex_;
         };
     }
 #endif

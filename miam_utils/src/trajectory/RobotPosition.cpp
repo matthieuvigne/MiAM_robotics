@@ -120,7 +120,7 @@ namespace miam{
 
     }
 
-    RobotPosition ProtectedPosition::get()
+    RobotPosition ProtectedPosition::get() const
     {
         RobotPosition p;
         mutex_.lock();

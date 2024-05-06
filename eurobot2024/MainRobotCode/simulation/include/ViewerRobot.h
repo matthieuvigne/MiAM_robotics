@@ -68,6 +68,7 @@
             void applyMotorTarget(DrivetrainTarget const& target) override;
             void matchEnd() override;
             bool isStartingSwitchPluggedIn() const override;
+            void shutdown() override;
 
             /////////////////////////////////////
             // Functions specific to the simulation.
@@ -75,7 +76,6 @@
             void reset(bool const& isPlayingRightSide);
             void tick(SimulatorData const& simulationData);
             RobotPosition getPosition();
-
 
             /// \brief Draw the robot and trajectory on the surface.
             void draw(const Cairo::RefPtr<Cairo::Context>& cr, double const& mmToCairo);

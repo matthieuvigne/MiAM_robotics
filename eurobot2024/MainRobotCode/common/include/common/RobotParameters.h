@@ -47,7 +47,7 @@
             // Number of lidar ponts per turn ; 800 is the default for RPLIDAR V2
             unsigned int lidarNPointsPerTurn = 800;
 
-            inline miam::trajectory::TrajectoryConfig getTrajConf()
+            inline miam::trajectory::TrajectoryConfig getTrajConf() const
             {
                 miam::trajectory::TrajectoryConfig c;
                 c.maxWheelVelocity = maxWheelSpeedTrajectory;

@@ -114,7 +114,7 @@ void ViewerRobot::updateSensorData()
     measurements_.drivetrainMeasurements.encoderPositionIncrement = kinematics_.inverseKinematics(kinematics_.forwardKinematics(simulationSpeed_), true);
     simulatedEncoders_ += measurements_.drivetrainMeasurements.encoderPositionIncrement.toVector();
     measurements_.drivetrainMeasurements.encoderPosition = simulatedEncoders_;
-    measurements_.drivetrainMeasurements.motorSpeed = motionTarget_.motorSpeed;
+    measurements_.drivetrainMeasurements.motorSpeed = simulationSpeed_;
     measurements_.batteryVoltage = simulatorData_.batteryVoltage;
 
     // Create lidar measurements.
@@ -239,6 +239,12 @@ void ViewerRobot::reset(bool const& isPlayingRightSide)
 
     gui_.unfullscreen();
     gui_.show_all();
+}
+
+
+void ViewerRobot::shutdown()
+{
+
 }
 
 

@@ -11,21 +11,21 @@ using AStar::Vec2i;
 namespace miam::trajectory{
 
     // Utility functions: point coordinate conversion
-    RobotPosition vec2iToRobotPosition(AStar::Vec2i const& astarWaypoint, PathPlannerConfig const& config)
+    RobotPosition vec2iToRobotPosition(AStar::Vec2i const& astarWaypoint, double const& resolution)
     {
         return RobotPosition(
-            astarWaypoint.x * config.astar_resolution_mm + config.astar_resolution_mm / 2,
-            astarWaypoint.y * config.astar_resolution_mm + config.astar_resolution_mm / 2,
+            astarWaypoint.x * resolution + resolution / 2,
+            astarWaypoint.y * resolution + resolution / 2,
             0
         );
     }
 
 
-    AStar::Vec2i robotPositionToVec2i(RobotPosition const& position, PathPlannerConfig const& config)
+    AStar::Vec2i robotPositionToVec2i(RobotPosition const& position, double const& resolution)
     {
         // tail i, j is nearest to ((i + 0.5) * resolution, (j + 0.5) * resolution)
-        int i = round(position.x / config.astar_resolution_mm - 0.5);
-        int j = round(position.y / config.astar_resolution_mm - 0.5);
+        int i = round(position.x / resolution - 0.5);
+        int j = round(position.y / resolution - 0.5);
         return {i, j};
     }
 
@@ -34,7 +34,7 @@ namespace miam::trajectory{
         config_(config),
         logger_(logger)
     {
-        generator_.setWorldSize({config_.astar_grid_size_x, config_.astar_grid_size_y});
+        generator_.setWorldSize({static_cast<int>(config_.map.rows()), static_cast<int>(config_.map.cols())});
         generator_.setHeuristic(AStar::Heuristic::euclidean);
         generator_.setDiagonalMovement(true);
 
@@ -50,7 +50,7 @@ namespace miam::trajectory{
         std::vector<AStar::Vec2i > pathInVec2i;
         for (auto& position : path)
         {
-            pathInVec2i.push_back(robotPositionToVec2i(position, config_));
+            pathInVec2i.push_back(robotPositionToVec2i(position, config_.astar_resolution_mm));
         }
         // *logger_ << "[PathPlanner] Path: " << std::endl;
         // for (auto& position : pathInVec2i)
@@ -68,8 +68,8 @@ namespace miam::trajectory{
 
         // std::vector<AStar::Vec2i > collisions = generator_.getCollisions();
 
-        Vec2i current_position = robotPositionToVec2i(currentPosition, config_);
-        Vec2i target_position = robotPositionToVec2i(targetPosition, config_);
+        Vec2i current_position = robotPositionToVec2i(currentPosition, config_.astar_resolution_mm);
+        Vec2i target_position = robotPositionToVec2i(targetPosition, config_.astar_resolution_mm);
         *logger_ << "[PathPlanner] Current position RobotPosition: " << currentPosition << std::endl;
         *logger_ << "[PathPlanner] Current position i, j: " << current_position.x << " " << current_position.y << std::endl;
         *logger_ << "[PathPlanner] Target position RobotPosition: " << targetPosition << std::endl;
@@ -91,7 +91,7 @@ namespace miam::trajectory{
         for (auto const& coord : pathInVec2i)
             mapBuffer[coord.y][coord.x] = 'o';
         mapBuffer[current_position.y][current_position.x] = 'S';
-        mapBuffer[target_position.y][target_position.x] = 'S';
+        mapBuffer[target_position.y][target_position.x] = 'E';
 
         // Print buffer, reverse order
         for (int j = ySize - 1; j >= 0; j--)
@@ -103,18 +103,18 @@ namespace miam::trajectory{
     {
         // number of grid units to be taken into account
         int grid_distance = ceil(radius / config_.astar_resolution_mm);
-        AStar::Vec2i center_position = robotPositionToVec2i(position, config_);
+        AStar::Vec2i center_position = robotPositionToVec2i(position, config_.astar_resolution_mm);
 
         // in a big square around the center position, draw obstacle
         for (int i = std::max(0, center_position.x - grid_distance);
-            i < std::min(config_.astar_grid_size_x, center_position.x + grid_distance + 1);
+            i < std::min(static_cast<int>(config_.map.rows()), center_position.x + grid_distance + 1);
             i++)
         {
             for (int j = std::max(0, center_position.y - grid_distance);
-                j < std::min(config_.astar_grid_size_y, center_position.y + grid_distance + 1);
+                j < std::min(static_cast<int>(config_.map.cols()), center_position.y + grid_distance + 1);
                 j++)
             {
-                RobotPosition obsPosition = vec2iToRobotPosition({i, j}, config_);
+                RobotPosition obsPosition = vec2iToRobotPosition({i, j}, config_.astar_resolution_mm);
                 if ((position - obsPosition).norm() < radius)
                 {
                     generator_.addCollision({i, j});
@@ -125,40 +125,7 @@ namespace miam::trajectory{
 
     void PathPlanner::resetCollisions()
     {
-        generator_.clearCollisions();
-
-        // obstacles table
-        // bordure exterieure
-        int forbidden_border_size_grid = config_.forbidden_border_size_mm / config_.astar_resolution_mm;
-
-        for (int i = 0; i < config_.astar_grid_size_x; i++)
-        {
-            for (int k = 0; k <= forbidden_border_size_grid; k++)
-            {
-                generator_.addCollision({i, k});
-                generator_.addCollision({i, config_.astar_grid_size_y-1-k});
-
-            }
-        }
-        for (int j = 0; j < config_.astar_grid_size_y; j++)
-        {
-            for (int k = 0; k <= forbidden_border_size_grid; k++)
-            {
-                generator_.addCollision({k, j});
-                generator_.addCollision({config_.astar_grid_size_x-1-k, j});
-            }
-        }
-
-        // PAMI start zone
-        int xStart = 850 / config_.astar_resolution_mm;
-        int xEnd = 2150 / config_.astar_resolution_mm;
-        int yEnd = 350 / config_.astar_resolution_mm;
-        for (int x = xStart; x < xEnd; x++)
-            for (int y = 0; y < yEnd; y++)
-            {
-                generator_.addCollision({x, config_.astar_grid_size_y-y});
-
-            }
+        generator_.obstacleMap_ = config_.map;
     }
 
     std::vector<RobotPosition> PathPlanner::planPath(RobotPosition const& start, RobotPosition const& end)
@@ -167,8 +134,8 @@ namespace miam::trajectory{
         std::vector<RobotPosition> positions;
         RobotPosition targetPosition;
 
-        AStar::Vec2i startPoint = robotPositionToVec2i(start, config_);
-        AStar::Vec2i endPoint = robotPositionToVec2i(end, config_);
+        AStar::Vec2i startPoint = robotPositionToVec2i(start, config_.astar_resolution_mm);
+        AStar::Vec2i endPoint = robotPositionToVec2i(end, config_.astar_resolution_mm);
 
         *logger_ << "[PathPlanner] Planning from: " << startPoint.x << " " << startPoint.y << std::endl;
         *logger_ << "[PathPlanner] Planning to  : " << endPoint.x << " " << endPoint.y << std::endl;
@@ -202,14 +169,14 @@ namespace miam::trajectory{
         }
 
 
-        if (checkPath && robotPositionToVec2i(start, config_) == path.back() && robotPositionToVec2i(end, config_) == path.front())
+        if (checkPath && robotPositionToVec2i(start, config_.astar_resolution_mm) == path.back() && robotPositionToVec2i(end, config_.astar_resolution_mm) == path.front())
         {
             double const GRID_DIAGONAL = config_.astar_resolution_mm * 1.4142;
 
             positions.push_back(start);
             for (auto coordinate = path.rbegin(); coordinate != path.rend(); ++coordinate)
             {
-                targetPosition = vec2iToRobotPosition(*coordinate, config_);
+                targetPosition = vec2iToRobotPosition(*coordinate, config_.astar_resolution_mm);
                 // Don't add points that are less than one grid coordinate from start / end.
                 // This is done to avoid artifacts due to the start / end being off-grid.
                 if ((targetPosition - start).norm() > 1.5 * GRID_DIAGONAL &&

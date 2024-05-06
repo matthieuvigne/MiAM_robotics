@@ -71,16 +71,41 @@ bool is_acado_inited = false;
 std::mutex acado_mutex;
 
 
-PathPlannerConfig config({
-    25, // Grid size
-    table_dimensions::table_size_x / config.astar_resolution_mm,
-    table_dimensions::table_size_y / config.astar_resolution_mm,
-    1 // should be equal to robot radius
-    });
+PathPlannerConfig generatePathPlannerConfig()
+{
+
+    int const gridResolution = 25;
+    int const borderMargin = 6; // Border margin, in grid unit.
+
+    int const nRows = table_dimensions::table_size_x / gridResolution;
+    int const nCols = table_dimensions::table_size_y / gridResolution;
+
+    PathPlannerConfig config;
+    config.astar_resolution_mm = gridResolution;
+    config.map = Eigen::MatrixXi::Zero(nRows, nCols);
+
+    // Add obstacles linked to map: border
+    config.map.bottomRows<borderMargin>().setConstant(1);
+    config.map.topRows<borderMargin>().setConstant(1);
+    config.map.leftCols<borderMargin>().setConstant(1);
+    config.map.rightCols<borderMargin>().setConstant(1);
+
+    // PAMI start zone
+    int const width = 1300 / gridResolution;
+    int const height = 350 / gridResolution;
+
+    config.map.block<width, height>((nRows - width) / 2, nCols - height).setConstant(1);
+
+    // Other robot start zone.
+    int const size = 500 / gridResolution;
+    config.map.bottomRightCorner<size, size >().setConstant(1);
+
+    return config;
+}
 
 MotionPlanner::MotionPlanner(RobotParameters const& robotParameters, Logger* logger) :
     robotParams_(robotParameters),
-    pathPlanner_(config, logger),
+    pathPlanner_(generatePathPlannerConfig(), logger),
     logger_(logger)
 {
 }
