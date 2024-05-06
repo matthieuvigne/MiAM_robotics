@@ -151,29 +151,34 @@ bool DropPlantsWithPotAction::performAction()
     }
 
     // Drop plants
-    servoManager_->turnOffMagnets();
+    servoManager_->turnOffFrontMagnets();
+
+    int dropSign = zoneId_ == 1;
+    if (robot_->isPlayingRightSide())
+        dropSign = !dropSign;
+
+    double turretOffset = (isDroppingFront_ ? M_PI : 0);
+    int servoOffset = (isDroppingFront_ ? 0 : 3);
 
     // Drop plants in pots.
-    if (isDroppingFront_)
-    {
-        servoManager_->moveTurret(M_PI -0.2);
-        robot_->wait(0.2);
-        servoManager_->waitForTurret();
-        servoManager_->setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
-        servoManager_->openClaw(1, false);
-        robot_->wait(0.020);
-        servoManager_->openClaw(2, false);
-    }
-    else
-    {
-        servoManager_->moveTurret(-0.2);
-        robot_->wait(0.2);
-        servoManager_->waitForTurret();
-        servoManager_->setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
-        servoManager_->openClaw(4, false);
-        robot_->wait(0.020);
-        servoManager_->openClaw(5, false);
-    }
+    servoManager_->moveTurret(turretOffset - dropSign * 0.2);
+    robot_->wait(0.2);
+    servoManager_->waitForTurret();
+    servoManager_->openClaw(servoOffset + 1, false);
+    robot_->wait(0.010);
+    servoManager_->openClaw(servoOffset + (dropSign > 0 ? 2 : 0), false);
+    robot_->wait(0.4);
+
+    // Move back to drop in third pot
+    robot_->getMotionController()->goStraight(100);
+
+    // Move turret and drop
+    servoManager_->moveTurret(turretOffset - dropSign * 0.65);
+    robot_->wait(0.2);
+    servoManager_->waitForTurret();
+    servoManager_->openClaw(servoOffset + (dropSign > 0 ? 0 : 2), false);
+    servoManager_->turnOffMagnets();
+
     robot_->wait(0.4);
     int nPlants = -servoManager_->updateClawContent(isDroppingFront_, robot_->gameState_);
     robot_->logger_ << "[DropPlantsWithPotAction] Dropped " << nPlants << " plants." << std::endl;
@@ -182,7 +187,6 @@ bool DropPlantsWithPotAction::performAction()
     // Are there other plants to drop ?
     isDroppingFront_ = !isDroppingFront_;
 
-    tf flag = tf::DEFAULT;
     if (robot_->gameState_.nPlantsInRobot() > 0)
     {
         robot_->getMotionController()->goStraight(150);
@@ -192,7 +196,6 @@ bool DropPlantsWithPotAction::performAction()
         robot_->getMotionController()->goStraight(-120);
         servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::HIGH_POSITION);
         robot_->wait(0.8);
-        flag = tf::BACKWARD;
     }
     else
     {

@@ -81,6 +81,7 @@ public:
 
     void turnOnMagnets();
     void turnOffMagnets();
+    void turnOffFrontMagnets();
 
 
 private:

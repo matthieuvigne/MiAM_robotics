@@ -373,3 +373,9 @@ void ServoManager::turnOffMagnets()
     robot_->logger_ << "Turning off magnets" << std::endl;
     robot_->getMPC23008()->setOutputs(0x00);
 }
+
+void ServoManager::turnOffFrontMagnets()
+{
+    robot_->logger_ << "Turning off front" << std::endl;
+    robot_->getMPC23008()->setOutputs(0b11101101);
+}
