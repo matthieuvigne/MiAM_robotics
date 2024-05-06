@@ -1,6 +1,6 @@
 // Code originally from https://github.com/daancode/a-star, with custom modifications.
 
-#include "AStar.hpp"
+#include "miam_utils/AStar.hpp"
 #include <algorithm>
 #include <math.h>
 

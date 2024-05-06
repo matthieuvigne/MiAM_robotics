@@ -8,7 +8,7 @@
     #include "miam_utils/Logger.h"
     #include "RobotPosition.h"
     #include <vector>
-    #include "AStar.hpp"
+    #include "miam_utils/AStar.hpp"
 
     namespace miam{
         namespace trajectory{

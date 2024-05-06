@@ -67,7 +67,8 @@ bool Strategy::setup(RobotInterface *robot)
         actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, 3));
         actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, 5));
 
-        actions_.push_back(std::make_shared<DropPlantsWithoutPotsAction>(robot, &servoManager_, 0));
+        //~ actions_.push_back(std::make_shared<DropPlantsWithoutPotsAction>(robot, &servoManager_, 0));
+        actions_.push_back(std::make_shared<DropPlantsWithPotAction>(robot, &servoManager_, 0));
         actions_.push_back(std::make_shared<DropPlantsWithPotAction>(robot, &servoManager_, 1));
         actions_.push_back(std::make_shared<DropPlantsWithoutPotsAction>(robot, &servoManager_, 2));
 
