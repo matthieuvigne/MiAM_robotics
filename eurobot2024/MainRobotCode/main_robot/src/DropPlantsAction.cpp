@@ -152,16 +152,16 @@ bool DropPlantsWithPotAction::performAction()
     // Drop plants
     servoManager_->turnOffFrontMagnets();
 
-    int dropSign = zoneId_ == 1;
+    int dropSign = (zoneId_ == 1 ? 1 : -1);
     if (robot_->isPlayingRightSide())
-        dropSign = !dropSign;
+        dropSign = -dropSign;
 
     double turretOffset = (isDroppingFront_ ? M_PI : 0);
     int servoOffset = (isDroppingFront_ ? 0 : 3);
 
     // Drop plants in pots.
     servoManager_->moveTurret(turretOffset - dropSign * 0.2);
-    robot_->wait(0.2);
+    robot_->wait(0.4);
     servoManager_->waitForTurret();
     servoManager_->openClaw(servoOffset + 1, false);
     robot_->wait(0.010);
@@ -173,7 +173,7 @@ bool DropPlantsWithPotAction::performAction()
 
     // Move turret and drop
     servoManager_->moveTurret(turretOffset - dropSign * 0.65);
-    robot_->wait(0.2);
+    robot_->wait(0.4);
     servoManager_->waitForTurret();
     servoManager_->openClaw(servoOffset + (dropSign > 0 ? 0 : 2), false);
     servoManager_->turnOffMagnets();

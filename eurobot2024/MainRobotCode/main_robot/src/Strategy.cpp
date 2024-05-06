@@ -153,7 +153,7 @@ void Strategy::goBackToBase()
         servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
     }
 
-    RobotPosition targetPositions[2] = {targetPosition, RobotPosition(2700, 1000, M_PI_2)};
+    RobotPosition targetPositions[2] = {targetPosition, RobotPosition(2700, 970, M_PI_2)};
     int candidateId = 1;
     bool targetReached = false;
     while (!targetReached && robot->getMatchTime() < 90)
@@ -179,8 +179,10 @@ void Strategy::goBackToBase()
     if (robot->gameState_.nPlantsInRobot() > 0)
     {
         dropPlants(robot, &servoManager_, isFront, 0, true);
-        robot->getMotionController()->goStraight(-120);
     }
+    servoManager_.openClaws(true);
+    servoManager_.openClaws(false);
+    robot->getMotionController()->goStraight(-120);
 
     // No final motion so we don't kill PAMI.
     // if (robot->gameState_.nPlantsInRobot() > 0)

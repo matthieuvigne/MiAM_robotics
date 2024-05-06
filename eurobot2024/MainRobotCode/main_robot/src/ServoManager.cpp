@@ -333,7 +333,7 @@ void ServoManager::spinSolarPanel(bool const& isPlayingRightSide)
 {
     servos_->setMode(SOLAR_PANEL_WHEEL, STS::Mode::VELOCITY);
     robot_->wait(0.005);
-    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (isPlayingRightSide ? 1000 : -1000));
+    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (isPlayingRightSide ? 1500 : -1500));
 }
 
 void ServoManager::stopSolarPanel()
