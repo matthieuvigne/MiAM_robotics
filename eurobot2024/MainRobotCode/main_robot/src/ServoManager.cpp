@@ -184,13 +184,13 @@ bool ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
         case ClawPosition::MEDIUM_POSITION_PLUS:
             servos_->setTargetPosition(servoId, 2280);
             robot_->wait(0.010);
-            servos_->setTargetPosition(servoId + 1, 1800);
+            servos_->setTargetPosition(servoId + 1, 1840);
             robot_->wait(0.010);
             break;
         case ClawPosition::HIGH_POSITION:
-            servos_->setTargetPosition(servoId, 2755);
+            servos_->setTargetPosition(servoId, 2770);
             robot_->wait(0.010);
-            servos_->setTargetPosition(servoId + 1, 1352);
+            servos_->setTargetPosition(servoId + 1, 1400);
             robot_->wait(0.010);
             break;
         case ClawPosition::START_POSITION:
@@ -205,6 +205,10 @@ bool ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
     return true;
 }
 
+// Position de dépose dans les pots
+//~ 13: 2680
+//~ 14: 1400
+
 void ServoManager::moveTurret(double const& targetPosition)
 {
 #ifdef SIMULATION
@@ -216,6 +220,8 @@ void ServoManager::moveTurret(double const& targetPosition)
     raiseSolarPanelArm();
     setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
     setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
+    //~ setClawPosition(ClawSide::FRONT, ClawPosition::MEDIUM_POSITION_PLUS);
+    //~ setClawPosition(ClawSide::BACK, ClawPosition::MEDIUM_POSITION_PLUS);
 
     double const deltaAngle = targetPosition - currentTurretPosition_;
     int const nStep = static_cast<int>(-deltaAngle / REDUCTION_RATIO * 4096 / 2 / M_PI);

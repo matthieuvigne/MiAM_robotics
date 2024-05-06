@@ -12,6 +12,7 @@
 //  |                   | 2
 //  |                   | 3
 //  |0__________________|
+
 const miam::RobotPosition PLANT_DROP_COORD[3] =
 {
     miam::RobotPosition(CHASSIS_MARGIN + POT_MARGIN + 100, 612, 0),
@@ -107,18 +108,25 @@ void DropPlantsWithPotAction::actionStartTrigger()
 
 bool DropPlantsWithPotAction::performAction()
 {
+    //~ const miam::RobotPosition PLANT_DROP_COORD[3] =
+    //~ {
+        //~ miam::RobotPosition(CHASSIS_MARGIN + POT_MARGIN + 100, 612, 0),
+        //~ miam::RobotPosition(CHASSIS_MARGIN + POT_MARGIN + 100, 1388, 0),
+        //~ miam::RobotPosition(3000 - (CHASSIS_MARGIN + POT_MARGIN + 100), 612, M_PI)
+    //~ };
+
     // Push pots, moving backward.
     RobotPosition offset = RobotPosition(-50, 0, 0).rotate(PLANT_DROP_COORD[zoneId_].theta);
     offset.theta = 0;
     RobotPosition target = PLANT_DROP_COORD[zoneId_] + offset;
-
     if (!robot_->getMotionController()->goToStraightLine(target, 1.0, tf::BACKWARD))
         return false;
 
+    // Turn on the magnets and close the arms to get the pots
     servoManager_->turnOnMagnets();
     servoManager_->closeElectromagnetArms();
     robot_->wait(0.4);
-    if (!robot_->getMotionController()->goStraight(-50, 0.4))
+    if (!robot_->getMotionController()->goStraight(-50, 0.4)) // 0.4 = speed_ratio
         return false;
     servoManager_->openElectromagnetArms();
     robot_->wait(0.4);

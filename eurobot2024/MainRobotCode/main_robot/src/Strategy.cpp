@@ -105,6 +105,7 @@ void Strategy::match()
 
     std::thread stratMain(&Strategy::match_impl, this);
     pthread_t handle = ThreadHandler::addThread(stratMain);
+    createdThreads_.push_back(handle);
 
     double const FALLBACK_TIME = 82.0;
     robot->wait(FALLBACK_TIME);
