@@ -102,7 +102,6 @@ void DropPlantsWithPotAction::actionStartTrigger()
     }
     else
         isDroppingFront_ = clawDiff > 0;
-    isDroppingFront_ = false;
     servoManager_->moveTurret(isDroppingFront_ ? M_PI : 0);
 }
 

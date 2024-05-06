@@ -152,7 +152,7 @@ void RobotInterface::lowLevelLoop()
 
                 double const motorRatio = getParameters().rightWheelRadius / getParameters().leftWheelRadius;
                 temp = measurements_.drivetrainMeasurements.motorSpeed.right;
-                measurements_.drivetrainMeasurements.motorSpeed.right = measurements_.drivetrainMeasurements.motorSpeed.right / motorRatio;
+                measurements_.drivetrainMeasurements.motorSpeed.right = measurements_.drivetrainMeasurements.motorSpeed.left / motorRatio;
                 measurements_.drivetrainMeasurements.motorSpeed.left = temp * motorRatio;
             }
 
