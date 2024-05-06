@@ -111,8 +111,8 @@ void ViewerRobot::wait(double const& waitTimeS)
 
 void ViewerRobot::updateSensorData()
 {
-    measurements_.drivetrainMeasurements.encoderSpeed = kinematics_.inverseKinematics(kinematics_.forwardKinematics(simulationSpeed_), true);
-    simulatedEncoders_ += measurements_.drivetrainMeasurements.encoderSpeed.toVector();
+    measurements_.drivetrainMeasurements.encoderPositionIncrement = kinematics_.inverseKinematics(kinematics_.forwardKinematics(simulationSpeed_), true);
+    simulatedEncoders_ += measurements_.drivetrainMeasurements.encoderPositionIncrement.toVector();
     measurements_.drivetrainMeasurements.encoderPosition = simulatedEncoders_;
     measurements_.drivetrainMeasurements.motorSpeed = motionTarget_.motorSpeed;
     measurements_.batteryVoltage = simulatorData_.batteryVoltage;

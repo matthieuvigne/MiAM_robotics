@@ -67,11 +67,8 @@
             void matchEnd() override;
             bool isStartingSwitchPluggedIn() const override;
 
-            /////////////////////////////////////
-            // Functions specific to the robot.
-            /////////////////////////////////////
             /// \brief Shut down the robot when Ctrl+C is pressed.
-            void shutdown();
+            void shutdown() override;
 
         private:
             // Robot hardware

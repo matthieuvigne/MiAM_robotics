@@ -171,7 +171,7 @@ void Robot::updateSensorData()
     lastMotorReading_ = motorPosition;
 
 
-    measurements_.drivetrainMeasurements.encoderSpeed = baseSpeed;
+    measurements_.drivetrainMeasurements.encoderPositionIncrement = baseSpeed;
 
     measurements_.drivetrainMeasurements.motorSpeed.right = motionController_.robotParams_.rightMotorDirection * rightMeasurements.motorVelocity;
     measurements_.drivetrainMeasurements.motorSpeed.left = motionController_.robotParams_.leftMotorDirection * leftMeasurements.motorVelocity;

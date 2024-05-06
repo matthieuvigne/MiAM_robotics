@@ -145,7 +145,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     log("MotionController.motorVelocityLeft", measurements.motorSpeed.left);
 
     // Odometry
-    RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderSpeed);
+    RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderPositionIncrement);
     log("MotionController.currentPositionX",currentPosition.x);
     log("MotionController.currentPositionY",currentPosition.y);
     log("MotionController.currentPositionTheta",currentPosition.theta);

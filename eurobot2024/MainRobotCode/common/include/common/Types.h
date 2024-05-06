@@ -40,7 +40,7 @@
 
     struct DrivetrainMeasurements{
         WheelSpeed encoderPosition; ///< Encoder position, rad.
-        WheelSpeed encoderSpeed; ///< Speed, measured by the encoders
+        WheelSpeed encoderPositionIncrement; ///< Speed, measured by the encoders
         WheelSpeed motorSpeed; ///<< Measured motor speed, in rad/s
         std::deque<DetectedRobot> lidarDetection; ///< Robots detected by the lidar.
     };

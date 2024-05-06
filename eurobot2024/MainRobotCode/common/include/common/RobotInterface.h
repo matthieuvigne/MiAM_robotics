@@ -85,6 +85,9 @@
             /// @return True is the starting switch is plugged in the robot
             virtual bool isStartingSwitchPluggedIn() const = 0;
 
+            /// @brief Shutdown the robot when things go wrong (Ctrl + C, panic...)
+            virtual void shutdown() = 0;
+
             /////////////////////////////////////
             /// Getter/ Setter functions
             /////////////////////////////////////
@@ -169,5 +172,7 @@
             void initLogger();
 
             bool silent_;
+            RobotPosition motorEstimatedPosition_; ///< Position, estimated by the motors, to act as sanity check on encoder status.
+
     };
  #endif

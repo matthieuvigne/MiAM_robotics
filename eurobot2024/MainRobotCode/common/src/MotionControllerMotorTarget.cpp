@@ -31,7 +31,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     RobotPosition currentPosition = currentPosition_.get();
     RobotPosition error = currentPosition - targetPoint.position;
 
-    WheelSpeed speed = measurements.encoderSpeed;
+    WheelSpeed speed = measurements.encoderPositionIncrement;
     speed.left /= dt;
     speed.right /= dt;
     BaseSpeed currentSpeed = kinematics_.forwardKinematics(speed, true);

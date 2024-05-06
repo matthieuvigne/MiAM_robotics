@@ -145,15 +145,36 @@ void RobotInterface::lowLevelLoop()
             {
                 double const encoderRatio = getParameters().rightEncoderWheelRadius / getParameters().leftEncoderWheelRadius;
 
-                double temp = measurements_.drivetrainMeasurements.encoderSpeed.right;
-                measurements_.drivetrainMeasurements.encoderSpeed.right = measurements_.drivetrainMeasurements.encoderSpeed.left / encoderRatio;
-                measurements_.drivetrainMeasurements.encoderSpeed.left = temp * encoderRatio;
+                double temp = measurements_.drivetrainMeasurements.encoderPositionIncrement.right;
+                measurements_.drivetrainMeasurements.encoderPositionIncrement.right = measurements_.drivetrainMeasurements.encoderPositionIncrement.left / encoderRatio;
+                measurements_.drivetrainMeasurements.encoderPositionIncrement.left = temp * encoderRatio;
+
+                double const motorRatio = getParameters().rightWheelRadius / getParameters().leftWheelRadius;
+                temp = measurements_.drivetrainMeasurements.motorSpeed.right;
+                measurements_.drivetrainMeasurements.motorSpeed.right = measurements_.drivetrainMeasurements.motorSpeed.right / motorRatio;
+                measurements_.drivetrainMeasurements.motorSpeed.left = temp * motorRatio;
             }
 
             // Compute motion target.
             DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements_.drivetrainMeasurements, dt_, hasMatchStarted_);
             debugTimeAfterCompute = getTime();
 
+            // Sanity check on encoder: this is to prevent the robot from becoming crazy when an encoder is lost.
+            motionController_.getKinematics().integratePosition(
+                dt_ * measurements_.drivetrainMeasurements.motorSpeed,
+                motorEstimatedPosition_,
+                false);
+            double const angleError = std::abs(motorEstimatedPosition_.theta - motionController_.getCurrentPosition().theta);
+            logger_.log("Robot.estimatedAngleDifference", currentTime_, angleError);
+            if (angleError > 1.5 * M_PI)
+            {
+                logger_ << "[ERROR] PANIC! Encoders and motors are inconsistent!" << std::endl;
+                logger_ << "Stopping everything to avoid further dammage..." << std::endl;
+                for (auto handle: strategy_->createdThreads_)
+                    pthread_cancel(handle);
+                pthread_cancel(strategyHandle);
+                shutdown();
+            }
             // Apply target to the robot
             applyMotorTarget(target);
             debugTimeAfterApply = getTime();
