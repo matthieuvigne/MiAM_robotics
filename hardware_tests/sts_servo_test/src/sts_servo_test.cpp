@@ -75,8 +75,18 @@ int main(int argc, char* argv[])
   ServoManager servo_manager;
   ServoManager *servoManager_ = &servo_manager;
   Robot *robot_ = &robot;
-  servo_manager.init(&robot, false);
+  servo_manager.init(&robot, true);
   robot.wait(1.0);
+
+  while (true)
+  {
+    servo_manager.turnOnMagnets();
+    robot.wait(1.0);
+    servo_manager.turnOffFrontMagnets();
+    robot.wait(1.0);
+    servo_manager.turnOffMagnets();
+    robot.wait(1.0);
+  }
 
   servo_manager.waitForTurret();
 
@@ -88,20 +98,25 @@ int main(int argc, char* argv[])
   servo_manager.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
   servo_manager.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
 
+  servoManager_->closeClaws(false);
+  servoManager_->closeClaws(true);
+
   // Test: drop plants to pot
 
-  bool isDroppingFront_ = false;
+
+  bool isDroppingFront_ = true;
+  int dropSign = 1;
 
   double turretOffset = (isDroppingFront_ ? M_PI : 0);
   int servoOffset = (isDroppingFront_ ? 0 : 3);
 
   // Drop plants in pots.
-  servoManager_->moveTurret(turretOffset - 0.2);
+  servoManager_->moveTurret(turretOffset - dropSign * 0.2);
   robot_->wait(0.2);
   servoManager_->waitForTurret();
   servoManager_->openClaw(servoOffset + 1, false);
   robot_->wait(0.010);
-  servoManager_->openClaw(servoOffset + 2, false);
+  servoManager_->openClaw(servoOffset + (dropSign > 0 ? 2 : 0), false);
   robot_->wait(0.4);
 
   // TODO: drop in third pot
@@ -109,15 +124,16 @@ int main(int argc, char* argv[])
   // Move back
 
   // Move turret and drop
-  servoManager_->moveTurret(turretOffset - 0.4);
+  servoManager_->moveTurret(turretOffset - dropSign * 0.65);
   robot_->wait(0.2);
   servoManager_->waitForTurret();
-  servoManager_->openClaw(servoOffset + 0, false);
+  servoManager_->openClaw(servoOffset + (dropSign > 0 ? 0 : 2), false);
 
   robot_->wait(0.4);
   int nPlants = -servoManager_->updateClawContent(isDroppingFront_, robot_->gameState_);
   std::cout << "[DropPlantsWithPotAction] Dropped " << nPlants << " plants." << std::endl;
 
+while(true) ;;
 
   // Test claw object detection.
   // while (true)

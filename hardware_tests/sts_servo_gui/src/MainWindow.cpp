@@ -58,6 +58,61 @@ void MainWindow::rescan()
     int servoNumber = 0;
     for (auto i : ids)
     {
+        std::cout << "Id: " << static_cast<int>(i) << std::endl;
+        std::cout << "FIRMWARE_MAJOR            "<< static_cast<int>(driver_->readRegister(i, STS::registers::FIRMWARE_MAJOR)) << std::endl;
+        std::cout << "FIRMWARE_MINOR            "<< static_cast<int>(driver_->readRegister(i, STS::registers::FIRMWARE_MINOR)) << std::endl;
+        std::cout << "SERVO_MAJOR               "<< static_cast<int>(driver_->readRegister(i, STS::registers::SERVO_MAJOR)) << std::endl;
+        std::cout << "SERVO_MINOR               "<< static_cast<int>(driver_->readRegister(i, STS::registers::SERVO_MINOR)) << std::endl;
+        std::cout << "ID                        "<< static_cast<int>(driver_->readRegister(i, STS::registers::ID)) << std::endl;
+        std::cout << "BAUDRATE                  "<< static_cast<int>(driver_->readRegister(i, STS::registers::BAUDRATE)) << std::endl;
+        std::cout << "RESPONSE_DELAY            "<< static_cast<int>(driver_->readRegister(i, STS::registers::RESPONSE_DELAY)) << std::endl;
+        std::cout << "RESPONSE_STATUS_LEVEL     "<< static_cast<int>(driver_->readRegister(i, STS::registers::RESPONSE_STATUS_LEVEL)) << std::endl;
+        std::cout << "MINIMUM_ANGLE             "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::MINIMUM_ANGLE)) << std::endl;
+        std::cout << "MAXIMUM_ANGLE             "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::MAXIMUM_ANGLE)) << std::endl;
+        std::cout << "MAXIMUM_TEMPERATURE       "<< static_cast<int>(driver_->readRegister(i, STS::registers::MAXIMUM_TEMPERATURE)) << std::endl;
+        std::cout << "MAXIMUM_VOLTAGE           "<< static_cast<int>(driver_->readRegister(i, STS::registers::MAXIMUM_VOLTAGE)) << std::endl;
+        std::cout << "MINIMUM_VOLTAGE           "<< static_cast<int>(driver_->readRegister(i, STS::registers::MINIMUM_VOLTAGE)) << std::endl;
+        std::cout << "MAXIMUM_TORQUE            "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::MAXIMUM_TORQUE)) << std::endl;
+        std::cout << "SPECIAL                   "<< static_cast<int>(driver_->readRegister(i, 0x12)) << std::endl;
+        std::cout << "UNLOADING_CONDITION       "<< static_cast<int>(driver_->readRegister(i, STS::registers::UNLOADING_CONDITION)) << std::endl;
+        std::cout << "LED_ALARM_CONDITION       "<< static_cast<int>(driver_->readRegister(i, STS::registers::LED_ALARM_CONDITION)) << std::endl;
+        std::cout << "POS_PROPORTIONAL_GAIN     "<< static_cast<int>(driver_->readRegister(i, STS::registers::POS_PROPORTIONAL_GAIN)) << std::endl;
+        std::cout << "POS_DERIVATIVE_GAIN       "<< static_cast<int>(driver_->readRegister(i, STS::registers::POS_DERIVATIVE_GAIN)) << std::endl;
+        std::cout << "POS_INTEGRAL_GAIN         "<< static_cast<int>(driver_->readRegister(i, STS::registers::POS_INTEGRAL_GAIN)) << std::endl;
+        std::cout << "MINIMUM_STARTUP_FORCE     "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::MINIMUM_STARTUP_FORCE)) << std::endl;
+        std::cout << "CK_INSENSITIVE_AREA       "<< static_cast<int>(driver_->readRegister(i, STS::registers::CK_INSENSITIVE_AREA)) << std::endl;
+        std::cout << "CCK_INSENSITIVE_AREA      "<< static_cast<int>(driver_->readRegister(i, STS::registers::CCK_INSENSITIVE_AREA)) << std::endl;
+        std::cout << "CURRENT_PROTECTION_TH     "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::CURRENT_PROTECTION_TH)) << std::endl;
+        std::cout << "ANGULAR_RESOLUTION        "<< static_cast<int>(driver_->readRegister(i, STS::registers::ANGULAR_RESOLUTION)) << std::endl;
+        std::cout << "POSITION_CORRECTION       "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::POSITION_CORRECTION)) << std::endl;
+        std::cout << "OPERATION_MODE            "<< static_cast<int>(driver_->readRegister(i, STS::registers::OPERATION_MODE)) << std::endl;
+        std::cout << "TORQUE_PROTECTION_TH      "<< static_cast<int>(driver_->readRegister(i, STS::registers::TORQUE_PROTECTION_TH)) << std::endl;
+        std::cout << "TORQUE_PROTECTION_TIME    "<< static_cast<int>(driver_->readRegister(i, STS::registers::TORQUE_PROTECTION_TIME)) << std::endl;
+        std::cout << "OVERLOAD_TORQUE           "<< static_cast<int>(driver_->readRegister(i, STS::registers::OVERLOAD_TORQUE)) << std::endl;
+        std::cout << "SPEED_PROPORTIONAL_GAIN   "<< static_cast<int>(driver_->readRegister(i, STS::registers::SPEED_PROPORTIONAL_GAIN)) << std::endl;
+        std::cout << "OVERCURRENT_TIME          "<< static_cast<int>(driver_->readRegister(i, STS::registers::OVERCURRENT_TIME)) << std::endl;
+        std::cout << "SPEED_INTEGRAL_GAIN       "<< static_cast<int>(driver_->readRegister(i, STS::registers::SPEED_INTEGRAL_GAIN)) << std::endl;
+        std::cout << "TORQUE_SWITCH             "<< static_cast<int>(driver_->readRegister(i, STS::registers::TORQUE_SWITCH)) << std::endl;
+        std::cout << "TARGET_ACCELERATION       "<< static_cast<int>(driver_->readRegister(i, STS::registers::TARGET_ACCELERATION)) << std::endl;
+        std::cout << "TARGET_POSITION           "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::TARGET_POSITION)) << std::endl;
+        std::cout << "RUNNING_TIME              "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::RUNNING_TIME)) << std::endl;
+        std::cout << "RUNNING_SPEED             "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::RUNNING_SPEED)) << std::endl;
+        std::cout << "TORQUE_LIMIT              "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::TORQUE_LIMIT)) << std::endl;
+        std::cout << "WRITE_LOCK                "<< static_cast<int>(driver_->readRegister(i, STS::registers::WRITE_LOCK)) << std::endl;
+        std::cout << "CURRENT_POSITION          "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::CURRENT_POSITION)) << std::endl;
+        std::cout << "CURRENT_SPEED             "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::CURRENT_SPEED)) << std::endl;
+        std::cout << "CURRENT_DRIVE_VOLTAGE     "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::CURRENT_DRIVE_VOLTAGE)) << std::endl;
+        std::cout << "CURRENT_VOLTAGE           "<< static_cast<int>(driver_->readRegister(i, STS::registers::CURRENT_VOLTAGE)) << std::endl;
+        std::cout << "CURRENT_TEMPERATURE       "<< static_cast<int>(driver_->readRegister(i, STS::registers::CURRENT_TEMPERATURE)) << std::endl;
+        std::cout << "ASYNCHRONOUS_WRITE_ST     "<< static_cast<int>(driver_->readRegister(i, STS::registers::ASYNCHRONOUS_WRITE_ST)) << std::endl;
+        std::cout << "STATUS                    "<< static_cast<int>(driver_->readRegister(i, STS::registers::STATUS)) << std::endl;
+        std::cout << "MOVING_STATUS             "<< static_cast<int>(driver_->readRegister(i, STS::registers::MOVING_STATUS)) << std::endl;
+        std::cout << "CURRENT_CURRENT           "<< static_cast<int>(driver_->readTwoBytesRegister(i, STS::registers::CURRENT_CURRENT)) << std::endl;
+
+        for (int i = 0; i < 255; i++)
+        {
+
+        }
         servoIds_.push_back(i);
         servoNames_.push_back(Gtk::Label(std::to_string(i)));
         servoPositions_.push_back(Gtk::Label(std::to_string(driver_->getCurrentPosition(i))));

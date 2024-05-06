@@ -13,15 +13,16 @@ int main (int argc, char *argv[])
 {
     // Try to communicate with servo.
 
-    RPi_enablePorts();
+    // RPi_enablePorts();
 
     STSServoDriver driver;
 
-    if (!driver.init("/dev/ttyAMA0", -1))
-    {
-        std::cout << "Failed to init communication with servos." << std::endl;
-        return 0;
-    }
+    // if (!driver.init("/dev/ttyAMA0", -1))
+        if (!driver.init("/dev/ttyUSB0", -1))
+        {
+            std::cout << "Failed to init communication with servos." << std::endl;
+            return 0;
+        }
     // Start all servos in position mode.
     driver.setMode(0xFE, STS::Mode::POSITION);
     driver.setTorqueLimit(0x01, 0.1);

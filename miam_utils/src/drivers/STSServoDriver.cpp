@@ -242,11 +242,14 @@ bool STSServoDriver::isMoving(unsigned char const& servoId)
 
 void STSServoDriver::setPIDGains(unsigned char const& servoId, unsigned char const& Kp, unsigned char const& Kd, unsigned char const& Ki)
 {
-    writeRegister(servoId, STS::registers::WRITE_LOCK, 0);
+    // writeRegister(servoId, STS::registers::WRITE_LOCK, 0);
     writeRegister(servoId, STS::registers::POS_PROPORTIONAL_GAIN, Kp);
+    usleep(1000);
     writeRegister(servoId, STS::registers::POS_DERIVATIVE_GAIN, Kd);
+    usleep(1000);
     writeRegister(servoId, STS::registers::POS_INTEGRAL_GAIN, Ki);
-    writeRegister(servoId, STS::registers::WRITE_LOCK, 1);
+    usleep(1000);
+    // writeRegister(servoId, STS::registers::WRITE_LOCK, 1);
 }
 
 
