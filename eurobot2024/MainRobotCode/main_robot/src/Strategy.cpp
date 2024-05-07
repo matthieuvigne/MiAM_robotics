@@ -99,6 +99,8 @@ void Strategy::shutdown()
   // TODO
 }
 
+//--------------------------------------------------------------------------------------------------
+
 void Strategy::match()
 {
     pthread_setname_np(pthread_self(), "strat_match");
@@ -122,11 +124,16 @@ void Strategy::match()
     goBackToBase();
 }
 
+//--------------------------------------------------------------------------------------------------
 
 void Strategy::goBackToBase()
 {
     // Clear current trajectory
     robot->getMotionController()->stopCurrentTrajectoryTracking();
+
+    // Close all available claws
+    bool isFront = std::abs(servoManager_.getTurretPosition()) < 0.1;
+    servoManager_.closeClaws(isFront);
 
     // Target depends on start position
     RobotPosition targetPosition;
@@ -146,7 +153,7 @@ void Strategy::goBackToBase()
     robot->getMPC23008()->setOutputs(0);
 
     // Prepare to drop plants
-    bool isFront = robot->gameState_.nPlantsInClaw(true) > 0;
+    isFront = robot->gameState_.nPlantsInClaw(true) > 0;
     if (robot->gameState_.nPlantsInRobot() > 0)
         servoManager_.moveTurret(isFront ? 0 : M_PI);
     else
