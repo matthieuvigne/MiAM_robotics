@@ -141,7 +141,7 @@ bool DropPlantsWithPotAction::performAction()
     target.y += 350 * yInvert;
     positions.push_back(target);
 
-    if (!robot_->getMotionController()->goToRoundedCorners(positions, 200, 0.2, static_cast<tf>(tf::BACKWARD | tf::IGNORE_END_ANGLE)))
+    if (!robot_->getMotionController()->goToRoundedCorners(positions, 200, /*0.2*/ 0.1, static_cast<tf>(tf::BACKWARD | tf::IGNORE_END_ANGLE)))
     {
         // In the unlikely event of a failure here: drop everything in place.
         servoManager_->openElectromagnetArms();

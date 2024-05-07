@@ -158,8 +158,8 @@ bool ServoManager::setClawPosition(ClawSide const& side, ClawPosition const& cla
     {
         case ClawPosition::LOW_POSITION:
         {
-            int const firstTarget = 1725;
-            int const secondTarget = 2332;
+            int const firstTarget = 1725; //1646 //1696
+            int const secondTarget = 2332; //2462 //2392
 
             servos_->setTargetPosition(servoId, firstTarget);
             robot_->wait(0.100);

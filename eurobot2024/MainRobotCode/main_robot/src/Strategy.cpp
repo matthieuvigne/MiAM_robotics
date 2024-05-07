@@ -189,20 +189,20 @@ void Strategy::goBackToBase()
     {
         dropPlants(robot, &servoManager_, isFront, 0, true);
     }
-    servoManager_.openClaws(true);
-    servoManager_.openClaws(false);
+    //~ servoManager_.openClaws(true);
+    //~ servoManager_.openClaws(false);
     robot->getMotionController()->goStraight(-120);
 
     // No final motion so we don't kill PAMI.
-    // if (robot->gameState_.nPlantsInRobot() > 0)
-    // {
-    //     servoManager_.setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
-    //     robot->wait(1.0);
-    //     isFront = !isFront;
-    //     servoManager_.moveTurret(isFront ? 0 : M_PI);
-    //     robot->wait(1.0);
-    //     dropPlants(robot, &servoManager_, isFront, 0, true);
-    // }
+    if (robot->gameState_.nPlantsInRobot() > 0 || true)
+    {
+      servoManager_.setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
+      robot->wait(1.0);
+      isFront = !isFront;
+      servoManager_.moveTurret(isFront ? 0 : M_PI);
+      robot->wait(1.0);
+      dropPlants(robot, &servoManager_, isFront, 0, true);
+    }
 }
 
 
