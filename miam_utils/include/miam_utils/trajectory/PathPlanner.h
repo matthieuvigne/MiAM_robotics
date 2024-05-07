@@ -62,6 +62,9 @@
                     PathPlannerConfig config_;
                     AStar::Generator generator_;
                     Logger* logger_;
+
+                    AStar::Vec2i robotPositionToVec2i(RobotPosition const& position);
+                    RobotPosition vec2iToRobotPosition(AStar::Vec2i const& astarWaypoint);
             };
         }
     }

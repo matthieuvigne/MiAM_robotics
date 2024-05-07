@@ -4,6 +4,8 @@
     // Detection arameters
     namespace detection {
 
+      /////////////////////////////////////////////////////
+      // Parameters used by computeObstacleAvoidanceSlowdown only
       // Zone radius
       double constexpr r1 = 400;
       double constexpr r2 = 700;
@@ -22,8 +24,10 @@
       double const y_max_avoidance = 400;
       double const xfar_max_avoidance = 700;
       double const yfar_max_avoidance = 500;
+      /////////////////////////////////////////////////////
 
       // Radius used to represent a detected robot in PathPlaner grid.
+      // This is also the value used by computeObstacleAvoidanceSlowdownAnticipateTrajectory.
       double const mpc_obstacle_size = 475;
       // add this amount to obstacle radius in PathPlanner to get some slack
       double const mpc_obstacle_margin = 75;
