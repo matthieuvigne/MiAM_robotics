@@ -25,8 +25,9 @@ bool MotionController::isLidarPointWithinTable(LidarPoint const &point)
     RobotPosition robotPosition = lidarPointToRobotPosition(point);
 
     // 3. Check if the lidar point falls within the table
-    if (robotPosition.x < table_dimensions::table_max_x && robotPosition.x > table_dimensions::table_min_x
-        && robotPosition.y < table_dimensions::table_max_y && robotPosition.y > table_dimensions::table_min_y)
+    double const LIDAR_MARGIN = 70;
+    if (robotPosition.x < table_dimensions::table_max_x + LIDAR_MARGIN && robotPosition.x > table_dimensions::table_min_x - LIDAR_MARGIN
+        && robotPosition.y < table_dimensions::table_max_y + LIDAR_MARGIN && robotPosition.y > table_dimensions::table_min_y - LIDAR_MARGIN)
     {
         return true;
     }

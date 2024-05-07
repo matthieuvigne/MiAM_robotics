@@ -122,7 +122,7 @@ void Robot::updateSensorData()
     }
     if (leftMeasurements.currentMode == static_cast<uint16_t>(nautilus::Mode::Fault))
     {
-        logger_ << "[ERROR] Right motor in fault: " << leftMotor_.getDebugStatus() << std::endl;
+        logger_ << "[ERROR] Left motor in fault: " << leftMotor_.getDebugStatus() << std::endl;
     }
 
     rightMeasurements.encoderPosition *= motionController_.robotParams_.rightEncoderDirection;
