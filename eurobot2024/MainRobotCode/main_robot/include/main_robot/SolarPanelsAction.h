@@ -9,14 +9,22 @@
 // #include "common/solar_panel_camera.hpp"
 // #endif
 
+// Enum for parameters
+enum {
+  SOLAR_PANEL_SIDE = 1u,
+  SOLAR_PANEL_CENTER = 2u
+};
+
 class SolarPanelsAction: public AbstractAction
 {
+  
 public:
     /// @brief Action to pick up plants from a given zone.
     /// @param zoneCenter Center of the zone from which to pick-up the plants
-    SolarPanelsAction(RobotInterface *robot, ServoManager *servoManager):
+    SolarPanelsAction(RobotInterface *robot, ServoManager *servoManager,unsigned char options):
         AbstractAction("Solar panels", robot),
-        servoManager_(servoManager)
+        servoManager_(servoManager),
+        options_(options)
     {}
 
     /// @brief This function is called before choosing the action in the list,
@@ -29,6 +37,7 @@ public:
 
 private:
     ServoManager *servoManager_;
+    unsigned char options_;
 };
 
 

@@ -77,7 +77,8 @@ bool Strategy::setup(RobotInterface *robot)
             actions_.push_back(std::make_shared<DropPlantsToJarnidiereAction>(robot, &servoManager_, i));
         }
 
-        actions_.push_back(std::make_shared<SolarPanelsAction>(robot, &servoManager_));
+        actions_.push_back(std::make_shared<SolarPanelsAction>(robot, &servoManager_, SOLAR_PANEL_SIDE));
+        actions_.push_back(std::make_shared<SolarPanelsAction>(robot, &servoManager_, SOLAR_PANEL_CENTER));
     }
 
     // Wait until turret is calibrating.

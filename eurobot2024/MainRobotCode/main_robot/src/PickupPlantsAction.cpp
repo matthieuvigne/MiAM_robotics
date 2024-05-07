@@ -29,6 +29,10 @@ void PickupPlantsAction::updateStartCondition()
     // Action if feasible only if at least one claw has space
     if (robot_->gameState_.isClawAvailable(true) || robot_->gameState_.isClawAvailable(false))
         priority_ = 20;
+        
+    // Deactivate zone with ID 5 until
+    if(this->zoneId_==5)
+      priority_ = (robot_->getMatchTime()>50) ? priority_ : -1;
 }
 
 
