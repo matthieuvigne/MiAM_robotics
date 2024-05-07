@@ -273,6 +273,11 @@ void Strategy::match_impl()
         bool actionShouldBeRemoved;
         bool actionSuccessful = performAction(actions_.at(selectedAction), actionShouldBeRemoved);
 
+        // After each action: raise arms, we never want to transition with low arms.
+        servoManager_.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
+        servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
+
+
         // If action failed: don't try it again for now until one is successful
         if (actionSuccessful)
         {

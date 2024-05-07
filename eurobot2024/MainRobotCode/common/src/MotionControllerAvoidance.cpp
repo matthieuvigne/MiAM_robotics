@@ -166,10 +166,35 @@ TrajectoryVector MotionController::computeMPCTrajectory(
     tf const& flags,
     double const initialBackwardMotionMargin)
 {
+    // Only one thread may perform planning at a given time.
+    std::lock_guard lock(motionPlanningMutex_);
     TrajectoryVector traj;
     RobotPosition currentPosition = getCurrentPosition();
 
-    *logger_ << "[MotionController] >> MotionController : planning MPC from " << currentPosition << " to " << targetPosition << std::endl;
+    *logger_ << "[MotionController] Trying to plan MPC from " << currentPosition << " to " << targetPosition << std::endl;
+
+    // Update obstacle map
+    double minDistanceToObstacle = 10000;
+    double obstacleRadiusMargin = detection::mpc_obstacle_margin; // add safety distance to obstacle to avoid crossing it
+    double minObstacleRadius = 0;
+
+    // Update obstacle map
+    motionPlanner_.pathPlanner_.resetCollisions();
+    for (auto const& obstacle : detectedObstacles)
+    {
+        motionPlanner_.pathPlanner_.addCollision(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
+        double const distance = (std::get<0>(obstacle) - currentPosition).norm();
+        if (distance < minDistanceToObstacle)
+        {
+            minDistanceToObstacle = distance;
+            minObstacleRadius = std::get<1>(obstacle);
+        }
+    }
+    if (motionPlanner_.pathPlanner_.isPositionInCollision(targetPosition))
+    {
+        *logger_ << "[MotionController] End position is in obstacle, cannot plan" << std::endl;
+        return traj;
+    }
 
     if ((currentPosition - targetPosition).norm() < 400)
     {
@@ -183,25 +208,6 @@ TrajectoryVector MotionController::computeMPCTrajectory(
             flags);
     }
 
-
-    // Only one thread may perform planning at a given time.
-    motionPlanningMutex_.lock();
-    double minDistanceToObstacle = 10000;
-    double obstacleRadiusMargin = detection::mpc_obstacle_margin; // add safety distance to obstacle to avoid crossing it
-    double minObstacleRadius = 0;
-
-    // update obstacle map
-    motionPlanner_.pathPlanner_.resetCollisions();
-    for (auto const& obstacle : detectedObstacles)
-    {
-        motionPlanner_.pathPlanner_.addCollision(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
-        double const distance = (std::get<0>(obstacle) - currentPosition).norm();
-        if (distance < minDistanceToObstacle)
-        {
-            minDistanceToObstacle = distance;
-            minObstacleRadius = std::get<1>(obstacle);
-        }
-    }
 
     *logger_ << "[MotionController] >> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
 
@@ -281,7 +287,6 @@ TrajectoryVector MotionController::computeMPCTrajectory(
         targetPosition,
         flags
     );
-    motionPlanningMutex_.unlock();
 
     if (mpcTrajectory.empty())
     {

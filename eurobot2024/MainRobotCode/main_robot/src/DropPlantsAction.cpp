@@ -169,7 +169,8 @@ bool DropPlantsWithPotAction::performAction()
     robot_->wait(0.4);
 
     // Move back to drop in third pot
-    robot_->getMotionController()->goStraight(100);
+    if (!robot_->getMotionController()->goStraight(100))
+        return true;
 
     // Move turret and drop
     servoManager_->moveTurret(turretOffset - dropSign * 0.65);
@@ -188,11 +189,14 @@ bool DropPlantsWithPotAction::performAction()
 
     if (robot_->gameState_.nPlantsInRobot() > 0)
     {
-        robot_->getMotionController()->goStraight(150);
+        if (!robot_->getMotionController()->goStraight(150))
+            return true;
         servoManager_->moveTurret(isDroppingFront_ ? 0 : M_PI);
-        robot_->getMotionController()->pointTurn(M_PI);
+        if (!robot_->getMotionController()->pointTurn(M_PI))
+            return true;
         dropPlants(robot_, servoManager_, isDroppingFront_, zoneId_, true);
-        robot_->getMotionController()->goStraight(-120);
+        if (!robot_->getMotionController()->goStraight(-120))
+            return true;
         servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::HIGH_POSITION);
         robot_->wait(0.8);
     }
@@ -200,31 +204,6 @@ bool DropPlantsWithPotAction::performAction()
     {
         robot_->getMotionController()->goStraight(80);
     }
-
-    // Finish by pusing the pots out of the way
-    // target = PLANT_DROP_COORD[zoneId_];
-    // target.y += - 300 * yInvert;
-
-    // // Action is done, pots simply weren't pushed
-    // if (!robot_->getMotionController()->goToStraightLine(target, 1.0, static_cast<tf>(flag | tf::IGNORE_END_ANGLE)))
-    //     return true;
-
-    // servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::LOW_POSITION);
-
-    // positions.clear();
-    // target.x += -(30 + POT_MARGIN) * xInvert;
-    // target.y += 200 * yInvert;
-    // positions.push_back(target);
-    // target.y += 250 * yInvert;
-    // positions.push_back(target);
-
-    // if (robot_->getMotionController()->goToRoundedCorners(positions, 100, 0.2, tf::IGNORE_END_ANGLE))
-    // {
-    //     robot_->gameState_.nPotsInPile[zoneId_] = 0;
-    //     robot_->getMotionController()->goStraight(-50);
-    // }
-
-    // servoManager_->setClawPosition(isDroppingFront_ ? ClawSide::FRONT : ClawSide::BACK, ClawPosition::HIGH_POSITION);
 
     return true;
 }

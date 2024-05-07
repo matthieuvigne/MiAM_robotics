@@ -60,7 +60,9 @@ bool PickupPlantsAction::performAction()
         // We landed on some plants: let's move back and try again.
         servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
         robot_->wait(0.3);
-        robot_->getMotionController()->goStraight(-80);
+        if (!robot_->getMotionController()->goStraight(-80))
+            return true; // Don't try again, other robot is already here.
+
         servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::LOW_POSITION);
     }
 
@@ -72,7 +74,8 @@ bool PickupPlantsAction::performAction()
     targetPosition.theta = angle;
     targetPosition.x += 160 * std::cos(angle);
     targetPosition.y += 160 * std::sin(angle);
-    robot_->getMotionController()->goToStraightLine(targetPosition, 0.5, tf::IGNORE_END_ANGLE);
+    if (!robot_->getMotionController()->goToStraightLine(targetPosition, 0.5, tf::IGNORE_END_ANGLE))
+        return true; // Don't try again, other robot is already here.
 
     servoManager_->closeClaws(isFront);
 
@@ -96,7 +99,8 @@ bool PickupPlantsAction::performAction()
         servoManager_->setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
 
         // Go back to avoid dropping a claw on some plants
-        robot_->getMotionController()->goStraight(-50, 0.5);
+        if (!robot_->getMotionController()->goStraight(-50, 0.5))
+            return true; // Don't try again, other robot is already here.
         forwardAmount += 50;
 
         shouldRetry = true;
@@ -118,7 +122,8 @@ bool PickupPlantsAction::performAction()
     if (shouldRetry)
     {
         servoManager_->openAvailableClaws(isFront, robot_->gameState_);
-        robot_->getMotionController()->goStraight(forwardAmount, 0.5);
+        if (!robot_->getMotionController()->goStraight(forwardAmount, 0.5))
+            return true; // Don't try again, other robot is already here.
 
         servoManager_->closeClaws(isFront);
 

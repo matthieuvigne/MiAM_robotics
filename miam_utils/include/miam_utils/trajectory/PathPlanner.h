@@ -52,8 +52,12 @@
 
                     /// @brief Return the closest position in the grid which is not in an obstacle.
                     /// @param desiredPosition Desired position
-                    /// @return Closest available cell
+                    /// @return Closest available cell*
                     RobotPosition getNearestAvailablePosition(RobotPosition const& desiredPosition);
+
+                    /// @brief Return true if set position is in an obstacle
+                    bool isPositionInCollision(RobotPosition const& position);
+
                 private:
                     PathPlannerConfig config_;
                     AStar::Generator generator_;

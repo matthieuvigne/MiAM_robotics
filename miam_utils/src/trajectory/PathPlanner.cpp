@@ -231,4 +231,10 @@ namespace miam::trajectory{
 
         return vec2iToRobotPosition(candidate, config_.astar_resolution_mm);
     }
+
+    bool PathPlanner::isPositionInCollision(RobotPosition const& position)
+    {
+        return generator_.detectCollision(robotPositionToVec2i(position, config_.astar_resolution_mm));
+    }
+
 }
