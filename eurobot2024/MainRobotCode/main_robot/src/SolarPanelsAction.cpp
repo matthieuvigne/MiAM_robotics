@@ -136,8 +136,15 @@ bool SolarPanelsAction::performAction()
         servoManager_->raiseSolarPanelArm(true);
         robot_->wait(0.4);
     }
+    robot_->wait(0.4);
     servoManager_->raiseSolarPanelArm();
     servoManager_->stopSolarPanel();
+  
+    // Return to point
+    flags = robot_->isPlayingRightSide() ?  tf::BACKWARD : tf::DEFAULT;
+    RobotPosition const target(PANELS_X_COORD[2], LATERAL_DISTANCE + 200, finalAngle);
+    if (!robot_->getMotionController()->goToStraightLine(target, 1, flags))
+        return true; // Never retry
 
     // Action should not be done again
     return true;
