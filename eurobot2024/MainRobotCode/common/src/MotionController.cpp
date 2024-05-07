@@ -161,16 +161,6 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         filteredDetectedObstacles_.push_back(obspos);
         detectedObstacles_.push_back(std::make_tuple(obspos, detection::mpc_obstacle_size));
         nObstaclesOnTable += 1;
-
-        // monitor the zones close to the cherry distributors
-        if (obspos.x < 250 && obspos.y > 1300 && obspos.y < 1650)
-        {
-            numberOfDetectionsLeftDistributor_++;
-        }
-        if (obspos.x > 2000 - 250 && obspos.y > 1300 && obspos.y < 1650)
-        {
-            numberOfDetectionsRightDistributor_++;
-        }
     }
     log("lidarNumberOfObstacles", nObstaclesOnTable);
 
@@ -306,7 +296,7 @@ void MotionController::changeMotionControllerState()
             *logger_ << "[MotionController] "  << "Continue trajectory; replan" << std::endl;
             nextMotionControllerState = CONTROLLER_TRAJECTORY_TRACKING;
         }
-        else if (durationSinceFirstStopped > 1.0 && durationSinceLastAvoidance > 1.0)
+        else if (durationSinceFirstStopped > 0.5 && durationSinceLastAvoidance > 0.5)
         {
             avoidanceCount_++;
             // transition to WAIT_FOR_TRAJECTORY
@@ -444,29 +434,6 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
     }
 
     return target;
-}
-
-// void MotionController::setAvoidPersistentObstacles(bool flag)
-// {
-//     avoidPersistentObstacles_ = flag;
-// }
-
-
-double MotionController::minDistancePositionToObstacle(RobotPosition position, bool includePersistentObstacles)
-{
-    double minDistanceFromObstacle = 10000;
-
-    for (auto obstacle : getDetectedObstacles(includePersistentObstacles))
-    {
-        double tmpMin = (std::get<0>(obstacle) - position).norm() - std::get<1>(obstacle);
-
-        // distance to center of obstacle minus size of the obstacle
-        minDistanceFromObstacle = std::min(
-            minDistanceFromObstacle,
-            tmpMin);
-    }
-
-    return minDistanceFromObstacle;
 }
 
 

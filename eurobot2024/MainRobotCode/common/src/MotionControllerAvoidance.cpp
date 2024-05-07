@@ -75,7 +75,7 @@ void MotionController::loopOnAvoidanceComputation()
             avoidanceComputationMutex_.unlock();
         }
 
-        usleep(50000);
+        usleep(5000);
     }
 }
 

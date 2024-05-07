@@ -204,11 +204,6 @@
             // bool avoidPersistentObstacles_;
             // void setAvoidPersistentObstacles(bool flag);
 
-            int numberOfDetectionsLeftDistributor_ = 0;
-            int numberOfDetectionsRightDistributor_ = 0;
-
-            double minDistancePositionToObstacle(RobotPosition position, bool includePersistentObstacles);
-
             TrajectoryVector getCurrentTrajectories();
             double getCurvilinearAbscissa();
 

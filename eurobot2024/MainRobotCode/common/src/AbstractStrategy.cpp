@@ -31,44 +31,33 @@ void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
     endPosition.x += squareDimension;
     TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
-    motionController->setTrajectoryToFollow(traj);
-    motionController->waitForTrajectoryFinished();
 
-    position = endPosition;
+    position = traj.getEndPoint().position;
     endPosition.y -= sgn*squareDimension;
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+    traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
-    motionController->setTrajectoryToFollow(traj);
-    motionController->waitForTrajectoryFinished();
 
-    position = endPosition;
+    position = traj.getEndPoint().position;
     position.theta = -sgn * M_PI_2;
     endPosition.x -= squareDimension;
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+    traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
-    motionController->setTrajectoryToFollow(traj);
-    motionController->waitForTrajectoryFinished();
 
-
-    position = endPosition;
+    position = traj.getEndPoint().position;
     position.theta = -sgn * M_PI;
     endPosition.y += sgn*squareDimension;
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+    traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
-    motionController->setTrajectoryToFollow(traj);
-    motionController->waitForTrajectoryFinished();
 
-    position = endPosition;
+    position = traj.getEndPoint().position;
     position.theta = -sgn * 3 * M_PI_2;
     endPosition.x += squareDimension;
-    traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
+    traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
         position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
     traj.pop_back();
     motionController->setTrajectoryToFollow(traj);
     motionController->waitForTrajectoryFinished();
 
-
-    motionController->waitForTrajectoryFinished();
 }
 
 //--------------------------------------------------------------------------------------------------
