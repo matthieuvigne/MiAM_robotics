@@ -102,7 +102,8 @@ bool ViewerRobot::initSystem()
 
 void ViewerRobot::wait(double const& waitTimeS)
 {
-    if (metronome_.getElapsedTime() < 1e-3 && waitTimeS < 90)
+    // No wait during init.
+    if (metronome_.getElapsedTime() < 1e-1)
         return;
     double const targetTime = metronome_.getElapsedTime() + waitTimeS;
     while (metronome_.getElapsedTime() < targetTime)
@@ -114,7 +115,7 @@ void ViewerRobot::updateSensorData()
     measurements_.drivetrainMeasurements.encoderPositionIncrement = kinematics_.inverseKinematics(kinematics_.forwardKinematics(simulationSpeed_), true);
     simulatedEncoders_ += measurements_.drivetrainMeasurements.encoderPositionIncrement.toVector();
     measurements_.drivetrainMeasurements.encoderPosition = simulatedEncoders_;
-    measurements_.drivetrainMeasurements.motorSpeed = simulationSpeed_;
+    measurements_.drivetrainMeasurements.motorSpeed = 1 / ROBOT_DT * simulationSpeed_;
     measurements_.batteryVoltage = simulatorData_.batteryVoltage;
 
     // Create lidar measurements.

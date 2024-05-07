@@ -334,11 +334,12 @@ bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & acti
     robot->getMotionController()->setTrajectoryToFollow(traj);
     if (!robot->getMotionController()->waitForTrajectoryFinished())
     {
+        robot->logger_ << "[Strategy] Action failed, could not reach start position." << std::endl;
         // action was not successful
         return false;
     }
     actionShouldBeRemoved = action->performAction();
-    return true;
+    return actionShouldBeRemoved;
 }
 
 

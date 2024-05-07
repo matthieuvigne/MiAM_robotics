@@ -86,11 +86,11 @@ bool SolarPanelsAction::performAction()
                 );
                 robot_->getMotionController()->setTrajectoryToFollow(traj);
                 if (!robot_->getMotionController()->waitForTrajectoryFinished())
-                    return false;
+                    return true; // Never retry
             }
             else
                 if (!robot_->getMotionController()->goToStraightLine(target, 1, flags))
-                    return false;
+                    return true; // Never retry
         }
 
         servoManager_->lowerSolarPanelArm();
