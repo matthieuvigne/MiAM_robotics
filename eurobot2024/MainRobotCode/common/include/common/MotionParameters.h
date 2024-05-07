@@ -23,23 +23,19 @@
       double const xfar_max_avoidance = 700;
       double const yfar_max_avoidance = 500;
 
+      // Radius used to represent a detected robot in PathPlaner grid.
       double const mpc_obstacle_size = 475;
       // add this amount to obstacle radius in PathPlanner to get some slack
-      double const mpc_obstacle_margin = 75; 
-
-      // for ending trajectory...
-      double const x_max_ending = 200;
-      double const y_max_ending = 300;
-      double const xfar_max_ending = 300;
-      double const yfar_max_ending = 400;
+      double const mpc_obstacle_margin = 75;
     }
 
     // Dimensions of the table
     namespace table_dimensions {
       int constexpr table_size_x = 3000;
       int constexpr table_size_y = 2000;
-      
-      double constexpr table_margin = 50;
+
+      double constexpr table_margin = 150;  // How much margin to leave: this should be the robot's radius.
+
       double constexpr table_max_x = (double) table_size_x - table_margin;
       double constexpr table_max_y = (double) table_size_y - table_margin;
       double constexpr table_min_x = table_margin;

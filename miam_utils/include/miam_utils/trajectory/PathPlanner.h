@@ -50,6 +50,10 @@
                     std::vector<RobotPosition> planPath(
                         RobotPosition const& start, RobotPosition const& end);
 
+                    /// @brief Return the closest position in the grid which is not in an obstacle.
+                    /// @param desiredPosition Desired position
+                    /// @return Closest available cell
+                    RobotPosition getNearestAvailablePosition(RobotPosition const& desiredPosition);
                 private:
                     PathPlannerConfig config_;
                     AStar::Generator generator_;

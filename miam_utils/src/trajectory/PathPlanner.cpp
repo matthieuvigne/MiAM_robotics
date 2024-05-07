@@ -202,4 +202,33 @@ namespace miam::trajectory{
 
         return positions;
     }
+
+    RobotPosition PathPlanner::getNearestAvailablePosition(RobotPosition const& desiredPosition)
+    {
+        AStar::Vec2i startPoint = robotPositionToVec2i(desiredPosition, config_.astar_resolution_mm);
+
+        if (generator_.obstacleMap_(startPoint.x, startPoint.y) == 0)
+            return desiredPosition;
+
+        // Greedy algorithm: compute all distances
+        double minDistance = 1e6;
+        AStar::Vec2i candidate = startPoint;
+        AStar::Vec2i worldSize = generator_.getWorldSize();
+        for (int x = 0; x < worldSize.x; x++)
+            for (int y = 0; y < worldSize.x; y++)
+            {
+                if (generator_.detectCollision({x, y}))
+                    continue;
+                // Distance squared: since sqrt is monotonous, no need to take square root.
+                double const distance = (x - startPoint.x) * (x - startPoint.x) + (y - startPoint.y) * (y - startPoint.y);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    candidate.x = x;
+                    candidate.y = y;
+                }
+            }
+
+        return vec2iToRobotPosition(candidate, config_.astar_resolution_mm);
+    }
 }

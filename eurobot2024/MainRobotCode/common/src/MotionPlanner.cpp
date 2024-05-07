@@ -75,7 +75,7 @@ PathPlannerConfig generatePathPlannerConfig()
 {
 
     int const gridResolution = 25;
-    int const borderMargin = 6; // Border margin, in grid unit.
+    int const borderMargin = static_cast<int>(std::ceil(table_dimensions::table_margin / gridResolution)); // Border margin, in grid unit.
 
     int const nRows = table_dimensions::table_size_x / gridResolution;
     int const nCols = table_dimensions::table_size_y / gridResolution;

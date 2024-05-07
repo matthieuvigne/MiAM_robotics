@@ -188,21 +188,31 @@ TrajectoryVector MotionController::computeMPCTrajectory(
     motionPlanningMutex_.lock();
     double minDistanceToObstacle = 10000;
     double obstacleRadiusMargin = detection::mpc_obstacle_margin; // add safety distance to obstacle to avoid crossing it
+    double minObstacleRadius = 0;
 
     // update obstacle map
     motionPlanner_.pathPlanner_.resetCollisions();
     for (auto const& obstacle : detectedObstacles)
     {
         motionPlanner_.pathPlanner_.addCollision(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
-        minDistanceToObstacle = std::min(minDistanceToObstacle, (std::get<0>(obstacle) - currentPosition).norm());
+        double const distance = (std::get<0>(obstacle) - currentPosition).norm();
+        if (distance < minDistanceToObstacle)
+        {
+            minDistanceToObstacle = distance;
+            minObstacleRadius = std::get<1>(obstacle);
+        }
     }
 
     *logger_ << "[MotionController] >> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
 
-    // Go back from the obtacle if needed
+    // Go back from the obtacle if needed - the value to go back is computed
+    // to get us out of the avoidance zone:
+    //   - minObstacleRadius - minDistanceToObstacle: where the obstacle ends.
+    //   - detection::mpc_obstacle_margin : margin in avoidance zone - we take some more room here
+    //   - initialBackwardMotionMargin: custom user distance.
     double distanceToGoBack = std::max(
         0.0,
-        detection::x_max_avoidance + initialBackwardMotionMargin - minDistanceToObstacle);
+        1.5 * detection::mpc_obstacle_margin + initialBackwardMotionMargin + minObstacleRadius - minDistanceToObstacle);
 
     RobotPosition newStartPoint = currentPosition;
 
@@ -223,25 +233,45 @@ TrajectoryVector MotionController::computeMPCTrajectory(
             backwardDistance = std::min(backwardDistance, (std::get<0>(obstacle) - backwardPosition).norm());
         }
 
-        if (backwardDistance > forwardDistance)
-        {
-            *logger_ << "[MotionController] Obstacle too close: moving back " << distanceToGoBack << " mm" << std::endl;
-            traj =  traj + miam::trajectory::computeTrajectoryStraightLine(
-                robotParams_.getTrajConf(),
-                currentPosition, // start
-                -distanceToGoBack
-            );
-        }
-        else
-        {
-            *logger_ << "[MotionController] Obstacle too close: moving fprward " << distanceToGoBack << " mm" << std::endl;
-            traj = traj + miam::trajectory::computeTrajectoryStraightLine(
+        double sign = (backwardDistance > forwardDistance ? -1 : 1);
+
+        // Clamp point to remain in table, with margin.
+        newStartPoint = newStartPoint + RobotPosition(sign * distanceToGoBack, 0.0, 0.0).rotate(newStartPoint.theta);
+        newStartPoint.theta = currentPosition.theta;
+
+        newStartPoint.x = std::max(table_dimensions::table_min_x, std::min(table_dimensions::table_max_x, newStartPoint.x));
+        newStartPoint.y = std::max(table_dimensions::table_min_y, std::min(table_dimensions::table_max_y, newStartPoint.y));
+
+        distanceToGoBack = sign * (currentPosition - newStartPoint).norm();
+
+        *logger_ << "[MotionController] Obstacle too close: moving " << distanceToGoBack << " mm" << std::endl;
+        *logger_ << "[MotionController] Moved back position: " << newStartPoint << std::endl;
+
+        traj = traj + miam::trajectory::computeTrajectoryStraightLine(
                 robotParams_.getTrajConf(),
                 currentPosition, // start
                 distanceToGoBack
             );
-        }
 
+        newStartPoint = traj.getEndPoint().position;
+    }
+
+    // At this point, we've tried to move back as much as possible from an obstacle. Nevertheless,
+    // we may still be in an obstacle (table limit, robot)...
+    // Now we ask the path planner to give us the closest point which is not an obstacle, and we will start planning from there.
+    RobotPosition const closestAvailablePosition = motionPlanner_.pathPlanner_.getNearestAvailablePosition(newStartPoint);
+
+    if ((closestAvailablePosition - newStartPoint).norm() > 30)
+    {
+        *logger_ << "[MotionController] Desired point is not available, using closest point in grid: " << std::endl;
+        *logger_ << "[MotionController] " << closestAvailablePosition << " instead of " <<  newStartPoint << std::endl;
+
+        traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(
+            robotParams_.getTrajConf(),
+            newStartPoint,
+            closestAvailablePosition,
+            0.0,
+            static_cast<tf>(flags | tf::IGNORE_END_ANGLE));
         newStartPoint = traj.getEndPoint().position;
     }
 

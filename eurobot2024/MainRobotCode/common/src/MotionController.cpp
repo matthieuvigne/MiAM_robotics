@@ -52,16 +52,6 @@ void MotionController::init(RobotPosition const& startPosition)
     motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
     timeSinceFirstStopped_ = std::chrono::steady_clock::now();
     timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
-
-    // Init low avoidance
-    lowAvoidanceZoneEnabled_ = false;
-    // avoidPersistentObstacles_ = true;
-
-    RobotPosition endPosition;
-    endPosition.x = 680;
-    endPosition.y = 100;
-    endPosition.theta = -M_PI_2;
-    lowAvoidanceZone_ = std::make_pair(endPosition, 500);
 }
 
 miam::RobotPosition MotionController::getCurrentPosition() const
@@ -454,18 +444,6 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
     }
 
     return target;
-}
-
-void MotionController::setLowAvoidanceZone(RobotPosition lowAvoidanceCenter, double lowAvoidanceRadius)
-{
-    lowAvoidanceZone_ = std::make_pair(lowAvoidanceCenter, lowAvoidanceRadius);
-    lowAvoidanceZoneEnabled_ = true;
-    *logger_ << "[MotionController] Set low avoidance zone around " << lowAvoidanceCenter << " radius " <<  lowAvoidanceRadius << std::endl;
-}
-
-void MotionController::disableLowAvoidanceZone()
-{
-    lowAvoidanceZoneEnabled_ = false;
 }
 
 // void MotionController::setAvoidPersistentObstacles(bool flag)

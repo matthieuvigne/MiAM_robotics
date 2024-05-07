@@ -201,10 +201,6 @@
 
             std::vector<miam::RobotPosition> filteredDetectedObstacles_; ///< Detected obstables ; angle is M_PI if outside table else 0.
 
-            // low avoidance : during which avoidance is very low
-            void setLowAvoidanceZone(RobotPosition lowAvoidanceCenter, double lowAvoidanceRadius);
-            void disableLowAvoidanceZone();
-
             // bool avoidPersistentObstacles_;
             // void setAvoidPersistentObstacles(bool flag);
 
@@ -306,9 +302,6 @@
                                                            double const &dt,
                                                            bool const &hasMatchStarted);
 
-            // In this zone avoidance should be low
-            bool lowAvoidanceZoneEnabled_;
-            Obstacle lowAvoidanceZone_;
 
             bool askedForTrackingStop_ = false;
 
