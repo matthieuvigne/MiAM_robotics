@@ -222,6 +222,9 @@ TrajectoryVector MotionController::computeMPCTrajectory(
 
     RobotPosition newStartPoint = currentPosition;
 
+    std::vector<RobotPosition> intermediatePoints;
+    intermediatePoints.push_back(currentPosition);
+
     if ((distanceToGoBack > 0))
     {
         // Determine if it's better to go backward or forward, depending on obstacle position.
@@ -241,25 +244,27 @@ TrajectoryVector MotionController::computeMPCTrajectory(
 
         double sign = (backwardDistance > forwardDistance ? -1 : 1);
 
+        distanceToGoBack = sign * distanceToGoBack;
+
         // Clamp point to remain in table, with margin.
-        newStartPoint = newStartPoint + RobotPosition(sign * distanceToGoBack, 0.0, 0.0).rotate(newStartPoint.theta);
-        newStartPoint.theta = currentPosition.theta;
-
-        newStartPoint.x = std::max(table_dimensions::table_min_x, std::min(table_dimensions::table_max_x, newStartPoint.x));
-        newStartPoint.y = std::max(table_dimensions::table_min_y, std::min(table_dimensions::table_max_y, newStartPoint.y));
-
-        distanceToGoBack = sign * (currentPosition - newStartPoint).norm();
+        double const ct = std::cos(newStartPoint.theta);
+        if (std::abs(ct) > 1e-3)
+        {
+            distanceToGoBack = std::min((table_dimensions::table_max_x - newStartPoint.x), distanceToGoBack * ct) / ct;
+            distanceToGoBack = std::max((table_dimensions::table_min_x - newStartPoint.x), distanceToGoBack * ct) / ct;
+        }
+        double const st = std::sin(newStartPoint.theta);
+        if (std::abs(st) > 1e-3)
+        {
+            distanceToGoBack = std::min((table_dimensions::table_max_y - newStartPoint.y), distanceToGoBack * st) / st;
+            distanceToGoBack = std::max((table_dimensions::table_min_y - newStartPoint.y), distanceToGoBack * st) / st;
+        }
 
         *logger_ << "[MotionController] Obstacle too close: moving " << distanceToGoBack << " mm" << std::endl;
         *logger_ << "[MotionController] Moved back position: " << newStartPoint << std::endl;
 
-        traj = traj + miam::trajectory::computeTrajectoryStraightLine(
-                robotParams_.getTrajConf(),
-                currentPosition, // start
-                distanceToGoBack
-            );
-
-        newStartPoint = traj.getEndPoint().position;
+        newStartPoint = newStartPoint + RobotPosition(distanceToGoBack, 0.0, 0.0).rotate(newStartPoint.theta);
+        intermediatePoints.push_back(newStartPoint);
     }
 
     // At this point, we've tried to move back as much as possible from an obstacle. Nevertheless,
@@ -272,12 +277,20 @@ TrajectoryVector MotionController::computeMPCTrajectory(
         *logger_ << "[MotionController] Desired point is not available, using closest point in grid: " << std::endl;
         *logger_ << "[MotionController] " << closestAvailablePosition << " instead of " <<  newStartPoint << std::endl;
 
-        traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(
+        intermediatePoints.push_back(closestAvailablePosition);
+    }
+
+    if (intermediatePoints.size() > 1)
+    {
+        tf customFlags = tf::IGNORE_END_ANGLE;
+        customFlags = static_cast<tf>(customFlags | (distanceToGoBack < 0 ? tf::BACKWARD : tf::DEFAULT));
+
+        traj = traj + miam::trajectory::computeTrajectoryRoundedCorner(
             robotParams_.getTrajConf(),
-            newStartPoint,
-            closestAvailablePosition,
-            0.0,
-            static_cast<tf>(flags | tf::IGNORE_END_ANGLE));
+            intermediatePoints,
+            100,
+            0.2,
+            customFlags);
         newStartPoint = traj.getEndPoint().position;
     }
 
