@@ -92,7 +92,7 @@ double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory(st
     if (currentTrajectories_.empty())
         return 1.0;
 
-    double minSlowDown = 0.4;
+    double minSlowDown = 0.5;
     double maxSlowDown = 0.8;
 
     double dtTimeHorizon = 0.1;

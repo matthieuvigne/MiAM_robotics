@@ -146,6 +146,7 @@ bool SolarPanelsAction::performAction()
 
     // Return to point
     flags = robot_->isPlayingRightSide() ?  tf::BACKWARD : tf::DEFAULT;
+    flags = static_cast<tf>(flags | tf::IGNORE_END_ANGLE);
     RobotPosition const target(PANELS_X_COORD[2], LATERAL_DISTANCE + 200, finalAngle);
     if (!robot_->getMotionController()->goToStraightLine(target, 1, flags))
         return true; // Never retry
