@@ -306,6 +306,12 @@ TrajectoryVector MotionController::computeMPCTrajectory(
         *logger_ << "[MotionController] Avoidance path planning failed" << std::endl;
         return TrajectoryVector();
     }
+    else if ((mpcTrajectory.getEndPoint().position - targetPosition).norm() > 40)
+    {
+        *logger_ << "[MotionController] MPC failed to solve problem, aimed for " << targetPosition << std::endl;
+        *logger_ << "but reached " << mpcTrajectory.getEndPoint().position << std::endl;
+        return TrajectoryVector();
+    }
     else
     {
         *logger_ << "[MotionController] MPC traj planned from " << mpcTrajectory.getCurrentPoint(0.0) << std::endl;
