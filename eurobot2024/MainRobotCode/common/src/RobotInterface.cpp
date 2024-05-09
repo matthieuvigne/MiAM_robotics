@@ -87,7 +87,8 @@ void RobotInterface::lowLevelLoop()
     double debugTimeBeforeWait, debugTimeAfterWait, debugTimeBeforeSensor;
     double debugTimeAfterSensor, debugTimeAfterCompute, debugTimeAfterApply;
     // Loop until start of the match, then for 100 seconds after the start of the match.
-    while(!hasMatchStarted_ || (currentTime_ < 100.0 + matchStartTime_))
+    // Note: delay reduced to 93s for PAMI.
+    while(!hasMatchStarted_ || (currentTime_ < 93.0 + matchStartTime_))
     {
         // Wait for next tick.
         lastTime = currentTime_;
@@ -199,6 +200,7 @@ void RobotInterface::lowLevelLoop()
     pthread_cancel(strategyHandle);
     stopMotors();
 
+    strategy_->shutdown();
     matchEnd();
 
     // Wait for referees to count the score.

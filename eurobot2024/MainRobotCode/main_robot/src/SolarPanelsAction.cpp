@@ -37,8 +37,8 @@ void SolarPanelsAction::updateStartCondition()
             priority_ = 25;
         else
             priority_ = 1;
-    } 
-    
+    }
+
     //~ if (robotStartPosition.y < 500)
     //~ {
         //~ // Do this action first when starting on the lower left corner
@@ -85,7 +85,7 @@ bool SolarPanelsAction::performAction()
       return false;
     }
 
-    //~ for (int i = 0; i< 6; i++)    
+    //~ for (int i = 0; i< 6; i++)
     for (int i = start_idx; i<end_idx; i++)
     {
         if (i > 0)
@@ -121,10 +121,10 @@ bool SolarPanelsAction::performAction()
                   );
                   robot_->getMotionController()->setTrajectoryToFollow(traj);
                   if (!robot_->getMotionController()->waitForTrajectoryFinished())
-                      return true; // Never retry
+                      break;
               } else {
                   if (!robot_->getMotionController()->goToStraightLine(target, 1, flags))
-                      return true; // Never retry
+                      break;
               }
         }
 
@@ -136,10 +136,9 @@ bool SolarPanelsAction::performAction()
         servoManager_->raiseSolarPanelArm(true);
         robot_->wait(0.4);
     }
-    robot_->wait(0.4);
     servoManager_->raiseSolarPanelArm();
     servoManager_->stopSolarPanel();
-  
+
     // Return to point
     flags = robot_->isPlayingRightSide() ?  tf::BACKWARD : tf::DEFAULT;
     RobotPosition const target(PANELS_X_COORD[2], LATERAL_DISTANCE + 200, finalAngle);

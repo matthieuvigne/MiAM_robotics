@@ -96,7 +96,8 @@ bool Strategy::setup(RobotInterface *robot)
 
 void Strategy::shutdown()
 {
-  // TODO
+    servoManager_.openClaws(true);
+    servoManager_.openClaws(false);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -128,6 +129,9 @@ void Strategy::match()
 
 void Strategy::goBackToBase()
 {
+    // Reduce score by 5 points, this is what we miss on average
+    robot->updateScore(-5, "arbitrary discount");
+
     // Clear current trajectory
     robot->getMotionController()->stopCurrentTrajectoryTracking();
 
