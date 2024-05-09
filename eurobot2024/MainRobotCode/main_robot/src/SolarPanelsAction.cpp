@@ -85,7 +85,6 @@ bool SolarPanelsAction::performAction()
       return false;
     }
 
-    //~ for (int i = 0; i< 6; i++)
     for (int i = start_idx; i<end_idx; i++)
     {
         if (i > 0)
@@ -116,15 +115,21 @@ bool SolarPanelsAction::performAction()
                       robot_->getMotionController()->robotParams_.getTrajConf(),
                       positions,
                       100.0,
-                      0.4,    // Transition velocity
+                      0.3,    // Transition velocity
                       flags
                   );
                   robot_->getMotionController()->setTrajectoryToFollow(traj);
                   if (!robot_->getMotionController()->waitForTrajectoryFinished())
-                      break;
+                  {
+                    robot_->logger_ << "[Stategy] Could not reach solar pannel: exiting" << std::endl;
+                    break;
+                  }
               } else {
                   if (!robot_->getMotionController()->goToStraightLine(target, 1, flags))
-                      break;
+                  {
+                    robot_->logger_ << "[Stategy] Could not reach solar pannel: exiting" << std::endl;
+                    break;
+                  }
               }
         }
 

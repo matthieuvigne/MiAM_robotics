@@ -187,6 +187,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     log("clampedDetectionCoeff", clampedSlowDownCoeff_);
     log("MotionController.commandVelocityRight",target.motorSpeed.right);
     log("MotionController.commandVelocityLeft",target.motorSpeed.left);
+    log("MotionController.lockTimeSinceFirstStop",lockTimeSinceFirstStop_);
 
     return target;
 }
@@ -215,6 +216,7 @@ void MotionController::changeMotionControllerState()
 
     if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
     {
+        lockTimeSinceFirstStop_ = false;
         if (!newTrajectories_.empty())
         {
             *logger_ << "[MotionController] Start reading trajectories " << std::endl;
@@ -234,12 +236,23 @@ void MotionController::changeMotionControllerState()
 
     if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
     {
+        // Potentially unlock stop if we have moved lone enough.
+        if (clampedSlowDownCoeff_ < 0.99)
+        {
+            fullSpeedStartTime_ = std::chrono::steady_clock::now();
+        }
+        double const durationSinceFullSpeed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - fullSpeedStartTime_).count() / 1000.0;
+        if (durationSinceFullSpeed > 1.0)
+            lockTimeSinceFirstStop_ = false;
 
         // transition to STOP
         if (clampedSlowDownCoeff_ < 1.0e-6)
         {
-            timeSinceFirstStopped_ = std::chrono::steady_clock::now();
-
+            if (!lockTimeSinceFirstStop_)
+            {
+                timeSinceFirstStopped_ = std::chrono::steady_clock::now();
+                lockTimeSinceFirstStop_ = true;
+            }
             nextMotionControllerState = CONTROLLER_STOP;
         }
         else
@@ -285,6 +298,8 @@ void MotionController::changeMotionControllerState()
         // in seconds
         double durationSinceFirstStopped = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceFirstStopped_).count() / 1000.0;
         double durationSinceLastAvoidance = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceLastAvoidance_).count() / 1000.0;
+
+        log("MotionController.durationSinceFirstStopped",durationSinceFirstStopped);
 
         // transition to TRAJECTORY_TRACKING
         if (clampedSlowDownCoeff_ > 0.0 && durationSinceFirstStopped > 0.1)
@@ -349,7 +364,12 @@ void MotionController::changeMotionControllerState()
             {
                 *logger_ << "[MotionController] " << "Avoidance failed" << std::endl;
 
-                nextMotionControllerState = CONTROLLER_STOP;
+                newTrajectoryMutex_.lock();
+                currentTrajectories_.clear();
+                wasTrajectoryFollowingSuccessful_ = false;
+                newTrajectoryMutex_.unlock();
+
+                nextMotionControllerState = CONTROLLER_WAIT_FOR_TRAJECTORY;
             }
             avoidanceComputationMutex_.lock();
             avoidanceComputationScheduled_ = false;
@@ -432,6 +452,9 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
         //     currentTrajectories_.erase(currentTrajectories_.begin());
         // }
     }
+
+    if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY || motionControllerState_ == CONTROLLER_WAIT_FOR_AVOIDANCE)
+        lockTimeSinceFirstStop_ = false;
 
     return target;
 }
