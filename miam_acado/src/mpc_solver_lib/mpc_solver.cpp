@@ -12,7 +12,7 @@
 #include "acado_auxiliary_functions.h"
 
 #include "mpc_parameterization.hpp"
-#include "gnuplot-iostream.h"
+// #include "gnuplot-iostream.h"
 
 /* Some convenient definitions. */
 #define NX          ACADO_NX  /* Number of differential state variables.  */

@@ -27,15 +27,15 @@ set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wall -Wno-psabi -fdiagnostics-color")
 
 find_package(PkgConfig REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(Boost COMPONENTS system iostreams filesystem REQUIRED) # sudo apt-get install libboost-all-dev
+# find_package(Boost COMPONENTS system iostreams filesystem REQUIRED) # sudo apt-get install libboost-all-dev
 
 
 #
 # Prerequisites
 #
 FIND_PACKAGE( ACADO REQUIRED )
-pkg_search_module(ACADO REQUIRED acado)
-message(STATUS "Found acado v." ${ACADO_VERSION})
+# pkg_search_module(ACADO REQUIRED acado)
+# message(STATUS "Found acado v." ${ACADO_VERSION})
 
 pkg_search_module(RPLIDAR REQUIRED rplidar)
 message(STATUS "Found rplidar v." ${RPLIDAR_VERSION})
@@ -50,7 +50,7 @@ include_directories(
 	${RPLIDAR_INCLUDE_DIRS} 
 	${MIAM_UTILS_INCLUDE_DIRS} 
 	${ACADO_INCLUDE_DIRS}
-	${Boost_INCLUDE_DIR}
+	# ${Boost_INCLUDE_DIR}
 	../qpoases
 	../qpoases/INCLUDE
 	../qpoases/SRC
@@ -62,7 +62,7 @@ include_directories(
 link_directories(
 	${RPLIDAR_LIBRARY_DIRS} 
 	${MIAM_UTILS_LIBRARY_DIRS} 
-	${Boost_LIBRARY_DIRS}
+	# ${Boost_LIBRARY_DIRS}
 )
 
 # Copy config.
@@ -107,7 +107,7 @@ FOREACH( TEST_SOURCE_FILE ${TEST_SOURCES} )
 		${ACADO_SHARED_LIBRARIES} 
 		${RPLIDAR_LIBRARIES} 
 		${MIAM_UTILS_LIBRARIES} 
-		${Boost_LIBRARIES}
+		# ${Boost_LIBRARIES}
 		CustomSolver 
 		QPoases
 		AStar 

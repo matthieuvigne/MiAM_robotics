@@ -57,7 +57,7 @@ int main() {
     DMatrix WN ( hN.getDim(), hN.getDim() );
     WN(0, 0) = MPC_PONDERATION_FINAL_STATE * MPC_MU_TRAJ;
     WN(1, 1) = MPC_PONDERATION_FINAL_STATE * MPC_MU_TRAJ;
-    WN(2, 2) = MPC_PONDERATION_FINAL_STATE * MPC_MU_THETA * 1000;
+    WN(2, 2) = MPC_PONDERATION_FINAL_STATE * MPC_MU_THETA;
     WN(3, 3) = MPC_PONDERATION_FINAL_STATE * MPC_MU_VLIN;
     WN(4, 4) = MPC_PONDERATION_FINAL_STATE * MPC_MU_VANG;
 
@@ -100,7 +100,7 @@ int main() {
     // if (mpc.exportCode( "../src/generated_code" ) != SUCCESSFUL_RETURN)
     //     exit( EXIT_FAILURE );
 
-    if (mpc.exportCode( "../../eurobot2024/MainRobotCode/common/acado_solver" ) != SUCCESSFUL_RETURN)
+    if (mpc.exportCode( "../../src/MiAM_robotics/eurobot2024/MainRobotCode/common/acado_solver" ) != SUCCESSFUL_RETURN)
         exit( EXIT_FAILURE );
 
     mpc.printDimensionsQP( );

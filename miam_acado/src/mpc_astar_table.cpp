@@ -11,7 +11,7 @@
 #include<iostream>
 #include<fstream>
 
-#include "gnuplot-iostream.h"
+// #include "gnuplot-iostream.h"
 
 #include "mpc_solver_lib/mpc_solver.hpp"
 

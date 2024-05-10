@@ -77,4 +77,10 @@ RUN apt update &&\
     apt install -y '^libxcb.*-dev' '^libxkb.*-dev' &&\
     apt-get clean -y
 
+# Install ACADO
+RUN apt-get -y install gcc g++ cmake git gnuplot doxygen graphviz
+RUN cd / && git clone https://github.com/acado/acado.git -b stable
+RUN mkdir /acado/build && cd /acado/build && cmake /acado && make -j8
+RUN echo "source /acado/build/acado_env.sh" >> /root/.bashrc
+
 WORKDIR /miam_workspace

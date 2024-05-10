@@ -11,7 +11,7 @@
 #include "generated_code/acado_auxiliary_functions.h"
 
 #include "mpc_parameterization.hpp"
-#include "gnuplot-iostream.h"
+// #include "gnuplot-iostream.h"
 
 /* Some convenient definitions. */
 #define NX          ACADO_NX  /* Number of differential state variables.  */
@@ -179,7 +179,7 @@ int main() {
     if (VERBOSE )
     {
 
-        Gnuplot gp;
+        // Gnuplot gp;
 
         // acado_printDifferentialVarNUiables();
         // acado_printControlVariables();
@@ -217,23 +217,23 @@ int main() {
 	        
         }
         
-        gp << "set term wxt 0\n";
-        gp << "set xrange [0:1000]\nset yrange [0:1000]\n";
-        gp << "plot" << gp.file1d(xy_pts_true) << "with lines title 'true',"
-            << gp.file1d(xy_pts_res) << "with lines title 'res',"
-            << gp.file1d(xy_pts_init) << "with lines title 'init'" << std::endl;
+        // gp << "set term wxt 0\n";
+        // gp << "set xrange [0:1000]\nset yrange [0:1000]\n";
+        // gp << "plot" << gp.file1d(xy_pts_true) << "with lines title 'true',"
+        //     << gp.file1d(xy_pts_res) << "with lines title 'res',"
+        //     << gp.file1d(xy_pts_init) << "with lines title 'init'" << std::endl;
         
-        gp << "set term wxt 1\n";
-        gp << "set xrange [0:10]\nset yrange [0:1000]\n";
-        gp << "plot" << gp.file1d(v_pts_true) << "with lines title 'true',"
-            << gp.file1d(v_pts_res) << "with lines title 'res'," 
-            << gp.file1d(v_pts_init) << "with lines title 'init'" << std::endl;
+        // gp << "set term wxt 1\n";
+        // gp << "set xrange [0:10]\nset yrange [0:1000]\n";
+        // gp << "plot" << gp.file1d(v_pts_true) << "with lines title 'true',"
+        //     << gp.file1d(v_pts_res) << "with lines title 'res'," 
+        //     << gp.file1d(v_pts_init) << "with lines title 'init'" << std::endl;
 
-        gp << "set term wxt 2\n";
-        gp << "set xrange [0:10]\nset yrange [-1:1]\n";
-        gp << "plot" << gp.file1d(w_pts_true) << "with lines title 'true',"
-            << gp.file1d(w_pts_res) << "with lines title 'res'," 
-            << gp.file1d(w_pts_init) << "with lines title 'init'" << std::endl;
+        // gp << "set term wxt 2\n";
+        // gp << "set xrange [0:10]\nset yrange [-1:1]\n";
+        // gp << "plot" << gp.file1d(w_pts_true) << "with lines title 'true',"
+        //     << gp.file1d(w_pts_res) << "with lines title 'res'," 
+        //     << gp.file1d(w_pts_init) << "with lines title 'init'" << std::endl;
 
 
         acado_printControlVariables();
