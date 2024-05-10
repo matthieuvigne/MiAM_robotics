@@ -15,8 +15,8 @@
 #define MPC_PONDERATION_FINAL_STATE 10 // scaling factor to account more for the final state
 
 #define REFERENCE_WHEEL_SPACING 100.5 // reference wheel spacing in mm, from wheel to center of robot
-#define MAX_WHEEL_SPEED 700 // max wheel velocity in mm/s
-#define MAX_WHEEL_ACCELERATION 1000 // max wheel acceleration in mm/s
+#define MAX_WHEEL_SPEED 1000 // max wheel velocity in mm/s
+#define MAX_WHEEL_ACCELERATION 1500 // max wheel acceleration in mm/s
 
 
 int main() {
