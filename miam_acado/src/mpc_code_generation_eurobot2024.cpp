@@ -5,9 +5,9 @@
 #include <acado_gnuplot.hpp>
 
 #define MPC_DELTA_T 0.1// 100 ms
-#define MPC_N_TIME_INTERVALS 20 // 20 discrete time intervals
+#define MPC_N_TIME_INTERVALS 22 // 20 discrete time intervals
 
-#define MPC_MU_TRAJ 1000 // weight of the trajectory (x, y) in the optimization algorithm
+#define MPC_MU_TRAJ 5000 // weight of the trajectory (x, y) in the optimization algorithm
 #define MPC_MU_THETA 10 // weight of the trajectory (theta) in the optimization algorithm
 #define MPC_MU_VLIN 100 // weight of the trajectory (v) in the optimization algorithm
 #define MPC_MU_VANG 1 // weight of the trajectory (w) in the optimization algorithm

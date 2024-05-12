@@ -34,7 +34,7 @@
 
 // The parameters used to generate the MPC code
 #define MPC_DELTA_T 0.1// 100 ms
-#define MPC_N_TIME_INTERVALS 20 // 20 discrete time intervals
+#define MPC_N_TIME_INTERVALS 30 // 20 discrete time intervals
 
 #define MPC_MU_TRAJ 100 // weight of the trajectory (x, y) in the optimization algorithm
 #define MPC_MU_THETA 10 // weight of the trajectory (theta) in the optimization algorithm
@@ -45,6 +45,8 @@
 
 #define DELTA_T    MPC_DELTA_T
 #define HORIZON_T   DELTA_T * N
+
+#define RETAINED_HORIZON 20 * DELTA_T
 
 #define MPC_OBJECTIVE_TOLERANCE 10 // mm
 #define MPC_CONSECUTIVE_POINT_TOLERANCE 1 // mm
@@ -319,10 +321,10 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     TrajectoryPoint target_position = traj.getCurrentPoint(traj.getDuration());
     TrajectoryVector res;
 
-    int nIterMax = ceil(traj.getDuration() / (HORIZON_T - 2 * DELTA_T)) + 2; // enable that many iterations
+    int nIterMax = ceil(traj.getDuration() / RETAINED_HORIZON) + 2; // enable that many iterations
     int nIter = 0;
 
-    // proceed by increments of HORIZON_T - 2 * DELTA_T (not taking the last point since the final
+    // proceed by increments of RETAINED_HORIZON (not taking the last point since the final
     // constraint might make the solver brutally go towards the final point
     while (nIter < nIterMax)
     {
@@ -330,7 +332,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
             traj,
             start_position,
             target_position,
-            nIter * (HORIZON_T - 2 * DELTA_T),
+            nIter * RETAINED_HORIZON,
             flags
         );
 
@@ -338,17 +340,27 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
         // stationary points ; the function truncates these points, which renders the duration less
         // than horizon_t
         // todo : maybe add some conditions about being close to the target?
-        if (solvedTrajectory->getDuration() < HORIZON_T)
+        if (solvedTrajectory->getDuration() < RETAINED_HORIZON)
         {
             res.push_back(solvedTrajectory);
             break;
         }
 
-        // remove last 2 points
-        solvedTrajectory->removePoints(2);
-        res.push_back(solvedTrajectory);
+        if ((solvedTrajectory->getEndPoint().position - target_position.position).norm() < MPC_OBJECTIVE_TOLERANCE)
+        {
+            res.push_back(solvedTrajectory);
+            break;
+        }
 
-        start_position = solvedTrajectory->getCurrentPoint(HORIZON_T - 2 * DELTA_T);
+        // else, iterate
+        // remove points more than HORIZON_T - 2 tsteps
+        int points_to_remove = (HORIZON_T - RETAINED_HORIZON) / DELTA_T;
+        *logger_ << "Removing " << points_to_remove << " points" << std::endl;
+        solvedTrajectory->removePoints(points_to_remove);
+        res.push_back(solvedTrajectory);
+        *logger_ << "solvedTrajectory length "<< solvedTrajectory->getDuration() << std::endl;
+
+        start_position = solvedTrajectory->getEndPoint();
         nIter++;
     }
     std::chrono::high_resolution_clock::time_point mpcTime = std::chrono::high_resolution_clock::now();
