@@ -64,6 +64,9 @@ using namespace std;
 std::vector<RobotPosition> UNITTEST_ASTAR_POS;
 TrajectoryVector UNITTEST_POINTTURN_TRAJ;
 TrajectoryVector UNITTEST_ROUNDED_TRAJ;
+double UNITTEST_planningComputeDuration;
+double UNITTEST_mpcComputeDuration;
+double UNITTEST_printDuration;
 #endif
 
 // ACADO should be inited only once
@@ -143,10 +146,17 @@ TrajectoryVector MotionPlanner::planMotion(
     std::chrono::high_resolution_clock::time_point astarTime = std::chrono::high_resolution_clock::now();
     *logger_ << "A* solved in: " << std::chrono::duration_cast<std::chrono::duration<double>>(astarTime - startTime).count() << std::endl;
 
+#ifdef MOTIONCONTROLLER_UNITTEST
+    std::chrono::high_resolution_clock::time_point printStart = std::chrono::high_resolution_clock::now();
+#endif
+
     pathPlanner_.printMap(planned_path, currentPosition, targetPosition);
 
 #ifdef MOTIONCONTROLLER_UNITTEST
+    std::chrono::high_resolution_clock::time_point printEnd = std::chrono::high_resolution_clock::now();
+    UNITTEST_printDuration = std::chrono::duration_cast<std::chrono::duration<double>>(printEnd - printStart).count();
     UNITTEST_ASTAR_POS = planned_path;
+    UNITTEST_planningComputeDuration = std::chrono::duration_cast<std::chrono::duration<double>>(astarTime - startTime).count();
 
     UNITTEST_POINTTURN_TRAJ = TrajectoryVector();
     if (planned_path.size() > 0)
@@ -354,6 +364,9 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     std::chrono::high_resolution_clock::time_point mpcTime = std::chrono::high_resolution_clock::now();
     *logger_ << "MPC solved in: " << std::chrono::duration_cast<std::chrono::duration<double>>(mpcTime - startTime).count() << std::endl;
 
+#ifdef MOTIONCONTROLLER_UNITTEST
+    UNITTEST_mpcComputeDuration = std::chrono::duration_cast<std::chrono::duration<double>>(mpcTime - startTime).count();
+#endif
     return res;
 }
 

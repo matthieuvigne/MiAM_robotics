@@ -14,6 +14,9 @@ using namespace miam::trajectory;
 extern std::vector<RobotPosition> UNITTEST_ASTAR_POS;
 extern TrajectoryVector UNITTEST_POINTTURN_TRAJ;
 extern TrajectoryVector UNITTEST_ROUNDED_TRAJ;
+extern double UNITTEST_planningComputeDuration;
+extern double UNITTEST_mpcComputeDuration;
+extern double UNITTEST_printDuration;
 #endif
 
 using tf = miam::trajectory::flags;
