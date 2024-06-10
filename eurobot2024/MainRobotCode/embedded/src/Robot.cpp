@@ -185,6 +185,17 @@ void Robot::updateSensorData()
     if (!disableLidar_)
     {
         lidar_.update();
+        // Log all lidar points
+        if (hasMatchStarted_ && currentTime_ - matchStartTime_ < 100)
+        {
+            static int oldBufferPosition = lidar_.debuggingBufferPosition_;
+            for (int i = oldBufferPosition; i != (lidar_.debuggingBufferPosition_ - 1) % DEBUGGING_BUFFER_LENGTH; i = (i + 1) % DEBUGGING_BUFFER_LENGTH)
+            {
+                logger_.log("Lidar.r", currentTime_, lidar_.debuggingBuffer_[i].r);
+                logger_.log("Lidar.theta", currentTime_, lidar_.debuggingBuffer_[i].theta);
+            }
+            oldBufferPosition = lidar_.debuggingBufferPosition_;
+        }
         measurements_.drivetrainMeasurements.lidarDetection = lidar_.detectedRobots_;
     }
 
