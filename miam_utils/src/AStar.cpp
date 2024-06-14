@@ -23,7 +23,7 @@ AStar::Node::Node(Vec2i coordinates_, Node *parent_)
     G = H = 0;
 }
 
-AStar::uint AStar::Node::getScore()
+double AStar::Node::getScore()
 {
     return G + H;
 }
@@ -43,6 +43,8 @@ void AStar::Generator::setWorldSize(Vec2i worldSize_)
 {
     worldSize = worldSize_;
     obstacleMap_ = Eigen::MatrixXi::Zero(worldSize.x, worldSize.y);
+    parentCoordinateX_ = Eigen::MatrixXi::Constant(worldSize.x, worldSize.y, -1);
+    parentCoordinateY_ = Eigen::MatrixXi::Constant(worldSize.x, worldSize.y, -1);
 }
 
 void AStar::Generator::setDiagonalMovement(bool enable_)
@@ -113,7 +115,7 @@ AStar::CoordinateList AStar::Generator::findPath(Vec2i source_, Vec2i target_)
                 continue;
             }
 
-            uint totalCost = current->G + ((i < 4) ? 10 : 14);
+            double totalCost = current->G + ((i < 4) ? 1 : 1.01 * std::sqrt(2));
 
             Node *successor = findNodeOnList(openSet, newCoordinates);
             if (successor == nullptr) {
@@ -121,6 +123,19 @@ AStar::CoordinateList AStar::Generator::findPath(Vec2i source_, Vec2i target_)
                 successor->G = totalCost;
                 successor->H = heuristic(successor->coordinates, target_);
                 openSet.push_back(successor);
+            }
+
+            if (current->parent != nullptr &&
+                hasLineOfSight(newCoordinates, current->parent->coordinates))
+            {
+                double c = std::sqrt((newCoordinates.x - current->parent->coordinates.x) * (newCoordinates.x - current->parent->coordinates.x) + (newCoordinates.y - current->parent->coordinates.y) * (newCoordinates.y - current->parent->coordinates.y));
+
+                double parentCost = 0.9999999 * current->parent->G + c;
+                if (parentCost < successor->G)
+                {
+                    successor->parent = current->parent;
+                    successor->G = parentCost;
+                }
             }
             else if (totalCost < successor->G) {
                 successor->parent = current;
@@ -165,6 +180,42 @@ bool AStar::Generator::detectCollision(Vec2i coordinates_)
         coordinates_.y < 0 || coordinates_.y >= worldSize.y)
         return true;
     return obstacleMap_(coordinates_.x, coordinates_.y) == 1;
+}
+
+bool AStar::Generator::hasLineOfSight(Vec2i const& start, Vec2i const&  end)
+{
+    int const dx = std::abs(end.x - start.x);
+    int const dy = -std::abs(end.y - start.y);
+
+    int const sx = (end.x > start.x ? 1 : -1);
+    int const sy = (end.y > start.y ? 1 : -1);
+
+    Vec2i current(start);
+    int e = dx + dy;
+    while (true)
+    {
+        if (detectCollision(current))
+            return false;
+        if (current.x == end.x && current.y == end.y)
+            return true;
+
+        int e2 = 2 * e;
+        if (e2 >= dy)
+        {
+            if (current.x == end.x)
+                return true;
+            e += dy;
+            current.x += sx;
+        }
+        if (e2 <= dx)
+        {
+            if (current.y == end.y)
+                return true;
+            e += dx;
+            current.y += sy;
+        }
+    }
+    return true;
 }
 
 AStar::Vec2i AStar::Heuristic::getDelta(Vec2i source_, Vec2i target_)

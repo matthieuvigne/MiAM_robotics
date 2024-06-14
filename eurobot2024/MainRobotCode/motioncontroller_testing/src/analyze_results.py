@@ -30,8 +30,25 @@ for k, a in zip(diff, axs):
     # a.bar(X, diff[k])
     # a.bar(X + 1, test_result[k])
     # a.bar(X + 2, ref[k])
+    a.scatter(range(len(diff[k])), test_result[k])
     a.scatter(range(len(diff[k])), ref[k])
 
 for a in axs:
     a.grid()
+
+keys = ["AStarComputeDuration", "PathLength"]
+fig, axs = plt.subplots(2, len(keys), sharex=True)
+axs = axs.flatten()
+for k, a in zip(keys, axs):
+    a.set_title(k)
+    a.scatter(range(len(diff[k])), np.array(test_result[k]) - np.array(ref[k]))
+
+for k, a in zip(keys, axs[len(keys):]):
+    a.set_title(k + ", relative")
+    e = np.array(test_result[k]) - np.array(ref[k])
+    a.scatter(range(len(diff[k])), e / np.array(ref[k]))
+
+for a in axs:
+    a.grid()
+
 plt.show()

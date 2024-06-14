@@ -28,12 +28,14 @@ namespace AStar
 
     struct Node
     {
-        uint G, H;
+        uint H;
+        double G;
+
         Vec2i coordinates;
         Node *parent;
 
         Node(Vec2i coord_, Node *parent_ = nullptr);
-        uint getScore();
+        double getScore();
     };
 
     using NodeSet = std::vector<Node*>;
@@ -53,6 +55,7 @@ namespace AStar
         void removeCollision(Vec2i coordinates_);
         void clearCollisions();
         bool detectCollision(Vec2i coordinates_);
+        bool hasLineOfSight(Vec2i const& start, Vec2i const& end);
         Vec2i getWorldSize();
 
         Eigen::MatrixXi obstacleMap_; ///< Map of obstacle: 0 for empty, 1 for wall.
@@ -61,6 +64,9 @@ namespace AStar
         CoordinateList direction;
         Vec2i worldSize;
         uint directions;
+
+        Eigen::MatrixXi parentCoordinateX_;
+        Eigen::MatrixXi parentCoordinateY_;
 
     };
 

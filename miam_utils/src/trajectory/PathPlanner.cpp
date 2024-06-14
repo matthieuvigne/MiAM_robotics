@@ -135,20 +135,7 @@ namespace miam::trajectory{
         );
 
 
-        bool checkPath = true;
-        for (unsigned int i = 0; i < path.size() - 1; i++)
-        {
-            AStar::Vec2i p1 = path.at(i);
-            AStar::Vec2i p2 = path.at(i+1);
-            if (abs(p1.x - p2.x) > 1 || abs(p1.y - p2.y) > 1)
-            {
-                checkPath = false;
-                break;
-            }
-        }
-
-
-        if (checkPath && robotPositionToVec2i(start) == path.back() && robotPositionToVec2i(end) == path.front())
+        if (robotPositionToVec2i(start) == path.back() && robotPositionToVec2i(end) == path.front())
         {
             double const GRID_DIAGONAL = config_.astar_resolution_mm * 1.4142;
 

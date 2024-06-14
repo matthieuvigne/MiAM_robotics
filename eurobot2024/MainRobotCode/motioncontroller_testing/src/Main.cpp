@@ -103,6 +103,8 @@ int main (int argc, char *argv[])
                     length += (traj->getEndPoint().position - traj->getCurrentPoint(0.0).position).norm();
                 fOutput << length << ",";
                 fOutput << traj.getDuration() << std::endl;
+                if (nObs == 3 && i == 15)
+                    return -1;
             }
         fOutput.close();
         std::cout << "Test done, results written in 'test_result.csv'" << std::endl;
