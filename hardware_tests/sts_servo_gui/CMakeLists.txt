@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.2)
 #project name
 project(sts_servo_gui)
 
-set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
+set(CMAKE_CXX_COMPILER "aarch64-linux-gnu-g++")
 #g++ color output
 SET(CMAKE_COLOR_MAKEFILE ON)
 #Header directory
@@ -20,7 +20,7 @@ find_package(PkgConfig REQUIRED)
 pkg_search_module(MIAM_UTILS REQUIRED miam_utils_arm >= 2.5.4)
 message(STATUS "Found miam_utils v." ${MIAM_UTILS_VERSION})
 
-set(ENV{PKG_CONFIG_PATH} "/usr/lib/arm-linux-gnueabihf/pkgconfig")
+set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
 pkg_search_module(GTK REQUIRED gtkmm-3.0)
 include_directories(${GTK_INCLUDE_DIRS})
 link_directories(${GTK_LIBRARY_DIRS})

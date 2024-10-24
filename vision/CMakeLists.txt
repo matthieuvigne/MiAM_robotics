@@ -1,11 +1,11 @@
 # CMake params
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 project(miam_vision_arm)
 set(PROJECT_DESCRIPTION "Code for the vision module")
 
 # Building options
 # Mode: Debug or RelWithDebInfo
-set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
+set(CMAKE_CXX_COMPILER "aarch64-linux-gnu-g++")
 message("G++ compiler version: " ${CMAKE_CXX_COMPILER_VERSION})
 add_compile_options(-std=c++17)
 
@@ -50,12 +50,13 @@ set(LIBRARY_NAME ${PROJECT_NAME})
 add_library(${LIBRARY_NAME} STATIC ${${PROJECT_NAME}_SOURCES})
 
 # Link to external libraries
-find_package(OpenCV 4.5 REQUIRED)
 message(STATUS "Found OpenCV v." ${OpenCV_VERSION})
 find_package(Eigen3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(MIAMUTILSLIB REQUIRED miam_utils)
+set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
+pkg_search_module(OpenCV REQUIRED opencv4 >= 4.5)
 
 message(STATUS "Found miam_utils v." ${MIAMUTILSLIB_VERSION} " at " ${MIAMUTILSLIB_LIBRARY_DIRS})
 include_directories(${MIAMUTILSLIB_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})

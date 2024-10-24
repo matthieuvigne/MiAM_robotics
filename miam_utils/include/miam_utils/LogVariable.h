@@ -2,6 +2,7 @@
 #define LOG_VARIABLE
 
     #include <fstream>
+    #include <cstdint>
 
     // Handle logging of a single variable.
     class LogVariable{

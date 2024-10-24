@@ -10,6 +10,7 @@
     #define USBLCD_DRIVER_H
 
     #include <string>
+    #include <cstdint>
 
     namespace lcd{
         enum {

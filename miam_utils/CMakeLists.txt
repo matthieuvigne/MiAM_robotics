@@ -1,4 +1,4 @@
-  cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 
 #Configure project
 project(miam_utils VERSION 2.9.0)
@@ -14,7 +14,7 @@ option(ENABLE_TELEPLOT "Enable unit tests (ignored when cross-compiling)" OFF)
 # Set compiler and library name.
 
 if(CROSS_COMPILE)
-    set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
+    set(CMAKE_CXX_COMPILER "aarch64-linux-gnu-g++")
     set(LIBRARY_NAME ${PROJECT_NAME}_arm)
 else()
     add_subdirectory(log_converter)

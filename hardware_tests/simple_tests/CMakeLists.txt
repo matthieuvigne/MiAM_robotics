@@ -1,9 +1,9 @@
 #minimum CMake Version
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.5)
 #project name
 project(simple_tests)
 
-set(CMAKE_CXX_COMPILER "arm-linux-gnueabihf-g++")
+set(CMAKE_CXX_COMPILER "aarch64-linux-gnu-g++")
 #g++ color output
 SET(CMAKE_COLOR_MAKEFILE ON)
 #Header directory
@@ -43,10 +43,8 @@ add_executable(test_logger TestLogger.cpp)
 target_link_libraries(test_logger ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
 
 # Vision test requires opencv
-find_package(OpenCV REQUIRED)
-message(STATUS "Found OpenCV v." ${OpenCV_VERSION})
-set(OpenCV_INCLUDE_DIRS "/usr/local/include/opencv4")
-set(OpenCV_LIBRARY_DIRS "/usr/local/lib")
+set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
+pkg_search_module(OpenCV REQUIRED opencv4 >= 4.5)
 include_directories(${OpenCV_INCLUDE_DIRS})
 link_directories(${OpenCV_LIBRARY_DIRS})
 
