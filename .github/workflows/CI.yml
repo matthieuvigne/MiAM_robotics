@@ -27,7 +27,6 @@ jobs:
           cd build &&\
           mkdir rplidar && cd rplidar && cmake ../../rplidar_sdk -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=ON && make -j4 install && cmake . -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=OFF && make -j4 install && cd ../ &&\
           mkdir miam_utils && cd miam_utils && cmake ../../miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=ON -DUNIT_TESTS=OFF && make -j4 install && cmake . -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=OFF -DUNIT_TESTS=ON && cmake . && make install && cd ../ &&\
-          mkdir miam_vision && cd miam_vision && cmake ../../vision -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=ON && make -j4 install && cmake . -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=OFF && make -j4 install && cd ../
       - name: build robot code
         run: |
           export PATH=/miam_workspace/install/bin:$PATH &&\
