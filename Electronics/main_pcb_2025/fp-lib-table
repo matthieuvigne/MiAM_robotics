@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "MiAM")(type "KiCad")(uri "/mnt/641823181822E8AE/Data/SoftwareDevel/miam_workspace/src/MiAM_robotics/Electronics/libraries/MiAM.pretty")(options "")(descr ""))
+)

@@ -9,40 +9,26 @@
     #define PCA9635_DRIVER
     #include "miam_utils/drivers/I2C-Wrapper.h"
 
-    /// Led driver structure.
-    typedef struct {
-        I2CAdapter *adapter;        ///< I2C port file descriptor.
-        int address;    ///< Led driver address.
-        unsigned char ledState[4];    ///< Current state of the leds: on, off or under PWM control.
-    }PCA9635;
+    class PCA9635{
+        public:
+            PCA9635();
 
+            /// \brief Init and test communication with driver.
+            /// \return True if communication was successful.
+            bool init(I2CAdapter *device, unsigned char const& address = 0x40, bool const& outputInverted = false);
 
-    /// \brief Initialize Led driver.
-    ///
-    /// \details This function tests the communication with the led driver, and, if successful, inits the structure.
-    ///
-    /// \param[out] driver The PCA9635 structure, to be used whenever communication with the led driver.
-    /// \param[in] adapter Pointer to a valid I2CAdapter to choose the I2C port (as returned by the i2c_open function,
-    ///                    see I2C-Wrapper.h).
-    /// \param[in] address I2C address of the PCA9635.
-    /// \returns   true on success, false otherwise.
-    bool ledDriver_init(PCA9635 *driver, I2CAdapter *adapter, unsigned char address);
+            /// \brief Set led brightness.
+            /// \param[in] led Led number (0-15)
+            /// \param[in] brightness Led brightness, from 0 to 1;
+            void setDutyCycle(int const& led, double const& brightness);
 
-    /// \brief Set brightness of a single LED.
-    ///
-    /// \param[in,out] driver The PCA9635 structure (as a pointer as the ledState variable might be modified).
-    /// \param[in] pin The number of the pin to change (from 0 to 15, see component datasheet).
-    /// \param[in] brightness Led brightness. 0 turns the led 0, 255 is the maximum value.
-    void ledDriver_setLedBrightness(PCA9635 *driver, int pin, int brightness);
+        private:
+            void setPinState(int const& pin, uint8_t const& ledState);
 
-    /// \brief Set brightness of a RGB LED.
-    ///    \note This is equivalent to three successive calls of ledDriver_setLedBrightness, but it uses
-    ///          predefined (hardcoded) constants to match the RGB leds on the output PCB.
-    ///
-    /// \param[in,out] driver The PCA9635 structure.
-    /// \param[in] pin The number of RGB led (from 1 to 3).
-    /// \param[in] r Red led brightness. 0 turns the led 0, 255 is the maximum value.
-    /// \param[in] g Green led brightness. 0 turns the led 0, 255 is the maximum value.
-    /// \param[in] b Blue led brightness. 0 turns the led 0, 255 is the maximum value.
-    void ledDriver_setRGBledBrightness(PCA9635 *driver, int led, int r, int g, int b);
+            I2CAdapter *adapter_ = nullptr;       ///< I2C port file descriptor.
+            unsigned char address_ = 0;    ///< Led driver address.
+
+            bool isInit_ = false;   ///< Status of initialization.
+            unsigned char ledState_[4] = {0, 0, 0, 0};    ///< Current state of the leds: on, off or under PWM control.
+    };
 #endif

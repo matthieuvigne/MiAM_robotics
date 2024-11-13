@@ -27,20 +27,22 @@ link_directories(${RPLIDAR_LIBRARY_DIRS} ${MIAM_UTILS_LIBRARY_DIRS})
 
 # Build executables
 add_executable(test_as5045 TestAS5045.cpp)
-target_link_libraries(test_as5045 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
-
+target_link_libraries(test_as5045 ${MIAM_UTILS_LIBRARIES})
 
 add_executable(test_ina226 TestINA226.cpp)
-target_link_libraries(test_ina226 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
+target_link_libraries(test_ina226 ${MIAM_UTILS_LIBRARIES})
 
 add_executable(test_mcp23008 TestMCP23008.cpp)
-target_link_libraries(test_mcp23008 ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
+target_link_libraries(test_mcp23008 ${MIAM_UTILS_LIBRARIES})
 
 add_executable(test_as5048B TestAS5048B.cpp)
-target_link_libraries(test_as5048B ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
+target_link_libraries(test_as5048B ${MIAM_UTILS_LIBRARIES})
 
 add_executable(test_logger TestLogger.cpp)
-target_link_libraries(test_logger ${GTK_LIBRARIES} ${MIAM_UTILS_LIBRARIES})
+target_link_libraries(test_logger ${MIAM_UTILS_LIBRARIES})
+
+add_executable(test_pca9635 TestPCA9635.cpp)
+target_link_libraries(test_pca9635 ${MIAM_UTILS_LIBRARIES})
 
 # Vision test requires opencv
 set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")

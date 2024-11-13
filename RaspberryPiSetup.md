@@ -13,7 +13,7 @@ dtparam=i2c_arm=on,i2c_arm_baudrate=400000
 
 ```
 sudo apt update && sudo apt upgrade -y
-sudo apt install hostapd dhcpcd dnsmasq
+sudo apt install hostapd dhcpcd dnsmasq i2c-tools
 sudo systemctl unmask hostapd && sudo systemctl enable hostapd
 ```
 
@@ -100,15 +100,27 @@ Make sure not to use ssh -X, else the wrong xserver will be used (i.e. screensav
 
 ```
 pi@raspberrypi:~ $ DISPLAY=:0 xset s 0 0
+pi@raspberrypi:~ $ DISPLAY=:0 xset s off
+pi@raspberrypi:~ $ DISPLAY=:0 xset -dpms
+
 ```
 
 To check: `DISPLAY=:0 xset q` should show
 
 `
 Screen Saver:
-  prefer blanking:  no    allow exposures:  no
+  prefer blanking:  yes    allow exposures:  yes
   timeout:  0    cycle:  0
+
+DPMS (Energy Star):
+  Standby: 600    Suspend: 600    Off: 600
+  DPMS is Disabled
+
 `
+
+## Enable automatic login
+
+Use `raspi-config`, go to System Options /  Boot / Auto Login and select the corresponding option
 
 # Create disk image
 
