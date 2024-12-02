@@ -1,4 +1,4 @@
-24235209381030765
+24240410984435005
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -65331,6 +65331,13 @@ MOSFET (N-Channel)
 3
 3
 MiAM
+JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal
+JST SH series connector, SM04B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH horizontal
+0
+6
+5
+MiAM
 L4CA0612L0M50FNR
 L4CA0612_2023-1
 Resistor
@@ -65344,6 +65351,13 @@ MODULE_RASPBERRY_PI_B+
 0
 40
 40
+MiAM
+Molex_PicoBlade_53047-0210_1x02_P1.25mm_Vertical
+Molex PicoBlade Connector System, 53047-0210, 2 Pins per row (http://www.molex.com/pdm_docs/sd/530470610_sd.pdf), generated with kicad-footprint-generator
+connector Molex PicoBlade side entry
+0
+2
+2
 MiAM
 NC7SZ126M5X
 
@@ -65372,6 +65386,13 @@ Through hole pin header THT 2x08 2.54mm double row
 0
 17
 17
+MiAM
+Pin_Header_Straight_3x06_Pitch2.54mm
+Through hole straight pin header, 2x08, 2.54mm pitch, double rows
+Through hole pin header THT 2x08 2.54mm double row
+0
+18
+18
 MiAM
 Pin_Header_Straight_3x08_Pitch2.54mm
 Through hole straight pin header, 2x08, 2.54mm pitch, double rows
