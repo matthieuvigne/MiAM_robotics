@@ -1957,11 +1957,11 @@
 				)
 			)
 		)
-		(symbol "MiAM:9774030951R"
+		(symbol "MiAM:9774030360R"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "H"
+			(property "Reference" "TP"
 				(at 16.51 7.62 0)
 				(effects
 					(font
@@ -1970,7 +1970,7 @@
 					(justify left top)
 				)
 			)
-			(property "Value" "9774030951R"
+			(property "Value" "9774030360R"
 				(at 16.51 5.08 0)
 				(effects
 					(font
@@ -1979,7 +1979,7 @@
 					(justify left top)
 				)
 			)
-			(property "Footprint" "MiAM:9774030951R"
+			(property "Footprint" "MiAM:9774030360R"
 				(at 16.51 -94.92 0)
 				(effects
 					(font
@@ -1989,7 +1989,7 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "https://datasheet.datasheetarchive.com/originals/distributors/DKDS-9/166023.pdf"
+			(property "Datasheet" "https://www.mouser.com/datasheet/2/445/9774030360R-336040.pdf"
 				(at 16.51 -194.92 0)
 				(effects
 					(font
@@ -1999,7 +1999,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "WURTH ELEKTRONIK - 9774030951R - Spacer, SMT, Non Stop, Steel, Swage Round, 5.1 mm x 3 mm, 2.7 mm Internal, WA-SMST Series"
+			(property "Description" "9774030360R, 3mm High Steel Round Spacer With 6mm Diameter and 4.2mm Bore Diameter for M3 Screw"
 				(at 0 0 0)
 				(effects
 					(font
@@ -2008,7 +2008,7 @@
 					(hide yes)
 				)
 			)
-			(property "Height" "4.5"
+			(property "Height" "3"
 				(at 16.51 -394.92 0)
 				(effects
 					(font
@@ -2028,7 +2028,7 @@
 					(hide yes)
 				)
 			)
-			(property "Manufacturer_Part_Number" "9774030951R"
+			(property "Manufacturer_Part_Number" "9774030360R"
 				(at 16.51 -594.92 0)
 				(effects
 					(font
@@ -2038,7 +2038,7 @@
 					(hide yes)
 				)
 			)
-			(property "Mouser Part Number" "710-9774030951R"
+			(property "Mouser Part Number" "710-9774030360R"
 				(at 16.51 -694.92 0)
 				(effects
 					(font
@@ -2048,7 +2048,7 @@
 					(hide yes)
 				)
 			)
-			(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Wurth-Elektronik/9774030951R?qs=KRpiEsko4HnmZ93R5i%252BaIQ%3D%3D"
+			(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Wurth-Elektronik/9774030360R?qs=wM4AZDOQ8I7wDfjQxtJyFg%3D%3D"
 				(at 16.51 -794.92 0)
 				(effects
 					(font
@@ -2078,7 +2078,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "9774030951R_1_1"
+			(symbol "9774030360R_1_1"
 				(rectangle
 					(start 5.08 2.54)
 					(end 15.24 -2.54)
@@ -5087,6 +5087,12 @@
 		(uuid "2fd505ca-4e2f-4876-87ab-2471e06cbce0")
 	)
 	(junction
+		(at 109.22 55.88)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "30c543da-f642-4014-baf5-9d10f263d5a5")
+	)
+	(junction
 		(at 19.05 101.6)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5135,10 +5141,22 @@
 		(uuid "5480a975-6f06-43eb-b80a-217f50978f8f")
 	)
 	(junction
+		(at 123.19 62.23)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "554124b4-b71c-471d-b8d5-e4c30145c850")
+	)
+	(junction
 		(at 274.32 161.29)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "58507a5b-7002-4101-ae3d-d2c8098020bc")
+	)
+	(junction
+		(at 109.22 48.26)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "65e16d20-dd9b-4bc8-b1e2-3b305fb8c340")
 	)
 	(junction
 		(at 137.16 205.74)
@@ -5235,6 +5253,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "a46ceee0-8d5b-49fc-ac82-40951608b6ff")
+	)
+	(junction
+		(at 123.19 69.85)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a8224c3c-4293-428d-9846-2831e63f8ef9")
 	)
 	(junction
 		(at 299.72 166.37)
@@ -5924,6 +5948,16 @@
 	)
 	(wire
 		(pts
+			(xy 109.22 55.88) (xy 109.22 59.69)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "357143d2-d322-41d9-89e7-be56e49e01c2")
+	)
+	(wire
+		(pts
 			(xy 140.97 261.62) (xy 144.78 261.62)
 		)
 		(stroke
@@ -6034,6 +6068,16 @@
 	)
 	(wire
 		(pts
+			(xy 104.14 48.26) (xy 109.22 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "42ec50f7-e3c2-40c9-9cdb-1d41ffe16266")
+	)
+	(wire
+		(pts
 			(xy 295.91 80.01) (xy 307.34 80.01)
 		)
 		(stroke
@@ -6061,6 +6105,16 @@
 			(type default)
 		)
 		(uuid "45051e6e-6f6f-4adb-a8b7-9813713ffcbf")
+	)
+	(wire
+		(pts
+			(xy 123.19 69.85) (xy 123.19 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "48a66dba-0a67-4d34-a689-186415b20b7d")
 	)
 	(wire
 		(pts
@@ -6121,6 +6175,16 @@
 			(type default)
 		)
 		(uuid "4dc9d60a-823c-4b32-b531-ffcf9de1984c")
+	)
+	(wire
+		(pts
+			(xy 118.11 62.23) (xy 123.19 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4df174f2-0689-4f2f-8657-a448c1395315")
 	)
 	(wire
 		(pts
@@ -6274,6 +6338,16 @@
 	)
 	(wire
 		(pts
+			(xy 109.22 55.88) (xy 115.57 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5d4937ab-d81f-4b7c-9eba-bc4e52deadd4")
+	)
+	(wire
+		(pts
 			(xy 74.93 121.92) (xy 74.93 127)
 		)
 		(stroke
@@ -6291,6 +6365,26 @@
 			(type default)
 		)
 		(uuid "5e5646cd-fe06-43bd-89f8-9b7ed4f22f01")
+	)
+	(wire
+		(pts
+			(xy 104.14 55.88) (xy 109.22 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5f8f6ded-5fc4-474b-9eb4-5e0c5cf48304")
+	)
+	(wire
+		(pts
+			(xy 123.19 69.85) (xy 129.54 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "60918930-6940-4a77-b619-70f88215eeb4")
 	)
 	(wire
 		(pts
@@ -6361,6 +6455,16 @@
 			(type default)
 		)
 		(uuid "6604505d-f4de-4bf8-8eb4-d59850de443f")
+	)
+	(wire
+		(pts
+			(xy 127 55.88) (xy 123.19 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "67f1a069-8135-4133-9dd8-ef8191e95e25")
 	)
 	(wire
 		(pts
@@ -6601,6 +6705,16 @@
 			(type default)
 		)
 		(uuid "7aa58974-25ec-4415-bb91-0bf0ad650250")
+	)
+	(wire
+		(pts
+			(xy 123.19 62.23) (xy 129.54 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7d59dc52-b758-4bc3-805d-30d48b0d1833")
 	)
 	(wire
 		(pts
@@ -7074,6 +7188,16 @@
 	)
 	(wire
 		(pts
+			(xy 127 46.99) (xy 109.22 46.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a20ca018-3b7a-4eac-ae65-26811705f970")
+	)
+	(wire
+		(pts
 			(xy 160.02 219.71) (xy 160.02 222.25)
 		)
 		(stroke
@@ -7334,6 +7458,16 @@
 	)
 	(wire
 		(pts
+			(xy 109.22 46.99) (xy 109.22 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bd888c1d-cd2b-43d8-afc4-e8e7317195e7")
+	)
+	(wire
+		(pts
 			(xy 195.58 240.03) (xy 195.58 238.76)
 		)
 		(stroke
@@ -7411,6 +7545,16 @@
 			(type default)
 		)
 		(uuid "c3880165-af70-4208-bca2-239c5fdec5b2")
+	)
+	(wire
+		(pts
+			(xy 123.19 55.88) (xy 123.19 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c38ce47b-ff4e-4928-8c74-580192153cf6")
 	)
 	(wire
 		(pts
@@ -7704,6 +7848,16 @@
 	)
 	(wire
 		(pts
+			(xy 109.22 48.26) (xy 115.57 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e1646b98-151d-4a36-9818-3f9b8f387477")
+	)
+	(wire
+		(pts
 			(xy 195.58 227.33) (xy 195.58 231.14)
 		)
 		(stroke
@@ -7961,6 +8115,16 @@
 			(type default)
 		)
 		(uuid "f864919d-c0da-426a-a9a2-c11e9d195247")
+	)
+	(wire
+		(pts
+			(xy 118.11 69.85) (xy 123.19 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fa63a342-fe0d-4414-b094-78cdc74e9522")
 	)
 	(wire
 		(pts
@@ -11811,6 +11975,71 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 123.19 73.66 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "417118a0-5aba-4e84-ad38-17010664c9f5")
+		(property "Reference" "#PWR059"
+			(at 123.19 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 123.19 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 123.19 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 123.19 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 123.19 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d138ec8e-5b35-4c64-9956-303683d3860f")
+		)
+		(instances
+			(project "power_supply"
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "#PWR059")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+12V")
 		(at 91.44 125.73 0)
 		(unit 1)
@@ -13493,6 +13722,105 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C")
+		(at 115.57 52.07 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "68157472-5151-4e01-8a46-ccdfeb53ff39")
+		(property "Reference" "C5"
+			(at 118.11 50.546 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left top)
+			)
+		)
+		(property "Value" "10nF"
+			(at 118.11 53.594 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
+			(at 116.5352 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 115.57 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 115.57 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "HOUSEPART" "1"
+			(at 115.57 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(property "MPN" "MF-CAP-0402-1nF"
+			(at 115.57 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(property "POPULATE" "1"
+			(at 115.57 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "2b374f5b-78fb-421c-85db-e7fd5105327d")
+		)
+		(pin "2"
+			(uuid "cbc6ef38-c4d0-4d2b-ae49-b7a901078c05")
+		)
+		(instances
+			(project "power_supply"
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "C5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Jumper:SolderJumper_2_Open")
 		(at 295.91 50.8 90)
 		(unit 1)
@@ -14380,6 +14708,94 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 118.11 66.04 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7426d445-3f0a-47a4-b1a5-9a69ef9df736")
+		(property "Reference" "R12"
+			(at 120.65 64.516 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left top)
+			)
+		)
+		(property "Value" "100k"
+			(at 120.65 67.564 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric_Pad0.72x0.64mm_HandSolder"
+			(at 116.332 66.04 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 118.11 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 118.11 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "HOUSEPART" "YES"
+			(at 118.11 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "MF-RES-0402-2K"
+			(at 118.11 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f938b98b-7bc5-46f6-b863-9efc6abc6497")
+		)
+		(pin "2"
+			(uuid "e97df042-b357-4388-b84e-3728d2986645")
+		)
+		(instances
+			(project "power_supply"
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "R12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 137.16 209.55 0)
 		(unit 1)
@@ -14471,145 +14887,6 @@
 			(project "power_supply"
 				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
 					(reference "C26")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "MiAM:9774030951R")
-		(at 68.58 46.99 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "78044561-792d-48b6-841c-bde1f16b0095")
-		(property "Reference" "H5"
-			(at 85.09 45.7199 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "9774030951R"
-			(at 85.09 48.2599 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "MiAM:9774030951R"
-			(at 85.09 141.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://datasheet.datasheetarchive.com/originals/distributors/DKDS-9/166023.pdf"
-			(at 85.09 241.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Description" "WURTH ELEKTRONIK - 9774030951R - Spacer, SMT, Non Stop, Steel, Swage Round, 5.1 mm x 3 mm, 2.7 mm Internal, WA-SMST Series"
-			(at 68.58 46.99 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Height" "4.5"
-			(at 85.09 441.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Name" "Wurth Elektronik"
-			(at 85.09 541.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Part_Number" "9774030951R"
-			(at 85.09 641.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Mouser Part Number" "710-9774030951R"
-			(at 85.09 741.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Wurth-Elektronik/9774030951R?qs=KRpiEsko4HnmZ93R5i%252BaIQ%3D%3D"
-			(at 85.09 841.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Arrow Part Number" ""
-			(at 85.09 941.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Arrow Price/Stock" ""
-			(at 85.09 1041.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "69022a4e-6f80-4e77-ab85-5e4b01e07b23")
-		)
-		(instances
-			(project ""
-				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
-					(reference "H5")
 					(unit 1)
 				)
 			)
@@ -16299,6 +16576,105 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C")
+		(at 129.54 66.04 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "93baed86-3354-4441-bc47-5a278660b6a7")
+		(property "Reference" "C4"
+			(at 132.08 64.516 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left top)
+			)
+		)
+		(property "Value" "10nF"
+			(at 132.08 67.564 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
+			(at 130.5052 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 129.54 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 129.54 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "HOUSEPART" "1"
+			(at 129.54 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(property "MPN" "MF-CAP-0402-1nF"
+			(at 129.54 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(property "POPULATE" "1"
+			(at 129.54 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8a519bd6-94ee-4765-93af-30848aa29975")
+		)
+		(pin "2"
+			(uuid "1666a9fd-bf92-4fb2-aace-e1d3986bdef1")
+		)
+		(instances
+			(project "power_supply"
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "C4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Sensor_Energy:INA226")
 		(at 326.39 203.2 0)
 		(mirror y)
@@ -17154,6 +17530,71 @@
 			(project "power_supply"
 				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
 					(reference "#PWR013")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 109.22 59.69 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a30b3ecf-d350-47e5-8a76-ed97ae1b9cbb")
+		(property "Reference" "#PWR063"
+			(at 109.22 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 109.22 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 109.22 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 109.22 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 109.22 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b76cf904-58d0-4e0a-a979-37c6f8281b62")
+		)
+		(instances
+			(project "power_supply"
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "#PWR063")
 					(unit 1)
 				)
 			)
@@ -18276,145 +18717,6 @@
 		)
 	)
 	(symbol
-		(lib_id "MiAM:9774030951R")
-		(at 68.58 53.34 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "b93d7332-1185-46c9-8611-16932dcd0573")
-		(property "Reference" "H6"
-			(at 85.09 52.0699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "9774030951R"
-			(at 85.09 54.6099 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "MiAM:9774030951R"
-			(at 85.09 148.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://datasheet.datasheetarchive.com/originals/distributors/DKDS-9/166023.pdf"
-			(at 85.09 248.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Description" "WURTH ELEKTRONIK - 9774030951R - Spacer, SMT, Non Stop, Steel, Swage Round, 5.1 mm x 3 mm, 2.7 mm Internal, WA-SMST Series"
-			(at 68.58 53.34 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Height" "4.5"
-			(at 85.09 448.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Name" "Wurth Elektronik"
-			(at 85.09 548.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Part_Number" "9774030951R"
-			(at 85.09 648.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Mouser Part Number" "710-9774030951R"
-			(at 85.09 748.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Wurth-Elektronik/9774030951R?qs=KRpiEsko4HnmZ93R5i%252BaIQ%3D%3D"
-			(at 85.09 848.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Arrow Part Number" ""
-			(at 85.09 948.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Arrow Price/Stock" ""
-			(at 85.09 1048.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e15d8b28-da9e-4a22-b175-65dc85dbbfeb")
-		)
-		(instances
-			(project "power_supply"
-				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
-					(reference "H6")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R")
 		(at 203.2 231.14 0)
 		(unit 1)
@@ -19424,6 +19726,233 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 104.14 52.07 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e2cfbed7-bcef-4982-a4b8-a41b1cc8a026")
+		(property "Reference" "R13"
+			(at 106.68 50.546 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left top)
+			)
+		)
+		(property "Value" "100k"
+			(at 106.68 53.594 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric_Pad0.72x0.64mm_HandSolder"
+			(at 102.362 52.07 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 104.14 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 104.14 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "HOUSEPART" "YES"
+			(at 104.14 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "MF-RES-0402-2K"
+			(at 104.14 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "00225eed-62f5-4e75-a3f8-f70a80c0d136")
+		)
+		(pin "2"
+			(uuid "3287ad5e-d7db-45e8-9daf-6b8e6eff8d27")
+		)
+		(instances
+			(project "power_supply"
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "R13")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "MiAM:9774030360R")
+		(at 127 55.88 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e5b79ad3-39bc-4b7b-ba93-9f8afdf182b8")
+		(property "Reference" "H6"
+			(at 143.51 54.6099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "9774030360R"
+			(at 143.51 57.1499 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MiAM:9774030360R"
+			(at 143.51 150.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.mouser.com/datasheet/2/445/9774030360R-336040.pdf"
+			(at 143.51 250.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Description" "9774030360R, 3mm High Steel Round Spacer With 6mm Diameter and 4.2mm Bore Diameter for M3 Screw"
+			(at 127 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Height" "3"
+			(at 143.51 450.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer_Name" "Wurth Elektronik"
+			(at 143.51 550.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer_Part_Number" "9774030360R"
+			(at 143.51 650.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Mouser Part Number" "710-9774030360R"
+			(at 143.51 750.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Wurth-Elektronik/9774030360R?qs=wM4AZDOQ8I7wDfjQxtJyFg%3D%3D"
+			(at 143.51 850.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Arrow Part Number" ""
+			(at 143.51 950.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Arrow Price/Stock" ""
+			(at 143.51 1050.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "47c858c7-bbab-4c63-993a-3c87a51e31e2")
+		)
+		(instances
+			(project "power_supply"
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "H6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 127 264.16 0)
 		(mirror y)
@@ -20047,6 +20576,145 @@
 			(project "power_supply"
 				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
 					(reference "#PWR03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "MiAM:9774030360R")
+		(at 127 46.99 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f9f5b083-e2fb-4b61-aaae-e2ced3feb46a")
+		(property "Reference" "H5"
+			(at 143.51 45.7199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "9774030360R"
+			(at 143.51 48.2599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MiAM:9774030360R"
+			(at 143.51 141.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.mouser.com/datasheet/2/445/9774030360R-336040.pdf"
+			(at 143.51 241.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Description" "9774030360R, 3mm High Steel Round Spacer With 6mm Diameter and 4.2mm Bore Diameter for M3 Screw"
+			(at 127 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Height" "3"
+			(at 143.51 441.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer_Name" "Wurth Elektronik"
+			(at 143.51 541.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer_Part_Number" "9774030360R"
+			(at 143.51 641.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Mouser Part Number" "710-9774030360R"
+			(at 143.51 741.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Wurth-Elektronik/9774030360R?qs=wM4AZDOQ8I7wDfjQxtJyFg%3D%3D"
+			(at 143.51 841.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Arrow Part Number" ""
+			(at 143.51 941.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Arrow Price/Stock" ""
+			(at 143.51 1041.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "93b0965f-5ee1-40df-a6c6-2f02a8baf60e")
+		)
+		(instances
+			(project ""
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "H5")
 					(unit 1)
 				)
 			)
