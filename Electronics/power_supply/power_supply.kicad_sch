@@ -8176,7 +8176,7 @@
 		)
 		(uuid "ff2cdc5c-1cd1-4286-98c8-6516bf10ee79")
 	)
-	(text "Green"
+	(text "Blue"
 		(exclude_from_sim no)
 		(at 67.31 118.11 0)
 		(effects
@@ -8211,6 +8211,17 @@
 		)
 		(uuid "19a9b4ad-6398-444c-9527-7ce8edac885b")
 	)
+	(text "85uA charge @ 47nF: 2ms timeout\n16uA gate charge: 1ms charge time for 16V"
+		(exclude_from_sim no)
+		(at 149.86 257.81 0)
+		(effects
+			(font
+				(size 1.778 1.778)
+			)
+			(justify left bottom)
+		)
+		(uuid "21727963-3e06-4438-a4d2-319ddc066a32")
+	)
 	(text "12V"
 		(exclude_from_sim no)
 		(at 318.008 142.748 0)
@@ -8224,7 +8235,7 @@
 		)
 		(uuid "27fcb55a-2a5f-42e3-9a1e-d3a87c53918e")
 	)
-	(text "Green"
+	(text "Yellow"
 		(exclude_from_sim no)
 		(at 13.97 146.05 0)
 		(effects
@@ -10000,7 +10011,7 @@
 				(hide yes)
 			)
 		)
-		(property "Mouser Part Number" " 71-WSL36377L000FEA "
+		(property "Mouser Part Number" " 576-L4CA0612LR007FNR "
 			(at 146.05 -486.64 0)
 			(effects
 				(font
@@ -10754,7 +10765,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "821-22-002-10-000101"
+		(property "Value" "821-22-002-10-001101"
 			(at 54.61 240.0299 0)
 			(effects
 				(font
@@ -10812,7 +10823,7 @@
 				(hide yes)
 			)
 		)
-		(property "Manufacturer_Part_Number" "821-22-002-10-000101"
+		(property "Manufacturer_Part_Number" "821-22-002-10-001101"
 			(at 54.61 832.41 0)
 			(effects
 				(font
@@ -10822,7 +10833,7 @@
 				(hide yes)
 			)
 		)
-		(property "Mouser Part Number" "575-8212200210000101"
+		(property "Mouser Part Number" "575-8212200210001101"
 			(at 54.61 932.41 0)
 			(effects
 				(font
@@ -14096,7 +14107,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "R"
+		(property "Value" "10k"
 			(at 77.47 109.2199 0)
 			(effects
 				(font
@@ -15685,7 +15696,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "R"
+		(property "Value" "7.5k"
 			(at 24.13 137.1599 0)
 			(effects
 				(font
