@@ -13,9 +13,9 @@ cd /miam_workspace
 mkdir -p build/rplidar
 mkdir -p build/miam_utils
 mkdir -p build/vision
-mkdir -p build/eurobot2024/embedded
-mkdir -p build/eurobot2024/simulation
-mkdir -p build/eurobot2024/simulation/logs
+mkdir -p build/eurobot2025/embedded
+mkdir -p build/eurobot2025/simulation
+mkdir -p build/eurobot2025/simulation/logs
 mkdir install
 
 # Compile and install rplidar
@@ -58,12 +58,12 @@ cmake /miam_workspace/src/MiAM_robotics/vision -DCMAKE_BUILD_TYPE=Release
 make -j8
 
 # Compile robot code
-cd /miam_workspace/build/eurobot2024/embedded
-cmake /miam_workspace/src/MiAM_robotics/eurobot2024/MainRobotCode/embedded/ -DCMAKE_BUILD_TYPE=Release
+cd /miam_workspace/build/eurobot2025/embedded
+cmake /miam_workspace/src/MiAM_robotics/eurobot2025/MainRobotCode/embedded/ -DCMAKE_BUILD_TYPE=Release
 make -j8
 
 # Compile simulation code
-cd /miam_workspace/build/eurobot2024/simulation
-cmake /miam_workspace/src/MiAM_robotics/eurobot2024/MainRobotCode/simulation/ -DCMAKE_BUILD_TYPE=Release
+cd /miam_workspace/build/eurobot2025/simulation
+cmake /miam_workspace/src/MiAM_robotics/eurobot2025/MainRobotCode/simulation/ -DCMAKE_BUILD_TYPE=Release
 make -j8
 
