@@ -90,6 +90,7 @@ Add to `/boot/config.txt`:
 ```
 display_lcd_rotate=2
 lcd_rotate=2
+dtoverlay=disable-bt,
 ```
 
 First line is for screen display, second for touchscreen coordinates ; 2 = 180deg

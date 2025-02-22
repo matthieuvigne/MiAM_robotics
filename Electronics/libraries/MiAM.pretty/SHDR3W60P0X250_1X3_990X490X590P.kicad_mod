@@ -186,7 +186,7 @@
 		(uuid "118dcd21-37ab-4390-9a1f-bc139287baba")
 	)
 	(fp_text user "${REFERENCE}"
-		(at 0 0 0)
+		(at -0.5 0 0)
 		(layer "F.Fab")
 		(uuid "911af97f-17d3-446a-9553-e988d28e06e3")
 		(effects
@@ -198,7 +198,7 @@
 	)
 	(pad "1" thru_hole rect
 		(at 0 0)
-		(size 1.2 1.2)
+		(size 1.7 1.7)
 		(drill 0.8)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
@@ -206,7 +206,7 @@
 	)
 	(pad "2" thru_hole circle
 		(at -2.5 0)
-		(size 1.2 1.2)
+		(size 1.7 1.7)
 		(drill 0.8)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
@@ -214,7 +214,7 @@
 	)
 	(pad "3" thru_hole circle
 		(at -5 0)
-		(size 1.2 1.2)
+		(size 1.7 1.7)
 		(drill 0.8)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)

@@ -46,7 +46,6 @@ void PCA9635::setDutyCycle(int const& led, double const& brightness)
     if (isInit_ && led >= 0 && led < 16)
     {
         uint8_t value = static_cast<uint8_t>(brightness * 255);
-        std::cout << static_cast<int>(value) << std::endl;
 
         if(value == 0)
             setPinState(led, 0);
@@ -65,13 +64,15 @@ void PCA9635::setDutyCycle(int const& led, double const& brightness)
 void PCA9635::setPinState(int const& pin, uint8_t const& ledState)
 {
     if(pin > 15 || pin < 0)
-    return;
+        return;
 
-    int lastpinstate = ledState_[pin / 4];
+    uint8_t const lastpinstate = ledState_[pin / 4];
     ledState_[pin / 4] &= ~(1 << (2 * (pin % 4)));
     ledState_[pin / 4] &= ~(1 << (2 * (pin % 4) + 1));
     ledState_[pin / 4] |= ledState << (2 * (pin % 4));
 
     if(lastpinstate != ledState_[pin / 4])
+    {
         i2c_writeRegister(adapter_, address_, LEDOUTOFFSET + pin / 4, ledState_[pin / 4]);
+    }
 }

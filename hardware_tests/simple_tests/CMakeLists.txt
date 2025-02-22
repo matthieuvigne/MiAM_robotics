@@ -44,6 +44,9 @@ target_link_libraries(test_logger ${MIAM_UTILS_LIBRARIES})
 add_executable(test_pca9635 TestPCA9635.cpp)
 target_link_libraries(test_pca9635 ${MIAM_UTILS_LIBRARIES})
 
+add_executable(test_mainPCB TestMainPCB.cpp)
+target_link_libraries(test_mainPCB ${MIAM_UTILS_LIBRARIES})
+
 # Vision test requires opencv
 set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
 pkg_search_module(OpenCV REQUIRED opencv4 >= 4.5)
