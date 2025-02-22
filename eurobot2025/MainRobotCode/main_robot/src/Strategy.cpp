@@ -1,29 +1,11 @@
-/// \author MiAM Robotique, Matthieu Vigne
-/// \copyright GNU GPLv3
-#include <unistd.h>
-#include <math.h>
-#include <thread>
-
-#include <miam_utils/trajectory/ArcCircle.h>
-#include <miam_utils/trajectory/StraightLine.h>
-#include <miam_utils/trajectory/PointTurn.h>
-#include <miam_utils/trajectory/Utilities.h>
-#include <miam_utils/trajectory/PathPlanner.h>
-#include <miam_utils/raspberry_pi/RaspberryPi.h>
-
 #include "main_robot/Strategy.h"
-#include "common/DH_transform.hpp"
 #include "common/MotionPlanner.h"
-#include "common/ArmInverseKinematics.hpp"
 #include "common/ThreadHandler.h"
 
-#include "main_robot/PickupPlantsAction.h"
-#include "main_robot/DropPlantsAction.h"
 #include "main_robot/SolarPanelsAction.h"
 
 using namespace miam::trajectory;
 using miam::RobotPosition;
-using namespace kinematics;
 
 namespace main_robot
 {
@@ -55,27 +37,10 @@ bool Strategy::setup(RobotInterface *robot)
         // Init servo manager, this starts turret calibration
         servoManager_.init(robot, isTurretAlreadyCalibrated_);
 
-
         motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 
         // Load actions into action vector.
         actions_.clear();
-
-        // Ignore the two rightmost zones.
-        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, 0));
-        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, 1));
-        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, 3));
-        actions_.push_back(std::make_shared<PickupPlantsAction>(robot, &servoManager_, 5));
-
-        //~ actions_.push_back(std::make_shared<DropPlantsWithoutPotsAction>(robot, &servoManager_, 0));
-        actions_.push_back(std::make_shared<DropPlantsWithPotAction>(robot, &servoManager_, 0));
-        actions_.push_back(std::make_shared<DropPlantsWithPotAction>(robot, &servoManager_, 1));
-        actions_.push_back(std::make_shared<DropPlantsWithoutPotsAction>(robot, &servoManager_, 2));
-
-        for (int i = 0; i < 3; i++)
-        {
-            actions_.push_back(std::make_shared<DropPlantsToJarnidiereAction>(robot, &servoManager_, i));
-        }
 
         actions_.push_back(std::make_shared<SolarPanelsAction>(robot, &servoManager_));
     }
@@ -139,9 +104,6 @@ void Strategy::goBackToBase()
         targetPosition.y = 400;
     }
     targetPosition.theta = M_PI;
-    servoManager_.stopSolarPanel();
-    servoManager_.raiseSolarPanelArm();
-    robot->getMPC23008()->setOutputs(0);
 
     // Prepare to drop plants
     bool isFront = robot->gameState_.nPlantsInClaw(true) > 0;
@@ -176,24 +138,10 @@ void Strategy::goBackToBase()
     if (targetReached)
         robot->updateScore(10, "back to base");
 
-    if (robot->gameState_.nPlantsInRobot() > 0)
-    {
-        dropPlants(robot, &servoManager_, isFront, 0, true);
-    }
     servoManager_.openClaws(true);
     servoManager_.openClaws(false);
     robot->getMotionController()->goStraight(-120);
 
-    // No final motion so we don't kill PAMI.
-    // if (robot->gameState_.nPlantsInRobot() > 0)
-    // {
-    //     servoManager_.setClawPosition((isFront ? ClawSide::FRONT : ClawSide::BACK), ClawPosition::HIGH_POSITION);
-    //     robot->wait(1.0);
-    //     isFront = !isFront;
-    //     servoManager_.moveTurret(isFront ? 0 : M_PI);
-    //     robot->wait(1.0);
-    //     dropPlants(robot, &servoManager_, isFront, 0, true);
-    // }
 }
 
 
@@ -202,25 +150,11 @@ void Strategy::goBackToBase()
 void Strategy::match_impl()
 {
     pthread_setname_np(pthread_self(), "strat_matchImpl");
-    // vision::SolarPanelCamera camera("/dev/video0");
-    // while (true)
-    // {
-    //     double angle_deg = camera.getSolarPanelOrientation(true);
-    //     std::cout << angle_deg << std::endl;
-    // }
-    // testSquare();
-    // robot->getMotionController()->goStraight(-600);
-    // while (true) ;;
 
-    // // robot->getMotionController()->pointTurn(M_PI);
-    // robot->getMotionController()->pointTurn(-M_PI + 1e-6);
-    // robot->wait(1.0);
-    // RobotPosition pos;
-    // pos.theta = 0;
-    // robot->getMotionController()->resetPosition(pos, false, false, true);
-    // robot->getMotionController()->pointTurn(M_PI);
-    // robot->getMotionController()->pointTurn(-M_PI + 1e-6);
-    // while (true) ;;
+    testSquare(false, 500);
+
+    while (true) ;;
+
 
     while (!actions_.empty())
     {

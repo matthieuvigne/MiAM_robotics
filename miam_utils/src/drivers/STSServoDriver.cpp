@@ -79,8 +79,8 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
         // Set a return status level of 0.
         writeRegister(0xFE, STS::registers::RESPONSE_STATUS_LEVEL, 0);
         usleep(2000);
-        // Set voltage limit to  8.5V
-        writeRegister(0xFE, STS::registers::MAXIMUM_VOLTAGE, 85);
+        // Set voltage limit to  13V
+        writeRegister(0xFE, STS::registers::MAXIMUM_VOLTAGE, 130);
         usleep(2000);
         // Set all protections on
         writeRegister(0xFE, STS::registers::UNLOADING_CONDITION, 44);

@@ -70,19 +70,6 @@ public:
 
     double getTurretPosition() const;
 
-    void raiseSolarPanelArm(bool const& medium = false);
-    void lowerSolarPanelArm();
-    void spinSolarPanel(bool const& isPlayingRightSide);
-    void stopSolarPanel();
-
-    void halfOpenElectromagnetArms();
-    void openElectromagnetArms();
-    void closeElectromagnetArms();
-
-    void turnOnMagnets();
-    void turnOffMagnets();
-    void turnOffFrontMagnets();
-
 
 private:
     RobotInterface *robot_;

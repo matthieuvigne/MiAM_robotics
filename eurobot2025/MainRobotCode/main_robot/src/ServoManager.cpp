@@ -29,9 +29,6 @@ void ServoManager::init(RobotInterface *robot, bool const& isTurretAlreadyCalibr
     openClaws(false);
     setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
     setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
-    raiseSolarPanelArm();
-    openElectromagnetArms();
-    turnOffMagnets();
     servos_->setMode(SOLAR_PANEL_WHEEL, STS::Mode::VELOCITY);
 
     // Change P gain of the turret servo to prevent vibrations
@@ -224,7 +221,6 @@ void ServoManager::moveTurret(double const& targetPosition)
 #endif
     // Don't move turret before it's finish moving.
     waitForTurret();
-    raiseSolarPanelArm();
     setClawPosition(ClawSide::FRONT, ClawPosition::TURN_POSITION);
     setClawPosition(ClawSide::BACK, ClawPosition::TURN_POSITION);
     //~ setClawPosition(ClawSide::FRONT, ClawPosition::MEDIUM_POSITION_PLUS);
@@ -315,67 +311,3 @@ void ServoManager::updateTurretPosition()
     lastTurretPosition_ = pos;
 }
 
-
-void ServoManager::raiseSolarPanelArm(bool const& mediumPosition)
-{
-    if (mediumPosition)
-        servos_->setTargetPosition(20, 1700);
-    else
-        servos_->setTargetPosition(20, 800);
-}
-
-void ServoManager::lowerSolarPanelArm()
-{
-    servos_->setTargetPosition(20, 2048);
-}
-
-void ServoManager::spinSolarPanel(bool const& isPlayingRightSide)
-{
-    servos_->setMode(SOLAR_PANEL_WHEEL, STS::Mode::VELOCITY);
-    robot_->wait(0.005);
-    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, (isPlayingRightSide ? 1500 : -1500));
-}
-
-void ServoManager::stopSolarPanel()
-{
-    servos_->setTargetVelocity(SOLAR_PANEL_WHEEL, 0);
-}
-
-
-void ServoManager::openElectromagnetArms()
-{
-    servos_->setTargetPosition(30, 2048);
-    servos_->setTargetPosition(31, 2048);
-}
-
-void ServoManager::halfOpenElectromagnetArms()
-{
-    int const increment = 300;
-    servos_->setTargetPosition(30, 2048 + increment);
-    servos_->setTargetPosition(31, 2048 - increment);
-}
-
-void ServoManager::closeElectromagnetArms()
-{
-    int const increment = 1300;
-    servos_->setTargetPosition(30, 2048 + increment);
-    servos_->setTargetPosition(31, 2048 - increment);
-}
-
-void ServoManager::turnOnMagnets()
-{
-    robot_->logger_ << "Turning on magnets" << std::endl;
-    robot_->getMPC23008()->setOutputs(0xFF);
-}
-
-void ServoManager::turnOffMagnets()
-{
-    robot_->logger_ << "Turning off magnets" << std::endl;
-    robot_->getMPC23008()->setOutputs(0x00);
-}
-
-void ServoManager::turnOffFrontMagnets()
-{
-    robot_->logger_ << "Turning off front" << std::endl;
-    robot_->getMPC23008()->setOutputs(0b11101101);
-}

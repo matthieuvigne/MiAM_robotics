@@ -24,7 +24,9 @@
 
 // Address of GPIO controller.
 // Change to 0x20000000 for a raspberry pi 2 (BCM2835).
-#define GPIO_BASE_ADDRESS (0x3F000000 + 0x200000)
+// Change to 0x3F000000 for a raspberry pi 3 (BCM2837).
+// Change to 0x7E000000 for a raspberry pi 4 (BCM2711).
+#define GPIO_BASE_ADDRESS (0x7E000000 + 0x200000)
 
 #define GPSET0 7
 #define GPCLR0 10

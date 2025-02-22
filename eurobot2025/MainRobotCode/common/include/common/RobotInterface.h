@@ -106,7 +106,6 @@
 
             MotionController* getMotionController() { return &motionController_;}
             STSServoDriver* getServos() { return &servos_;}
-            MCP23008* getMPC23008() { return &mcpIOExpander_;}
             RobotPosition getStartPosition() { return gui_->getStartPosition();}
 
             /// \brief Get time in current match.
@@ -143,7 +142,6 @@
 #endif
             MotionController motionController_;
             STSServoDriver servos_;
-            MCP23008 mcpIOExpander_;
 
             RobotGUI *gui_;
             AbstractStrategy *strategy_;

@@ -34,75 +34,10 @@ void SolarPanelsAction::updateStartCondition()
 void SolarPanelsAction::actionStartTrigger()
 {
     servoManager_->moveTurret(0);
-    servoManager_->raiseSolarPanelArm(true);
 }
 
 bool SolarPanelsAction::performAction()
 {
-
-    int const sign = robot_->isPlayingRightSide() ? -1 : 1;
-    robot_->logger_ << "[SolarPanelsAction] Performing action" << std::endl;
-
-    servoManager_->waitForTurret();
-    servoManager_->raiseSolarPanelArm(true);
-    robot_->wait(0.010);
-    servoManager_->spinSolarPanel(robot_->isPlayingRightSide());
-    robot_->wait(0.010);
-
-    tf flags = (robot_->isPlayingRightSide() ? tf::DEFAULT : tf::BACKWARD);
-    double finalAngle = (robot_->isPlayingRightSide() ? 0: M_PI);
-
-    for (int i = 0; i< 6; i++)
-    {
-        if (i > 0)
-        {
-            // Read VLX
-            double const vlxY = robot_->getMeasurements()->vlxDistance;
-            RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
-            if (std::abs(currentPosition.y - vlxY) < 40.0)
-            {
-                robot_->logger_ << "[Strategy] Resetting robot y position: " << vlxY << " instead of " << currentPosition.y << std::endl;
-                currentPosition.y = vlxY;
-                robot_->getMotionController()->resetPosition(currentPosition, false, true, false);
-            }
-
-            RobotPosition const target(PANELS_X_COORD[i] + CONTACT_ARM_OFFSET + ROBOT_ARM_OFFSET * sign, LATERAL_DISTANCE, finalAngle);
-            std::cout << "Target position: " << target << std::endl;
-
-            if (i == 3)
-            {
-                // Avoid pots which are present in this zone
-                std::vector<RobotPosition> positions;
-                positions.push_back(currentPosition);
-                RobotPosition avoidPosition((currentPosition.x + target.x) / 2, currentPosition.y + 170, finalAngle);
-                positions.push_back(avoidPosition);
-                positions.push_back(target);
-                TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
-                    robot_->getMotionController()->robotParams_.getTrajConf(),
-                    positions,
-                    100.0,
-                    0.4,    // Transition velocity
-                    flags
-                );
-                robot_->getMotionController()->setTrajectoryToFollow(traj);
-                if (!robot_->getMotionController()->waitForTrajectoryFinished())
-                    return true; // Never retry
-            }
-            else
-                if (!robot_->getMotionController()->goToStraightLine(target, 1, flags))
-                    return true; // Never retry
-        }
-
-        servoManager_->lowerSolarPanelArm();
-        robot_->wait(0.010);
-        servoManager_->lowerSolarPanelArm();
-        robot_->wait(0.250);
-        robot_->updateScore(5, "solar panel");
-        servoManager_->raiseSolarPanelArm(true);
-        robot_->wait(0.4);
-    }
-    servoManager_->raiseSolarPanelArm();
-    servoManager_->stopSolarPanel();
 
     // Action should not be done again
     return true;

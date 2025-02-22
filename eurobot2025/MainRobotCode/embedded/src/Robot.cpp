@@ -64,14 +64,15 @@ bool Robot::initSystem()
 
     if (!isVlxInit_)
     {
-        isVlxInit_ = vlxSensor_.init(&RPI_I2C);
-        if (!isVlxInit_)
-            guiState_.debugStatus += "VLX init failed\n";
-        else
-        {
-            std::thread measureThread = std::thread(&Robot::updateRangeMeasurement, this);
-            measureThread.detach();
-        }
+        isVlxInit_ = true;
+        // isVlxInit_ = vlxSensor_.init(&RPI_I2C);
+        // if (!isVlxInit_)
+        //     guiState_.debugStatus += "VLX init failed\n";
+        // else
+        // {
+        //     std::thread measureThread = std::thread(&Robot::updateRangeMeasurement, this);
+        //     measureThread.detach();
+        // }
     }
 
     if (!isINAInit_)
@@ -79,13 +80,6 @@ bool Robot::initSystem()
         isINAInit_ = ina226_.init(&RPI_I2C);
         if (!isINAInit_)
             guiState_.debugStatus += "Battery monitoring init failed\n";
-    }
-
-    if (!isMCPInit_)
-    {
-        isMCPInit_ = mcpIOExpander_.init(&RPI_I2C);
-        if (!isMCPInit_)
-            guiState_.debugStatus += "MCP23008 init failed\n";
     }
 
     if (!isServoInit_)
@@ -263,7 +257,6 @@ void Robot::applyMotorTarget(DrivetrainTarget const& target)
 
 void Robot::matchEnd()
 {
-    mcpIOExpander_.setOutputs(0);
     if (!testMode_ || !disableLidar_)
         lidar_.stop();
 }
@@ -284,7 +277,6 @@ void Robot::shutdown()
     strategy_->shutdown();
     servos_.disable(0xFE);
     logger_.close();
-    mcpIOExpander_.setOutputs(0);
 }
 
 
