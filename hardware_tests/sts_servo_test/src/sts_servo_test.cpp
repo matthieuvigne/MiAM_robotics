@@ -5,6 +5,7 @@
 #include "main_robot/ServoManager.h"
 
 #include "main_robot/RailServo.h"
+#include "main_robot/Claw.h"
 
 #include <iostream>
 #include <thread>
@@ -56,36 +57,40 @@ int main(int argc, char* argv[])
     // servo_manager.init(&robot, false);
     // robot.wait(1.0);
 
-    RailServo rail(robot.getServos(), 10, 24, 9500, false);
+    robot.getServos()->setMode(0xFE, STS::Mode::POSITION);
 
-    rail.startCalibration();
 
-    while (!rail.isCalibrated())
-        usleep(100000);
+    Claw claw(robot.getServos(), RailServo(robot.getServos(), 10, 24, 9500, false), 12, 11, 800, true);
+
+    claw.rail_.startCalibration();
+    while (!claw.rail_.isCalibrated())
+        usleep(50000);
+
+    claw.rail_.move(0.2);
+    while (claw.rail_.isMoving())
+        usleep(50000);
 
     while (true)
     {
+        claw.openClaw();
+        claw.rail_.move(0.0);
+        while (claw.rail_.isMoving())
+            usleep(50000);
+        claw.unfold();
 
-        rail.move(0.5);
+        usleep(3000000);
+
+        claw.closeClaw();
         usleep(100000);
+        claw.rail_.move(0.7);
+        while (claw.rail_.isMoving())
+            usleep(50000);
+        claw.fold();
 
-        while (rail.isMoving())
-            usleep(20000);
-
-        std::cout << "Target reached" << std::endl;
-
-        usleep(1000000);
-
-        rail.move(0.0);
-        usleep(100000);
-
-        while (rail.isMoving())
-            usleep(20000);
-
-        std::cout << "Target reached" << std::endl;
-
-        usleep(1000000);
+        usleep(3000000);
     }
+
+
 
     return EXIT_SUCCESS;
 }

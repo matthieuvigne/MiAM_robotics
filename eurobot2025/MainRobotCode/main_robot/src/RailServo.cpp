@@ -3,8 +3,6 @@
 #include <unistd.h>
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
 
-#include <iostream>
-
 RailServo::RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted):
     driver_(driver),
     servoId_(servoId),
