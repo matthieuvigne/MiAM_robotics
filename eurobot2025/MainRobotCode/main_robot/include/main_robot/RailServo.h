@@ -14,7 +14,7 @@ class RailServo
         /// @param gpioId Id of the limit switch GPIO
         /// @param distance Total travel distance
         /// @param inverted Invert servo rotation
-        RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted=false);
+        RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted=false, bool calibrateBottom=false);
 
         void startCalibration();
 
@@ -35,6 +35,7 @@ class RailServo
         int gpio_;
         int travelDistance_;
         int sign_;
+        bool calibrateBottom_;
 
         bool isCalibrated_ = false;
         double currentPosition_ = 0.0;

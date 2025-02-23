@@ -59,36 +59,94 @@ int main(int argc, char* argv[])
 
     robot.getServos()->setMode(0xFE, STS::Mode::POSITION);
 
+    STSServoDriver *servos = robot.getServos();
+    // Claw leftClaw(robot.getServos(), RailServo(robot.getServos(), 10, 24, 9500, false), 12, 11, 800, true);
+    // Claw rightClaw(robot.getServos(), RailServo(robot.getServos(), 13, 23, 9500, true), 14, 15, 650, false);
 
-    Claw claw(robot.getServos(), RailServo(robot.getServos(), 10, 24, 9500, false), 12, 11, 800, true);
+    // rightClaw.rail_.startCalibration();
+    // leftClaw.rail_.startCalibration();
+    // while (!rightClaw.rail_.isCalibrated() || !leftClaw.rail_.isCalibrated())
+    //     usleep(50000);
 
-    claw.rail_.startCalibration();
-    while (!claw.rail_.isCalibrated())
-        usleep(50000);
+    // while (true)
+    // {
+    //     rightClaw.rail_.move(0.0);
+    //     leftClaw.rail_.move(0.0);
+    //     while (rightClaw.rail_.isMoving() || leftClaw.rail_.isMoving())
+    //         usleep(50000);
+    //     rightClaw.openClaw();
+    //     leftClaw.openClaw();
+    //     rightClaw.unfold();
+    //     leftClaw.unfold();
 
-    claw.rail_.move(0.2);
-    while (claw.rail_.isMoving())
+    //     usleep(3000000);
+
+    //     rightClaw.closeClaw();
+    //     leftClaw.closeClaw();
+    //     usleep(250000);
+    //     rightClaw.rail_.move(0.7);
+    //     leftClaw.rail_.move(0.7);
+    //     while (rightClaw.rail_.isMoving() || leftClaw.rail_.isMoving())
+    //         usleep(50000);
+    //     // rightClaw.fold();
+    //     // leftClaw.fold();
+
+    //     usleep(3000000);
+    // }
+
+
+    RailServo middleRail(robot.getServos(), 5, 22, 9500, true, true);
+
+    middleRail.startCalibration();
+    while (!middleRail.isCalibrated())
         usleep(50000);
 
     while (true)
     {
-        claw.openClaw();
-        claw.rail_.move(0.0);
-        while (claw.rail_.isMoving())
+        servos->setTargetPosition(6, 500);
+        servos->setTargetPosition(7, 500);
+        middleRail.move(0.0);
+        while (middleRail.isMoving())
             usleep(50000);
-        claw.unfold();
+        usleep(1000000);
 
-        usleep(3000000);
+        servos->setTargetPosition(6, 500);
+        servos->setTargetPosition(7, 500);
+        usleep(2000000);
 
-        claw.closeClaw();
-        usleep(100000);
-        claw.rail_.move(0.7);
-        while (claw.rail_.isMoving())
+
+        middleRail.move(0.5);
+        while (middleRail.isMoving())
             usleep(50000);
-        claw.fold();
-
-        usleep(3000000);
     }
+
+    // claw.rail_.startCalibration();
+    // while (!claw.rail_.isCalibrated())
+    //     usleep(50000);
+
+    // claw.rail_.move(0.2);
+    // while (claw.rail_.isMoving())
+    //     usleep(50000);
+
+    // while (true)
+    // {
+    //     claw.openClaw();
+    //     claw.rail_.move(0.0);
+    //     while (claw.rail_.isMoving())
+    //         usleep(50000);
+    //     claw.unfold();
+
+    //     usleep(3000000);
+
+    //     claw.closeClaw();
+    //     usleep(100000);
+    //     claw.rail_.move(0.7);
+    //     while (claw.rail_.isMoving())
+    //         usleep(50000);
+    //     claw.fold();
+
+    //     usleep(3000000);
+    // }
 
 
 
