@@ -11,9 +11,7 @@
 #define CHASSIS_OFFSET 190
 
 std::vector<miam::RobotPosition> START_POSITIONS({
-    miam::RobotPosition(CHASSIS_OFFSET, 1550 + CHASSIS_OFFSET, 0.0),
-    miam::RobotPosition(3000 - CHASSIS_OFFSET, 750 + CHASSIS_OFFSET, M_PI),
-    miam::RobotPosition(CHASSIS_OFFSET, 450 - CHASSIS_OFFSET - 90, M_PI)
+    miam::RobotPosition(1200, 10 + CHASSIS_OFFSET, M_PI_2)
 });
 
 RobotGUI::RobotGUI()
@@ -109,14 +107,14 @@ bool RobotGUI::doUpdate()
     scoreLabel_.set_text("Score: " + std::to_string(robotData.score));
     if (isPlayingRightSide_)
     {
-        sideButton_.set_label("Yellow");
-        sideButton_.set_name("yellow");
+        sideButton_.set_label("Blue");
+        sideButton_.set_name("blue");
         sideButton_.get_child()->set_name("button_text");
     }
     else
     {
-        sideButton_.set_label("Blue");
-        sideButton_.set_name("blue");
+        sideButton_.set_label("Yellow");
+        sideButton_.set_name("yellow");
         sideButton_.get_child()->set_name("button_text");
     }
 
@@ -191,8 +189,6 @@ void RobotGUI::blockMotorsButtonClicked()
 miam::RobotPosition RobotGUI::getStartPosition()
 {
     miam::RobotPosition startPos = START_POSITIONS[startPositionIdx_];
-    if (startPositionIdx_ == 2 && isPlayingRightSide_)
-        startPos.theta = 0;
     return startPos;
 }
 

@@ -2,7 +2,7 @@
 #include "common/MotionPlanner.h"
 #include "common/ThreadHandler.h"
 
-#include "main_robot/SolarPanelsAction.h"
+#include "main_robot/GrabColumnAction.h"
 
 using namespace miam::trajectory;
 using miam::RobotPosition;
@@ -42,15 +42,17 @@ bool Strategy::setup(RobotInterface *robot)
         // Load actions into action vector.
         actions_.clear();
 
-        actions_.push_back(std::make_shared<SolarPanelsAction>(robot, &servoManager_));
+        for (int i = 0; i < 10; i++)
+        {
+            actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, i));
+        }
     }
 
-    // Wait until turret is calibrating.
-    bool done = servoManager_.isTurretMotionless();
+    // TODO: wait until calibration from servomanager
+    bool done = true;
     if (done)
     {
-        servoManager_.setClawPosition(ClawSide::FRONT, ClawPosition::START_POSITION);
-        servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::START_POSITION);
+        // TOOD
     }
     return done;
 }
@@ -92,38 +94,15 @@ void Strategy::goBackToBase()
     robot->getMotionController()->stopCurrentTrajectoryTracking();
 
     // Target depends on start position
-    RobotPosition targetPosition;
-    if (robot->getStartPosition().y < 700)
-    {
-        targetPosition.x = 450;
-        targetPosition.y = 1600;
-    }
-    else
-    {
-        targetPosition.x = 450;
-        targetPosition.y = 400;
-    }
-    targetPosition.theta = M_PI;
+    RobotPosition targetPosition(600, 1600, 0);
 
-    // Prepare to drop plants
-    bool isFront = robot->gameState_.nPlantsInClaw(true) > 0;
-    if (robot->gameState_.nPlantsInRobot() > 0)
-        servoManager_.moveTurret(isFront ? 0 : M_PI);
-    else
-    {
-        servoManager_.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
-        servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
-    }
-
-    RobotPosition targetPositions[2] = {targetPosition, RobotPosition(2700, 970, M_PI_2)};
-    int candidateId = 1;
     bool targetReached = false;
     while (!targetReached && robot->getMatchTime() < 90)
     {
 
         TrajectoryVector traj;
         traj = robot->getMotionController()->computeMPCTrajectory(
-            targetPositions[candidateId],
+            targetPosition,
             robot->getMotionController()->getDetectedObstacles(),
             tf::DEFAULT);
         if (!traj.empty())
@@ -132,16 +111,10 @@ void Strategy::goBackToBase()
             targetReached = robot->getMotionController()->waitForTrajectoryFinished();
         }
         else
-            targetReached = robot->getMotionController()->goToStraightLine(targetPositions[candidateId]);
-        candidateId  = (candidateId + 1) % 2;
+            targetReached = robot->getMotionController()->goToStraightLine(targetPosition);
     }
     if (targetReached)
         robot->updateScore(10, "back to base");
-
-    servoManager_.openClaws(true);
-    servoManager_.openClaws(false);
-    robot->getMotionController()->goStraight(-120);
-
 }
 
 
@@ -208,8 +181,8 @@ void Strategy::match_impl()
         bool actionSuccessful = performAction(actions_.at(selectedAction), actionShouldBeRemoved);
 
         // After each action: raise arms, we never want to transition with low arms.
-        servoManager_.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
-        servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
+        // servoManager_.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
+        // servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
 
 
         // If action failed: don't try it again for now until one is successful

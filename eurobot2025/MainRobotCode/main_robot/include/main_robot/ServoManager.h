@@ -45,47 +45,14 @@ public:
 
     void init(RobotInterface *robot, bool const& isTurretAlreadyCalibrated);
 
-    void openClaw(int const& clawId, bool const& halfOpen);
-    void closeClaw(int const& clawId);
+    void foldBanner();
+    void dropBanner();
 
-    void openClaws(bool const& front, bool const& halfOpen = false);
-    void openAvailableClaws(bool const& front, GameState & gameState);
-
-    void closeClaws(bool const& front);
-
-    /// @brief Update the claw content, returning the number of plants that changed since
-    ///        the last call.
-    int updateClawContent(bool const& front, GameState & gameState);
-
-    bool setClawPosition(ClawSide const& side, ClawPosition const& claw_position);
-
-    /// @brief Move turret to specified position, in rad.
-    void moveTurret(double const& turretPos);
-
-    void waitForTurret();
-    bool isTurretMotionless()
-    {
-        return turretState_ == turret::state::IDLE;
-    }
-
-    double getTurretPosition() const;
 
 
 private:
     RobotInterface *robot_;
     STSServoDriver *servos_;
-
-    void turretMotionThread(bool const& isTurretAlreadyCalibrated);
-
-    turret::state turretState_{turret::state::CALIBRATING};
-
-    double currentTurretPosition_{0.0};
-    double targetTurretPosition_{0.0};
-    int lastTurretPosition_{0};
-
-    bool isClawServoClosed_[6] = {false, false, false, false, false, false};
-
-    void updateTurretPosition();
 };
 
 #endif
