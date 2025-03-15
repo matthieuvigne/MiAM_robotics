@@ -16,9 +16,9 @@
                 param.name = "MainRobot";
 
                 // Coefficients qui marchent à droite (false)
-                param.rightWheelRadius = 55.5 * 0.999; ///< Right wheel radius, in mm - identified during open loop experiments.
-                param.leftWheelRadius = 55.5; ///< Left wheel radius, in mm - identified during open loop experiments.
-                param.wheelSpacing = 103.3; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.
+                param.rightWheelRadius = 55.3; ///< Right wheel radius, in mm - identified during open loop experiments.
+                param.leftWheelRadius = 55.3; ///< Left wheel radius, in mm - identified during open loop experiments.
+                param.wheelSpacing = 104.5; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.
                 param.rightEncoderWheelRadius = 25.9 * 1.015; ///< Radius of encoder wheels, in mm.
                 param.leftEncoderWheelRadius = 25.9; ///< Radius of encoder wheels, in mm.
                 param.encoderWheelSpacing = 132.0; ///< Encoder wheel spacing from robot center, in mm.

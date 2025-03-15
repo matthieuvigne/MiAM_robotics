@@ -60,39 +60,59 @@ int main(int argc, char* argv[])
     robot.getServos()->setMode(0xFE, STS::Mode::POSITION);
 
     STSServoDriver *servos = robot.getServos();
-    // Claw leftClaw(robot.getServos(), RailServo(robot.getServos(), 10, 24, 9500, false), 12, 11, 800, true);
-    // Claw rightClaw(robot.getServos(), RailServo(robot.getServos(), 13, 23, 9500, true), 14, 15, 650, false);
+    Claw leftClaw(robot.getServos(), RailServo(robot.getServos(), 10, 24, 9500, false), 12, 11, 825, true);
+    Claw rightClaw(robot.getServos(), RailServo(robot.getServos(), 13, 23, 9500, true), 14, 15, 575, false);
 
-    // rightClaw.rail_.startCalibration();
-    // leftClaw.rail_.startCalibration();
-    // while (!rightClaw.rail_.isCalibrated() || !leftClaw.rail_.isCalibrated())
-    //     usleep(50000);
+    MiddleClaw middleClaw(robot.getServos(), RailServo(robot.getServos(), 6, 21, 6000, false));
 
-    // while (true)
-    // {
-    //     rightClaw.rail_.move(0.0);
-    //     leftClaw.rail_.move(0.0);
-    //     while (rightClaw.rail_.isMoving() || leftClaw.rail_.isMoving())
-    //         usleep(50000);
-    //     rightClaw.openClaw();
-    //     leftClaw.openClaw();
-    //     rightClaw.unfold();
-    //     leftClaw.unfold();
+    middleClaw.rail_.startCalibration();
 
-    //     usleep(3000000);
+    rightClaw.move(ClawPosition::FORWARD);
+    rightClaw.rail_.startCalibration();
 
-    //     rightClaw.closeClaw();
-    //     leftClaw.closeClaw();
-    //     usleep(250000);
-    //     rightClaw.rail_.move(0.7);
-    //     leftClaw.rail_.move(0.7);
-    //     while (rightClaw.rail_.isMoving() || leftClaw.rail_.isMoving())
-    //         usleep(50000);
-    //     // rightClaw.fold();
-    //     // leftClaw.fold();
+    leftClaw.move(ClawPosition::FORWARD);
+    leftClaw.rail_.startCalibration();
 
-    //     usleep(3000000);
-    // }
+    middleClaw.open();
+    middleClaw.rail_.startCalibration();
+
+    while (!rightClaw.rail_.isCalibrated() || !leftClaw.rail_.isCalibrated() || !middleClaw.rail_.isCalibrated())
+        usleep(50000);
+
+    while (true)
+    {
+        rightClaw.rail_.move(0.0);
+        leftClaw.rail_.move(0.0);
+        middleClaw.rail_.move(0.0);
+        while (rightClaw.rail_.isMoving() || leftClaw.rail_.isMoving() || middleClaw.rail_.isMoving())
+            usleep(50000);
+        rightClaw.move(ClawPosition::FORWARD);
+        rightClaw.openClaw();
+        leftClaw.move(ClawPosition::FORWARD);
+        leftClaw.openClaw();
+        middleClaw.open();
+
+        usleep(3000000);
+
+        rightClaw.closeClaw();
+        leftClaw.closeClaw();
+        middleClaw.close();
+        usleep(250000);
+        // rightClaw.move(ClawPosition::SIDE);
+        rightClaw.rail_.move(0.7);
+
+        // leftClaw.move(ClawPosition::SIDE);
+        leftClaw.rail_.move(0.7);
+        middleClaw.rail_.move(0.9);
+
+        while (rightClaw.rail_.isMoving() || leftClaw.rail_.isMoving() || middleClaw.rail_.isMoving())
+            usleep(50000);
+
+        usleep(3000000);
+
+        rightClaw.openClaw();
+        leftClaw.openClaw();
+    }
 
 
     RailServo middleRail(robot.getServos(), 5, 22, 9500, true, true);

@@ -4,6 +4,12 @@
 #include <miam_utils/drivers/STSServoDriver.h>
 #include "RailServo.h"
 
+enum ClawPosition
+{
+    FORWARD,
+    SIDE,
+    FOLDED
+};
 
 /// \brief Control for a continuous rotation servo mounted on a vertical rail
 class Claw
@@ -27,8 +33,7 @@ class Claw
         void openClaw();
         void closeClaw();
 
-        void fold();
-        void unfold();
+        void move(ClawPosition const& clawPos);
 
         RailServo rail_;
 
@@ -40,6 +45,23 @@ class Claw
         int clawCloseValue_;
 
         int sign_;
+
+        int mirror(int const& pos);
+
+};
+
+class MiddleClaw
+{
+    public:
+        MiddleClaw(STSServoDriver *driver, RailServo rail);
+
+        void open();
+        void close();
+
+        RailServo rail_;
+
+    private:
+        STSServoDriver *driver_;
 };
 
 #endif

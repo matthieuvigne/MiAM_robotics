@@ -18,6 +18,7 @@
 #include <iostream>
 #include <cstring>
 
+#include <memory>
 
 // Register address / offsets from base address.
 // See BCM2837 manual, p.89 onward, for more information.
@@ -26,7 +27,9 @@
 // Change to 0x20000000 for a raspberry pi 2 (BCM2835).
 // Change to 0x3F000000 for a raspberry pi 3 (BCM2837).
 // Change to 0x7E000000 for a raspberry pi 4 (BCM2711).
-#define GPIO_BASE_ADDRESS (0x7E000000 + 0x200000)
+long int  GPIO_BASE_ADDRESS =  0x3F000000 + 0x200000;
+
+int RPI_VERSION_NUMBER = 3;
 
 #define GPSET0 7
 #define GPCLR0 10
@@ -34,6 +37,8 @@
 #define GPLEV0 13
 #define GPPUD 37
 #define GPPUDCLK0 38
+
+#define GPIO_PUP_PDN_CNTRL 0xe4 / 4
 
 // PWM registers.
 #define PWM_BASE_ADDRESS (0x3F000000 + 0x20C000)
@@ -50,8 +55,29 @@ volatile unsigned int *gpio_register = (volatile unsigned int *)MAP_FAILED;
 volatile unsigned int *pwm_register = (volatile unsigned int *)MAP_FAILED;
 volatile unsigned int *clock_register = (volatile unsigned int *)MAP_FAILED;
 
+
+std::string exec(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
 bool RPi_enableGPIO()
 {
+    if (exec("cat /proc/cpuinfo | grep 'Model' | awk '{print $5}'") == "4\n")
+    {
+        RPI_VERSION_NUMBER = 4;
+        GPIO_BASE_ADDRESS = 0x7E000000 + 0x200000;
+    }
+
+
     gpio_register = (volatile unsigned int *)MAP_FAILED;
     pwm_register = (volatile unsigned int *)MAP_FAILED;
     clock_register = (volatile unsigned int *)MAP_FAILED;
@@ -149,17 +175,29 @@ void RPi_setupGPIO(unsigned int const& gpioPin, PiGPIOMode const& direction)
     if(direction == PI_GPIO_OUTPUT)
         *(gpio_register + (gpioPin/10)) |= 0b001 << ((gpioPin % 10)*3);
     // Setup pullups.
-    // Setup GPPUD register.
-    *(gpio_register + GPPUD) = 0;
-    if(direction == PI_GPIO_INPUT_PULLUP)
-        *(gpio_register + GPPUD) = 0b10;
-    else if(direction == PI_GPIO_INPUT_PULLDOWN)
-        *(gpio_register + GPPUD) = 0b01;
-    usleep(1);
-    // Pulse corresponding GPPUDCLK bit.
-    *(gpio_register + GPPUDCLK0) |= 1 << gpioPin;
-    usleep(1);
-    *(gpio_register + GPPUDCLK0) &= ~(1 << gpioPin);
+
+    if (RPI_VERSION_NUMBER == 4)
+    {
+        *(gpio_register + GPIO_PUP_PDN_CNTRL + (gpioPin/16)) &=  ~( 0b11 << ((gpioPin % 16)*2));
+        if(direction == PI_GPIO_INPUT_PULLUP)
+            *(gpio_register + GPIO_PUP_PDN_CNTRL + (gpioPin/16)) |=  ( 0b01 << ((gpioPin % 16)*2));
+        else if(direction == PI_GPIO_INPUT_PULLDOWN)
+            *(gpio_register + GPIO_PUP_PDN_CNTRL + (gpioPin/16)) |=  ( 0b10 << ((gpioPin % 16)*2));
+    }
+    else
+    {
+        // Setup GPPUD register.
+        *(gpio_register + GPPUD) = 0;
+        if(direction == PI_GPIO_INPUT_PULLUP)
+            *(gpio_register + GPPUD) = 0b10;
+        else if(direction == PI_GPIO_INPUT_PULLDOWN)
+            *(gpio_register + GPPUD) = 0b01;
+        usleep(1);
+        // Pulse corresponding GPPUDCLK bit.
+        *(gpio_register + GPPUDCLK0) |= 1 << gpioPin;
+        usleep(1);
+        *(gpio_register + GPPUDCLK0) &= ~(1 << gpioPin);
+    }
 }
 
 void RPi_writeGPIO(unsigned int const& gpioPin, bool const& value)

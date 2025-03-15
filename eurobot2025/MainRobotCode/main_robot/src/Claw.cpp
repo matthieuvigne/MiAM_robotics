@@ -23,7 +23,7 @@ Claw::Claw(STSServoDriver *driver,
 
 void Claw::openClaw()
 {
-    driver_->setTargetPosition(clawServoId_, clawCloseValue_ + sign_ * 100);
+    driver_->setTargetPosition(clawServoId_, clawCloseValue_ + sign_ * 150);
 
 }
 
@@ -33,12 +33,45 @@ void Claw::closeClaw()
     driver_->setTargetPosition(clawServoId_, clawCloseValue_);
 }
 
-void Claw::fold()
+
+void Claw::move(ClawPosition const& clawPos)
 {
-    driver_->setTargetPosition(wristServoId_, CLAW_STRAIGHT + sign_ * 700);
+    switch (clawPos)
+    {
+        case ClawPosition::FOLDED:
+            driver_->setTargetPosition(wristServoId_, mirror(1000));
+            break;
+        case ClawPosition::SIDE:
+            driver_->setTargetPosition(wristServoId_, mirror(2400));
+            break;
+        case ClawPosition::FORWARD:
+        default:
+            driver_->setTargetPosition(wristServoId_, mirror(3000));
+            break;
+    }
 }
 
-void Claw::unfold()
+int Claw::mirror(int const& pos)
 {
-    driver_->setTargetPosition(wristServoId_, CLAW_STRAIGHT);
+    return 2048 + sign_ * (pos - 2048);
+}
+
+
+MiddleClaw::MiddleClaw(STSServoDriver *driver, RailServo rail) :
+    rail_(rail),
+    driver_(driver)
+{
+
+}
+
+void MiddleClaw::open()
+{
+    driver_->setTargetPosition(32, 2048);
+    driver_->setTargetPosition(33, 3000);
+}
+
+void MiddleClaw::close()
+{
+    driver_->setTargetPosition(32, 2048);
+    driver_->setTargetPosition(33, 2048);
 }
