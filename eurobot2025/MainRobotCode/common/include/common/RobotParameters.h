@@ -57,8 +57,6 @@
                 return c;
             };
 
-            int rightMotorId;
-            int leftMotorId;
             int rightMotorDirection = 1; // Invert motor if needed: positive is moving forward.
             int leftMotorDirection = -1; // Invert motor if needed: positive is moving forward.
 

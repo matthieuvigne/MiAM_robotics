@@ -38,12 +38,9 @@
                 param.CHASSIS_FRONT = 140.0;
                 param.CHASSIS_BACK = 140.0;
                 param.CHASSIS_WIDTH = 140.0;
-                // param.SUCTION_CENTER = 180.0;
 
-                param.rightMotorId = 4;
-                param.leftMotorId = 3;
                 param.rightMotorDirection = 1;
-                param.leftMotorDirection = -1;
+                param.leftMotorDirection = 1;
 
                 param.rightEncoderDirection = -1;
                 param.leftEncoderDirection = 1;

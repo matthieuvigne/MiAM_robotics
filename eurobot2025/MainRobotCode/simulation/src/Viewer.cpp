@@ -185,7 +185,7 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     // Draw game state.
     cr->scale(mmToCairo_, mmToCairo_);
-    robots_[0]->gameState_.draw(cr, robots_[0]->getPosition());
+    robots_[0]->gameState_.draw(cr, robots_[0]->getPosition(), robots_[0]->isPlayingRightSide());
 
     return true;
 }

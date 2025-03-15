@@ -3,6 +3,7 @@
 #include "common/ThreadHandler.h"
 
 #include "main_robot/GrabColumnAction.h"
+#include "main_robot/BuildAction.h"
 
 using namespace miam::trajectory;
 using miam::RobotPosition;
@@ -42,9 +43,14 @@ bool Strategy::setup(RobotInterface *robot)
         // Load actions into action vector.
         actions_.clear();
 
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 9; i++)
         {
             actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, i));
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
         }
     }
 
@@ -124,9 +130,9 @@ void Strategy::match_impl()
 {
     pthread_setname_np(pthread_self(), "strat_matchImpl");
 
-    testSquare(false, 500);
+    // testSquare(false, 500);
 
-    while (true) ;;
+    // while (true) ;;
 
 
     while (!actions_.empty())

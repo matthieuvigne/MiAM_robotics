@@ -45,6 +45,24 @@ int main (int argc, char *argv[])
     if (!encoderState)
         std::cout << "Warning: left encoder invalid" << std::endl;
 
+    std::cout << "Moving right motor forward" << std::endl;
+    for (int i = 0; i < 300; i++)
+    {
+        rightMotor.setTargetVelocity(2.0);
+        rightMotor.updateMeasurements();
+        usleep(10000);
+    }
+    rightMotor.stop();
+
+    std::cout << "Moving left motor backward" << std::endl;
+    for (int i = 0; i < 300; i++)
+    {
+        leftMotor.setTargetVelocity(-2.0);
+        leftMotor.updateMeasurements();
+        usleep(10000);
+    }
+    leftMotor.stop();
+
     Logger log;
     log.start("nautilus_test.hdf5");
     setStart();

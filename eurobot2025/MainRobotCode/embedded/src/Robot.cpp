@@ -18,8 +18,8 @@ Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, Robo
     RobotInterface(parameters, gui, strategy, testMode, "", silent),
     lidar_(parameters.lidarOffset),
     disableLidar_(disableLidar),
-    rightMotor_(RPI_SPI_01),
-    leftMotor_(RPI_SPI_00)
+    rightMotor_(RPI_SPI_00),
+    leftMotor_(RPI_SPI_01)
 {
     guiState_.state = robotstate::INIT;
     guiState_.score = 0;

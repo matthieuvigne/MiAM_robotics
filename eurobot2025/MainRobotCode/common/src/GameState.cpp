@@ -1,17 +1,24 @@
 #include "common/GameState.h"
 
-const miam::RobotPosition COLLECT_ZONE_COORDS[10] =
+const miam::RobotPosition COLLECT_ZONE_COORDS[9] =
 {
-    miam::RobotPosition(1500, 1500),
-    miam::RobotPosition(1000, 1300),
-    miam::RobotPosition(2000, 1300),
-    miam::RobotPosition(1000, 700),
-    miam::RobotPosition(2000, 700),
-    miam::RobotPosition(1500, 500),
-    miam::RobotPosition(1500, 500),
-    miam::RobotPosition(1500, 500),
-    miam::RobotPosition(1500, 500),
-    miam::RobotPosition(1500, 500)
+    miam::RobotPosition(825, 1725, M_PI_2),
+    miam::RobotPosition(75, 1325, M_PI),
+    miam::RobotPosition(3000 - 75, 1325, M_PI),
+    miam::RobotPosition(1100, 950, M_PI_2),
+    miam::RobotPosition(3000 - 1100, 950, M_PI_2),
+    miam::RobotPosition(75, 400, M_PI),
+    miam::RobotPosition(3000 - 75, 400, M_PI),
+    miam::RobotPosition(775, 250, M_PI_2),
+    miam::RobotPosition(3000 - 775, 250, M_PI_2)
+};
+
+const miam::RobotPosition CONSTRUCTION_ZONE_COORDS[4] =
+{
+    miam::RobotPosition(2800, 850, 0),
+    miam::RobotPosition(750, 50, -M_PI_2),
+    miam::RobotPosition(1200, 50, -M_PI_2),
+    miam::RobotPosition(2800, 50, -M_PI_2)
 };
 
 
@@ -27,21 +34,46 @@ void drawText(Cairo::RefPtr<Cairo::Context> const& cr, std::string const& text, 
     cr->stroke();
 }
 
-void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPosition const& robotPosition)
+void drawZone(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPosition const& pos, bool const& isPlayingRightSide)
 {
-    cr->set_source_rgb(1.0, 0.0, 0.0);
+    cr->save();
+    cr->translate((isPlayingRightSide ? 3000 - pos.x : pos.x), 2000. - pos.y);
+    cr->rotate(-pos.theta);
 
-    for (int i = 0; i < 10; i++)
+    for (int j = 0; j < 4; j++)
+    {
+        cr->arc(0, 50 * (-3 + 2 * j), 20, 0.0, 2.0 * M_PI);
+        cr->fill();
+    }
+    cr->restore();
+}
+
+void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPosition const& robotPosition, bool const& isPlayingRightSide)
+{
+    cr->set_source_rgb(1.0, 0.5, 0.0);
+
+    for (int i = 0; i < 9; i++)
     {
         if (isCollectZoneFull[i])
+            drawZone(cr, COLLECT_ZONE_COORDS[i], isPlayingRightSide);
+    }
+
+    // Add forbidden items
+    cr->set_source_rgb(1.0, 0.0, 0.0);
+    drawZone(cr, COLLECT_ZONE_COORDS[0], !isPlayingRightSide);
+
+    cr->set_source_rgb(0.2, 1.0, 0.2);
+    for (int i = 0; i < 4; i++)
+    {
+        if (isConstructionZoneUsed[i])
         {
             cr->save();
-            cr->translate(COLLECT_ZONE_COORDS[i].x, 2000. - COLLECT_ZONE_COORDS[i].y);
-            cr->rotate(-COLLECT_ZONE_COORDS[i].theta);
+            cr->translate(CONSTRUCTION_ZONE_COORDS[i].x, 2000. - CONSTRUCTION_ZONE_COORDS[i].y);
+            cr->rotate(-CONSTRUCTION_ZONE_COORDS[i].theta);
 
-            for (int j = 0; j < 4; i++)
+            for (int j = 0; j < 4; j++)
             {
-                cr->arc(0, 50 * (-3 + 2 * i), 20, 0.0, 2.0 * M_PI);
+                cr->arc(0, 50 * (-3 + 2 * j), 20, 0.0, 2.0 * M_PI);
                 cr->fill();
             }
             cr->restore();
@@ -49,6 +81,7 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
     }
 
 
+    cr->set_source_rgb(1.0, 0.5, 0.0);
     cr->save();
     cr->translate(robotPosition.x, 2000. - robotPosition.y);
     cr->rotate(-robotPosition.theta);
@@ -57,7 +90,7 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
     {
         for (int j = 0; j < 4; j++)
         {
-            cr->arc(50 * (-3 + 2 * j), 150, 20, 0.0, 2.0 * M_PI);
+            cr->arc(150, 50 * (-3 + 2 * j), 20, 0.0, 2.0 * M_PI);
             cr->fill();
         }
     }
@@ -65,15 +98,9 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
     {
         for (int j = 0; j < 4; j++)
         {
-            cr->arc(50 * (-3 + 2 * j), -150, 20, 0.0, 2.0 * M_PI);
+            cr->arc(-150, 50 * (-3 + 2 * j), 20, 0.0, 2.0 * M_PI);
             cr->fill();
         }
     }
     cr->restore();
-
-    // for (int i = 0; i < 4; i++)
-    // {
-    //     cr->move_to(POTS_DISPLAY_COORD[i].x, 2000. - POTS_DISPLAY_COORD[i].y);
-    //     drawText(cr, std::to_string(nPotsInPile[i]), 0.5, 0.5, 0.5);
-    // }
 }

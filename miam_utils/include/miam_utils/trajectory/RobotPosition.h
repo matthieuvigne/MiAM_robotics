@@ -83,12 +83,17 @@
                 /// \return The cross product, i.e. x * secondVector.y - y * secondVector.x
                 double cross(RobotPosition const& secondVector) const;
 
-
                 /// \brief Rotate the position by a given angle.
                 ///
                 /// \param[in] thetaIn Rotation angle.
                 /// \return Position rotated by the given angle.
-                RobotPosition rotate(double const& thetaIn);
+                RobotPosition rotate(double const& thetaIn) const;
+
+                /// \brief Return the position corresponding to a translation by distance along the forward axis
+                ///
+                /// \param[in] distance Distance (negative will give backward motion)
+                /// \return Translated position
+                RobotPosition forward(double const& distance) const;
 
                 double x;    ///< X coordinate of the robot, in mm.
                 double y;    ///< Y coordinate of the robot, in mm. Notice that y axis is taken positive when pointing downward.

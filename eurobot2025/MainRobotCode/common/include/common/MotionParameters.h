@@ -47,4 +47,10 @@
     } // namespace table dimensions
 
 
+    inline bool isPositionInTable(RobotPosition const& pos)
+    {
+        return (pos.x < table_dimensions::table_max_x && pos.x > table_dimensions::table_min_x
+            && pos.y < table_dimensions::table_max_y && pos.y > table_dimensions::table_min_y);
+    }
+
 #endif

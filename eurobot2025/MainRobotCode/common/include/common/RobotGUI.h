@@ -65,7 +65,7 @@
 
 
                 RobotGUIData robotData_;
-                int startPositionIdx_ = 2;  // Index of start position in START_POSITIONS vector.
+                int startPositionIdx_ = 0;  // Index of start position in START_POSITIONS vector.
                 bool isPlayingRightSide_ = false;
 
                 robotstate lastState_ = robotstate::MATCH_DONE;

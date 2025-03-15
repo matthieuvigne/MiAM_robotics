@@ -95,12 +95,21 @@ namespace miam{
     }
 
 
-    RobotPosition RobotPosition::rotate(double const& thetaIn)
+    RobotPosition RobotPosition::rotate(double const& thetaIn) const
     {
         RobotPosition p;
         p.theta = this-> theta + thetaIn;
         p.x = std::cos(thetaIn) * this->x - std::sin(thetaIn) * this->y;
         p.y = std::sin(thetaIn) * this->x + std::cos(thetaIn) * this->y;
+        return p;
+    }
+
+
+    RobotPosition RobotPosition::forward(double const& distance) const
+    {
+        RobotPosition p = RobotPosition(distance, 0, 0).rotate(this->theta);
+        p.x += this->x;
+        p.y += this->y;
         return p;
     }
 
