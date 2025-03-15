@@ -130,9 +130,9 @@ void Strategy::match_impl()
 {
     pthread_setname_np(pthread_self(), "strat_matchImpl");
 
-    // testSquare(false, 500);
+    testSquare(false, 500);
 
-    // while (true) ;;
+    while (true) ;;
 
 
     while (!actions_.empty())

@@ -40,7 +40,7 @@
                 param.CHASSIS_WIDTH = 140.0;
 
                 param.rightMotorDirection = 1;
-                param.leftMotorDirection = 1;
+                param.leftMotorDirection = -1;
 
                 param.rightEncoderDirection = -1;
                 param.leftEncoderDirection = 1;

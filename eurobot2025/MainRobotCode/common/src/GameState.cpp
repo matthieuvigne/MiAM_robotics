@@ -80,7 +80,6 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
         }
     }
 
-
     cr->set_source_rgb(1.0, 0.5, 0.0);
     cr->save();
     cr->translate(robotPosition.x, 2000. - robotPosition.y);
