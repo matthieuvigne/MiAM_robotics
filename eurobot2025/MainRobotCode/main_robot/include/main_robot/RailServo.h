@@ -3,9 +3,21 @@
 
 #include <miam_utils/drivers/STSServoDriver.h>
 
+class RailManager;
+
+enum RailState
+{
+    MOVING,
+    TARGET_REACHED,
+    MOTION_FAILED
+};
+
+
 /// \brief Control for a continuous rotation servo mounted on a vertical rail
 class RailServo
 {
+    friend RailManager;
+
     public:
 
         /// @brief Constructor
@@ -16,20 +28,32 @@ class RailServo
         /// @param inverted Invert servo rotation
         RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted=false, bool calibrateBottom=false);
 
-        void startCalibration();
-
-        bool isCalibrated();
-
         void move(double const& targetPosition);
+        // Abort current motion and move rail up
+        void abort();
 
-        bool isMoving();
+        double getCurrentPosition() const;
 
-        double getCurrentPosition();
+        bool isMoving() const
+        {
+            return currentState_ == RailState::MOVING;
+        }
 
+        bool isTargetReached() const
+        {
+            return currentState_ == RailState::TARGET_REACHED;
+        }
+
+        RailState getCurrentState() const
+        {
+            return currentState_;
+        }
+
+    protected:
+        void tick(); // Function called periodically to perform servo control
+        void calibration(); // Blocking function performing calibration
 
     private:
-        void calibration();
-
         STSServoDriver *driver_;
         int servoId_;
         int gpio_;
@@ -37,9 +61,27 @@ class RailServo
         int sign_;
         bool calibrateBottom_;
 
-        bool isCalibrated_ = false;
         double currentPosition_ = 0.0;
+        double targetPosition_ = 0.0;
+        int lastReadPosition_ = 0;
 
+        RailState currentState_ = RailState::TARGET_REACHED;
+};
+
+class RailManager
+{
+public:
+    RailManager() = default;
+    void start(std::vector<RailServo*> rails);
+
+    bool areCalibrated() const;
+
+private:
+    std::vector<RailServo*> rails_;
+    bool calibDone_ = false;
+
+    // Thread to control the rails
+    void railControlThread();
 };
 
 #endif

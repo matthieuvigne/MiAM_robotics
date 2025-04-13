@@ -14,8 +14,8 @@ Claw::Claw(STSServoDriver *driver,
     driver_(driver),
     wristServoId_(wristServoId),
     clawServoId_(clawServoId),
-    sign_((mirror ? -1 : 1)),
-    clawCloseValue_(clawCloseValue)
+    clawCloseValue_(clawCloseValue),
+    sign_((mirror ? -1 : 1))
 {
 
 }

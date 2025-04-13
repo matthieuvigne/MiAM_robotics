@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
 
+double const POS_TOLERANCE = 0.02;
+
 RailServo::RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted, bool calibrateBottom):
     driver_(driver),
     servoId_(servoId),
@@ -14,34 +16,19 @@ RailServo::RailServo(STSServoDriver *driver, int const& servoId, int const& gpio
 
 }
 
-void RailServo::startCalibration()
-{
-    isCalibrated_ = false;
-    std::thread th(&RailServo::calibration, this);
-    th.detach();
-}
-
-bool RailServo::isCalibrated()
-{
-    return isCalibrated_;
-}
-
 void RailServo::move(double const& targetPosition)
 {
-    double const delta = std::min(1.0, std::max(0.0, targetPosition)) - currentPosition_;
-
-    int const nStep = sign_ * static_cast<int>(delta * travelDistance_);
-    currentPosition_ = targetPosition;
-
-    driver_->setTargetPosition(servoId_, nStep);
+    targetPosition_ = targetPosition;
+    currentState_ = RailState::MOVING;
 }
 
-bool RailServo::isMoving()
+void RailServo::abort()
 {
-    return driver_->isMoving(servoId_);
+    targetPosition_ = std::min(0.95, currentPosition_ + 0.2);
+    currentState_ = RailState::MOTION_FAILED;
 }
 
-double RailServo::getCurrentPosition()
+double RailServo::getCurrentPosition() const
 {
     return currentPosition_;
 }
@@ -49,11 +36,6 @@ double RailServo::getCurrentPosition()
 
 void RailServo::calibration()
 {
-#ifdef SIMULATION
-    isCalibrated_ = true;
-    return;
-#endif
-
     int sign = (calibrateBottom_ ? -1 : 1) * sign_;
 
     RPi_setupGPIO(gpio_, PI_GPIO_INPUT_PULLUP);
@@ -79,8 +61,76 @@ void RailServo::calibration()
 
     driver_->disable(servoId_);
     usleep(50000);
-    driver_->setMode(servoId_, STS::Mode::STEP);
+    driver_->setMode(servoId_, STS::Mode::VELOCITY);
 
     currentPosition_ = (calibrateBottom_ ? 0.0 : 1.0);
-    isCalibrated_ = true;
+    targetPosition_ = currentPosition_;
+    lastReadPosition_ = driver_->getCurrentPosition(servoId_);
+
+    currentState_ = RailState::TARGET_REACHED;
+}
+
+void RailServo::tick()
+{
+    // Increment position
+    int const pos = driver_->getCurrentPosition(servoId_);
+    int posDelta = pos - lastReadPosition_;
+    // TODO: warp
+
+    lastReadPosition_ = pos;
+
+    currentPosition_ += sign_ * posDelta / travelDistance_;
+
+    // Motion state machine.
+    if (std::abs(currentPosition_ - targetPosition_) > POS_TOLERANCE)
+    {
+        int velocity = (std::abs(currentPosition_ - targetPosition_) > 4 * POS_TOLERANCE ? 3000 : 1000);
+        driver_->setTargetVelocity(servoId_, sign_ * velocity);
+    }
+    else
+    {
+        driver_->setTargetVelocity(servoId_, 0.0);
+        if (currentState_ == RailState::MOVING)
+        {
+            currentState_ = RailState::TARGET_REACHED;
+        }
+    }
+}
+
+
+void RailManager::start(std::vector<RailServo*> rails)
+{
+    rails_ = rails;
+    std::thread th(&RailManager::railControlThread, this);
+    th.detach();
+}
+
+bool RailManager::areCalibrated() const
+{
+    return calibDone_;
+}
+
+void RailManager::railControlThread()
+{
+    pthread_setname_np(pthread_self(), "railManager");
+
+#ifdef SIMULATION
+    calibDone_ = true;
+    return;
+#endif
+
+    calibDone_ = false;
+    std::vector<std::thread> calibThreads;
+    for (auto& r : rails_)
+        calibThreads.push_back(std::thread(&RailServo::calibration, r));
+    for (auto& th : calibThreads)
+        th.join();
+    calibDone_ = true;
+
+    while (true)
+    {
+        for (auto& r : rails_)
+            r->tick();
+        usleep(10000);
+    }
 }

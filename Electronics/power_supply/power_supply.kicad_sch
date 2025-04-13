@@ -8287,7 +8287,6 @@
 	)
 	(label "Vout"
 		(at 327.66 85.09 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8298,7 +8297,6 @@
 	)
 	(label "Vtrim"
 		(at 339.09 48.26 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8309,7 +8307,6 @@
 	)
 	(label "Gate"
 		(at 195.58 217.17 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8320,7 +8317,6 @@
 	)
 	(label "Vtrim12"
 		(at 337.82 161.29 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8331,7 +8327,6 @@
 	)
 	(label "Vout"
 		(at 373.38 45.72 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8342,7 +8337,6 @@
 	)
 	(label "Gate"
 		(at 217.17 245.11 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8353,7 +8347,6 @@
 	)
 	(label "Vtrim12"
 		(at 383.54 163.83 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8364,7 +8357,6 @@
 	)
 	(label "SDA"
 		(at 294.64 95.25 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8375,7 +8367,6 @@
 	)
 	(label "SCL"
 		(at 68.58 201.93 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8386,7 +8377,6 @@
 	)
 	(label "SDA"
 		(at 35.56 240.03 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8397,7 +8387,6 @@
 	)
 	(label "SCL"
 		(at 294.64 97.79 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8408,7 +8397,6 @@
 	)
 	(label "SCL"
 		(at 35.56 237.49 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8419,7 +8407,6 @@
 	)
 	(label "Vsens"
 		(at 337.82 106.68 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8430,7 +8417,6 @@
 	)
 	(label "Vtrim"
 		(at 384.81 50.8 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8441,7 +8427,6 @@
 	)
 	(label "Vbat"
 		(at 50.8 46.99 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8452,7 +8437,6 @@
 	)
 	(label "SDA"
 		(at 68.58 204.47 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8463,7 +8447,6 @@
 	)
 	(label "Vout12"
 		(at 346.71 193.04 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8474,7 +8457,6 @@
 	)
 	(label "Vout12"
 		(at 372.11 158.75 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8485,7 +8467,6 @@
 	)
 	(label "SDA"
 		(at 313.69 203.2 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8496,7 +8477,6 @@
 	)
 	(label "SCL"
 		(at 313.69 205.74 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10000,7 +9980,7 @@
 				(hide yes)
 			)
 		)
-		(property "Mouser Part Number" " 71-WSL36377L000FEA "
+		(property "Mouser Part Number" "576-L4CA0612LR007FNR "
 			(at 146.05 -486.64 0)
 			(effects
 				(font
@@ -14053,7 +14033,7 @@
 				(hide yes)
 			)
 		)
-		(property "Mouser" "576-L4CA0612LR007FNR "
+		(property "Mouser Part Number" " 504-MSMA1206R0080FCM "
 			(at 346.71 207.01 0)
 			(effects
 				(font
@@ -18560,7 +18540,7 @@
 				(hide yes)
 			)
 		)
-		(property "Mouser" "576-L4CA0612LR007FNR "
+		(property "Mouser Part Number" " 504-MSMA1206R0080FCM "
 			(at 327.66 99.06 0)
 			(effects
 				(font

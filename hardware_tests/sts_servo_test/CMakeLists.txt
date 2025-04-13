@@ -30,7 +30,7 @@ message(STATUS "Found miam_utils_arm v." ${MIAM_UTILS_VERSION})
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 
 # Find GTK+ headers/library files - cross-compiled
-set(ENV{PKG_CONFIG_PATH} "/usr/lib/arm-linux-gnueabihf/pkgconfig")
+set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
 pkg_search_module(GTK REQUIRED gtkmm-3.0)
 
 find_package(Eigen3 REQUIRED)
