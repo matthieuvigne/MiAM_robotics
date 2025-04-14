@@ -1,7 +1,7 @@
 #include <common/MotionController.h>
 #include <miam_utils/trajectory/Utilities.h>
 
-double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const &detectedRobots, bool const &hasMatchStarted)
+double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const &detectedRobots)
 {
 
     double coeff = 1.0;
@@ -86,7 +86,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
 
 
 
-double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted)
+double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory()
 {
     // If no trajectory then don't slow down
     if (currentTrajectories_.empty())

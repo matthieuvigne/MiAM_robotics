@@ -147,8 +147,7 @@
             /// \param[in] dt Elapsed time since last call.
             /// \return Target motor velocity
             DrivetrainTarget computeDrivetrainMotion(DrivetrainMeasurements const& measurements,
-                                                     double const& dt,
-                                                     bool const& hasMatchStarted);
+                                                     double const& dt);
 
             bool isPlayingRightSide_ = false;
 
@@ -199,7 +198,7 @@
                 std::vector<Obstacle> detectedObstacles,
                 tf const& flags);
 
-            std::vector<miam::RobotPosition> filteredDetectedObstacles_; ///< Detected obstables ; angle is M_PI if outside table else 0.
+            std::vector<miam::RobotPosition> displayDetectedObstacles_; ///< Obstacles to display
 
             // bool avoidPersistentObstacles_;
             // void setAvoidPersistentObstacles(bool flag);
@@ -245,9 +244,9 @@
             /// \brief Updates the LiDAR and sets the avoidance strategy
             /// \param [in] detectedRobots Obstacles detected by the lidar.
             /// \return coefficient for trajectory time increase
-            double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
+            double computeObstacleAvoidanceSlowdown(std::deque<DetectedRobot> const& detectedRobots);
 
-            double computeObstacleAvoidanceSlowdownAnticipateTrajectory(std::deque<DetectedRobot> const& detectedRobots, bool const& hasMatchStarted);
+            double computeObstacleAvoidanceSlowdownAnticipateTrajectory();
 
             /// @brief Update trajectory to perform avoidance
             /// @return avoidance traj

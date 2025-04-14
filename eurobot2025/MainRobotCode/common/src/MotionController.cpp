@@ -117,8 +117,7 @@ bool MotionController::wasTrajectoryFollowingSuccessful()
 }
 
 DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurements const &measurements,
-                                                           double const &dt,
-                                                           bool const &hasMatchStarted)
+                                                           double const &dt)
 {
     // Log input
     currentTime_ += dt;
@@ -139,7 +138,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     // Update list of obstacles
     detectedObstaclesMutex_.lock();
     detectedObstacles_.clear();
-    filteredDetectedObstacles_.clear();
+    displayDetectedObstacles_.clear();
 
     // add obstacles from measurements
     int nObstaclesOnTable = 0;
@@ -155,12 +154,17 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         if (!this->isLidarPointWithinTable(point))
         {
             obspos.theta = M_PI;
-            filteredDetectedObstacles_.push_back(obspos);
+            displayDetectedObstacles_.push_back(obspos);
             continue;
         }
-        filteredDetectedObstacles_.push_back(obspos);
-        detectedObstacles_.push_back(std::make_tuple(obspos, detection::mpc_obstacle_size));
-        nObstaclesOnTable += 1;
+        displayDetectedObstacles_.push_back(obspos);
+
+        // Ignore obstacles for the first second of the match
+        if (measurements.matchTime > 1.0)
+        {
+            detectedObstacles_.push_back(std::make_tuple(obspos, detection::mpc_obstacle_size));
+            nObstaclesOnTable += 1;
+        }
     }
     log("lidarNumberOfObstacles", nObstaclesOnTable);
 
@@ -174,13 +178,13 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     detectedObstaclesMutex_.unlock();
 
     // Compute slowdown
-    // slowDownCoeff_ = computeObstacleAvoidanceSlowdown(measurements.lidarDetection, hasMatchStarted);
-    slowDownCoeff_ = computeObstacleAvoidanceSlowdownAnticipateTrajectory(measurements.lidarDetection, hasMatchStarted);
+    // slowDownCoeff_ = computeObstacleAvoidanceSlowdown(measurements.lidarDetection);
+    slowDownCoeff_ = computeObstacleAvoidanceSlowdownAnticipateTrajectory();
     clampedSlowDownCoeff_ = std::min(slowDownCoeff_, clampedSlowDownCoeff_ + 0.05);
 
     changeMotionControllerState();
 
-    target = resolveMotionControllerState(measurements, dt, hasMatchStarted);
+    target = resolveMotionControllerState(measurements, dt, measurements.matchTime > 0);
 
     log("motionControllerState", static_cast<int>(motionControllerState_));
     log("detectionCoeff",slowDownCoeff_);

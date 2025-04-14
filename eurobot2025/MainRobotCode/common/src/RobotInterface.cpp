@@ -156,8 +156,9 @@ void RobotInterface::lowLevelLoop()
                 measurements_.drivetrainMeasurements.motorSpeed.left = temp * motorRatio;
             }
 
+            measurements_.drivetrainMeasurements.matchTime = getMatchTime();
             // Compute motion target.
-            DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements_.drivetrainMeasurements, dt_, hasMatchStarted_);
+            DrivetrainTarget target = motionController_.computeDrivetrainMotion(measurements_.drivetrainMeasurements, dt_);
             debugTimeAfterCompute = getTime();
 
             // Sanity check on encoder: this is to prevent the robot from becoming crazy when an encoder is lost.
@@ -184,7 +185,7 @@ void RobotInterface::lowLevelLoop()
         // Update gui
         guiState_.currentMatchTime = currentTime_ - matchStartTime_;
         guiState_.currentPosition = motionController_.getCurrentPosition();
-        guiState_.detectedObstacles = motionController_.filteredDetectedObstacles_;
+        guiState_.detectedObstacles = motionController_.displayDetectedObstacles_;
         guiState_.batteryVoltage = measurements_.batteryVoltage;
         gui_->update(guiState_);
     }
