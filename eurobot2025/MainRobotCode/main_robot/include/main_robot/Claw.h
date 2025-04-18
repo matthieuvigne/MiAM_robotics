@@ -17,18 +17,17 @@ class Claw
     public:
 
         /// @brief Constructor
-        /// @param driver Driver to use
         /// @param servoId Id of the servo
         /// @param gpioId Id of the limit switch GPIO
         /// @param distance Total travel distance
         /// @param inverted Invert servo rotation
-        Claw(STSServoDriver *driver,
-             RailServo rail,
+        Claw(RailServo rail,
              int const& wristServoId,
              int const& clawServoId,
              int const& clawCloseValue,
              bool mirror=false);
 
+        void init(STSServoDriver *driver);
 
         void openClaw();
         void closeClaw();

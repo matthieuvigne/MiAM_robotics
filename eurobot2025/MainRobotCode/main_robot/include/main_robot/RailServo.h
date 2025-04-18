@@ -21,12 +21,13 @@ class RailServo
     public:
 
         /// @brief Constructor
-        /// @param driver Driver to use
         /// @param servoId Id of the servo
         /// @param gpioId Id of the limit switch GPIO
         /// @param distance Total travel distance
         /// @param inverted Invert servo rotation
-        RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted=false, bool calibrateBottom=false);
+        RailServo(int const& servoId, int const& gpioId, int const& distance, bool inverted=false, bool calibrateBottom=false);
+
+        void init(STSServoDriver *driver);
 
         void move(double const& targetPosition);
         // Abort current motion and move rail up
@@ -75,6 +76,7 @@ public:
     void start(std::vector<RailServo*> rails);
 
     bool areCalibrated() const;
+    void abort();
 
 private:
     std::vector<RailServo*> rails_;

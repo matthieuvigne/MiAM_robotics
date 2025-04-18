@@ -23,7 +23,7 @@ class Strategy : public AbstractStrategy
     public:
 
         // Constructor
-        Strategy(bool const& interactive = false, bool const& isTurretCalibrated = false);
+        Strategy(bool const& interactive = false);
 
         // Called before the start of the match, to setup the robot.
         bool setup(RobotInterface *robot) override;
@@ -48,7 +48,6 @@ class Strategy : public AbstractStrategy
         bool isSetupFirstInstance_ = true;
 
         bool interactive_; ///< Actions are choosen by the user
-        bool isTurretAlreadyCalibrated_; ///< Skip turret calibration
   };
 }
 

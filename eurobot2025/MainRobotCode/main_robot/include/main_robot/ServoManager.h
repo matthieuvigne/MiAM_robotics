@@ -3,18 +3,35 @@
 
 #include "common/RobotInterface.h"
 
+#include "Claw.h"
+#include "RailServo.h"
+
 class ServoManager
 {
 public:
-    ServoManager() = default;
-    void init(RobotInterface *robot, bool const& isTurretAlreadyCalibrated);
+    ServoManager();
+    void init(RobotInterface *robot);
+
+    bool isRailCalibDone() {return railManager_.areCalibrated();}
 
     void foldBanner();
     void dropBanner();
 
+    void grabPlank();
+    void releasePlank();
+    void foldPlank();
+
 private:
     RobotInterface *robot_;
     STSServoDriver *servos_;
+    RailManager railManager_;
+
+    Claw frontRightClaw_;
+    Claw frontLeftClaw_;
+
+    RailServo backRail_;
+    RailServo frontPlankRail_;
+    RailServo frontCanRail_;
 };
 
 #endif

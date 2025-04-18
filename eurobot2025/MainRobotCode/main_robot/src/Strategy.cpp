@@ -16,9 +16,8 @@ bool MATCH_COMPLETED = false;
 
 //--------------------------------------------------------------------------------------------------
 
-Strategy::Strategy(bool const& interactive, bool const& isTurretAlreadyCalibrated):
-    interactive_(interactive),
-    isTurretAlreadyCalibrated_(isTurretAlreadyCalibrated)
+Strategy::Strategy(bool const& interactive):
+    interactive_(interactive)
 {
     // Empty on purpose*
 }
@@ -36,7 +35,7 @@ bool Strategy::setup(RobotInterface *robot)
         robot->logger_ << "[Strategy] Strategy setup is being performed" << std::endl;
 
         // Init servo manager, this starts turret calibration
-        servoManager_.init(robot, isTurretAlreadyCalibrated_);
+        servoManager_.init(robot);
 
         motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 
@@ -53,14 +52,7 @@ bool Strategy::setup(RobotInterface *robot)
             actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
         }
     }
-
-    // TODO: wait until calibration from servomanager
-    bool done = true;
-    if (done)
-    {
-        // TOOD
-    }
-    return done;
+    return servoManager_.isRailCalibDone();
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -5,13 +5,12 @@
 
 #define CLAW_STRAIGHT 2048
 
-Claw::Claw(STSServoDriver *driver,
-           RailServo rail,
+Claw::Claw(RailServo rail,
            int const& wristServoId,
            int const& clawServoId,
-           int const& clawCloseValue, bool mirror):
+           int const& clawCloseValue,
+           bool mirror):
     rail_(rail),
-    driver_(driver),
     wristServoId_(wristServoId),
     clawServoId_(clawServoId),
     clawCloseValue_(clawCloseValue),
@@ -20,6 +19,10 @@ Claw::Claw(STSServoDriver *driver,
 
 }
 
+void Claw::init(STSServoDriver *driver)
+{
+    driver_ = driver;
+}
 
 void Claw::openClaw()
 {

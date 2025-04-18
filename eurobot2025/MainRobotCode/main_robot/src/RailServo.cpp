@@ -5,8 +5,7 @@
 
 double const POS_TOLERANCE = 0.02;
 
-RailServo::RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted, bool calibrateBottom):
-    driver_(driver),
+RailServo::RailServo(int const& servoId, int const& gpioId, int const& distance, bool inverted, bool calibrateBottom):
     servoId_(servoId),
     gpio_(gpioId),
     travelDistance_(distance),
@@ -14,6 +13,11 @@ RailServo::RailServo(STSServoDriver *driver, int const& servoId, int const& gpio
     calibrateBottom_(calibrateBottom)
 {
 
+}
+
+void RailServo::init(STSServoDriver *driver)
+{
+    driver_ = driver;
 }
 
 void RailServo::move(double const& targetPosition)
@@ -108,6 +112,13 @@ void RailManager::start(std::vector<RailServo*> rails)
 bool RailManager::areCalibrated() const
 {
     return calibDone_;
+}
+
+void RailManager::abort()
+{
+    for (auto& r : rails_)
+        if (r->currentState_ == RailState::MOVING)
+            r->abort();
 }
 
 void RailManager::railControlThread()

@@ -58,7 +58,6 @@ int main(int argc, char **argv)
     bool testMode = false;
     bool noLidar = false;
     bool interactive = false;
-    bool isTurretCalibrated = false;
     bool silent = false;
     std::vector <std::string> sources;
     std::string destination;
@@ -75,8 +74,6 @@ int main(int argc, char **argv)
         }
         else if (std::string(argv[i]) == "--interactive")
             interactive = true;
-        else if (std::string(argv[i]) == "--noturret")
-            isTurretCalibrated = true;
         else
         {
             std::cout << "Main robot code." << std::endl;
@@ -100,7 +97,7 @@ int main(int argc, char **argv)
     Glib::RefPtr<Gtk::Application> app =  Gtk::Application::create();
     RobotGUI gui;
 
-    main_robot::Strategy strategy(interactive, isTurretCalibrated);
+    main_robot::Strategy strategy(interactive);
     Robot robot(main_robot::generateParams(), &strategy, &gui, testMode, noLidar, silent);
     robotPtr = &robot;
 
