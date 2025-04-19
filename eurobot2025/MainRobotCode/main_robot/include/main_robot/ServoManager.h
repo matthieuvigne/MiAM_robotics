@@ -21,7 +21,10 @@ public:
     void releasePlank();
     void foldPlank();
 
-private:
+    void prepareGrab(bool const& front);
+    void grab(bool const& front);
+
+// private:
     RobotInterface *robot_;
     STSServoDriver *servos_;
     RailManager railManager_;

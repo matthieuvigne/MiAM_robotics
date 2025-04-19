@@ -340,7 +340,10 @@ int STSServoDriver::sendMessage(unsigned char const& servoId,
         RPi_writeGPIO(dirPin_, true);
     }
     if (!willRead)
+    {
+        usleep(50);
         mutex_.unlock();
+    }
     return ret;
 }
 

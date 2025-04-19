@@ -49,18 +49,4 @@ class Claw
 
 };
 
-class MiddleClaw
-{
-    public:
-        MiddleClaw(STSServoDriver *driver, RailServo rail);
-
-        void open();
-        void close();
-
-        RailServo rail_;
-
-    private:
-        STSServoDriver *driver_;
-};
-
 #endif

@@ -49,8 +49,10 @@ void RailServo::calibration()
 
     RPi_setupGPIO(gpio_, PI_GPIO_INPUT_PULLUP);
 
+    std::cout << "starting" << servoId_ << std::endl;
     driver_->setMode(servoId_, STS::Mode::VELOCITY);
     usleep(10000);
+    driver_->setMode(servoId_, STS::Mode::VELOCITY);
     driver_->setTargetVelocity(servoId_, sign * 2500);
 
     // Hit fast, then slow
@@ -136,6 +138,14 @@ void RailManager::abort()
             r->abort();
 }
 
+bool RailManager::areAnyMoving() const
+{
+    bool result = false;
+    for (auto& r : rails_)
+        result |= r->isMoving();
+    return result;
+}
+
 void RailManager::railControlThread()
 {
     pthread_setname_np(pthread_self(), "railManager");
@@ -148,7 +158,10 @@ void RailManager::railControlThread()
     calibDone_ = false;
     std::vector<std::thread> calibThreads;
     for (auto& r : rails_)
+    {
         calibThreads.push_back(std::thread(&RailServo::calibration, r));
+        usleep(5000);
+    }
     for (auto& th : calibThreads)
         th.join();
     calibDone_ = true;

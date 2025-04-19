@@ -78,6 +78,8 @@ public:
     bool areCalibrated() const;
     void abort();
 
+    bool areAnyMoving() const;
+
 private:
     std::vector<RailServo*> rails_;
     bool calibDone_ = false;
