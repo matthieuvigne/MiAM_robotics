@@ -19,9 +19,9 @@
                 param.rightWheelRadius = 55.3; ///< Right wheel radius, in mm - identified during open loop experiments.
                 param.leftWheelRadius = 55.3; ///< Left wheel radius, in mm - identified during open loop experiments.
                 param.wheelSpacing = 104.5; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.
-                param.rightEncoderWheelRadius = 25.9 * 1.015; ///< Radius of encoder wheels, in mm.
-                param.leftEncoderWheelRadius = 25.9; ///< Radius of encoder wheels, in mm.
-                param.encoderWheelSpacing = 132.0; ///< Encoder wheel spacing from robot center, in mm.
+                param.rightEncoderWheelRadius = 26.66 * 0.9952; ///< Radius of encoder wheels, in mm.
+                param.leftEncoderWheelRadius = 26.66; ///< Radius of encoder wheels, in mm.
+                param.encoderWheelSpacing = 137.55; ///< Encoder wheel spacing from robot center, in mm.
 
                 param.maxWheelSpeedTrajectory = 600.0; ///< Maximum wheel speed, in mm/s, for trajectory generation.
                 param.maxWheelAccelerationTrajectory = 700.; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.

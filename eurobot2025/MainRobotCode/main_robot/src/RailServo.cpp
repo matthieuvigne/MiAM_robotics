@@ -49,7 +49,6 @@ void RailServo::calibration()
 
     RPi_setupGPIO(gpio_, PI_GPIO_INPUT_PULLUP);
 
-    std::cout << "starting" << servoId_ << std::endl;
     driver_->setMode(servoId_, STS::Mode::VELOCITY);
     usleep(10000);
     driver_->setMode(servoId_, STS::Mode::VELOCITY);

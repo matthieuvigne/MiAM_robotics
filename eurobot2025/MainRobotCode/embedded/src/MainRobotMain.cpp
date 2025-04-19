@@ -65,19 +65,17 @@ int main(int argc, char **argv)
     {
         if (std::string(argv[i]) == "--testmode")
             testMode = true;
-        if (std::string(argv[i]) == "--silent")
+        else if (std::string(argv[i]) == "--silent")
             silent = true;
         else if (std::string(argv[i]) == "--nolidar")
         {
             noLidar = true;
-            testMode = true;
         }
         else if (std::string(argv[i]) == "--interactive")
             interactive = true;
         else
         {
-            std::cout << "Main robot code." << std::endl;
-            std::cout << "Usage: ./mainRobotCode [--testmode] [--nolidar]." << std::endl;
+            std::cout << "Unknown parameter: \"" << argv[i] << "\"" << std::endl;
             exit(0);
         }
     }
