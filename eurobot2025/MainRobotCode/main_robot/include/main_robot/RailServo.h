@@ -58,7 +58,7 @@ class RailServo
         STSServoDriver *driver_;
         int servoId_;
         int gpio_;
-        int travelDistance_;
+        double travelDistance_;
         int sign_;
         bool calibrateBottom_;
 

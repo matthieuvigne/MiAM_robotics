@@ -115,7 +115,8 @@ int main(int argc, char* argv[])
     // }
 
 
-    RailServo middleRail(robot.getServos(), 10, 24, 9500, false);
+    RailServo middleRail(10, 24, 9500, false);
+    middleRail.init(robot.getServos());
 
     std::vector<RailServo*> rails;
     rails.push_back(&middleRail);
@@ -138,6 +139,7 @@ int main(int argc, char* argv[])
         while (middleRail.isMoving())
             usleep(50000);
         std::cout << "Top" << std::endl;
+        usleep(1000000);
     }
 
     // RailServo middleRail(robot.getServos(), 5, 22, 9500, true, true);
