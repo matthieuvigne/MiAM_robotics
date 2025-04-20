@@ -26,8 +26,8 @@
 
 #define FRONT_CLAW_R 7
 #define FRONT_CLAW_L 8
-#define BACK_CLAW_R 21
-#define BACK_CLAW_L 22
+#define BACK_CLAW_L 21
+#define BACK_CLAW_R 22
 #define PLANK_WRIST 32
 #define PLANK_CLAW 33
 
@@ -178,14 +178,14 @@ void ServoManager::frontClawClose()
 
 void ServoManager::backClawOpen()
 {
-    servos_->setTargetPosition(BACK_CLAW_R, 820);
-    servos_->setTargetPosition(BACK_CLAW_L, 520);
+    servos_->setTargetPosition(BACK_CLAW_L, 300);
+    servos_->setTargetPosition(BACK_CLAW_R, 450);
 }
 
 void ServoManager::backClawClose()
 {
-    servos_->setTargetPosition(BACK_CLAW_R, 900);
-    servos_->setTargetPosition(BACK_CLAW_L, 440);
+    servos_->setTargetPosition(BACK_CLAW_L, 300 + FRONT_CLAW_MOTION);
+    servos_->setTargetPosition(BACK_CLAW_R, 450 - FRONT_CLAW_MOTION);
 }
 
 void ServoManager::foldBanner()

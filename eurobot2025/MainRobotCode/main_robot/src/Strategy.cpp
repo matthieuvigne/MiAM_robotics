@@ -138,7 +138,6 @@ void Strategy::goBackToBase()
 void Strategy::match_impl()
 {
     pthread_setname_np(pthread_self(), "strat_matchImpl");
-    robot->wait(10.0);
 
     servoManager_.dropBanner();
     robot->wait(0.5);

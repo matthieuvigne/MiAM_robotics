@@ -26,7 +26,7 @@ void BuildAction::actionStartTrigger()
 
 bool BuildAction::performAction()
 {
-    robot_->getMotionController()->goStraight(150);
+    robot_->getMotionController()->goStraight(100);
     servoManager_->buildFrontTower();
     robot_->getMotionController()->goStraight(-200);
 

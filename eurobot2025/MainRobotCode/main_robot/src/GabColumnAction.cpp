@@ -61,6 +61,10 @@ bool GrabColumnAction::performAction()
     if (!robot_->getMotionController()->goStraight(forwardAmount, 0.5))
         return true; // Don't try again, other robot is already here.
 
+    std::string userInput;
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+
     servoManager_->grab(front);
     robot_->gameState_.isCollectZoneFull[zoneId_] = false;
     if (isStartMotionBackward_)

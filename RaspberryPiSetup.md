@@ -97,14 +97,20 @@ First line is for screen display, second for touchscreen coordinates ; 2 = 180de
 
 ## Prevent screensaver
 
-Make sure not to use ssh -X, else the wrong xserver will be used (i.e. screensaver on PC not on raspi)
-
+Add the following files:
+/etc/X11/xorg.conf.d/10-extensions.conf
 ```
-pi@raspberrypi:~ $ DISPLAY=:0 xset s 0 0
-pi@raspberrypi:~ $ DISPLAY=:0 xset s off
-pi@raspberrypi:~ $ DISPLAY=:0 xset -dpms
-
+Section "Extensions"
+    Option "DPMS" "false"
+EndSection
 ```
+/etc/X11/xorg.conf.d/10-serverflags.conf
+```
+Section "ServerFlags"
+    Option "BlankTime" "0"
+EndSection
+```
+
 
 To check: `DISPLAY=:0 xset q` should show
 
