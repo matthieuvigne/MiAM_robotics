@@ -26,6 +26,11 @@ void BuildAction::actionStartTrigger()
 
 bool BuildAction::performAction()
 {
+    robot_->getMotionController()->goStraight(150);
+    servoManager_->buildFrontTower();
+    robot_->getMotionController()->goStraight(-200);
+
+
     robot_->gameState_.isConstructionZoneUsed[zoneId_] = true;
 
     robot_->gameState_.isFrontClawFull = false;

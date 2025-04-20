@@ -34,11 +34,6 @@
                 param.rotationKd = 0.005;
                 param.rotationKi = 0.0;
 
-                // Chassis physical dimensions
-                param.CHASSIS_FRONT = 140.0;
-                param.CHASSIS_BACK = 140.0;
-                param.CHASSIS_WIDTH = 140.0;
-
                 param.rightMotorDirection = 1;
                 param.leftMotorDirection = -1;
 

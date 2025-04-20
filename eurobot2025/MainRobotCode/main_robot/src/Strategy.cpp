@@ -42,20 +42,26 @@ bool Strategy::setup(RobotInterface *robot)
         // Load actions into action vector.
         actions_.clear();
 
-        for (int i = 0; i < 9; i++)
-        {
-            actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, i));
-        }
+        // for (int i = 0; i < 9; i++)
+        // {
+        //     actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, i));
+        // }
 
-        for (int i = 0; i < 4; i++)
-        {
-            actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
-        }
+        // for (int i = 0; i < 4; i++)
+        // {
+        //     actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
+        // }
+
+        actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 7));
+        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 1));
     }
     if (setupStep_ == 1 && servoManager_.isRailCalibDone())
     {
         servoManager_.setRailsToInitPosition();
         setupStep_ = 2;
+        #ifdef SIMULATION
+        return true;
+        #endif
     }
     if (setupStep_ == 2 && !servoManager_.railManager_.areAnyMoving())
     {
@@ -132,10 +138,19 @@ void Strategy::goBackToBase()
 void Strategy::match_impl()
 {
     pthread_setname_np(pthread_self(), "strat_matchImpl");
+    robot->wait(10.0);
 
-    testSquare(false, 500);
+    servoManager_.dropBanner();
+    robot->wait(0.5);
+    robot->updateScore(20, "banner");
 
-    while (true) ;;
+    servoManager_.frontRightClaw_.move(ClawPosition::FORWARD);
+
+    robot->getMotionController()->goStraight(400);
+    // while (true) ;;
+    // testSquare(true, 500);
+
+    // while (true) ;;
 
 
     while (!actions_.empty())

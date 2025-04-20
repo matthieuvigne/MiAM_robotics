@@ -38,12 +38,6 @@
             double rotationKd;
             double rotationKi;
 
-            // Chassis physical dimensions
-            double CHASSIS_FRONT;
-            double CHASSIS_BACK;
-            double CHASSIS_WIDTH;
-            double SUCTION_CENTER;
-
             // Number of lidar ponts per turn ; 800 is the default for RPLIDAR V2
             unsigned int lidarNPointsPerTurn = 800;
 

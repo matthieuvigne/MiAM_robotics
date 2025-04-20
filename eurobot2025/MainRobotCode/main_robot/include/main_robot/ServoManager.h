@@ -15,6 +15,8 @@ public:
     bool isRailCalibDone() {return railManager_.areCalibrated();}
     void setRailsToInitPosition();
 
+    void buildFrontTower();
+
     void foldBanner();
     void dropBanner();
 

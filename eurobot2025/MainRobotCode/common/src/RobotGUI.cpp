@@ -8,10 +8,8 @@
 #include <iostream>
 
 
-#define CHASSIS_OFFSET 190
-
 std::vector<miam::RobotPosition> START_POSITIONS({
-    miam::RobotPosition(1200, 10 + CHASSIS_OFFSET, M_PI_2)
+    miam::RobotPosition(1215, 185, M_PI_2)
 });
 
 RobotGUI::RobotGUI()

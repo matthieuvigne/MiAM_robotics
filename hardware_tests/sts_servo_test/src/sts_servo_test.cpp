@@ -82,6 +82,10 @@ int main(int argc, char* argv[])
     std::cout << "Press enter to continue" << std::endl;
     std::cin >> userInput;
 
+    servo_manager.buildFrontTower();
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
 
     servo_manager.frontPlankRail_.move(1.0);
     servo_manager.frontCanRail_.move(0.05);

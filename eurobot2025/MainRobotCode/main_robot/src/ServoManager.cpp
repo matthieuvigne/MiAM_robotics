@@ -115,13 +115,50 @@ void ServoManager::grab(bool const& front)
 
         grabPlank();
         frontClawClose();
-        robot_->wait(0.2);
+        robot_->wait(0.5);
 
         frontPlankRail_.move(0.1);
         frontCanRail_.move(0.1);
         frontRightClaw_.rail_.move(0.1);
         frontLeftClaw_.rail_.move(0.1);
     }
+}
+
+void ServoManager::buildFrontTower()
+{
+
+    frontPlankRail_.move(1.0);
+    frontCanRail_.move(0.05);
+    frontLeftClaw_.rail_.move(0.02);
+    frontRightClaw_.rail_.move(0.02);
+    while (frontRightClaw_.rail_.isMoving())
+        robot_->wait(0.05);
+    frontRightClaw_.move(ClawPosition::SIDE);
+    robot_->wait(0.5);
+    frontRightClaw_.rail_.move(0.95);
+    while (frontRightClaw_.rail_.isMoving())
+        robot_->wait(0.05);
+
+    frontRightClaw_.move(ClawPosition::FORWARD);
+    robot_->wait(0.2);
+    frontLeftClaw_.move(ClawPosition::SIDE);
+    robot_->wait(0.5);
+    frontRightClaw_.openClaw();
+
+    frontLeftClaw_.rail_.move(0.95);
+    while (frontLeftClaw_.rail_.isMoving())
+        robot_->wait(0.05);
+
+    frontLeftClaw_.move(ClawPosition::FORWARD);
+    robot_->wait(0.6);
+    frontLeftClaw_.openClaw();
+
+    frontPlankRail_.move(0.85);
+    frontCanRail_.move(0.0);
+    while (frontPlankRail_.isMoving() || frontCanRail_.isMoving())
+        robot_->wait(0.05);
+    frontClawOpen();
+    releasePlank();
 }
 
 #define FRONT_CLAW_MOTION 70
