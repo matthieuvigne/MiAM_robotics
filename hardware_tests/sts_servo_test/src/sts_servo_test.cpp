@@ -65,6 +65,7 @@ int main(int argc, char* argv[])
     servo_manager.prepareGrab(true);
     while (servo_manager.railManager_.areAnyMoving())
         robot_->wait(0.050);
+    servo_manager.frontClawOpen();
     std::cout << "prepareGrab done" << std::endl;
 
 
@@ -75,13 +76,22 @@ int main(int argc, char* argv[])
 
     servo_manager.grab(true);
 
+    while (servo_manager.railManager_.areAnyMoving())
+        robot_->wait(0.1);
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+
+
     servo_manager.frontPlankRail_.move(1.0);
-    robot_->wait(0.1);
     servo_manager.frontCanRail_.move(0.05);
-    robot_->wait(0.1);
+    servo_manager.frontLeftClaw_.rail_.move(0.02);
+    servo_manager.frontRightClaw_.rail_.move(0.02);
+    while (servo_manager.frontRightClaw_.rail_.isMoving())
+        robot_->wait(0.1);
     servo_manager.frontRightClaw_.move(ClawPosition::SIDE);
     robot_->wait(0.5);
-    servo_manager.frontRightClaw_.rail_.move(0.9);
+    servo_manager.frontRightClaw_.rail_.move(0.95);
     while (servo_manager.frontRightClaw_.rail_.isMoving())
         robot_->wait(0.1);
 
@@ -94,7 +104,7 @@ int main(int argc, char* argv[])
     robot_->wait(0.5);
     servo_manager.frontRightClaw_.openClaw();
 
-    servo_manager.frontLeftClaw_.rail_.move(0.9);
+    servo_manager.frontLeftClaw_.rail_.move(0.95);
     while (servo_manager.frontLeftClaw_.rail_.isMoving())
         robot_->wait(0.1);
 

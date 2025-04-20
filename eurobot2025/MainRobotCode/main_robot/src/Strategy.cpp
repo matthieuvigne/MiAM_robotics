@@ -26,9 +26,9 @@ Strategy::Strategy(bool const& interactive):
 
 bool Strategy::setup(RobotInterface *robot)
 {
-    if (isSetupFirstInstance_)
+    if (setupStep_ == 0)
     {
-        isSetupFirstInstance_ = false;
+        setupStep_ ++;
         // Get robot
         this->robot = robot;
         this->motionController = robot->getMotionController();
@@ -52,7 +52,18 @@ bool Strategy::setup(RobotInterface *robot)
             actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
         }
     }
-    return servoManager_.isRailCalibDone();
+    if (setupStep_ == 1 && servoManager_.isRailCalibDone())
+    {
+        servoManager_.setRailsToInitPosition();
+        setupStep_ = 2;
+    }
+    if (setupStep_ == 2 && !servoManager_.railManager_.areAnyMoving())
+    {
+        servoManager_.frontRightClaw_.move(ClawPosition::FOLDED);
+        servoManager_.frontLeftClaw_.move(ClawPosition::FOLDED);
+        return true;
+    }
+    return false;
 }
 
 //--------------------------------------------------------------------------------------------------

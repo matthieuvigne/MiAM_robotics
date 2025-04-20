@@ -13,6 +13,7 @@ public:
     void init(RobotInterface *robot);
 
     bool isRailCalibDone() {return railManager_.areCalibrated();}
+    void setRailsToInitPosition();
 
     void foldBanner();
     void dropBanner();
@@ -24,6 +25,10 @@ public:
     void prepareGrab(bool const& front);
     void grab(bool const& front);
 
+    void frontClawOpen();
+    void frontClawClose();
+    void backClawOpen();
+    void backClawClose();
 // private:
     RobotInterface *robot_;
     STSServoDriver *servos_;

@@ -43,10 +43,17 @@ void GrabColumnAction::updateStartCondition()
 void GrabColumnAction::actionStartTrigger()
 {
     // TODO
+    servoManager_->prepareGrab(!isStartMotionBackward_);
 }
 
 bool GrabColumnAction::performAction()
 {
+    double forwardAmount = (isStartMotionBackward_ ? -1.0: 1.0) * 250;
+
+    if (!robot_->getMotionController()->goStraight(forwardAmount, 0.5))
+        return true; // Don't try again, other robot is already here.
+
+    servoManager_->grab(!isStartMotionBackward_);
     robot_->gameState_.isCollectZoneFull[zoneId_] = false;
     if (isStartMotionBackward_)
     {

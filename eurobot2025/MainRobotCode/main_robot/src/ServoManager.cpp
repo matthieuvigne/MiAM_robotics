@@ -26,6 +26,8 @@
 
 #define FRONT_CLAW_R 7
 #define FRONT_CLAW_L 8
+#define BACK_CLAW_R 21
+#define BACK_CLAW_L 22
 #define PLANK_WRIST 32
 #define PLANK_CLAW 33
 
@@ -33,9 +35,9 @@
 ServoManager::ServoManager():
     frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 575, false),
     frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 825, true),
-    backRail_(20, 20, 5500, true),
-    frontPlankRail_(6, 21, 7100, false),
-    frontCanRail_(5, 22, 7000, true, true)
+    backRail_(20, 20, 5400, true),
+    frontPlankRail_(6, 21, 8000, false),
+    frontCanRail_(5, 22, 7800, true, true)
 {
 }
 
@@ -56,12 +58,12 @@ void ServoManager::init(RobotInterface *robot)
     frontCanRail_.init(servos_);
 
     frontRightClaw_.move(ClawPosition::FORWARD);
-    frontRightClaw_.openClaw();
+    frontRightClaw_.closeClaw();
     frontLeftClaw_.move(ClawPosition::FORWARD);
-    frontLeftClaw_.openClaw();
+    frontLeftClaw_.closeClaw();
 
-    servos_->setTargetPosition(FRONT_CLAW_R, 820);
-    servos_->setTargetPosition(FRONT_CLAW_L, 520);
+    frontClawClose();
+    backClawClose();
 
     std::vector<RailServo*> rails({
         &frontRightClaw_.rail_,
@@ -75,6 +77,14 @@ void ServoManager::init(RobotInterface *robot)
     foldPlank();
 }
 
+void ServoManager::setRailsToInitPosition()
+{
+    frontRightClaw_.rail_.move(0.6);
+    frontLeftClaw_.rail_.move(0.6);
+    frontCanRail_.move(0.0);
+    frontPlankRail_.move(0.0);
+    backRail_.move(0.0);
+}
 
 void ServoManager::prepareGrab(bool const& front)
 {
@@ -92,8 +102,7 @@ void ServoManager::prepareGrab(bool const& front)
         frontLeftClaw_.openClaw();
 
         releasePlank();
-        servos_->setTargetPosition(FRONT_CLAW_R, 820);
-        servos_->setTargetPosition(FRONT_CLAW_L, 520);
+        frontClawClose();
     }
 }
 
@@ -105,11 +114,42 @@ void ServoManager::grab(bool const& front)
         frontLeftClaw_.closeClaw();
 
         grabPlank();
-        servos_->setTargetPosition(FRONT_CLAW_R, 900);
-        servos_->setTargetPosition(FRONT_CLAW_L, 440);
+        frontClawClose();
+        robot_->wait(0.2);
+
+        frontPlankRail_.move(0.1);
+        frontCanRail_.move(0.1);
+        frontRightClaw_.rail_.move(0.1);
+        frontLeftClaw_.rail_.move(0.1);
     }
 }
 
+#define FRONT_CLAW_MOTION 70
+
+void ServoManager::frontClawOpen()
+{
+    servos_->setTargetPosition(FRONT_CLAW_R, 790);
+    servos_->setTargetPosition(FRONT_CLAW_L, 470);
+}
+
+void ServoManager::frontClawClose()
+{
+    servos_->setTargetPosition(FRONT_CLAW_R, 790 + FRONT_CLAW_MOTION);
+    servos_->setTargetPosition(FRONT_CLAW_L, 470 - FRONT_CLAW_MOTION);
+}
+
+
+void ServoManager::backClawOpen()
+{
+    servos_->setTargetPosition(BACK_CLAW_R, 820);
+    servos_->setTargetPosition(BACK_CLAW_L, 520);
+}
+
+void ServoManager::backClawClose()
+{
+    servos_->setTargetPosition(BACK_CLAW_R, 900);
+    servos_->setTargetPosition(BACK_CLAW_L, 440);
+}
 
 void ServoManager::foldBanner()
 {

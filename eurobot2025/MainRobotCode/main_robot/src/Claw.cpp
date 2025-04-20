@@ -26,7 +26,7 @@ void Claw::init(STSServoDriver *driver)
 
 void Claw::openClaw()
 {
-    driver_->setTargetPosition(clawServoId_, clawCloseValue_ + sign_ * 150);
+    driver_->setTargetPosition(clawServoId_, clawCloseValue_ + sign_ * 160);
 
 }
 
