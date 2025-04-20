@@ -98,6 +98,9 @@ endif()
 add_executable(test_solar_panels scripts/test_camera_solar_panels.cpp)
 target_link_libraries(test_solar_panels ${OpenCV_LIBRARIES} ${Eigen_LIBRARIES})
 
+#~ add_executable(run_tag_detection scripts/run_tag_detection.cpp)
+#~ target_link_libraries(run_tag_detection ${OpenCV_LIBRARIES} ${Eigen_LIBRARIES})
+
 # Tests
 
 if(BUILD_TESTS)
