@@ -13,6 +13,9 @@ public:
     void init(RobotInterface *robot);
 
     bool isRailCalibDone() {return railManager_.areCalibrated();}
+    void setRailsToInitPosition();
+
+    void buildFrontTower();
 
     void foldBanner();
     void dropBanner();
@@ -21,7 +24,14 @@ public:
     void releasePlank();
     void foldPlank();
 
-private:
+    void prepareGrab(bool const& front);
+    void grab(bool const& front);
+
+    void frontClawOpen();
+    void frontClawClose();
+    void backClawOpen();
+    void backClawClose();
+// private:
     RobotInterface *robot_;
     STSServoDriver *servos_;
     RailManager railManager_;

@@ -20,40 +20,33 @@ using namespace miam::trajectory;
 
 void AbstractStrategy::testSquare(bool clockwise, double const& squareDimension)
 {
-    RobotPosition position;
-    position.x = 500;
-    position.y = 500;
-    position.theta = 0;
-    motionController->resetPosition(position, true, true, true);
+    RobotPosition startPosition = motionController->getCurrentPosition();
+    double const startAngle = startPosition.theta;
     double sgn = clockwise ? 1. : -1.;
 
-    RobotPosition endPosition = position;
-    endPosition.x += squareDimension;
+    RobotPosition endPosition = startPosition + RobotPosition(squareDimension, 0.0).rotate(startAngle);
     TrajectoryVector traj = miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
+        startPosition, endPosition, 0.0, tf::IGNORE_END_ANGLE);
 
-    position = traj.getEndPoint().position;
-    endPosition.y -= sgn*squareDimension;
+    startPosition = traj.getEndPoint().position;
+    endPosition = endPosition + sgn * RobotPosition(0.0, -squareDimension).rotate(startAngle);
     traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
+        startPosition, endPosition, 0.0, tf::IGNORE_END_ANGLE);
 
-    position = traj.getEndPoint().position;
-    position.theta = -sgn * M_PI_2;
-    endPosition.x -= squareDimension;
+    startPosition = traj.getEndPoint().position;
+    endPosition = endPosition + RobotPosition(-squareDimension, 0.0).rotate(startAngle);
     traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
+        startPosition, endPosition, 0.0, tf::IGNORE_END_ANGLE);
 
-    position = traj.getEndPoint().position;
-    position.theta = -sgn * M_PI;
-    endPosition.y += sgn*squareDimension;
+    startPosition = traj.getEndPoint().position;
+    endPosition = endPosition + sgn * RobotPosition(0.0, squareDimension).rotate(startAngle);
     traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
+        startPosition, endPosition, 0.0, tf::IGNORE_END_ANGLE);
 
-    position = traj.getEndPoint().position;
-    position.theta = -sgn * 3 * M_PI_2;
-    endPosition.x += squareDimension;
+    startPosition = traj.getEndPoint().position;
+    endPosition = endPosition + RobotPosition(squareDimension, 0.0).rotate(startAngle);
     traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(robot->getParameters().getTrajConf(),
-        position, endPosition, 0.0, tf::IGNORE_END_ANGLE);
+        startPosition, endPosition, 0.0, tf::IGNORE_END_ANGLE);
     traj.pop_back();
     motionController->setTrajectoryToFollow(traj);
     motionController->waitForTrajectoryFinished();

@@ -1,7 +1,12 @@
 #include "main_robot/RailServo.h"
+#include <miam_utils/raspberry_pi/RaspberryPi.h>
+#include <miam_utils/MathUtils.h>
+
 #include <thread>
 #include <unistd.h>
-#include <miam_utils/raspberry_pi/RaspberryPi.h>
+#include <algorithm>
+
+#include <iostream>
 
 double const POS_TOLERANCE = 0.02;
 
@@ -46,6 +51,7 @@ void RailServo::calibration()
 
     driver_->setMode(servoId_, STS::Mode::VELOCITY);
     usleep(10000);
+    driver_->setMode(servoId_, STS::Mode::VELOCITY);
     driver_->setTargetVelocity(servoId_, sign * 2500);
 
     // Hit fast, then slow
@@ -78,22 +84,32 @@ void RailServo::tick()
 {
     // Increment position
     int const pos = driver_->getCurrentPosition(servoId_);
-    int posDelta = pos - lastReadPosition_;
-    // TODO: warp
-
+    int posDelta = unwrap(lastReadPosition_, pos, 4096) - lastReadPosition_;
     lastReadPosition_ = pos;
-
     currentPosition_ += sign_ * posDelta / travelDistance_;
 
     // Motion state machine.
     if (std::abs(currentPosition_ - targetPosition_) > POS_TOLERANCE)
     {
-        int velocity = (std::abs(currentPosition_ - targetPosition_) > 4 * POS_TOLERANCE ? 3000 : 1000);
-        driver_->setTargetVelocity(servoId_, sign_ * velocity);
+        double const KP = 50000.0;
+        double const MIN_VEL = 2000;
+        double const MAX_VEL = 5000;
+
+        double velocityTarget = - KP * (currentPosition_ - targetPosition_);
+        if (velocityTarget > 0)
+        {
+            velocityTarget = std::clamp(velocityTarget, MIN_VEL, MAX_VEL);
+        }
+        else
+        {
+            velocityTarget = std::clamp(velocityTarget, -MAX_VEL, -MIN_VEL);
+        }
+
+        driver_->setTargetVelocity(servoId_, sign_ * velocityTarget);
     }
     else
     {
-        driver_->setTargetVelocity(servoId_, 0.0);
+        driver_->disable(servoId_);
         if (currentState_ == RailState::MOVING)
         {
             currentState_ = RailState::TARGET_REACHED;
@@ -121,6 +137,14 @@ void RailManager::abort()
             r->abort();
 }
 
+bool RailManager::areAnyMoving() const
+{
+    bool result = false;
+    for (auto& r : rails_)
+        result |= r->isMoving();
+    return result;
+}
+
 void RailManager::railControlThread()
 {
     pthread_setname_np(pthread_self(), "railManager");
@@ -133,7 +157,10 @@ void RailManager::railControlThread()
     calibDone_ = false;
     std::vector<std::thread> calibThreads;
     for (auto& r : rails_)
+    {
         calibThreads.push_back(std::thread(&RailServo::calibration, r));
+        usleep(5000);
+    }
     for (auto& th : calibThreads)
         th.join();
     calibDone_ = true;

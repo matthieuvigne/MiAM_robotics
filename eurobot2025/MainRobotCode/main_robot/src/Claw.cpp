@@ -26,7 +26,7 @@ void Claw::init(STSServoDriver *driver)
 
 void Claw::openClaw()
 {
-    driver_->setTargetPosition(clawServoId_, clawCloseValue_ + sign_ * 150);
+    driver_->setTargetPosition(clawServoId_, clawCloseValue_ + sign_ * 160);
 
 }
 
@@ -45,7 +45,7 @@ void Claw::move(ClawPosition const& clawPos)
             driver_->setTargetPosition(wristServoId_, mirror(1000));
             break;
         case ClawPosition::SIDE:
-            driver_->setTargetPosition(wristServoId_, mirror(2400));
+            driver_->setTargetPosition(wristServoId_, mirror(2048));
             break;
         case ClawPosition::FORWARD:
         default:
@@ -57,24 +57,4 @@ void Claw::move(ClawPosition const& clawPos)
 int Claw::mirror(int const& pos)
 {
     return 2048 + sign_ * (pos - 2048);
-}
-
-
-MiddleClaw::MiddleClaw(STSServoDriver *driver, RailServo rail) :
-    rail_(rail),
-    driver_(driver)
-{
-
-}
-
-void MiddleClaw::open()
-{
-    driver_->setTargetPosition(32, 2048);
-    driver_->setTargetPosition(33, 3000);
-}
-
-void MiddleClaw::close()
-{
-    driver_->setTargetPosition(32, 2048);
-    driver_->setTargetPosition(33, 2048);
 }

@@ -8,8 +8,8 @@ std::vector<double> movingAverage(std::vector<double> const values, unsigned int
     std::vector<double> outputValue;
     for (unsigned int i = 0; i < values.size(); i++)
     {
-        int start = i - winSize;
-        int end = i + winSize + 1;
+        unsigned int start = i - winSize;
+        unsigned int end = i + winSize + 1;
         if (end > values.size())
         {
             int shift = end - values.size();

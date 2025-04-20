@@ -58,7 +58,7 @@ class RailServo
         STSServoDriver *driver_;
         int servoId_;
         int gpio_;
-        int travelDistance_;
+        double travelDistance_;
         int sign_;
         bool calibrateBottom_;
 
@@ -77,6 +77,8 @@ public:
 
     bool areCalibrated() const;
     void abort();
+
+    bool areAnyMoving() const;
 
 private:
     std::vector<RailServo*> rails_;

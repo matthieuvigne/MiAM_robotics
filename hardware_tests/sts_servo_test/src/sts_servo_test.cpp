@@ -51,15 +51,91 @@ int main(int argc, char* argv[])
     signal(SIGTERM, kill);
 
     // Instantiate the servo manager
-    // ServoManager servo_manager;
-    // ServoManager *servoManager_ = &servo_manager;
-    // Robot *robot_ = &robot;
-    // servo_manager.init(&robot, false);
-    // robot.wait(1.0);
+    ServoManager servo_manager;
+    ServoManager *servoManager_ = &servo_manager;
+    Robot *robot_ = &robot;
+    servo_manager.init(&robot);
 
-    robot.getServos()->setMode(0xFE, STS::Mode::POSITION);
+    while (!servo_manager.isRailCalibDone())
+        robot_->wait(0.1);
+    std::cout << "Calib done" << std::endl;
 
-    STSServoDriver *servos = robot.getServos();
+    robot_->wait(1.0);
+
+    servo_manager.prepareGrab(true);
+    while (servo_manager.railManager_.areAnyMoving())
+        robot_->wait(0.050);
+    servo_manager.frontClawOpen();
+    std::cout << "prepareGrab done" << std::endl;
+
+
+    std::string userInput;
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+
+    servo_manager.grab(true);
+
+    while (servo_manager.railManager_.areAnyMoving())
+        robot_->wait(0.1);
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+
+    servo_manager.buildFrontTower();
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+
+    servo_manager.frontPlankRail_.move(1.0);
+    servo_manager.frontCanRail_.move(0.05);
+    servo_manager.frontLeftClaw_.rail_.move(0.02);
+    servo_manager.frontRightClaw_.rail_.move(0.02);
+    while (servo_manager.frontRightClaw_.rail_.isMoving())
+        robot_->wait(0.1);
+    servo_manager.frontRightClaw_.move(ClawPosition::SIDE);
+    robot_->wait(0.5);
+    servo_manager.frontRightClaw_.rail_.move(0.95);
+    while (servo_manager.frontRightClaw_.rail_.isMoving())
+        robot_->wait(0.1);
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+
+    servo_manager.frontRightClaw_.move(ClawPosition::FORWARD);
+    robot_->wait(0.2);
+    servo_manager.frontLeftClaw_.move(ClawPosition::SIDE);
+    robot_->wait(0.5);
+    servo_manager.frontRightClaw_.openClaw();
+
+    servo_manager.frontLeftClaw_.rail_.move(0.95);
+    while (servo_manager.frontLeftClaw_.rail_.isMoving())
+        robot_->wait(0.1);
+
+    servo_manager.frontLeftClaw_.move(ClawPosition::FORWARD);
+    robot_->wait(0.5);
+    servo_manager.frontLeftClaw_.openClaw();
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+
+
+
+    robot_->wait(0.2);
+    servo_manager.frontRightClaw_.rail_.move(0.7);
+    servo_manager.frontLeftClaw_.rail_.move(0.7);
+
+    while (servo_manager.frontRightClaw_.rail_.isMoving() || servo_manager.frontLeftClaw_.rail_.isMoving())
+        robot_->wait(0.1);
+
+    servo_manager.frontRightClaw_.move(ClawPosition::FORWARD);
+    servo_manager.frontLeftClaw_.move(ClawPosition::FORWARD);
+    robot_->wait(0.2);
+    servo_manager.frontRightClaw_.openClaw();
+    servo_manager.frontLeftClaw_.openClaw();
+
+    // robot.getServos()->setMode(0xFE, STS::Mode::POSITION);
+
     // Claw leftClaw(robot.getServos(), RailServo(robot.getServos(), 10, 24, 9500, false), 12, 11, 825, true);
     // Claw rightClaw(robot.getServos(), RailServo(robot.getServos(), 13, 23, 9500, true), 14, 15, 575, false);
 
@@ -115,30 +191,33 @@ int main(int argc, char* argv[])
     // }
 
 
-    RailServo middleRail(robot.getServos(), 10, 24, 9500, false);
+    // RailServo middleRail(20, 20, 5500, true);
+    // // RailServo middleRail(10, 24, 9500, false);
+    // middleRail.init(robot.getServos());
 
-    std::vector<RailServo*> rails;
-    rails.push_back(&middleRail);
+    // std::vector<RailServo*> rails;
+    // rails.push_back(&middleRail);
 
-    RailManager railManager;
+    // RailManager railManager;
 
-    railManager.start(rails);
+    // railManager.start(rails);
 
-    while (!railManager.areCalibrated())
-        usleep(50000);
+    // while (!railManager.areCalibrated())
+    //     usleep(50000);
 
-    while (true)
-    {
-        middleRail.move(0.2);
-        while (middleRail.isMoving())
-            usleep(50000);
-        std::cout << "Bottom" << std::endl;
-        usleep(1000000);
-        middleRail.move(0.8);
-        while (middleRail.isMoving())
-            usleep(50000);
-        std::cout << "Top" << std::endl;
-    }
+    // while (true)
+    // {
+    //     middleRail.move(0.05);
+    //     while (middleRail.isMoving())
+    //         usleep(50000);
+    //     std::cout << "Bottom" << std::endl;
+    //     usleep(1000000);
+    //     middleRail.move(1.0);
+    //     while (middleRail.isMoving())
+    //         usleep(50000);
+    //     std::cout << "Top" << std::endl;
+    //     usleep(1000000);
+    // }
 
     // RailServo middleRail(robot.getServos(), 5, 22, 9500, true, true);
 
