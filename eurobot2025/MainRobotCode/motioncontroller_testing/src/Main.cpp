@@ -25,8 +25,8 @@ RobotPosition generateRandomValidPosition(PathPlanner * planner)
 
 int main (int argc, char *argv[])
 {
-    miam::RobotPosition startPosition(200.0, 1850.0, 0.0);
-    miam::RobotPosition targetPosition(650.0, 1300.0, 0.0);
+    miam::RobotPosition startPosition(1247.0, 580.129,  1.5708);
+    miam::RobotPosition targetPosition(775.0, 610.0, 4.71239);
     // miam::RobotPosition targetPosition(900.0, 1300.0, -0.5);
 
     Logger logger;
@@ -136,7 +136,7 @@ int main (int argc, char *argv[])
     refBuilder->get_widget_derived(
         "mainWindow",
         viewer,
-        "./config/vinyles_table_2024_FINAL_V1.png",
+        "./config/vinyle.png",
         &motionController,
         &logger);
 

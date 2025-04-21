@@ -52,8 +52,9 @@ bool Strategy::setup(RobotInterface *robot)
         //     actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
         // }
 
+        actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 5));
         actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 7));
-        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 1));
+        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 2));
     }
     if (setupStep_ == 1 && servoManager_.isRailCalibDone())
     {

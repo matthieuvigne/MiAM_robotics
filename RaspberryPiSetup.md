@@ -183,3 +183,19 @@ iptables -A FORWARD -i enp2s0 -o wlp0s20f3 -j ACCEPT
 iptables -A FORWARD -i wlp0s20f3 -o enp2s0 -j ACCEPT
 iptables -t nat -A POSTROUTING -o wlp0s20f3 -j MASQUERADE
 ```
+
+## Launch match code
+
+Generate an executable file `~Desktop/match.desktop`
+
+```
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=MatchCode
+Comment=Robot match code
+Path=/home/pi/
+Exec=matchCode
+Icon=/home/pi/logo.png
+Terminal=false
+```

@@ -58,6 +58,10 @@
                     /// @brief Return true if set position is in an obstacle
                     bool isPositionInCollision(RobotPosition const& position);
 
+                    Eigen::MatrixXi getMap() const {return generator_.obstacleMap_;}
+
+                    int getResolutionMM() const {return config_.astar_resolution_mm;}
+
                 private:
                     PathPlannerConfig config_;
                     AStar::Generator generator_;

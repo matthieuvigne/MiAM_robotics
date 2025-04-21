@@ -28,7 +28,9 @@ void RailServo::init(STSServoDriver *driver)
 void RailServo::move(double const& targetPosition)
 {
     targetPosition_ = targetPosition;
+#ifndef SIMULATION
     currentState_ = RailState::MOVING;
+#endif
 }
 
 void RailServo::abort()

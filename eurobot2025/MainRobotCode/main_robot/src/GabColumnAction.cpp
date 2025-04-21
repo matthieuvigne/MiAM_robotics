@@ -34,7 +34,7 @@ void GrabColumnAction::updateStartCondition()
         }
     }
 
-
+    // Always grab front first
     isStartMotionBackward_ = robot_->gameState_.isFrontClawFull;
 
     if (isStartMotionBackward_)
@@ -46,7 +46,6 @@ void GrabColumnAction::updateStartCondition()
 
 void GrabColumnAction::actionStartTrigger()
 {
-    // TODO
     servoManager_->prepareGrab(!isStartMotionBackward_);
 }
 
@@ -58,14 +57,11 @@ bool GrabColumnAction::performAction()
     if (front)
         servoManager_->frontClawOpen();
 
-    if (!robot_->getMotionController()->goStraight(forwardAmount, 0.5))
+    if (!robot_->getMotionController()->goStraight(forwardAmount, 0.75))
         return true; // Don't try again, other robot is already here.
 
-    std::string userInput;
-    std::cout << "Press enter to continue" << std::endl;
-    std::cin >> userInput;
-
     servoManager_->grab(front);
+    robot_->wait(0.2);
     robot_->gameState_.isCollectZoneFull[zoneId_] = false;
     if (isStartMotionBackward_)
     {
@@ -75,6 +71,7 @@ bool GrabColumnAction::performAction()
     {
         robot_->gameState_.isFrontClawFull = true;
     }
+    robot_->getMotionController()->goStraight(-forwardAmount, 0.75);
     // Action should not be done again
     return true;
 }

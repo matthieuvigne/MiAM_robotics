@@ -16,6 +16,7 @@ public:
     void setRailsToInitPosition();
 
     void buildFrontTower();
+    void dropBackCans(bool ground = true);
 
     void foldBanner();
     void dropBanner();
@@ -31,6 +32,8 @@ public:
     void frontClawClose();
     void backClawOpen();
     void backClawClose();
+
+    void foldClaws();
 // private:
     RobotInterface *robot_;
     STSServoDriver *servos_;

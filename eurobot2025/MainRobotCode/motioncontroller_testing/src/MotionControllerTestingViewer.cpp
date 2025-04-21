@@ -38,6 +38,7 @@ MotionControllerTestingViewer::MotionControllerTestingViewer(BaseObjectType* cob
     refGlade->get_widget("checkMPC", buttonShowMPC);
     refGlade->get_widget("checkEEA", buttonEnforceEndAngle);
     refGlade->get_widget("checkBackward", buttonBackward);
+    refGlade->get_widget("checkGrid", buttonShowGrid);
 
     Gtk::Button *button;
     refGlade->get_widget("runButton", button);
@@ -50,6 +51,7 @@ MotionControllerTestingViewer::MotionControllerTestingViewer(BaseObjectType* cob
     buttonShowMPC->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::refresh));
     buttonEnforceEndAngle->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::recompute));
     buttonBackward->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::recompute));
+    buttonShowGrid->signal_clicked().connect(sigc::mem_fun(this, &MotionControllerTestingViewer::recompute));
 
 
     refGlade->get_widget("drawingArea", drawingArea);
@@ -274,6 +276,37 @@ bool MotionControllerTestingViewer::redraw(const Cairo::RefPtr<Cairo::Context>& 
                 mpcTrajectory_.getCurrentPoint(currentTime).position,
                 0.0, 1.0, 0.5, 1.0);
         }
+    }
+
+    // Draw grid
+    if (buttonShowGrid->get_active())
+    {
+        Eigen::MatrixXi const map = motionController_->getMotionPlanner()->pathPlanner_.getMap();
+        int const resolution = motionController_->getMotionPlanner()->pathPlanner_.getResolutionMM();
+
+        // Draw grid
+        cr->set_source_rgb(0.0, 1.0, 0.0);
+        for (int i = 0; i < map.rows(); i++)
+        {
+            cr->move_to(resolution * i, -10);
+            cr->line_to(resolution * i, 2010);
+            cr->stroke();
+        }
+        for (int i = 0; i < map.cols(); i++)
+        {
+            cr->move_to(-10, resolution * i);
+            cr->line_to(3010, resolution * i);
+            cr->stroke();
+        }
+
+        cr->set_source_rgba(1.0, 0.0, 0.0, 0.5);
+        for (int i = 0; i < map.rows(); i++)
+            for (int j = 0; j < map.cols(); j++)
+                if (map(i, j))
+                {
+                    cr->rectangle(resolution * i, resolution * (map.cols() - j - 1), resolution, resolution);
+                    cr->fill();
+                }
     }
 
     return true;

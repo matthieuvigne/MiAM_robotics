@@ -73,18 +73,30 @@ double UNITTEST_printDuration;
 bool is_acado_inited = false;
 std::mutex acado_mutex;
 
+#define GRID_RESOLUTION 25
+
+void excludeRectangle(Eigen::MatrixXi & map, int const lowerX, int const lowerY, int const upperX, int const upperY, int const margin = table_dimensions::table_margin)
+{
+    int const x = std::max(0, (lowerX - margin) / GRID_RESOLUTION);
+    int const y = std::max(0, (lowerY - margin) / GRID_RESOLUTION);
+
+    int const width = std::min(static_cast<int>(map.rows()) - x, std::min((lowerX - margin) / GRID_RESOLUTION, 0) + ((upperX - lowerX) + 2 * margin) / GRID_RESOLUTION);
+    int const height = std::min(static_cast<int>(map.cols()) - y, std::min((lowerY - margin) / GRID_RESOLUTION, 0) + ((upperY - lowerY) + 2 * margin) / GRID_RESOLUTION);
+
+    map.block(x, y, width, height).setConstant(1);
+}
+
 
 PathPlannerConfig generatePathPlannerConfig()
 {
 
-    int const gridResolution = 25;
-    int const borderMargin = static_cast<int>(std::ceil(table_dimensions::table_margin / gridResolution)); // Border margin, in grid unit.
+    int const borderMargin = static_cast<int>(std::ceil(table_dimensions::table_margin / GRID_RESOLUTION)); // Border margin, in grid unit.
 
-    int const nRows = table_dimensions::table_size_x / gridResolution;
-    int const nCols = table_dimensions::table_size_y / gridResolution;
+    int const nRows = table_dimensions::table_size_x / GRID_RESOLUTION;
+    int const nCols = table_dimensions::table_size_y / GRID_RESOLUTION;
 
     PathPlannerConfig config;
-    config.astar_resolution_mm = gridResolution;
+    config.astar_resolution_mm = GRID_RESOLUTION;
     config.map = Eigen::MatrixXi::Zero(nRows, nCols);
 
     // Add obstacles linked to map: border
@@ -93,15 +105,16 @@ PathPlannerConfig generatePathPlannerConfig()
     config.map.leftCols<borderMargin>().setConstant(1);
     config.map.rightCols<borderMargin>().setConstant(1);
 
-    // PAMI start zone
-    int const width = 1300 / gridResolution;
-    int const height = 350 / gridResolution;
+    // // PAMI
+    // excludeRectangle(config.map, 0, 1800, 3000, 2000);
+    // // // Scene
+    // excludeRectangle(config.map, 1050, 1550, 3000, 2000);
 
-    config.map.block<width, height>((nRows - width) / 2, nCols - height).setConstant(1);
-
-    // Other robot start zone.
-    int const size = 500 / gridResolution;
-    config.map.bottomRightCorner<size, size >().setConstant(1);
+    // // // Other robot start / drop zones
+    // excludeRectangle(config.map, 0, 650, 450, 1100);
+    // excludeRectangle(config.map, 0, 0, 450, 150);
+    // excludeRectangle(config.map, 1550, 0, 2000, 450);
+    // excludeRectangle(config.map, 2000, 0, 2450, 150);
 
     return config;
 }
