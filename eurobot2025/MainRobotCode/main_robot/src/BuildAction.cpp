@@ -1,5 +1,8 @@
 #include "main_robot/BuildAction.h"
 
+#define BACK_EXTRA_OFFSET 48
+
+
 void BuildAction::updateStartCondition()
 {
     if (robot_->gameState_.isFrontClawFull && robot_->gameState_.isBackClawFull)
@@ -39,7 +42,7 @@ bool BuildAction::performAction()
 {
     int const sign = (isStartMotionBackward_ ? -1 : 1);
 
-    robot_->getMotionController()->goStraight(sign * 100);
+    robot_->getMotionController()->goStraight(sign * (100 + BACK_EXTRA_OFFSET));
     if (isStartMotionBackward_)
     {
         servoManager_->dropBackCans();
@@ -58,18 +61,18 @@ bool BuildAction::performAction()
         // Build front tower, put it on top of the other one
         robot_->getMotionController()->goStraight(300);
         robot_->getMotionController()->pointTurn(M_PI);
-        robot_->getMotionController()->goStraight(100);
+        robot_->getMotionController()->goStraight(150);
         servoManager_->buildFrontTower();
         robot_->gameState_.isFrontClawFull = false;
 
         robot_->getMotionController()->goStraight(-250);
         robot_->getMotionController()->pointTurn(M_PI);
-        robot_->getMotionController()->goStraight(-250);
+        robot_->getMotionController()->goStraight(-(250 + BACK_EXTRA_OFFSET));
         servoManager_->grab(false);
         servoManager_->backRail_.move(1.0);
         while (servoManager_->backRail_.isMoving())
             robot_->wait(0.050);
-        robot_->getMotionController()->goStraight(-200, 0.5);
+        robot_->getMotionController()->goStraight(-150 + BACK_EXTRA_OFFSET, 0.5);
 
         servoManager_->dropBackCans(false);
         robot_->getMotionController()->goStraight(200);

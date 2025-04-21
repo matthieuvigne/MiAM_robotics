@@ -30,6 +30,8 @@ void kill(int)
 
 int main(int argc, char* argv[])
 {
+
+    std::string userInput;
     // Try to communicate with servo.
     RPi_enablePorts();
 
@@ -62,14 +64,29 @@ int main(int argc, char* argv[])
 
     robot_->wait(1.0);
 
+    servo_manager.prepareGrab(false);
+    while (servo_manager.railManager_.areAnyMoving())
+        robot_->wait(0.050);
+    servo_manager.backClawOpen();
+    std::cout << "prepareGrab done" << std::endl;
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+    servo_manager.grab(false);
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+
+    servo_manager.backRail_.move(1.0);
+
+    while (true) ;;
+
     servo_manager.prepareGrab(true);
     while (servo_manager.railManager_.areAnyMoving())
         robot_->wait(0.050);
     servo_manager.frontClawOpen();
     std::cout << "prepareGrab done" << std::endl;
 
-
-    std::string userInput;
 
     std::cout << "Press enter to continue" << std::endl;
     std::cin >> userInput;

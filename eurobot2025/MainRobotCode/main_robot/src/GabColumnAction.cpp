@@ -4,6 +4,8 @@
 #define ROBOT_GRAB_OFFSET 180 - 20
 #define MARGIN 200
 
+#define BACK_EXTRA_OFFSET 48
+
 void GrabColumnAction::updateStartCondition()
 {
     if (!robot_->gameState_.isCollectZoneFull[zoneId_] || (robot_->gameState_.isFrontClawFull && robot_->gameState_.isBackClawFull))
@@ -53,7 +55,7 @@ bool GrabColumnAction::performAction()
 {
     bool const front = !isStartMotionBackward_;
 
-    double forwardAmount = (isStartMotionBackward_ ? -1.0: 1.0) * MARGIN;
+    double forwardAmount = (isStartMotionBackward_ ? -MARGIN - BACK_EXTRA_OFFSET : MARGIN);
     if (front)
         servoManager_->frontClawOpen();
 
@@ -61,7 +63,6 @@ bool GrabColumnAction::performAction()
         return true; // Don't try again, other robot is already here.
 
     servoManager_->grab(front);
-    robot_->wait(0.2);
     robot_->gameState_.isCollectZoneFull[zoneId_] = false;
     if (isStartMotionBackward_)
     {

@@ -33,9 +33,9 @@
 
 
 ServoManager::ServoManager():
-    frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 575, false),
-    frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 825, true),
-    backRail_(20, 20, 5400, true),
+    frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 600, false),
+    frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 960, true),
+    backRail_(20, 20, 9000, true),
     frontPlankRail_(6, 21, 8000, false),
     frontCanRail_(5, 22, 7800, true, true)
 {
@@ -122,7 +122,7 @@ void ServoManager::grab(bool const& front)
         robot_->wait(0.5);
 
         frontPlankRail_.move(0.1);
-        frontCanRail_.move(0.1);
+        frontCanRail_.move(0.15);
         frontRightClaw_.rail_.move(0.1);
         frontLeftClaw_.rail_.move(0.1);
     }
@@ -132,6 +132,8 @@ void ServoManager::grab(bool const& front)
         robot_->wait(0.5);
         backRail_.move(0.1);
     }
+    while (railManager_.areAnyMoving())
+        robot_->wait(0.010);
 }
 
 void ServoManager::dropBackCans(bool ground)
@@ -181,7 +183,7 @@ void ServoManager::buildFrontTower()
 }
 
 #define FRONT_CLAW_MOTION 70
-#define FRONT_CLAW_FOLD 120
+#define FRONT_CLAW_FOLD 220
 
 void ServoManager::frontClawOpen()
 {
@@ -199,13 +201,13 @@ void ServoManager::frontClawClose()
 void ServoManager::backClawOpen()
 {
     servos_->setTargetPosition(BACK_CLAW_L, 300);
-    servos_->setTargetPosition(BACK_CLAW_R, 450);
+    servos_->setTargetPosition(BACK_CLAW_R, 440);
 }
 
 void ServoManager::backClawClose()
 {
     servos_->setTargetPosition(BACK_CLAW_L, 300 + FRONT_CLAW_MOTION);
-    servos_->setTargetPosition(BACK_CLAW_R, 450 - FRONT_CLAW_MOTION);
+    servos_->setTargetPosition(BACK_CLAW_R, 440 - FRONT_CLAW_MOTION);
 }
 
 void ServoManager::foldClaws()
@@ -213,7 +215,7 @@ void ServoManager::foldClaws()
     servos_->setTargetPosition(FRONT_CLAW_R, 790 + FRONT_CLAW_FOLD);
     servos_->setTargetPosition(FRONT_CLAW_L, 470 - FRONT_CLAW_FOLD);
     servos_->setTargetPosition(BACK_CLAW_L, 300 + FRONT_CLAW_FOLD);
-    servos_->setTargetPosition(BACK_CLAW_R, 450 - FRONT_CLAW_FOLD);
+    servos_->setTargetPosition(BACK_CLAW_R, 420 - FRONT_CLAW_FOLD);
 }
 
 void ServoManager::foldBanner()
