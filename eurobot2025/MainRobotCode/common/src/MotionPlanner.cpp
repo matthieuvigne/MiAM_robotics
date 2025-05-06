@@ -15,6 +15,8 @@
 #include "acado_common.h"
 #include "acado_auxiliary_functions.h"
 
+#include "tracy/Tracy.hpp"
+
 /* Some convenient definitions. */
 #define NX          ACADO_NX  /* Number of differential state variables.  */
 #define NXA         ACADO_NXA /* Number of algebraic variables. */
@@ -136,6 +138,8 @@ TrajectoryVector MotionPlanner::planMotion(
 
     // To enforce end angle, try to reach a position offsetted from the true target.
     std::vector<RobotPosition > planned_path;
+{
+    ZoneScopedN("planMotion::PathPlanner");
     if (false)
     {
         double const OFFSET_DISTANCE = 50;
@@ -158,18 +162,21 @@ TrajectoryVector MotionPlanner::planMotion(
 
     std::chrono::high_resolution_clock::time_point astarTime = std::chrono::high_resolution_clock::now();
     *logger_ << "A* solved in: " << std::chrono::duration_cast<std::chrono::duration<double>>(astarTime - startTime).count() << std::endl;
+}
 
 #ifdef MOTIONCONTROLLER_UNITTEST
     std::chrono::high_resolution_clock::time_point printStart = std::chrono::high_resolution_clock::now();
 #endif
 
+{
+    ZoneScopedN("planMotion::printMap");
     pathPlanner_.printMap(planned_path, currentPosition, targetPosition);
-
+}
 #ifdef MOTIONCONTROLLER_UNITTEST
     std::chrono::high_resolution_clock::time_point printEnd = std::chrono::high_resolution_clock::now();
     UNITTEST_printDuration = std::chrono::duration_cast<std::chrono::duration<double>>(printEnd - printStart).count();
     UNITTEST_ASTAR_POS = planned_path;
-    UNITTEST_planningComputeDuration = std::chrono::duration_cast<std::chrono::duration<double>>(astarTime - startTime).count();
+    // UNITTEST_planningComputeDuration = std::chrono::duration_cast<std::chrono::duration<double>>(astarTime - startTime).count();
 
     UNITTEST_POINTTURN_TRAJ = TrajectoryVector();
     if (planned_path.size() > 0)
@@ -215,6 +222,8 @@ TrajectoryVector MotionPlanner::planMotion(
     // compute the trajectory from the waypoints
     TrajectoryVector solvedTrajectory;
 
+{
+    ZoneScopedN("planMotion::solveTrajectoryFromWaypoints");
     if (useTrajectoryRoundedCorners)
     {
         *logger_ << "[MotionPlanner] " << "Smoothing path using trajectory rounded corners" << std::endl;
@@ -236,7 +245,7 @@ TrajectoryVector MotionPlanner::planMotion(
                                                             // is then ensured with a point turn afterwards
         solvedTrajectory = solveTrajectoryFromWaypoints(planned_path, flags);
     }
-
+}
 #ifdef MOTIONCONTROLLER_UNITTEST
     // Store corresponding path
     double t = 0;
