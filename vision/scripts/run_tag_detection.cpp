@@ -5,11 +5,19 @@
 #include <csignal>
 #include <iostream>
 #include <memory>
+#include <mutex>
 
 // Third party libraries
 #include <eigen3/Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
+
+// Camera utils
+#ifdef RPI4
+#include "LibCamera.h"
+#else
+#include <raspicam/raspicam_cv.h>
+#endif
 
 // ________________________________________ CAMERA _________________________________________________
 
@@ -22,17 +30,14 @@ typedef std::vector<Marker> MarkerList;
 
 class Camera {
 
-  /*
-   *  [NOTE] This camera model is a standard pinhole model which assumes no distortion.
-   */
-
   public:
     Camera() = delete;
     Camera(int width, int height);
     Camera(int width, int height, double fx, double fy, double cx, double cy);
     typedef std::shared_ptr<Camera> Ptr;
     typedef std::unique_ptr<Camera> UniquePtr;
-    virtual ~Camera();
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    virtual ~Camera() = default;
   
   public:
 
@@ -61,6 +66,9 @@ class Camera {
     cv::Mat get_camera_matrix() const;
   
     // Detect the markers within the image
+    bool take_picture(
+      cv::Mat* image,
+      double timeout = 1.0);
     int detect_markers(
       cv::Mat const& img,
       std::vector<Eigen::Affine3d>* TRM_ptr) const;
@@ -80,8 +88,17 @@ class Camera {
     int width_;           // image width [px]
     int height_;          // image height [px]
     
+    // Image capture
+    std::mutex mutex_;
+    bool is_running_on_RPi_;
+    #ifdef RPI4
+    LibCamera camera_;
+    LibcameraOutData frame_data_;
+    #else
+    raspicam::RaspiCam_Cv camera_handler_;
+    #endif
+
     // Marker detection
-    cv::VideoCapture capture_;
     typedef cv::Ptr<cv::aruco::DetectorParameters> CvParamsPtr;
     typedef cv::Ptr<cv::aruco::Dictionary> CvDicoPtr;
     CvParamsPtr cv_params_ptr_;
@@ -102,13 +119,32 @@ Camera::Camera(int width, int height)
   cv_dico_ptr_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_250);
   cv_params_ptr_ = cv::aruco::DetectorParameters::create();
   
-  return;
-}
-
-Camera::~Camera()
-{
-  if(capture_.isOpened())
-    capture_.release();
+  // Configure the internal camera object
+  std::lock_guard<std::mutex> lock(mutex_);
+  #ifdef RPI4
+  is_running_on_RPi_ = 
+    !camera_.initCamera(image_width_,image_height_,formats::RGB888,1,0);
+  if(isRunningOnRPi_)
+  {
+    ControlList controls;
+    int64_t frame_time = 1000000 / 30; // 30FPS
+    controls.set(controls::FrameDurationLimits,{frame_time,frame_time });
+    controls.set(controls::Brightness, 0.1);
+    controls.set(controls::Contrast, 1.0);
+    camera_.set(controls);
+    camera_.startCamera();
+    frame_data_.size = 0;
+  }
+  #else
+  camera_handler_ = raspicam::RaspiCam_Cv();
+  camera_handler_.set(cv::CAP_PROP_FRAME_WIDTH, image_width_);
+  camera_handler_.set(cv::CAP_PROP_FRAME_HEIGHT, image_height_);
+  camera_handler_.set(cv::CAP_PROP_FORMAT, CV_8UC3);
+  camera_handler_.set(cv::CAP_PROP_BRIGHTNESS, 50);
+  camera_handler_.set(cv::CAP_PROP_CONTRAST, 0);
+  is_running_on_RPi_ = camera_handler_.getId().length() > 0;
+  #endif
+  
   return;
 }
 
@@ -194,21 +230,63 @@ int Camera::detect_markers(
   return num_markers;
 }
 
-bool Camera::get_markers(MarkerList* markers_ptr)
+bool Camera::take_picture(cv::Mat* image, double timeout)
 {
-  // Open the video capture channel if required
-  // Enforce the image resolution of the video capture channel
-  if(!capture_.isOpened())
+  // Get the pointer to the opencv image
+  assert( image_ptr != NULL );
+  cv::Mat& image = *image_ptr;
+
+  // Get a dimmy image if its not running on the RPi
+  std::lock_guard<std::mutex> lock(mutex_);
+  if(!is_running_on_RPi_)
   {
-    capture_.open("/dev/video0");
-    if(!capture_.isOpened()) return false;
-    capture_.set(cv::CAP_PROP_FRAME_WIDTH,width_);
-    capture_.set(cv::CAP_PROP_FRAME_HEIGHT,height_);
+    image = cv::Mat(2,2, CV_8UC1, cv::Scalar(0,0,255));
+    return true;
   }
   
+  // Otherwise, get the image from the camera
+  #ifdef RPI4
+  bool success = false;
+  // For undetermined reason, the image must be asked for more than once...
+  for(int i=0; i<5; i++)
+  {
+    success = false;
+    if(frame_data_.size > 0)
+      camera_.returnFrameBuffer(frame_data_);
+    struct timespec st, ct;
+    clock_gettime(CLOCK_MONOTONIC, &st);
+    ct = st;
+
+    while(!success && (ct.tv_sec-st.tv_sec + (ct.tv_nsec-st.tv_nsec)/1e9)<timeout)
+    {
+      success = camera_.readFrame(&frame_data_);
+      clock_gettime(CLOCK_MONOTONIC, &ct);
+    }
+    if (!success) frame_data_.size = 0;
+  }
+  if(success)
+  {
+    image = cv::Mat(image_height_,image_width_,CV_8UC3,frame_data_.imageData).clone();
+  }
+  else
+  {
+    frame_data_.size = 0;
+  }
+  #else
+  bool success = camera_handler_.open();
+  success &= camera_handler_.grab(),
+  camera_handler_.retrieve(image);
+  camera_handler_.release();
+  #endif
+
+  return success;
+}
+
+bool Camera::get_markers(MarkerList* markers_ptr)
+{
   // Get the current image
   cv::Mat img;
-  capture_ >> img;
+  take_picture(&img);
   assert( img.cols == width_ );
   assert( img.rows == height_ );
   std::vector<Eigen::Affine3d> TRMs;
@@ -313,14 +391,3 @@ int main(int argc, char* argv[])
 }
 
 // _________________________________________________________________________________________________
-// -------------------------------------------------------------
-// mutex.lock();
-// >> DO SOMETHING
-// mutex.unlock();
-// condition_variable.notify_one();
-// -------------------------------------------------------------
-// std::unique_lock<std::mutex> locker(mutex);
-// condition_variable.wait(locker,[&](){return condition;});
-// >> DO SOMETHING
-// locker.unlock();
-// -------------------------------------------------------------
