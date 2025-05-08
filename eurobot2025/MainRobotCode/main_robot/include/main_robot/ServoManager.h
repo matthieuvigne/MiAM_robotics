@@ -34,6 +34,9 @@ public:
     void backClawClose();
 
     void foldClaws();
+
+    void grabBackPlank();
+    void releaseBackPlank();
 // private:
     RobotInterface *robot_;
     STSServoDriver *servos_;

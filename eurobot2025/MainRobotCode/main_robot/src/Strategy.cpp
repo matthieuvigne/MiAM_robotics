@@ -52,9 +52,10 @@ bool Strategy::setup(RobotInterface *robot)
         //     actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
         // }
 
+
         actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 5));
         actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 7));
-        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 2));
+        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 0));
     }
     if (setupStep_ == 1 && servoManager_.isRailCalibDone())
     {
@@ -68,6 +69,7 @@ bool Strategy::setup(RobotInterface *robot)
     {
         servoManager_.frontRightClaw_.move(ClawPosition::FOLDED);
         servoManager_.frontLeftClaw_.move(ClawPosition::FOLDED);
+        servoManager_.foldPlank();
         return true;
     }
     return false;
@@ -120,7 +122,7 @@ void Strategy::goBackToBase()
         traj = robot->getMotionController()->computeMPCTrajectory(
             targetPosition,
             robot->getMotionController()->getDetectedObstacles(),
-            tf::DEFAULT);
+            tf::IGNORE_END_ANGLE);
         if (!traj.empty())
         {
             robot->getMotionController()->setTrajectoryToFollow(traj);
@@ -146,8 +148,9 @@ void Strategy::match_impl()
 
     servoManager_.frontRightClaw_.move(ClawPosition::FORWARD);
 
-    robot->getMotionController()->goStraight(400);
+    robot->getMotionController()->goStraight(150);
     servoManager_.foldBanner();
+    servoManager_.releasePlank();
 
 
     while (!actions_.empty())

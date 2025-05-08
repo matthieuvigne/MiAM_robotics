@@ -24,7 +24,7 @@ class Claw
         Claw(RailServo rail,
              int const& wristServoId,
              int const& clawServoId,
-             int const& clawCloseValue,
+             int const& clawOpenValue,
              bool mirror=false);
 
         void init(STSServoDriver *driver);
@@ -41,7 +41,7 @@ class Claw
 
         int wristServoId_;
         int clawServoId_;
-        int clawCloseValue_;
+        int clawOpenValue_;
 
         int sign_;
 

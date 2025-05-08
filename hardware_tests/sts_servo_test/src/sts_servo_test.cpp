@@ -62,25 +62,35 @@ int main(int argc, char* argv[])
         robot_->wait(0.1);
     std::cout << "Calib done" << std::endl;
 
-    robot_->wait(1.0);
-
-    servo_manager.prepareGrab(false);
-    while (servo_manager.railManager_.areAnyMoving())
-        robot_->wait(0.050);
-    servo_manager.backClawOpen();
-    std::cout << "prepareGrab done" << std::endl;
-
-    std::cout << "Press enter to continue" << std::endl;
-    std::cin >> userInput;
-    servo_manager.grab(false);
-
     std::cout << "Press enter to continue" << std::endl;
     std::cin >> userInput;
 
-    servo_manager.backRail_.move(1.0);
+    ///////////////////////////////////////
+    // Back test
+    ///////////////////////////////////////
 
-    while (true) ;;
+    // servo_manager.prepareGrab(false);
+    // while (servo_manager.railManager_.areAnyMoving())
+    //     robot_->wait(0.050);
+    // servo_manager.backClawOpen();
+    // std::cout << "prepareGrab done" << std::endl;
 
+    // std::cout << "Press enter to continue" << std::endl;
+    // std::cin >> userInput;
+    // servo_manager.grab(false);
+
+    // std::cout << "Press enter to continue" << std::endl;
+    // std::cin >> userInput;
+
+    // servo_manager.backRail_.move(1.0);
+
+    // while (true) ;;
+    ///////////////////////////////////////
+
+
+    ///////////////////////////////////////
+    // Front test
+    ///////////////////////////////////////
     servo_manager.prepareGrab(true);
     while (servo_manager.railManager_.areAnyMoving())
         robot_->wait(0.050);
@@ -101,55 +111,8 @@ int main(int argc, char* argv[])
 
     servo_manager.buildFrontTower();
 
-    std::cout << "Press enter to continue" << std::endl;
-    std::cin >> userInput;
+    ///////////////////////////////////////
 
-    servo_manager.frontPlankRail_.move(1.0);
-    servo_manager.frontCanRail_.move(0.05);
-    servo_manager.frontLeftClaw_.rail_.move(0.02);
-    servo_manager.frontRightClaw_.rail_.move(0.02);
-    while (servo_manager.frontRightClaw_.rail_.isMoving())
-        robot_->wait(0.1);
-    servo_manager.frontRightClaw_.move(ClawPosition::SIDE);
-    robot_->wait(0.5);
-    servo_manager.frontRightClaw_.rail_.move(0.95);
-    while (servo_manager.frontRightClaw_.rail_.isMoving())
-        robot_->wait(0.1);
-
-    std::cout << "Press enter to continue" << std::endl;
-    std::cin >> userInput;
-
-    servo_manager.frontRightClaw_.move(ClawPosition::FORWARD);
-    robot_->wait(0.2);
-    servo_manager.frontLeftClaw_.move(ClawPosition::SIDE);
-    robot_->wait(0.5);
-    servo_manager.frontRightClaw_.openClaw();
-
-    servo_manager.frontLeftClaw_.rail_.move(0.95);
-    while (servo_manager.frontLeftClaw_.rail_.isMoving())
-        robot_->wait(0.1);
-
-    servo_manager.frontLeftClaw_.move(ClawPosition::FORWARD);
-    robot_->wait(0.5);
-    servo_manager.frontLeftClaw_.openClaw();
-
-    std::cout << "Press enter to continue" << std::endl;
-    std::cin >> userInput;
-
-
-
-    robot_->wait(0.2);
-    servo_manager.frontRightClaw_.rail_.move(0.7);
-    servo_manager.frontLeftClaw_.rail_.move(0.7);
-
-    while (servo_manager.frontRightClaw_.rail_.isMoving() || servo_manager.frontLeftClaw_.rail_.isMoving())
-        robot_->wait(0.1);
-
-    servo_manager.frontRightClaw_.move(ClawPosition::FORWARD);
-    servo_manager.frontLeftClaw_.move(ClawPosition::FORWARD);
-    robot_->wait(0.2);
-    servo_manager.frontRightClaw_.openClaw();
-    servo_manager.frontLeftClaw_.openClaw();
 
     // robot.getServos()->setMode(0xFE, STS::Mode::POSITION);
 

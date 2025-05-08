@@ -25,8 +25,8 @@ RobotPosition generateRandomValidPosition(Map const& map)
 
 int main (int argc, char *argv[])
 {
-    miam::RobotPosition startPosition(441.698, 397.672, 6.28127);
-    miam::RobotPosition targetPosition(1200.0, 350.0, 1.5708);
+    miam::RobotPosition startPosition(441.867, 402.695, 9.42381);
+    miam::RobotPosition targetPosition(435.0, 1325.0, 6.28319);
 
     Logger logger;
 

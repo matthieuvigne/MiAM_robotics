@@ -8,10 +8,10 @@ void BuildAction::updateStartCondition()
     if (robot_->getGameState()->isFrontClawFull && robot_->getGameState()->isBackClawFull)
     {
         priority_ = 10;
-        if (zoneId_ == 2)
-            priority_ += 5;
-        if (zoneId_ == 0)
+        if (zoneId_ == 1)
             priority_ += 2;
+        if (zoneId_ == 0)
+            priority_ += 5;
     }
     else if (!robot_->getGameState()->isFrontClawFull && !robot_->getGameState()->isBackClawFull)
     {
@@ -22,12 +22,14 @@ void BuildAction::updateStartCondition()
         priority_ = 6;
     }
 
-    startPosition_ = CONSTRUCTION_ZONE_COORDS[zoneId_].forward(-300);
+    startPosition_ = CONSTRUCTION_ZONE_COORDS[zoneId_].forward(-320 - 230 * nDrop_);
 
-    if (!robot_->getGameState()->isFrontClawFull)
-        isStartMotionBackward_ = true;
-    else if (robot_->getGameState()->isBackClawFull && (zoneId_ == 0 || zoneId_ == 2))
-        isStartMotionBackward_ = true;
+    // Defautl to back drop on large zones, front drop on small zones
+    if (largeZone_)
+        isStartMotionBackward_ = robot_->getGameState()->isBackClawFull;
+    else
+        isStartMotionBackward_ = !robot_->getGameState()->isFrontClawFull;
+
     if (isStartMotionBackward_)
         startPosition_.theta += M_PI;
 }
@@ -56,12 +58,12 @@ bool BuildAction::performAction()
 
     robot_->getGameState()->isConstructionZoneUsed[zoneId_] = true;
 
-    if (isStartMotionBackward_ && robot_->getGameState()->isFrontClawFull && (zoneId_ == 0 || zoneId_ == 2))
+    if (isStartMotionBackward_ && robot_->getGameState()->isFrontClawFull && (largeZone_))
     {
         // Build front tower, put it on top of the other one
         robot_->getMotionController()->goStraight(300);
         robot_->getMotionController()->pointTurn(M_PI);
-        robot_->getMotionController()->goStraight(150);
+        robot_->getMotionController()->goStraight(100);
         servoManager_->buildFrontTower();
         robot_->getGameState()->isFrontClawFull = false;
 
@@ -80,7 +82,12 @@ bool BuildAction::performAction()
     else
         robot_->getMotionController()->goStraight(-sign * 200);
 
-    // Action should not be done again
+    // Allow several drops in large zones
+    if (largeZone_)
+    {
+        nDrop_ ++;
+        return nDrop_ > 1;
+    }
     return true;
 }
 

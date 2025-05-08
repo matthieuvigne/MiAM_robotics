@@ -12,7 +12,10 @@ public:
         AbstractAction("Building " + std::to_string(zoneId), robot),
         servoManager_(servoManager),
         zoneId_(zoneId)
-    {}
+    {
+        largeZone_ = zoneId < 2;
+        nDrop_ = 0;
+    }
 
     /// @brief This function is called before choosing the action in the list,
     ///        giving the opportunity for an action to update its start position and priority.
@@ -25,6 +28,9 @@ public:
 private:
     ServoManager *servoManager_;
     int zoneId_;
+
+    bool largeZone_;
+    int nDrop_;
 };
 
 

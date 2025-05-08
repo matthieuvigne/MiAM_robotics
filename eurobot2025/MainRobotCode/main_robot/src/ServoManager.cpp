@@ -30,11 +30,12 @@
 #define BACK_CLAW_R 22
 #define PLANK_WRIST 32
 #define PLANK_CLAW 33
+#define BACK_PLANK_CLAW 34
 
 
 ServoManager::ServoManager():
-    frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 600, false),
-    frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 960, true),
+    frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 190, false),
+    frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 730, true),
     backRail_(20, 20, 9000, true),
     frontPlankRail_(6, 21, 8000, false),
     frontCanRail_(5, 22, 7800, true, true)
@@ -46,9 +47,9 @@ void ServoManager::init(RobotInterface *robot)
     robot_ = robot;
     servos_ = robot->getServos();
     servos_->setMode(0xFE, STS::Mode::POSITION);
-    robot_->wait(0.001);
+    robot_->wait(0.002);
     servos_->setMode(0xFE, STS::Mode::POSITION);
-    robot_->wait(0.001);
+    robot_->wait(0.002);
     frontRightClaw_.init(servos_);
     frontRightClaw_.rail_.init(servos_);
     frontLeftClaw_.init(servos_);
@@ -63,6 +64,8 @@ void ServoManager::init(RobotInterface *robot)
     frontLeftClaw_.closeClaw();
 
     foldClaws();
+    releasePlank();
+    releaseBackPlank();
 
     std::vector<RailServo*> rails({
         &frontRightClaw_.rail_,
@@ -73,7 +76,6 @@ void ServoManager::init(RobotInterface *robot)
     railManager_.start(rails);
 
     foldBanner();
-    foldPlank();
 }
 
 void ServoManager::setRailsToInitPosition()
@@ -82,7 +84,7 @@ void ServoManager::setRailsToInitPosition()
     frontLeftClaw_.rail_.move(0.6);
     frontCanRail_.move(0.0);
     frontPlankRail_.move(0.0);
-    backRail_.move(0.0);
+    backRail_.move(0.25);
 }
 
 void ServoManager::prepareGrab(bool const& front)
@@ -106,6 +108,7 @@ void ServoManager::prepareGrab(bool const& front)
     else
     {
         backClawOpen();
+        releaseBackPlank();
         backRail_.move(0.0);
     }
 }
@@ -131,6 +134,7 @@ void ServoManager::grab(bool const& front)
         backClawClose();
         robot_->wait(0.5);
         backRail_.move(0.1);
+        grabBackPlank();
     }
     while (railManager_.areAnyMoving())
         robot_->wait(0.010);
@@ -142,38 +146,36 @@ void ServoManager::dropBackCans(bool ground)
     while (backRail_.isMoving())
         robot_->wait(0.050);
     backClawOpen();
+    releaseBackPlank();
     robot_->wait(0.3);
 }
 
 void ServoManager::buildFrontTower()
 {
-
+    // Position rails
     frontPlankRail_.move(1.0);
     frontCanRail_.move(0.05);
     frontLeftClaw_.rail_.move(0.02);
     frontRightClaw_.rail_.move(0.02);
     while (frontRightClaw_.rail_.isMoving())
         robot_->wait(0.05);
+
+    // Move side cans
     frontRightClaw_.move(ClawPosition::SIDE);
+    frontLeftClaw_.move(ClawPosition::SIDE);
     robot_->wait(0.5);
     frontRightClaw_.rail_.move(0.95);
-    while (frontRightClaw_.rail_.isMoving())
+    frontLeftClaw_.rail_.move(0.95);
+    while (frontRightClaw_.rail_.isMoving() || frontLeftClaw_.rail_.isMoving())
         robot_->wait(0.05);
 
     frontRightClaw_.move(ClawPosition::FORWARD);
-    robot_->wait(0.2);
-    frontLeftClaw_.move(ClawPosition::SIDE);
-    robot_->wait(0.5);
-    frontRightClaw_.openClaw();
-
-    frontLeftClaw_.rail_.move(0.95);
-    while (frontLeftClaw_.rail_.isMoving())
-        robot_->wait(0.05);
-
     frontLeftClaw_.move(ClawPosition::FORWARD);
-    robot_->wait(0.6);
+    robot_->wait(0.7);
+    frontRightClaw_.openClaw();
     frontLeftClaw_.openClaw();
 
+    // Drop plank
     frontPlankRail_.move(0.85);
     frontCanRail_.move(0.0);
     while (frontPlankRail_.isMoving() || frontCanRail_.isMoving())
@@ -182,40 +184,46 @@ void ServoManager::buildFrontTower()
     releasePlank();
 }
 
-#define FRONT_CLAW_MOTION 70
-#define FRONT_CLAW_FOLD 220
+#define FRONT_CLAW_RANGE_OPEN 230
+#define FRONT_CLAW_RANGE_CLOSE 150
+
+#define FC_R_FOLD 1020
+#define FC_L_FOLD 240
+
+#define BC_R_FOLD 200
+#define BC_L_FOLD 550
 
 void ServoManager::frontClawOpen()
 {
-    servos_->setTargetPosition(FRONT_CLAW_R, 790);
-    servos_->setTargetPosition(FRONT_CLAW_L, 470);
+    servos_->setTargetPosition(FRONT_CLAW_R, FC_R_FOLD - FRONT_CLAW_RANGE_OPEN);
+    servos_->setTargetPosition(FRONT_CLAW_L, FC_L_FOLD + FRONT_CLAW_RANGE_OPEN);
 }
 
 void ServoManager::frontClawClose()
 {
-    servos_->setTargetPosition(FRONT_CLAW_R, 790 + FRONT_CLAW_MOTION);
-    servos_->setTargetPosition(FRONT_CLAW_L, 470 - FRONT_CLAW_MOTION);
+    servos_->setTargetPosition(FRONT_CLAW_R, FC_R_FOLD - FRONT_CLAW_RANGE_CLOSE);
+    servos_->setTargetPosition(FRONT_CLAW_L, FC_L_FOLD + FRONT_CLAW_RANGE_CLOSE);
 }
 
 
 void ServoManager::backClawOpen()
 {
-    servos_->setTargetPosition(BACK_CLAW_L, 300);
-    servos_->setTargetPosition(BACK_CLAW_R, 440);
+    servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD + FRONT_CLAW_RANGE_OPEN);
+    servos_->setTargetPosition(BACK_CLAW_R, BC_L_FOLD - FRONT_CLAW_RANGE_OPEN);
 }
 
 void ServoManager::backClawClose()
 {
-    servos_->setTargetPosition(BACK_CLAW_L, 300 + FRONT_CLAW_MOTION);
-    servos_->setTargetPosition(BACK_CLAW_R, 440 - FRONT_CLAW_MOTION);
+    servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD + FRONT_CLAW_RANGE_CLOSE);
+    servos_->setTargetPosition(BACK_CLAW_R, BC_R_FOLD - FRONT_CLAW_RANGE_CLOSE);
 }
 
 void ServoManager::foldClaws()
 {
-    servos_->setTargetPosition(FRONT_CLAW_R, 790 + FRONT_CLAW_FOLD);
-    servos_->setTargetPosition(FRONT_CLAW_L, 470 - FRONT_CLAW_FOLD);
-    servos_->setTargetPosition(BACK_CLAW_L, 300 + FRONT_CLAW_FOLD);
-    servos_->setTargetPosition(BACK_CLAW_R, 420 - FRONT_CLAW_FOLD);
+    servos_->setTargetPosition(FRONT_CLAW_R, FC_R_FOLD);
+    servos_->setTargetPosition(FRONT_CLAW_L, FC_L_FOLD);
+    servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD);
+    servos_->setTargetPosition(BACK_CLAW_R, BC_R_FOLD);
 }
 
 void ServoManager::foldBanner()
@@ -223,12 +231,10 @@ void ServoManager::foldBanner()
     servos_->setTargetPosition(BANNER_ID, 2048);
 }
 
-
 void ServoManager::dropBanner()
 {
-    servos_->setTargetPosition(BANNER_ID, 3000);
+    servos_->setTargetPosition(BANNER_ID, 1000);
 }
-
 
 void ServoManager::grabPlank()
 {
@@ -236,18 +242,26 @@ void ServoManager::grabPlank()
     servos_->setTargetPosition(PLANK_CLAW, 1900);
 }
 
-
 void ServoManager::releasePlank()
 {
     servos_->setTargetPosition(PLANK_WRIST, 2200);
     servos_->setTargetPosition(PLANK_CLAW, 2300);
 }
 
-
 void ServoManager::foldPlank()
 {
-    servos_->setTargetPosition(PLANK_WRIST, 1800);
+    servos_->setTargetPosition(PLANK_WRIST, 3000);
     servos_->setTargetPosition(PLANK_CLAW, 2048);
+}
+
+void ServoManager::grabBackPlank()
+{
+    servos_->setTargetPosition(BACK_PLANK_CLAW, 500);
+}
+
+void ServoManager::releaseBackPlank()
+{
+    servos_->setTargetPosition(BACK_PLANK_CLAW, 500);
 }
 
 
