@@ -8,6 +8,8 @@
 #include <miam_utils/trajectory/PointTurn.h>
 #include <miam_utils/trajectory/Utilities.h>
 #include <miam_utils/MathUtils.h>
+#include <miam_utils/trajectory/PathPlanner.h>
+
 
 #include <iostream>
 #include <cmath>
@@ -75,60 +77,15 @@ double UNITTEST_printDuration;
 bool is_acado_inited = false;
 std::mutex acado_mutex;
 
-#define GRID_RESOLUTION 25
-
-void excludeRectangle(Eigen::MatrixXi & map, int const lowerX, int const lowerY, int const upperX, int const upperY, int const margin = table_dimensions::table_margin)
-{
-    int const x = std::max(0, (lowerX - margin) / GRID_RESOLUTION);
-    int const y = std::max(0, (lowerY - margin) / GRID_RESOLUTION);
-
-    int const width = std::min(static_cast<int>(map.rows()) - x, std::min((lowerX - margin) / GRID_RESOLUTION, 0) + ((upperX - lowerX) + 2 * margin) / GRID_RESOLUTION);
-    int const height = std::min(static_cast<int>(map.cols()) - y, std::min((lowerY - margin) / GRID_RESOLUTION, 0) + ((upperY - lowerY) + 2 * margin) / GRID_RESOLUTION);
-
-    map.block(x, y, width, height).setConstant(1);
-}
-
-
-PathPlannerConfig generatePathPlannerConfig()
-{
-
-    int const borderMargin = static_cast<int>(std::ceil(table_dimensions::table_margin / GRID_RESOLUTION)); // Border margin, in grid unit.
-
-    int const nRows = table_dimensions::table_size_x / GRID_RESOLUTION;
-    int const nCols = table_dimensions::table_size_y / GRID_RESOLUTION;
-
-    PathPlannerConfig config;
-    config.astar_resolution_mm = GRID_RESOLUTION;
-    config.map = Eigen::MatrixXi::Zero(nRows, nCols);
-
-    // Add obstacles linked to map: border
-    config.map.bottomRows<borderMargin>().setConstant(1);
-    config.map.topRows<borderMargin>().setConstant(1);
-    config.map.leftCols<borderMargin>().setConstant(1);
-    config.map.rightCols<borderMargin>().setConstant(1);
-
-    // // PAMI
-    // excludeRectangle(config.map, 0, 1800, 3000, 2000);
-    // // // Scene
-    // excludeRectangle(config.map, 1050, 1550, 3000, 2000);
-
-    // // // Other robot start / drop zones
-    // excludeRectangle(config.map, 0, 650, 450, 1100);
-    // excludeRectangle(config.map, 0, 0, 450, 150);
-    // excludeRectangle(config.map, 1550, 0, 2000, 450);
-    // excludeRectangle(config.map, 2000, 0, 2450, 150);
-
-    return config;
-}
 
 MotionPlanner::MotionPlanner(RobotParameters const& robotParameters, Logger* logger) :
     robotParams_(robotParameters),
-    pathPlanner_(generatePathPlannerConfig(), logger),
     logger_(logger)
 {
 }
 
 TrajectoryVector MotionPlanner::planMotion(
+            Map & map,
             RobotPosition const& currentPosition,
             RobotPosition const& targetPosition,
             tf const& flags,
@@ -140,13 +97,14 @@ TrajectoryVector MotionPlanner::planMotion(
     std::vector<RobotPosition > planned_path;
 {
     ZoneScopedN("planMotion::PathPlanner");
+
     if (false)
     {
         double const OFFSET_DISTANCE = 50;
         RobotPosition offsetPosition = targetPosition - RobotPosition(OFFSET_DISTANCE, 0, 0).rotate(targetPosition.theta);
         if ((offsetPosition - currentPosition).norm() < (targetPosition - currentPosition).norm())
         {
-            planned_path = pathPlanner_.planPath(currentPosition, offsetPosition);
+            planned_path = miam::trajectory::planPath(map, currentPosition, offsetPosition, logger_);
             if (planned_path.size() > 0)
             {
                 planned_path.push_back(targetPosition);
@@ -158,7 +116,7 @@ TrajectoryVector MotionPlanner::planMotion(
     // ensureEndAngle = true;
     // If planning failed, or if no offset was asked, plan toward true target.
     if (planned_path.size() == 0)
-        planned_path = pathPlanner_.planPath(currentPosition, targetPosition);
+        planned_path = miam::trajectory::planPath(map, currentPosition, targetPosition, logger_);
 
     std::chrono::high_resolution_clock::time_point astarTime = std::chrono::high_resolution_clock::now();
     *logger_ << "A* solved in: " << std::chrono::duration_cast<std::chrono::duration<double>>(astarTime - startTime).count() << std::endl;
@@ -170,7 +128,7 @@ TrajectoryVector MotionPlanner::planMotion(
 
 {
     ZoneScopedN("planMotion::printMap");
-    pathPlanner_.printMap(planned_path, currentPosition, targetPosition);
+    map.print(logger_, planned_path, currentPosition, targetPosition);
 }
 #ifdef MOTIONCONTROLLER_UNITTEST
     std::chrono::high_resolution_clock::time_point printEnd = std::chrono::high_resolution_clock::now();

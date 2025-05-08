@@ -8,7 +8,7 @@
 
 void GrabColumnAction::updateStartCondition()
 {
-    if (!robot_->gameState_.isCollectZoneFull[zoneId_] || (robot_->gameState_.isFrontClawFull && robot_->gameState_.isBackClawFull))
+    if (!robot_->getGameState()->isCollectZoneFull[zoneId_] || (robot_->getGameState()->isFrontClawFull && robot_->getGameState()->isBackClawFull))
     {
         priority_ = -1;
     }
@@ -37,7 +37,7 @@ void GrabColumnAction::updateStartCondition()
     }
 
     // Always grab front first
-    isStartMotionBackward_ = robot_->gameState_.isFrontClawFull;
+    isStartMotionBackward_ = robot_->getGameState()->isFrontClawFull;
 
     if (isStartMotionBackward_)
     {
@@ -63,14 +63,14 @@ bool GrabColumnAction::performAction()
         return true; // Don't try again, other robot is already here.
 
     servoManager_->grab(front);
-    robot_->gameState_.isCollectZoneFull[zoneId_] = false;
+    robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
     if (isStartMotionBackward_)
     {
-        robot_->gameState_.isBackClawFull = true;
+        robot_->getGameState()->isBackClawFull = true;
     }
     else
     {
-        robot_->gameState_.isFrontClawFull = true;
+        robot_->getGameState()->isFrontClawFull = true;
     }
     robot_->getMotionController()->goStraight(-forwardAmount, 0.75);
     // Action should not be done again

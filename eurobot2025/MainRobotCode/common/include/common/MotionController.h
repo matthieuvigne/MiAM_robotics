@@ -206,6 +206,10 @@
             TrajectoryVector getCurrentTrajectories();
             double getCurvilinearAbscissa();
 
+            GameState *getGameState() { return &gameState_;};
+
+            Map map_;
+
         private:
             MotionPlanner motionPlanner_;
             Logger *logger_; ///< Logger object.
@@ -300,5 +304,7 @@
             bool askedForTrackingStop_ = false;
 
             std::mutex motionPlanningMutex_;
+
+            GameState gameState_;
     };
  #endif

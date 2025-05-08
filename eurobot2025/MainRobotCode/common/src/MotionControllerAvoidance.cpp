@@ -180,10 +180,11 @@ TrajectoryVector MotionController::computeMPCTrajectory(
     double minObstacleRadius = 0;
 
     // Update obstacle map
-    motionPlanner_.pathPlanner_.resetCollisions();
+    map_ = gameState_.generateMap();
+
     for (auto const& obstacle : detectedObstacles)
     {
-        motionPlanner_.pathPlanner_.addCollision(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
+        map_.addCollisionCircle(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
         double const distance = (std::get<0>(obstacle) - currentPosition).norm();
         if (distance < minDistanceToObstacle)
         {
@@ -191,7 +192,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
             minObstacleRadius = std::get<1>(obstacle);
         }
     }
-    if (motionPlanner_.pathPlanner_.isPositionInCollision(targetPosition))
+    if (map_.detectCollision(targetPosition))
     {
         *logger_ << "[MotionController] End position is in obstacle, cannot plan" << std::endl;
         return traj;
@@ -266,7 +267,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
     // At this point, we've tried to move back as much as possible from an obstacle. Nevertheless,
     // we may still be in an obstacle (table limit, robot)...
     // Now we ask the path planner to give us the closest point which is not an obstacle, and we will start planning from there.
-    RobotPosition const closestAvailablePosition = motionPlanner_.pathPlanner_.getNearestAvailablePosition(newStartPoint);
+    RobotPosition const closestAvailablePosition = map_.getNearestAvailablePosition(newStartPoint);
 
     if ((closestAvailablePosition - newStartPoint).norm() > 30)
     {
@@ -284,6 +285,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
 
     // plan motion
     TrajectoryVector mpcTrajectory = motionPlanner_.planMotion(
+        map_,
         newStartPoint,
         targetPosition,
         flags

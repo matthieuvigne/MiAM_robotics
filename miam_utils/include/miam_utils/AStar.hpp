@@ -13,26 +13,21 @@
 #include <set>
 #include <eigen3/Eigen/Core>
 
+#include "miam_utils/Map.h"
+
 namespace AStar
 {
-    struct Vec2i
-    {
-        int x, y;
-
-        bool operator == (const Vec2i& coordinates_);
-    };
-
     using uint = unsigned int;
-    using HeuristicFunction = std::function<uint(Vec2i, Vec2i)>;
-    using CoordinateList = std::vector<Vec2i>;
+    using HeuristicFunction = std::function<uint(MapCoord, MapCoord)>;
+    using CoordinateList = std::vector<MapCoord>;
 
     struct Node
     {
         uint G, H;
-        Vec2i coordinates;
+        MapCoord coordinates;
         Node *parent;
 
-        Node(Vec2i coord_, Node *parent_ = nullptr);
+        Node(MapCoord coord_, Node *parent_ = nullptr);
         uint getScore();
     };
 
@@ -40,38 +35,29 @@ namespace AStar
 
     class Generator
     {
-        Node* findNodeOnList(NodeSet& nodes_, Vec2i coordinates_);
-        void releaseNodes(NodeSet& nodes_);
-
     public:
         Generator();
-        void setWorldSize(Vec2i worldSize_);
         void setDiagonalMovement(bool enable_);
         void setHeuristic(HeuristicFunction heuristic_);
-        CoordinateList findPath(Vec2i source_, Vec2i target_);
-        void addCollision(Vec2i coordinates_);
-        void removeCollision(Vec2i coordinates_);
-        void clearCollisions();
-        bool detectCollision(Vec2i coordinates_);
-        Vec2i getWorldSize();
+        CoordinateList findPath(Map const& obstacleMap, MapCoord source_, MapCoord target_) const;
 
-        Eigen::MatrixXi obstacleMap_; ///< Map of obstacle: 0 for empty, 1 for wall.
     private:
+        Node* findNodeOnList(NodeSet& nodes_, MapCoord coordinates_) const;
+        void releaseNodes(NodeSet& nodes_) const;
+
         HeuristicFunction heuristic;
         CoordinateList direction;
-        Vec2i worldSize;
         uint directions;
-
     };
 
     class Heuristic
     {
-        static Vec2i getDelta(Vec2i source_, Vec2i target_);
+        static MapCoord getDelta(MapCoord source_, MapCoord target_);
 
     public:
-        static uint manhattan(Vec2i source_, Vec2i target_);
-        static uint euclidean(Vec2i source_, Vec2i target_);
-        static uint octagonal(Vec2i source_, Vec2i target_);
+        static uint manhattan(MapCoord source_, MapCoord target_);
+        static uint euclidean(MapCoord source_, MapCoord target_);
+        static uint octagonal(MapCoord source_, MapCoord target_);
     };
 }
 

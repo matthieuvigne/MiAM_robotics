@@ -1,8 +1,9 @@
 #include <miam_utils/trajectory/Utilities.h>
 #include <miam_utils/trajectory/SampledTrajectory.h>
-#include <miam_utils/trajectory/PathPlanner.h>
 #include <miam_utils/Logger.h>
 #include "common/RobotParameters.h"
+
+#include "common/GameState.h"
 
 #ifndef MOTION_PLANNING_H
 #define MOTION_PLANNING_H
@@ -28,29 +29,13 @@ class MotionPlanner{
         MotionPlanner(RobotParameters const& robotParameters, Logger *logger);
 
         TrajectoryVector planMotion(
+            Map &map,
             RobotPosition const& currentPosition,
             RobotPosition const& targetPosition,
             tf const& flags,
             bool useTrajectoryRoundedCorners = false);
 
-
-        TrajectoryVector computeTraj(TrajectoryConfig const& config, RobotPosition start, RobotPosition end)
-        {
-            return computeTrajectoryStraightLineToPoint(config, start, end);
-        }
-
-        double computeMotionTime(TrajectoryConfig const& config, RobotPosition start, RobotPosition end) {
-
-            double duration = 0;
-
-            for (auto v : computeTraj(config, start, end)) {
-                duration += v->getDuration();
-            }
-            return duration;
-        }
-
         RobotParameters robotParams_;
-        PathPlanner pathPlanner_;
 
         /// @brief Compute interpolation trajectory between a list of points, ignoring rotations.
         TrajectoryVector computeTrajectoryBasicPath(
@@ -64,6 +49,7 @@ class MotionPlanner{
             tf const& flags
         );
 
+    private:
         std::shared_ptr<SampledTrajectory > solveMPCIteration(
             TrajectoryVector reference_trajectory,
             TrajectoryPoint start_position,

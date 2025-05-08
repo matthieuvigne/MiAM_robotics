@@ -1,4 +1,5 @@
 #include "common/GameState.h"
+#include "common/MotionParameters.h"
 
 const miam::RobotPosition COLLECT_ZONE_COORDS[9] =
 {
@@ -102,4 +103,49 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
         }
     }
     cr->restore();
+}
+
+// Path planning
+#define GRID_RESOLUTION 25
+
+void excludeRectangle(Map & map, int const lowerX, int const lowerY, int const upperX, int const upperY, int const margin = table_dimensions::table_margin)
+{
+    int const x = std::max(0, (lowerX - margin) / GRID_RESOLUTION);
+    int const y = std::max(0, (lowerY - margin) / GRID_RESOLUTION);
+
+    int const width = std::min(static_cast<int>(map.rows()) - x, std::min((lowerX - margin) / GRID_RESOLUTION, 0) + ((upperX - lowerX) + 2 * margin) / GRID_RESOLUTION);
+    int const height = std::min(static_cast<int>(map.cols()) - y, std::min((lowerY - margin) / GRID_RESOLUTION, 0) + ((upperY - lowerY) + 2 * margin) / GRID_RESOLUTION);
+
+    map.block(x, y, width, height).setConstant(1);
+}
+
+Map GameState::generateMap()
+{
+    Map gameMap;
+
+    int const borderMargin = static_cast<int>(std::ceil(table_dimensions::table_margin / GRID_RESOLUTION)); // Border margin, in grid unit.
+
+    int const nRows = table_dimensions::table_size_x / GRID_RESOLUTION;
+    int const nCols = table_dimensions::table_size_y / GRID_RESOLUTION;
+
+    Map map(Eigen::MatrixXi::Zero(nRows, nCols), static_cast<double>(GRID_RESOLUTION));
+
+    // Add obstacles linked to map: border
+    map.bottomRows<borderMargin>().setConstant(1);
+    map.topRows<borderMargin>().setConstant(1);
+    map.leftCols<borderMargin>().setConstant(1);
+    map.rightCols<borderMargin>().setConstant(1);
+
+    // // PAMI
+    // excludeRectangle(config.map, 0, 1800, 3000, 2000);
+    // // // Scene
+    // excludeRectangle(config.map, 1050, 1550, 3000, 2000);
+
+    // // // Other robot start / drop zones
+    // excludeRectangle(config.map, 0, 650, 450, 1100);
+    // excludeRectangle(config.map, 0, 0, 450, 150);
+    // excludeRectangle(config.map, 1550, 0, 2000, 450);
+    // excludeRectangle(config.map, 2000, 0, 2450, 150);
+
+    return map;
 }

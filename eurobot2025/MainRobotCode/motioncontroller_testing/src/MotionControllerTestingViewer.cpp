@@ -281,18 +281,17 @@ bool MotionControllerTestingViewer::redraw(const Cairo::RefPtr<Cairo::Context>& 
     // Draw grid
     if (buttonShowGrid->get_active())
     {
-        Eigen::MatrixXi const map = motionController_->getMotionPlanner()->pathPlanner_.getMap();
-        int const resolution = motionController_->getMotionPlanner()->pathPlanner_.getResolutionMM();
+        int const resolution = motionController_->map_.getGridSize();
 
         // Draw grid
         cr->set_source_rgb(0.0, 1.0, 0.0);
-        for (int i = 0; i < map.rows(); i++)
+        for (int i = 0; i < motionController_->map_.rows(); i++)
         {
             cr->move_to(resolution * i, -10);
             cr->line_to(resolution * i, 2010);
             cr->stroke();
         }
-        for (int i = 0; i < map.cols(); i++)
+        for (int i = 0; i < motionController_->map_.cols(); i++)
         {
             cr->move_to(-10, resolution * i);
             cr->line_to(3010, resolution * i);
@@ -300,11 +299,11 @@ bool MotionControllerTestingViewer::redraw(const Cairo::RefPtr<Cairo::Context>& 
         }
 
         cr->set_source_rgba(1.0, 0.0, 0.0, 0.5);
-        for (int i = 0; i < map.rows(); i++)
-            for (int j = 0; j < map.cols(); j++)
-                if (map(i, j))
+        for (int i = 0; i < motionController_->map_.rows(); i++)
+            for (int j = 0; j < motionController_->map_.cols(); j++)
+                if (motionController_->map_.coeff(i, j))
                 {
-                    cr->rectangle(resolution * i, resolution * (map.cols() - j - 1), resolution, resolution);
+                    cr->rectangle(resolution * i, resolution * (motionController_->map_.cols() - j - 1), resolution, resolution);
                     cr->fill();
                 }
     }

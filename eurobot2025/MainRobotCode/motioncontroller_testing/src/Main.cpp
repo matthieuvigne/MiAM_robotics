@@ -9,7 +9,7 @@ double random(double const& min, double const& max)
     return static_cast<double>(std::rand()) / RAND_MAX * (max - min) + min;
 }
 
-RobotPosition generateRandomValidPosition(PathPlanner * planner)
+RobotPosition generateRandomValidPosition(Map const& map)
 {
     RobotPosition pos;
     bool done = false;
@@ -18,7 +18,7 @@ RobotPosition generateRandomValidPosition(PathPlanner * planner)
         pos.x = random(0, table_dimensions::table_size_x);
         pos.y = random(0, table_dimensions::table_size_y);
         pos.theta = random(0, 2 * M_PI);
-        done = !planner->isPositionInCollision(pos);
+        done = !map.detectCollision(pos);
     }
     return pos;
 }
@@ -62,7 +62,6 @@ int main (int argc, char *argv[])
         // Generate random scenarios, solve them, and store result in CSV file
         int const N_SCENARIOS = 100;
         int const N_OBS_MAX = 3;
-        PathPlanner* planner = &motionController.getMotionPlanner()->pathPlanner_;
 
         std::ofstream fOutput("test_result.csv");
         fOutput << "AStarComputeDuration,MPCComputeDuration,PrintDuration,PathLength,MPCDuration" << std::endl;
@@ -70,23 +69,23 @@ int main (int argc, char *argv[])
         for (int nObs = 0; nObs <= N_OBS_MAX; nObs++)
             for (int i = 0; i < N_SCENARIOS; i++)
             {
+                Map map = motionController.getGameState()->generateMap();
                 // Generate obstacles
-                planner->resetCollisions();
                 std::vector<Obstacle> obstacles;
                 for (int k = 0; k < nObs; k++)
                 {
-                    Obstacle o(generateRandomValidPosition(planner), random(200, 400));
+                    Obstacle o(generateRandomValidPosition(map), random(200, 400));
                     obstacles.push_back(o);
-                    planner->addCollision(std::get<0>(o), std::get<1>(o));
+                    map.addCollisionCircle(std::get<0>(o), std::get<1>(o));
                 }
 
-                startPosition = generateRandomValidPosition(planner);
+                startPosition = generateRandomValidPosition(map);
                 motionController.resetPosition(startPosition);
                 RobotPosition endPosition;
                 bool done = false;
                 while (!done)
                 {
-                    endPosition = generateRandomValidPosition(planner);
+                    endPosition = generateRandomValidPosition(map);
                     done = (endPosition - startPosition).norm() > 600;
                 }
 

@@ -58,7 +58,6 @@ void RobotInterface::lowLevelLoop()
     hasMatchStarted_ = false;
     matchStartTime_ = 0.0;
     currentTime_ = -1.0;
-    gameState_ = GameState();
 
     // Setup
     while (guiState_.state == robotstate::INIT)

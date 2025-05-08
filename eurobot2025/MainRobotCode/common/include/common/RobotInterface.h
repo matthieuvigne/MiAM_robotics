@@ -120,8 +120,9 @@
                 logger_.log(variableName, currentTime_, variableValue);
             }
 
+            GameState *getGameState() {return motionController_.getGameState();};
+
             Logger logger_; ///< Logger object
-            GameState gameState_;
 
 
             void setGUIActionName(std::string const& actionName)
