@@ -10,6 +10,7 @@ set(PROJECT_DESCRIPTION "C++ utility library to use a Beaglebone Black / Raspber
 option(CROSS_COMPILE "True to cross compile to arm, false to compile on current platform" ON)
 option(UNIT_TESTS "Enable unit tests (ignored when cross-compiling)" OFF)
 option(ENABLE_TELEPLOT "Enable unit tests (ignored when cross-compiling)" OFF)
+option(ENABLE_TRACY "Enable tracy profiler" OFF)
 
 # Set compiler and library name.
 
@@ -29,6 +30,10 @@ endif()
 # Set compiler flags.
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -fdiagnostics-color -lpthread -lm")
 
+if (ENABLE_TRACY)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRACY_ENABLE")
+endif()
+
 if (ENABLE_TELEPLOT)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_TELEPLOT")
 endif()
@@ -46,14 +51,15 @@ endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 # Specify library content :
 # Recursively include all .c files
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.c"
-                                          "src/*.cpp")
+                                          "src/*.cpp"
+                                          "../tracy/public/TracyClient.cpp")
 set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX )
 
 # Add directory containing the headers, and put all headers in a variable.
 include_directories(include)
 
-# Teleplot
 include_directories(../teleplot/clients/cpp)
+include_directories(../tracy/public/)
 
 # Setup static library
 add_library(${LIBRARY_NAME} STATIC ${${PROJECT_NAME}_SOURCES})
@@ -83,4 +89,5 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/miam_utilsTemplate.pc" "${CMAKE_CURR
 install(TARGETS ${LIBRARY_NAME} DESTINATION "lib")
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION "include")
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../teleplot/clients/cpp/" DESTINATION "include")
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../tracy/public/" DESTINATION "include/")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}.pc" DESTINATION "lib/pkgconfig/")

@@ -1,6 +1,6 @@
 #include <common/MotionController.h>
 #include <miam_utils/trajectory/Utilities.h>
-
+#include "tracy/Tracy.hpp"
 
 void MotionController::setAvoidanceMode(AvoidanceMode avoidanceMode)
 {
@@ -166,6 +166,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
     tf const& flags,
     double const initialBackwardMotionMargin)
 {
+    ZoneScopedN("planMotion");
     // Only one thread may perform planning at a given time.
     std::lock_guard lock(motionPlanningMutex_);
     TrajectoryVector traj;

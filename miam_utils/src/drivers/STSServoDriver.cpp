@@ -186,14 +186,16 @@ bool STSServoDriver::setId(unsigned char const& oldServoId, unsigned char const&
 
     if (!writeRegister(oldServoId, lockRegister, 0))
         return false;
+    usleep(5000);
     // Write new ID
     if (!writeRegister(oldServoId, STS::registers::ID, newServoId))
         return false;
+    usleep(50000);
     // Lock EEPROM
     if (!writeRegister(newServoId, lockRegister, 1))
       return false;
     // Give it some time to change id.
-    usleep(50000);
+    usleep(500000);
     // Update servo type cache.
     servoType_[newServoId] = servoType_[oldServoId];
     servoType_[oldServoId] = STS::ServoType::UNKNOWN;
@@ -528,5 +530,6 @@ void STSServoDriver::determineServoType(unsigned char const& servoId)
     {
         case 9: servoType_[servoId] = STS::ServoType::STS; break;
         case 5: servoType_[servoId] = STS::ServoType::SCS; break;
+        default: servoType_[servoId] = STS::ServoType::STS; break;
     }
 }
