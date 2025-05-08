@@ -136,16 +136,26 @@ Map GameState::generateMap()
     map.leftCols<borderMargin>().setConstant(1);
     map.rightCols<borderMargin>().setConstant(1);
 
-    // // PAMI
-    // excludeRectangle(config.map, 0, 1800, 3000, 2000);
-    // // // Scene
-    // excludeRectangle(config.map, 1050, 1550, 3000, 2000);
+    // PAMI
+    excludeRectangle(map, 0, 1800, 3000, 2000);
+    // Scene
+    excludeRectangle(map, 1050, 1550, 3000, 2000);
 
-    // // // Other robot start / drop zones
-    // excludeRectangle(config.map, 0, 650, 450, 1100);
-    // excludeRectangle(config.map, 0, 0, 450, 150);
-    // excludeRectangle(config.map, 1550, 0, 2000, 450);
-    // excludeRectangle(config.map, 2000, 0, 2450, 150);
+    // Other robot start / drop zones
+    excludeRectangle(map, 0, 650, 450, 1100);
+    excludeRectangle(map, 0, 0, 450, 150);
+    excludeRectangle(map, 1550, 0, 2000, 450);
+    excludeRectangle(map, 2000, 0, 2450, 150);
+
+    for (int i = 0; i < 9; i++)
+    {
+        if (isCollectZoneFull[i])
+        {
+            RobotPosition bl = COLLECT_ZONE_COORDS[i] + RobotPosition(-200, -50).rotate(COLLECT_ZONE_COORDS[i].theta - M_PI_2);
+            RobotPosition tr = COLLECT_ZONE_COORDS[i] + RobotPosition(200, 50).rotate(COLLECT_ZONE_COORDS[i].theta - M_PI_2);
+            excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
+        }
+    }
 
     return map;
 }

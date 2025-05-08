@@ -35,6 +35,7 @@ Viewer::Viewer(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGla
     refGlade->get_widget("scoreLabel", scoreLabel);
     refGlade->get_widget("progressBar", progressBar);
     refGlade->get_widget("switchButton", switchButton);
+    refGlade->get_widget("showMap", buttonShowGrid);
     switchButton->set_active();
     refGlade->get_widget("simulationRatioSpin", simulationRatioSpin);
     simulationRatioSpin->signal_value_changed().connect(sigc::mem_fun(this, &Viewer::updateTimeRatio));
@@ -187,6 +188,36 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
     cr->scale(mmToCairo_, mmToCairo_);
     robots_[0]->getGameState()->draw(cr, robots_[0]->getPosition(), robots_[0]->isPlayingRightSide());
 
+    // Draw grid
+    if (buttonShowGrid->get_active())
+    {
+        MotionController *motionController = robots_[0]->getMotionController();
+        int const resolution = motionController->map_.getGridSize();
+
+        // Draw grid
+        cr->set_source_rgb(0.0, 1.0, 0.0);
+        for (int i = 0; i < motionController->map_.rows(); i++)
+        {
+            cr->move_to(resolution * i, -10);
+            cr->line_to(resolution * i, 2010);
+            cr->stroke();
+        }
+        for (int i = 0; i < motionController->map_.cols(); i++)
+        {
+            cr->move_to(-10, resolution * i);
+            cr->line_to(3010, resolution * i);
+            cr->stroke();
+        }
+
+        cr->set_source_rgba(1.0, 0.0, 0.0, 0.5);
+        for (int i = 0; i < motionController->map_.rows(); i++)
+            for (int j = 0; j < motionController->map_.cols(); j++)
+                if (motionController->map_.coeff(i, j))
+                {
+                    cr->rectangle(resolution * i, resolution * (motionController->map_.cols() - j - 1), resolution, resolution);
+                    cr->fill();
+                }
+    }
     return true;
 }
 

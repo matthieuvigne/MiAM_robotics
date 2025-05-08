@@ -57,6 +57,7 @@ class Viewer : public Gtk::Window
         Gtk::ProgressBar *progressBar;
         Gtk::SpinButton *simulationRatioSpin;
         Gtk::DrawingArea *drawingArea;
+        Gtk::CheckButton *buttonShowGrid;
 
         bool redraw(const Cairo::RefPtr<Cairo::Context>& cr);
 
