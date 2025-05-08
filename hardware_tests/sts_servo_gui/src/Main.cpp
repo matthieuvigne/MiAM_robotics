@@ -12,19 +12,19 @@
 int main (int argc, char *argv[])
 {
     // Try to communicate with servo.
-
-    RPi_enablePorts();
+    std::string portName = "/dev/ttyAMA0";
+    if (argc > 1)
+        portName = argv[1];
 
     STSServoDriver driver;
 
     if (!driver.init("/dev/ttyAMA0", -1))
     {
-        std::cout << "Failed to init communication with servos." << std::endl;
+        std::cout << "Failed to init communication with servos on " << portName << std::endl;
         return 0;
     }
     // Start all servos in position mode.
     driver.setMode(0xFE, STS::Mode::POSITION);
-    driver.setTorqueLimit(0x01, 0.1);
     usleep(10000);
 
     // Create GUI
