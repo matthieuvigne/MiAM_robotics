@@ -102,7 +102,7 @@ void Strategy::match()
         robot->logger_ << "Match almost done, auto-triggering fallback strategy" << std::endl;
     }
     robot->setGUIActionName("[Match End] Back to base");
-    goBackToBase();
+    // goBackToBase();
 }
 
 

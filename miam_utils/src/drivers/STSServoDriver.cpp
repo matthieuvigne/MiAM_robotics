@@ -364,6 +364,7 @@ bool STSServoDriver::writeRegisters(unsigned char const& servoId,
                           asynchronous ? instruction::REGWRITE : instruction::WRITE,
                           writeLength + 1,
                           param);
+    usleep(150); // Give some time to avoid message overlap
     return rc == writeLength + 7;
 }
 

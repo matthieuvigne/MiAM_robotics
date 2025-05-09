@@ -20,6 +20,7 @@
 // 31: banner
 // 32: plank, wrist
 // 33: plank, claw
+// 34: back plank, claw
 
 
 #define BANNER_ID 31
@@ -34,7 +35,7 @@
 
 
 ServoManager::ServoManager():
-    frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 190, false),
+    frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 190 /* TODO check this value*/, false),
     frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 730, true),
     backRail_(20, 20, 9000, true),
     frontPlankRail_(6, 21, 8000, false),
@@ -75,7 +76,8 @@ void ServoManager::init(RobotInterface *robot)
         &frontCanRail_});
     railManager_.start(rails);
 
-    foldBanner();
+    // Move banner servo to hold position
+    servos_->setTargetPosition(BANNER_ID, 1600);
 }
 
 void ServoManager::setRailsToInitPosition()
@@ -256,12 +258,14 @@ void ServoManager::foldPlank()
 
 void ServoManager::grabBackPlank()
 {
-    servos_->setTargetPosition(BACK_PLANK_CLAW, 500);
+    // TODO
+    // servos_->setTargetPosition(BACK_PLANK_CLAW, 500);
 }
 
 void ServoManager::releaseBackPlank()
 {
-    servos_->setTargetPosition(BACK_PLANK_CLAW, 500);
+    // TODO
+    // servos_->setTargetPosition(BACK_PLANK_CLAW, 500);
 }
 
 
