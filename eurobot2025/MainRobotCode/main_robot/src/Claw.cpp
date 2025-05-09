@@ -42,7 +42,7 @@ void Claw::move(ClawPosition const& clawPos)
     switch (clawPos)
     {
         case ClawPosition::FOLDED:
-            driver_->setTargetPosition(wristServoId_, mirror(3000));
+            driver_->setTargetPosition(wristServoId_, mirror(2900));
             break;
         case ClawPosition::SIDE:
             driver_->setTargetPosition(wristServoId_, mirror(1000));

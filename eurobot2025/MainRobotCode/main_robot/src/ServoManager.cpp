@@ -35,8 +35,8 @@
 
 
 ServoManager::ServoManager():
-    frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 190 /* TODO check this value*/, false),
-    frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 730, true),
+    frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 190, false), //0.9/* TODO check this value*/
+    frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 730, true), //1.1
     backRail_(20, 20, 9000, true),
     frontPlankRail_(6, 21, 8000, false),
     frontCanRail_(5, 22, 7800, true, true)
