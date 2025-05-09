@@ -188,12 +188,13 @@ void ServoManager::buildFrontTower()
 
 #define FRONT_CLAW_RANGE_OPEN 230
 #define FRONT_CLAW_RANGE_CLOSE 150
-
 #define FC_R_FOLD 1020
 #define FC_L_FOLD 240
 
-#define BC_R_FOLD 200
-#define BC_L_FOLD 550
+#define BACK_CLAW_RANGE_OPEN 230
+#define BACK_CLAW_RANGE_CLOSE 120
+#define BC_L_FOLD 540
+#define BC_R_FOLD 250
 
 void ServoManager::frontClawOpen()
 {
@@ -210,14 +211,14 @@ void ServoManager::frontClawClose()
 
 void ServoManager::backClawOpen()
 {
-    servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD + FRONT_CLAW_RANGE_OPEN);
-    servos_->setTargetPosition(BACK_CLAW_R, BC_L_FOLD - FRONT_CLAW_RANGE_OPEN);
+    servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD - BACK_CLAW_RANGE_OPEN);
+    servos_->setTargetPosition(BACK_CLAW_R, BC_R_FOLD + BACK_CLAW_RANGE_OPEN);
 }
 
 void ServoManager::backClawClose()
 {
-    servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD + FRONT_CLAW_RANGE_CLOSE);
-    servos_->setTargetPosition(BACK_CLAW_R, BC_R_FOLD - FRONT_CLAW_RANGE_CLOSE);
+    servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD - BACK_CLAW_RANGE_CLOSE);
+    servos_->setTargetPosition(BACK_CLAW_R, BC_R_FOLD + BACK_CLAW_RANGE_CLOSE);
 }
 
 void ServoManager::foldClaws()
