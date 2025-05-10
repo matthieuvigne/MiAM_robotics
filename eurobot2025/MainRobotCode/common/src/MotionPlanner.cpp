@@ -510,7 +510,7 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
         //         posTheta.push_back(endAngle);
         // }
         // Filter
-        // posTheta = movingAverage(posTheta, HALF_WINDOW_SIZE);
+        posTheta = movingAverage(posTheta, HALF_WINDOW_SIZE);
 
         // Fill problem
         for (int indice = 0; indice < N+1; indice++)

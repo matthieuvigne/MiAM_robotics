@@ -4,17 +4,16 @@ cmake_minimum_required(VERSION 3.2)
 project(matchSimulation)
 #g++ color output
 SET(CMAKE_COLOR_MAKEFILE ON)
+
+add_subdirectory("../generate_acado_solver" "acado/")
+
 #Header directory
 include_directories(
   ../common/include
   include
   ../main_robot/include
   ../embedded/include
-  ../../../vision/include
-  ../../../qpoases
-  ../../../qpoases/INCLUDE
-  ../../../qpoases/SRC
-  ../common/acado_solver)
+  ../../../vision/include)
 
 # Add all source files.
 file(GLOB_RECURSE SOURCES ../common/src/*.cpp
@@ -51,20 +50,10 @@ include_directories(${GTK3_INCLUDE_DIRS})
 link_directories(${GTK3_LIBRARY_DIRS})
 add_definitions(${GTK3_CFLAGS_OTHER})
 
-# qpoases
-FILE( GLOB LIB_SOURCES ../../../qpoases/SRC/*.cpp )
-FILE( GLOB LIB_HEADERS ../../../qpoases/INCLUDE/*.hpp )
-ADD_LIBRARY( qpoases ${LIB_SOURCES} ${LIB_HEADERS} )
-
-# acado_solver
-FILE( GLOB LIB_SOURCES ../common/acado_solver/*.cpp ../common/acado_solver/*.c )
-FILE( GLOB LIB_HEADERS ../common/acado_solver/*.hpp ../common/acado_solver/*.h )
-ADD_LIBRARY( acado_solver ${LIB_SOURCES} ${LIB_HEADERS} )
-target_link_libraries( acado_solver qpoases)
-
 # Copy config.
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Build executables
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/acado/generated)
 add_executable(strategyViewer ${SOURCES})
 target_link_libraries(strategyViewer ${GTK3_LIBRARIES} ${RPLIDAR_LIBRARIES} ${MIAM_UTILS_LIBRARIES} acado_solver)
