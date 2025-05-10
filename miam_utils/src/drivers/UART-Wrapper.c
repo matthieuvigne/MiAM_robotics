@@ -38,6 +38,10 @@ int uart_open(std::string const& portName, int speed)
 
 int read_timeout(int const& file, unsigned char *buffer, size_t const& size, double const& timeoutSec)
 {
+
+    struct timespec startTime, currentTime;
+    clock_gettime(CLOCK_MONOTONIC, &startTime);
+
     struct timeval timeout;
     timeout.tv_sec = static_cast<int>(timeoutSec);
     timeout.tv_usec = (timeoutSec - timeout.tv_sec) * 1e6;
@@ -45,11 +49,32 @@ int read_timeout(int const& file, unsigned char *buffer, size_t const& size, dou
     FD_ZERO(&set);
     FD_SET(file, &set);
 
-    int nFiles = select(file + 1, &set, NULL, NULL, &timeout);
-    // If there is something to read, read and return the number of bytes read.
-    if (nFiles > 0)
-        return read(file, buffer, size);
-    else
-        // Nothing to read: return the return value of select: 0 if timeout, -1 on error.
-        return nFiles;
+    int nRead = 0;
+    while (true)
+    {
+        int nFiles = select(file + 1, &set, NULL, NULL, &timeout);
+
+        // If there is something to read, read and return the number of bytes read.
+        if (nFiles > 0)
+        {
+            int n =  read(file, buffer + nRead, size - nRead);
+            nRead += n;
+            if (nRead == size)
+                return nRead;
+        }
+        else
+        {
+            // Nothing to read: return the return value of select: 0 if timeout, -1 on error.
+            return nFiles;
+        }
+
+        // If we still have time, try again.
+        clock_gettime(CLOCK_MONOTONIC, &currentTime);
+        double elapsed = currentTime.tv_sec - startTime.tv_sec + (currentTime.tv_nsec - startTime.tv_nsec) / 1.0e9;
+        if (elapsed > timeoutSec)
+            return -1;
+
+        timeout.tv_sec = static_cast<int>(timeoutSec - elapsed);
+        timeout.tv_usec = (timeoutSec - elapsed - timeout.tv_sec) * 1e6;
+    }
 }

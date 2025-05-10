@@ -25,7 +25,7 @@ class MainWindow : public Gtk::Window
         void updateTargetVelocity(int const& servoNumber);
         void updateControlMode(int const& servoNumber);
         void updateId(int const& servoNumber);
-        void dumpMemory(int const& servoNumber);
+        void dumpMemory();
 
         // Update servo readings
         bool updateReadings();
@@ -42,7 +42,6 @@ class MainWindow : public Gtk::Window
         std::vector<Gtk::CheckButton> torqueEnabled_;
         std::vector<Gtk::Button> resetButtons_;
         std::vector<Gtk::Button> changeIdButtons_;
-        std::vector<Gtk::Button> dumpButtons_;
 
         Gtk::Grid grid_;
         Gtk::ScrolledWindow scroll_;

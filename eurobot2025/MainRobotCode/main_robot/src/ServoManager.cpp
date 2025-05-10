@@ -77,7 +77,7 @@ void ServoManager::init(RobotInterface *robot)
     railManager_.start(rails);
 
     // Move banner servo to hold position
-    servos_->setTargetPosition(BANNER_ID, 1600);
+    servos_->setTargetPosition(BANNER_ID, 1850);
 }
 
 void ServoManager::setRailsToInitPosition()

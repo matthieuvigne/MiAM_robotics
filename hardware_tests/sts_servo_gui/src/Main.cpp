@@ -18,7 +18,7 @@ int main (int argc, char *argv[])
 
     STSServoDriver driver;
 
-    if (!driver.init("/dev/ttyAMA0", -1))
+    if (!driver.init(portName, -1))
     {
         std::cout << "Failed to init communication with servos on " << portName << std::endl;
         return 0;
