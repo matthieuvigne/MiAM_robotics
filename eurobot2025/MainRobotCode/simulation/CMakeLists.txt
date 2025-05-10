@@ -54,6 +54,6 @@ add_definitions(${GTK3_CFLAGS_OTHER})
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Build executables
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/acado/generated)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/acado/generated "../generate_acado_solver/include")
 add_executable(strategyViewer ${SOURCES})
 target_link_libraries(strategyViewer ${GTK3_LIBRARIES} ${RPLIDAR_LIBRARIES} ${MIAM_UTILS_LIBRARIES} acado_solver)

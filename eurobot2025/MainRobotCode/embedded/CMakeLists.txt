@@ -90,6 +90,7 @@ set_source_files_properties(${ACADO_GEN_FILES} PROPERTIES LANGUAGE CXX )
 
 ADD_LIBRARY(acado_solver_arm ${ACADO_GEN_FILES} ${QPOASES_SOURCES})
 add_dependencies(acado_solver_arm acado_codegen)
+include_directories("../generate_acado_solver/include")
 
 # Set executable target and link libraries.
 add_executable(mainRobotCode ${MAIN_SOURCES} ${COMMON_SOURCES})

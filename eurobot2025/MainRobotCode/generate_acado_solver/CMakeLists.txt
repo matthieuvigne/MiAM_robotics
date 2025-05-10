@@ -7,7 +7,7 @@ CMAKE_MINIMUM_REQUIRED( VERSION 3.10 )
 PROJECT("acado_codegen" CXX C)
 
 # CMake module(s) path
-SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR} )
+SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR})
 # Ignore ignored-attributes (ACADO warnings) & deprecated-declarations (Eigen warnings)
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -Wno-ignored-attributes -Wno-deprecated-declarations")
 FIND_PACKAGE(ACADO REQUIRED )

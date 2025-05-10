@@ -34,7 +34,7 @@ RUN dpkg --add-architecture arm64 &&\
     apt-get clean -y &&\
     rm -rf /var/lib/apt/lists
 
-    # Install acado
+# Install acado
 RUN  cd / &&\
      git clone https://github.com/acado/acado.git -b stable &&\
      mkdir /acado/build &&\
