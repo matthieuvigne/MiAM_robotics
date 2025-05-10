@@ -2,6 +2,65 @@
 #include <iostream>
 #include <iomanip>
 
+struct PrintReg{
+    unsigned char addr;
+    std::string name;
+    bool twoBytes;
+};
+
+
+PrintReg registers[] = {
+    PrintReg({STS::registers::FIRMWARE_MAJOR,           "Firmware maj.", false}),
+    PrintReg({STS::registers::FIRMWARE_MINOR,           "Firmware min.", false}),
+    PrintReg({STS::registers::SERVO_MAJOR,              "Servo major", false}),
+    PrintReg({STS::registers::SERVO_MINOR,              "Servo minor", false}),
+    PrintReg({STS::registers::ID,                       "Id", false}),
+    PrintReg({STS::registers::BAUDRATE,                 "Baudrate",   false}),
+    PrintReg({STS::registers::RESPONSE_DELAY,           "Response delay", false}),
+    PrintReg({STS::registers::RESPONSE_STATUS_LEVEL,    "Response staus level",  false}),
+    PrintReg({STS::registers::MINIMUM_ANGLE,            "Min angle",  true}),
+    PrintReg({STS::registers::MAXIMUM_ANGLE,            "Max angle",  true}),
+    PrintReg({STS::registers::MAXIMUM_TEMPERATURE,      "Max temp.",false}),
+    PrintReg({STS::registers::MAXIMUM_VOLTAGE,          "Max voltage",false}),
+    PrintReg({STS::registers::MINIMUM_VOLTAGE,          "Min voltage",false}),
+    PrintReg({STS::registers::MAXIMUM_TORQUE,           "Max torque", true}),
+    PrintReg({STS::registers::UNLOADING_CONDITION,      "Unload. cond.",false}),
+    PrintReg({STS::registers::LED_ALARM_CONDITION,      "Led alarm",false}),
+    PrintReg({STS::registers::POS_PROPORTIONAL_GAIN,    "Pos Kp",  false}),
+    PrintReg({STS::registers::POS_DERIVATIVE_GAIN,      "Pos Kd",false}),
+    PrintReg({STS::registers::POS_INTEGRAL_GAIN,        "Pos Ki",  false}),
+    PrintReg({STS::registers::MINIMUM_STARTUP_FORCE,    "Min. start force",  true}),
+    PrintReg({STS::registers::CK_INSENSITIVE_AREA,      "CK insen. area",false}),
+    PrintReg({STS::registers::CCK_INSENSITIVE_AREA,     "CCK insen. area",   false}),
+    PrintReg({STS::registers::CURRENT_PROTECTION_TH,    "Current prot. th.",  true}),
+    PrintReg({STS::registers::ANGULAR_RESOLUTION,       "Ang. res.", false}),
+    PrintReg({STS::registers::POSITION_CORRECTION,      "Pos corr", true}),
+    PrintReg({STS::registers::OPERATION_MODE,           "Operation mode", false}),
+    PrintReg({STS::registers::TORQUE_PROTECTION_TH,     "Torque prot. th.",   false}),
+    PrintReg({STS::registers::TORQUE_PROTECTION_TIME,   "Torque prot. time", false}),
+    PrintReg({STS::registers::OVERLOAD_TORQUE,          "Overload torque",false}),
+    PrintReg({STS::registers::SPEED_PROPORTIONAL_GAIN,  "Vel Kp",false}),
+    PrintReg({STS::registers::OVERCURRENT_TIME,         "Overcurrent time",   false}),
+    PrintReg({STS::registers::SPEED_INTEGRAL_GAIN,      "Vel Ki",false}),
+    PrintReg({STS::registers::TORQUE_SWITCH,            "Torque switch",  false}),
+    PrintReg({STS::registers::TARGET_ACCELERATION,      "Target accel",false}),
+    PrintReg({STS::registers::TARGET_POSITION,          "Target pos", true}),
+    PrintReg({STS::registers::RUNNING_TIME,             "Running time",   true}),
+    PrintReg({STS::registers::RUNNING_SPEED,            "Running speed",   true}),
+    PrintReg({STS::registers::TORQUE_LIMIT,             "Torque limit",   true}),
+    PrintReg({STS::registers::WRITE_LOCK,               "Write lock", false}),
+    PrintReg({STS::registers::CURRENT_POSITION,         "Current pos",   true}),
+    PrintReg({STS::registers::CURRENT_SPEED,            "Current speed",  true}),
+    PrintReg({STS::registers::CURRENT_DRIVE_VOLTAGE,    "Current drive voltage",  false}),
+    PrintReg({STS::registers::CURRENT_VOLTAGE,          "Current voltage",false}),
+    PrintReg({STS::registers::CURRENT_TEMPERATURE,      "Current temperature",false}),
+    PrintReg({STS::registers::ASYNCHRONOUS_WRITE_ST,    "Async. write. st",  false}),
+    PrintReg({STS::registers::STATUS,                   "Status", false}),
+    PrintReg({STS::registers::MOVING_STATUS,            "Moving",  false}),
+    PrintReg({STS::registers::CURRENT_CURRENT,          "Current current",true})
+};
+
+
 MainWindow::MainWindow(STSServoDriver *driver):
     driver_(driver)
 {
@@ -37,6 +96,10 @@ MainWindow::MainWindow(STSServoDriver *driver):
     grid_.attach(*button, 8, 0, 1, 1);
     button->signal_clicked().connect(sigc::mem_fun(this, &MainWindow::rescan));
 
+    button = new Gtk::Button("Dump memory");
+    grid_.attach(*button, 9, 0, 1, 1);
+    button->signal_clicked().connect(sigc::mem_fun(this, &MainWindow::dumpMemory));
+
     rescan();
     Glib::signal_timeout().connect(sigc::mem_fun(*this,&MainWindow::updateReadings), 100);
 }
@@ -55,7 +118,6 @@ void MainWindow::rescan()
     torqueEnabled_.clear();
     resetButtons_.clear();
     changeIdButtons_.clear();
-    dumpButtons_.clear();
 
     int servoNumber = 0;
     for (auto i : ids)
@@ -76,10 +138,6 @@ void MainWindow::rescan()
         changeIdButtons_.push_back(Gtk::Button("Change Id"));
         changeIdButtons_.back().set_halign(Gtk::ALIGN_CENTER);
         changeIdButtons_.back().signal_clicked().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::updateId), servoNumber));
-
-        dumpButtons_.push_back(Gtk::Button("Dump memory"));
-        dumpButtons_.back().set_halign(Gtk::ALIGN_CENTER);
-        dumpButtons_.back().signal_clicked().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::dumpMemory), servoNumber));
 
         controlModes_.push_back(Gtk::ComboBoxText());
         controlModes_.back().append("Position");
@@ -112,7 +170,6 @@ void MainWindow::rescan()
         grid_.attach(targetVelocities_.back(), 6, servoNumber, 1, 1);
         grid_.attach(resetButtons_.back(), 7, servoNumber, 1, 1);
         grid_.attach(changeIdButtons_.back(), 8, servoNumber, 1, 1);
-        grid_.attach(dumpButtons_.back(), 9, servoNumber, 1, 1);
     }
     show_all();
 }
@@ -172,57 +229,23 @@ void MainWindow::updateId(int const& servoNumber)
 
 
 
-void MainWindow::dumpMemory(int const& servoNumber)
+void MainWindow::dumpMemory()
 {
-    unsigned char id = servoIds_[servoNumber];
-    std::cout << "\nDumping memory of servo: " << static_cast<int>(id) << std::endl;
-    std::cout << std::setw(30) << "FIRMWARE_MAJOR " << static_cast<int>(driver_->readRegister(id, STS::registers::FIRMWARE_MAJOR)) << std::endl;
-    std::cout << std::setw(30) << "FIRMWARE_MINOR " << static_cast<int>(driver_->readRegister(id, STS::registers::FIRMWARE_MINOR)) << std::endl;
-    std::cout << std::setw(30) << "SERVO_MAJOR " << static_cast<int>(driver_->readRegister(id, STS::registers::SERVO_MAJOR)) << std::endl;
-    std::cout << std::setw(30) << "SERVO_MINOR " << static_cast<int>(driver_->readRegister(id, STS::registers::SERVO_MINOR)) << std::endl;
-    std::cout << std::setw(30) << "ID " << static_cast<int>(driver_->readRegister(id, STS::registers::ID)) << std::endl;
-    std::cout << std::setw(30) << "BAUDRATE " << static_cast<int>(driver_->readRegister(id, STS::registers::BAUDRATE)) << std::endl;
-    std::cout << std::setw(30) << "RESPONSE_DELAY " << static_cast<int>(driver_->readRegister(id, STS::registers::RESPONSE_DELAY)) << std::endl;
-    std::cout << std::setw(30) << "RESPONSE_STATUS_LEVEL " << static_cast<int>(driver_->readRegister(id, STS::registers::RESPONSE_STATUS_LEVEL)) << std::endl;
-    std::cout << std::setw(30) << "MINIMUM_ANGLE " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::MINIMUM_ANGLE)) << std::endl;
-    std::cout << std::setw(30) << "MAXIMUM_ANGLE " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::MAXIMUM_ANGLE)) << std::endl;
-    std::cout << std::setw(30) << "MAXIMUM_TEMPERATURE " << static_cast<int>(driver_->readRegister(id, STS::registers::MAXIMUM_TEMPERATURE)) << std::endl;
-    std::cout << std::setw(30) << "MAXIMUM_VOLTAGE " << static_cast<int>(driver_->readRegister(id, STS::registers::MAXIMUM_VOLTAGE)) << std::endl;
-    std::cout << std::setw(30) << "MINIMUM_VOLTAGE " << static_cast<int>(driver_->readRegister(id, STS::registers::MINIMUM_VOLTAGE)) << std::endl;
-    std::cout << std::setw(30) << "MAXIMUM_TORQUE " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::MAXIMUM_TORQUE)) << std::endl;
-    std::cout << std::setw(30) << "UNLOADING_CONDITION " << static_cast<int>(driver_->readRegister(id, STS::registers::UNLOADING_CONDITION)) << std::endl;
-    std::cout << std::setw(30) << "LED_ALARM_CONDITION " << static_cast<int>(driver_->readRegister(id, STS::registers::LED_ALARM_CONDITION)) << std::endl;
-    std::cout << std::setw(30) << "POS_PROPORTIONAL_GAIN " << static_cast<int>(driver_->readRegister(id, STS::registers::POS_PROPORTIONAL_GAIN)) << std::endl;
-    std::cout << std::setw(30) << "POS_DERIVATIVE_GAIN " << static_cast<int>(driver_->readRegister(id, STS::registers::POS_DERIVATIVE_GAIN)) << std::endl;
-    std::cout << std::setw(30) << "POS_INTEGRAL_GAIN " << static_cast<int>(driver_->readRegister(id, STS::registers::POS_INTEGRAL_GAIN)) << std::endl;
-    std::cout << std::setw(30) << "MINIMUM_STARTUP_FORCE " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::MINIMUM_STARTUP_FORCE)) << std::endl;
-    std::cout << std::setw(30) << "CK_INSENSITIVE_AREA " << static_cast<int>(driver_->readRegister(id, STS::registers::CK_INSENSITIVE_AREA)) << std::endl;
-    std::cout << std::setw(30) << "CCK_INSENSITIVE_AREA " << static_cast<int>(driver_->readRegister(id, STS::registers::CCK_INSENSITIVE_AREA)) << std::endl;
-    std::cout << std::setw(30) << "CURRENT_PROTECTION_TH " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::CURRENT_PROTECTION_TH)) << std::endl;
-    std::cout << std::setw(30) << "ANGULAR_RESOLUTION " << static_cast<int>(driver_->readRegister(id, STS::registers::ANGULAR_RESOLUTION)) << std::endl;
-    std::cout << std::setw(30) << "POSITION_CORRECTION " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::POSITION_CORRECTION)) << std::endl;
-    std::cout << std::setw(30) << "OPERATION_MODE " << static_cast<int>(driver_->readRegister(id, STS::registers::OPERATION_MODE)) << std::endl;
-    std::cout << std::setw(30) << "TORQUE_PROTECTION_TH " << static_cast<int>(driver_->readRegister(id, STS::registers::TORQUE_PROTECTION_TH)) << std::endl;
-    std::cout << std::setw(30) << "TORQUE_PROTECTION_TIME " << static_cast<int>(driver_->readRegister(id, STS::registers::TORQUE_PROTECTION_TIME)) << std::endl;
-    std::cout << std::setw(30) << "OVERLOAD_TORQUE " << static_cast<int>(driver_->readRegister(id, STS::registers::OVERLOAD_TORQUE)) << std::endl;
-    std::cout << std::setw(30) << "SPEED_PROPORTIONAL_GAIN " << static_cast<int>(driver_->readRegister(id, STS::registers::SPEED_PROPORTIONAL_GAIN)) << std::endl;
-    std::cout << std::setw(30) << "OVERCURRENT_TIME " << static_cast<int>(driver_->readRegister(id, STS::registers::OVERCURRENT_TIME)) << std::endl;
-    std::cout << std::setw(30) << "SPEED_INTEGRAL_GAIN " << static_cast<int>(driver_->readRegister(id, STS::registers::SPEED_INTEGRAL_GAIN)) << std::endl;
-    std::cout << std::setw(30) << "TORQUE_SWITCH " << static_cast<int>(driver_->readRegister(id, STS::registers::TORQUE_SWITCH)) << std::endl;
-    std::cout << std::setw(30) << "TARGET_ACCELERATION " << static_cast<int>(driver_->readRegister(id, STS::registers::TARGET_ACCELERATION)) << std::endl;
-    std::cout << std::setw(30) << "TARGET_POSITION " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::TARGET_POSITION)) << std::endl;
-    std::cout << std::setw(30) << "RUNNING_TIME " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::RUNNING_TIME)) << std::endl;
-    std::cout << std::setw(30) << "RUNNING_SPEED " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::RUNNING_SPEED)) << std::endl;
-    std::cout << std::setw(30) << "TORQUE_LIMIT " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::TORQUE_LIMIT)) << std::endl;
-    std::cout << std::setw(30) << "WRITE_LOCK " << static_cast<int>(driver_->readRegister(id, STS::registers::WRITE_LOCK)) << std::endl;
-    std::cout << std::setw(30) << "CURRENT_POSITION " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::CURRENT_POSITION)) << std::endl;
-    std::cout << std::setw(30) << "CURRENT_SPEED " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::CURRENT_SPEED)) << std::endl;
-    std::cout << std::setw(30) << "CURRENT_DRIVE_VOLTAGE " << static_cast<int>(driver_->readRegister(id, STS::registers::CURRENT_DRIVE_VOLTAGE)) << std::endl;
-    std::cout << std::setw(30) << "CURRENT_VOLTAGE " << static_cast<int>(driver_->readRegister(id, STS::registers::CURRENT_VOLTAGE)) << std::endl;
-    std::cout << std::setw(30) << "CURRENT_TEMPERATURE " << static_cast<int>(driver_->readRegister(id, STS::registers::CURRENT_TEMPERATURE)) << std::endl;
-    std::cout << std::setw(30) << "STATUS " << static_cast<int>(driver_->readRegister(id, STS::registers::STATUS)) << std::endl;
-    std::cout << std::setw(30) << "MOVING_STATUS " << static_cast<int>(driver_->readRegister(id, STS::registers::MOVING_STATUS)) << std::endl;
-    std::cout << std::setw(30) << "CURRENT_CURRENT " << static_cast<int>(driver_->readTwoBytesRegister(id, STS::registers::CURRENT_CURRENT)) << std::endl;
+    std::cout << "\nMemory dump:" << std::endl;
+    for (auto const& reg : registers)
+    {
+        std::cout << std::setw(30) << reg.name;
+        for (auto const& i : servoIds_)
+        {
+            int value;
+            if (reg.twoBytes)
+                value = static_cast<int>(driver_->readTwoBytesRegister(i, reg.addr));
+            else
+                value = static_cast<int>(driver_->readRegister(i, reg.addr));
+            std::cout << std::setw(7) << value;
+        }
+        std::cout << std::endl;
+    }
 };
 
 

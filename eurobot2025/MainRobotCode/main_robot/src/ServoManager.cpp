@@ -78,6 +78,7 @@ void ServoManager::init(RobotInterface *robot)
 
     // Move banner servo to hold position
     foldBanner();
+    //servos_->setTargetPosition(BANNER_ID, 1850);
 }
 
 void ServoManager::setRailsToInitPosition()

@@ -199,3 +199,13 @@ Exec=matchCode
 Icon=/home/pi/logo.png
 Terminal=false
 ```
+
+## udev rules
+
+To be placed in `/etc/udev/rules.d`
+
+Lidar:
+
+```
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="RPLIDAR"
+```

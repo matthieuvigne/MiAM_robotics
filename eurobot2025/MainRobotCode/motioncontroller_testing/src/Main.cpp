@@ -25,8 +25,8 @@ RobotPosition generateRandomValidPosition(Map const& map)
 
 int main (int argc, char *argv[])
 {
-    miam::RobotPosition startPosition(441.867, 402.695, 9.42381);
-    miam::RobotPosition targetPosition(435.0, 1325.0, 6.28319);
+    miam::RobotPosition startPosition(1222, 328.168, 1.5708);
+    miam::RobotPosition targetPosition(775, 610, 4.71239);
 
     Logger logger;
 
@@ -46,7 +46,7 @@ int main (int argc, char *argv[])
     }
     if (nogui)
     {
-        logger.start("testOutput.hdf5");
+        logger.start("testOutput.data");
         motionController.resetPosition(startPosition);
         motionController.computeMPCTrajectory(
             targetPosition,
@@ -60,7 +60,7 @@ int main (int argc, char *argv[])
         std::srand(42);
         // Generate random scenarios, solve them, and store result in CSV file
         int const N_SCENARIOS = 100;
-        int const N_OBS_MAX = 3;
+        int const N_OBS_MAX = 2;
 
         std::ofstream fOutput("test_result.csv");
         fOutput << "AStarComputeDuration,MPCComputeDuration,PrintDuration,PathLength,MPCDuration" << std::endl;

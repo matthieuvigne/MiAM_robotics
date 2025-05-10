@@ -2,6 +2,9 @@
 cmake_minimum_required(VERSION 3.11)
 #project name
 project(motionControllerTesting)
+
+add_subdirectory("../generate_acado_solver" "acado/")
+
 #g++ color output
 SET(CMAKE_COLOR_MAKEFILE ON)
 #Header directory
@@ -9,13 +12,9 @@ include_directories(
   ../common/include
   include
   ../main_robot/include
-  ../../../vision/include
-  ../../../qpoases
-  ../../../qpoases/INCLUDE
-  ../../../qpoases/SRC
-  ../common/acado_solver)
+  ../../../vision/include)
 
-option(ENABLE_TRACY "Enable tracy profiler" ON)
+option(ENABLE_TRACY "Enable tracy profiler" OFF)
 
 option(CROSS_COMPILE "True to cross compile to arm, false to compile on current platform" OFF)
 
@@ -73,19 +72,9 @@ include_directories(${GTK3_INCLUDE_DIRS})
 link_directories(${GTK3_LIBRARY_DIRS})
 add_definitions(${GTK3_CFLAGS_OTHER})
 
-# qpoases
-FILE( GLOB LIB_SOURCES ../../../qpoases/SRC/*.cpp )
-FILE( GLOB LIB_HEADERS ../../../qpoases/INCLUDE/*.hpp )
-ADD_LIBRARY( qpoases ${LIB_SOURCES} ${LIB_HEADERS} )
 
-# acado_solver
-FILE( GLOB LIB_SOURCES ../common/acado_solver/*.cpp ../common/acado_solver/*.c )
-FILE( GLOB LIB_HEADERS ../common/acado_solver/*.hpp ../common/acado_solver/*.h )
-set_source_files_properties(${LIB_SOURCES} PROPERTIES LANGUAGE CXX )
-ADD_LIBRARY(acado_solver ${LIB_SOURCES} ${LIB_HEADERS} )
-target_link_libraries(acado_solver qpoases)
-
-
+# Build solver
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/acado/generated "../generate_acado_solver/include")
 
 # Copy config.
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

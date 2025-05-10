@@ -9,6 +9,8 @@
 
         #include "common/RobotParameters.h"
 
+        #include "MPCParameters.h"
+
         namespace main_robot{
             inline RobotParameters generateParams()
             {
@@ -18,7 +20,7 @@
                 // Coefficients qui marchent à droite (false)
                 param.rightWheelRadius = 55.3; ///< Right wheel radius, in mm - identified during open loop experiments.
                 param.leftWheelRadius = 55.3; ///< Left wheel radius, in mm - identified during open loop experiments.
-                param.wheelSpacing = 104.5; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.
+                param.wheelSpacing = REFERENCE_WHEEL_SPACING; ///< Wheel spacing from robot center, in mm - identified during open loop experiments.
                 param.rightEncoderWheelRadius = 26.66 * 0.9952; ///< Radius of encoder wheels, in mm.
                 param.leftEncoderWheelRadius = 26.66; ///< Radius of encoder wheels, in mm.
                 param.encoderWheelSpacing = 137.55; ///< Encoder wheel spacing from robot center, in mm.
@@ -26,8 +28,8 @@
                 // param.maxWheelSpeedTrajectory = 600.0; ///< Maximum wheel speed, in mm/s, for trajectory generation.
                 // param.maxWheelAccelerationTrajectory = 700.; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
-                param.maxWheelSpeedTrajectory = 300.0; ///< Maximum wheel speed, in mm/s, for trajectory generation.
-                param.maxWheelAccelerationTrajectory = 300.; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
+                param.maxWheelSpeedTrajectory = MAX_WHEEL_SPEED; ///< Maximum wheel speed, in mm/s, for trajectory generation.
+                param.maxWheelAccelerationTrajectory = MAX_WHEEL_ACCELERATION; ///< Maximum wheel acceleration, in mm/s^2, for trajectory generation.
 
                 param.linearKp = 3.5;
                 param.linearKd = 0.01;

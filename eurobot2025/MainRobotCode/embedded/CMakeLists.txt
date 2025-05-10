@@ -4,8 +4,11 @@ cmake_minimum_required(VERSION 3.5)
 project(mainRobotCode)
 set(PROJECT_DESCRIPTION "Code for the main robot for Eurobot")
 
+set(NO_ACADO ON)
+add_subdirectory("../generate_acado_solver" "acado/")
+
 # Set compiler to arm compiler (cross-compile)
-set(CMAKE_CXX_COMPILER "aarch64-linux-gnu-g++")
+set(CMAKE_CXX_COMPILER "/usr/bin/aarch64-linux-gnu-g++")
 
 # Set C++ compiler flags.
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wno-psabi -fdiagnostics-color -pthread")
@@ -66,28 +69,28 @@ include_directories(../common/include)
 include_directories(../../../tracy/public)
 include_directories(../main_robot/include)
 include_directories(./include)
-include_directories(
-    ../../../qpoases
-    ../../../qpoases/INCLUDE
-    ../../../qpoases/SRC
-    # ../../../vision/include
-    ../common/acado_solver)
 
 
-# qpoases
-FILE( GLOB LIB_SOURCES ../../../qpoases/SRC/*.cpp )
-FILE( GLOB LIB_HEADERS ../../../qpoases/INCLUDE/*.hpp )
-set_source_files_properties(${LIB_SOURCES1} PROPERTIES LANGUAGE CXX )
-ADD_LIBRARY( qpoases ${LIB_SOURCES} ${LIB_HEADERS} )
+# Need to cross-compile acado solver
 
-# acado_solver
-FILE( GLOB LIB_SOURCES ../common/acado_solver/*.cpp ../common/acado_solver/*.c )
-FILE( GLOB LIB_HEADERS ../common/acado_solver/*.hpp ../common/acado_solver/*.h )
-set_source_files_properties(${LIB_SOURCES} PROPERTIES LANGUAGE CXX )
-ADD_LIBRARY( acado_solver ${LIB_SOURCES} ${LIB_HEADERS} )
-target_link_libraries( acado_solver qpoases )
+set(ACADO_GEN_FILES acado/generated/acado_auxiliary_functions.c
+			              acado/generated/acado_common.h
+			              acado/generated/acado_qpoases_interface.cpp
+			              acado/generated/acado_solver.c
+			              acado/generated/acado_auxiliary_functions.h
+			              acado/generated/acado_integrator.c
+			              acado/generated/acado_qpoases_interface.hpp)
 
-message(${RPLIDAR_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/acado/generated
+                    ../../../qpoases
+                    ../../../qpoases/INCLUDE
+                    ../../../qpoases/SRC)
+FILE(GLOB QPOASES_SOURCES ../../../qpoases/SRC/*.cpp ../../../qpoases/SRC/*.hpp )
+set_source_files_properties(${ACADO_GEN_FILES} PROPERTIES LANGUAGE CXX )
+
+ADD_LIBRARY(acado_solver_arm ${ACADO_GEN_FILES} ${QPOASES_SOURCES})
+add_dependencies(acado_solver_arm acado_codegen)
+include_directories("../generate_acado_solver/include")
 
 # Set executable target and link libraries.
 add_executable(mainRobotCode ${MAIN_SOURCES} ${COMMON_SOURCES})
@@ -95,6 +98,6 @@ target_link_libraries(mainRobotCode
   ${MIAM_UTILS_LIBRARIES}
   ${RPLIDAR_LIBRARIES}
   ${GTK_LIBRARIES}
-  acado_solver)
+  acado_solver_arm)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ".")
