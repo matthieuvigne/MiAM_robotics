@@ -53,7 +53,7 @@ bool GrabColumnAction::performAction()
 {
     bool const front = !isStartMotionBackward_;
 
-    double forwardAmount = (isStartMotionBackward_ ? -MARGIN : MARGIN);
+    double forwardAmount = (isStartMotionBackward_ ? -BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET);
     if (front)
         servoManager_->frontClawOpen();
     else
@@ -64,11 +64,11 @@ bool GrabColumnAction::performAction()
     RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
     RobotPosition targetPosition = COLLECT_ZONE_COORDS[zoneId_].forward(forwardAmount);
     targetPosition.theta = startPosition_.theta;
-    double wpt_margin = !isStartMotionBackward_ ? -30 : 30;
+    double wpt_margin = !isStartMotionBackward_ ? -20 : 20;
     std::vector<RobotPosition> positions;
     positions.push_back(currentPosition);
-    positions.push_back(targetPosition.forward(wpt_margin));
-    positions.push_back(targetPosition);
+    positions.push_back(targetPosition.forward(-forwardAmount/2.));
+    //~ positions.push_back(targetPosition);
     positions.push_back(targetPosition.forward(-wpt_margin));
     miam::trajectory::flags flag = front
       ? miam::trajectory::flags::DEFAULT
@@ -83,8 +83,6 @@ bool GrabColumnAction::performAction()
                   );
     robot_->getMotionController()->setTrajectoryToFollow(traj);
     robot_->getMotionController()->waitForTrajectoryFinished();
-    //~ if (!robot_->getMotionController()->goStraight(forwardAmount, 0.75))
-        //~ return true; // Don't try again, other robot is already here.
 
     servoManager_->grab(front);
 
@@ -97,7 +95,7 @@ bool GrabColumnAction::performAction()
     {
         robot_->getGameState()->isFrontClawFull = true;
     }
-    robot_->getMotionController()->goStraight(-forwardAmount, 0.75);
+    robot_->getMotionController()->goStraight(-forwardAmount*1.5, 1.0);
     // Action should not be done again
     return true;
 }

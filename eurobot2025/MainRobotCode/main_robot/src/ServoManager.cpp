@@ -136,8 +136,9 @@ void ServoManager::grab(bool const& front)
     {
         robot_->wait(0.5);
         backRail_.move(0.1);
-        //backClawClose();
-        //grabBackPlank();
+        grabBackPlank();
+        backClawClose();
+        backRail_.move(0.1);
     }
     while (railManager_.areAnyMoving())
         robot_->wait(0.010);
@@ -193,7 +194,7 @@ void ServoManager::buildFrontTower()
 #define FC_L_FOLD 240
 
 #define BACK_CLAW_RANGE_OPEN 230
-#define BACK_CLAW_RANGE_CLOSE 80 //120
+#define BACK_CLAW_RANGE_CLOSE 150
 #define BC_L_FOLD 540
 #define BC_R_FOLD 140 //250
 
