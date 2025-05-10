@@ -37,7 +37,7 @@
 ServoManager::ServoManager():
     frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 190, false), //0.9/* TODO check this value*/
     frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 730, true), //1.1
-    backRail_(20, 20, 10000, true),
+    backRail_(20, 20, 10700, true),
     frontPlankRail_(6, 21, 8000, false),
     frontCanRail_(5, 22, 7800, true, true)
 {
@@ -136,7 +136,7 @@ void ServoManager::grab(bool const& front)
     {
         robot_->wait(0.5);
         backRail_.move(0.1);
-        grabBackPlank();
+        grabBackOnePlank();
         backClawClose();
         backRail_.move(0.1);
     }
@@ -259,9 +259,15 @@ void ServoManager::foldPlank()
     servos_->setTargetPosition(PLANK_CLAW, 2048);
 }
 
-void ServoManager::grabBackPlank()
+
+void ServoManager::grabBackOnePlank()
 {
     servos_->setTargetPosition(BACK_PLANK_CLAW, 300);
+}
+
+void ServoManager::grabBackTwoPlanks()
+{
+    servos_->setTargetPosition(BACK_PLANK_CLAW, 340);
 }
 
 void ServoManager::releaseBackPlank()

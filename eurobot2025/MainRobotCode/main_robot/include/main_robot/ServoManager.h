@@ -35,7 +35,8 @@ public:
 
     void foldClaws();
 
-    void grabBackPlank();
+    void grabBackOnePlank();
+    void grabBackTwoPlanks();
     void releaseBackPlank();
     void closeBackPlank();
     

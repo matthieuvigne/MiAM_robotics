@@ -72,8 +72,7 @@ bool BuildAction::performAction()
 
         robot_->getMotionController()->goStraight(-MARGIN);
 
-        /*
-        Disabled for now: raise column
+        // Raise column
         robot_->getMotionController()->pointTurn(M_PI);
         robot_->getMotionController()->goStraight(-(MARGIN + BACK_DIFF_XOFFSET));
         servoManager_->grab(false);
@@ -84,7 +83,6 @@ bool BuildAction::performAction()
 
         servoManager_->dropBackCans(false);
         robot_->getMotionController()->goStraight(MARGIN);
-        */
     }
     else
         robot_->getMotionController()->goStraight(-sign * 200);
