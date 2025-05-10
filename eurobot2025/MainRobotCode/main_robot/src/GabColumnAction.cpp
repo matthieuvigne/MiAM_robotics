@@ -1,10 +1,6 @@
 #include "main_robot/GrabColumnAction.h"
 
-// Distance from robot center to claw center
-#define ROBOT_GRAB_OFFSET 180 - 20
 #define MARGIN 200
-
-#define BACK_EXTRA_OFFSET 48
 
 void GrabColumnAction::updateStartCondition()
 {
@@ -16,8 +12,14 @@ void GrabColumnAction::updateStartCondition()
     {
         priority_ = 5;
     }
-    RobotPosition const frontApproach =  COLLECT_ZONE_COORDS[zoneId_].forward(-(ROBOT_GRAB_OFFSET + MARGIN));
-    RobotPosition backApproach =  COLLECT_ZONE_COORDS[zoneId_].forward(ROBOT_GRAB_OFFSET + MARGIN);
+
+    // Always grab front first
+    isStartMotionBackward_ = robot_->getGameState()->isFrontClawFull;
+
+    double const xoffset = (isStartMotionBackward_ ? BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET) + MARGIN;
+
+    RobotPosition const frontApproach =  COLLECT_ZONE_COORDS[zoneId_].forward(-xoffset);
+    RobotPosition backApproach =  COLLECT_ZONE_COORDS[zoneId_].forward(xoffset);
     backApproach.theta += M_PI;
 
     startPosition_ = frontApproach;
@@ -35,10 +37,6 @@ void GrabColumnAction::updateStartCondition()
             startPosition_ = backApproach;
         }
     }
-
-    // Always grab front first
-    isStartMotionBackward_ = robot_->getGameState()->isFrontClawFull;
-
     if (isStartMotionBackward_)
     {
         startPosition_.theta += M_PI;
@@ -55,22 +53,17 @@ bool GrabColumnAction::performAction()
 {
     bool const front = !isStartMotionBackward_;
 
-    double forwardAmount = (isStartMotionBackward_ ? -MARGIN - BACK_EXTRA_OFFSET : MARGIN);
+    double forwardAmount = (isStartMotionBackward_ ? -MARGIN : MARGIN);
     if (front)
         servoManager_->frontClawOpen();
+    else
+        servoManager_->backClawOpen();
+
 
     if (!robot_->getMotionController()->goStraight(forwardAmount, 0.75))
         return true; // Don't try again, other robot is already here.
 
-    std::string userInput;
-    std::cout << "Press enter to continue" << std::endl;
-    std::cin >> userInput;
-
     servoManager_->grab(front);
-
-    std::cout << "Press enter to continue" << std::endl;
-    std::cin >> userInput;
-
 
     robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
     if (isStartMotionBackward_)

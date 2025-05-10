@@ -3,6 +3,11 @@
 
 #include "common/RobotInterface.h"
 
+#define FRONT_CLAW_XOFFSET 182.0
+#define BACK_CLAW_XOFFSET 135.0
+#define BACK_DIFF_XOFFSET FRONT_CLAW_XOFFSET - BACK_CLAW_XOFFSET
+
+
 class AbstractAction
 {
 public:
