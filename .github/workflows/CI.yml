@@ -37,6 +37,7 @@ jobs:
           mkdir eurobot2025 && cd eurobot2025 &&\
           mkdir embedded && cd embedded && cmake ../../../eurobot2025/MainRobotCode/embedded && make -j4 && cd .. &&\
           mkdir simulation && cd simulation && cmake ../../../eurobot2025/MainRobotCode/simulation && make -j4 && cd ..
+        shell: bash
       - name: miam_utils test
         run: |
           cd build/miam_utils &&\
