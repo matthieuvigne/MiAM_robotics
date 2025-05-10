@@ -37,7 +37,7 @@
 ServoManager::ServoManager():
     frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 190, false), //0.9/* TODO check this value*/
     frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 730, true), //1.1
-    backRail_(20, 20, 9000, true),
+    backRail_(20, 20, 10000, true),
     frontPlankRail_(6, 21, 8000, false),
     frontCanRail_(5, 22, 7800, true, true)
 {
@@ -66,7 +66,7 @@ void ServoManager::init(RobotInterface *robot)
 
     foldClaws();
     releasePlank();
-    releaseBackPlank();
+    closeBackPlank();
 
     std::vector<RailServo*> rails({
         &frontRightClaw_.rail_,
@@ -77,7 +77,7 @@ void ServoManager::init(RobotInterface *robot)
     railManager_.start(rails);
 
     // Move banner servo to hold position
-    servos_->setTargetPosition(BANNER_ID, 1600);
+    foldBanner();
 }
 
 void ServoManager::setRailsToInitPosition()
@@ -133,10 +133,10 @@ void ServoManager::grab(bool const& front)
     }
     else
     {
-        backClawClose();
         robot_->wait(0.5);
         backRail_.move(0.1);
-        grabBackPlank();
+        //backClawClose();
+        //grabBackPlank();
     }
     while (railManager_.areAnyMoving())
         robot_->wait(0.010);
@@ -192,9 +192,9 @@ void ServoManager::buildFrontTower()
 #define FC_L_FOLD 240
 
 #define BACK_CLAW_RANGE_OPEN 230
-#define BACK_CLAW_RANGE_CLOSE 120
+#define BACK_CLAW_RANGE_CLOSE 80 //120
 #define BC_L_FOLD 540
-#define BC_R_FOLD 250
+#define BC_R_FOLD 140 //250
 
 void ServoManager::frontClawOpen()
 {
@@ -259,14 +259,17 @@ void ServoManager::foldPlank()
 
 void ServoManager::grabBackPlank()
 {
-    // TODO
-    // servos_->setTargetPosition(BACK_PLANK_CLAW, 500);
+    servos_->setTargetPosition(BACK_PLANK_CLAW, 300);
 }
 
 void ServoManager::releaseBackPlank()
 {
-    // TODO
-    // servos_->setTargetPosition(BACK_PLANK_CLAW, 500);
+    servos_->setTargetPosition(BACK_PLANK_CLAW, 150);
+}
+
+void ServoManager::closeBackPlank()
+{
+    servos_->setTargetPosition(BACK_PLANK_CLAW, 530);
 }
 
 

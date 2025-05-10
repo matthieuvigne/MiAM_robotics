@@ -62,29 +62,34 @@ int main(int argc, char* argv[])
         robot_->wait(0.1);
     std::cout << "Calib done" << std::endl;
 
-    std::cout << "Press enter to continue" << std::endl;
-    std::cin >> userInput;
+    //~ std::cout << "Press enter to continue" << std::endl;
+    //~ std::cin >> userInput;
 
     ///////////////////////////////////////
     // Back test
     ///////////////////////////////////////
 
-    // servo_manager.prepareGrab(false);
-    // while (servo_manager.railManager_.areAnyMoving())
-    //     robot_->wait(0.050);
-    // servo_manager.backClawOpen();
-    // std::cout << "prepareGrab done" << std::endl;
+    //~ // servo_manager.prepareGrab(false);
+    //~ while (servo_manager.railManager_.areAnyMoving())
+        //~ robot_->wait(0.050);
+    //~ std::cout << "prepareGrab done" << std::endl;
 
-    // std::cout << "Press enter to continue" << std::endl;
-    // std::cin >> userInput;
-    // servo_manager.grab(false);
+    //~ std::cout << "Press enter to continue" << std::endl;
+    //~ std::cin >> userInput;
+    //~ servo_manager.grab(false);
+    //~ servo_manager.backClawOpen();
+    //~ servo_manager.releaseBackPlank();
 
-    // std::cout << "Press enter to continue" << std::endl;
-    // std::cin >> userInput;
+    //~ std::cout << "Press enter to continue" << std::endl;
+    //~ std::cin >> userInput;
+    //~ servo_manager.grabBackPlank();
+    //~ servo_manager.backClawClose();
+    
+    //~ std::cout << "Press enter to continue" << std::endl;
+    //~ std::cin >> userInput;
+    //~ servo_manager.backRail_.move(1.0);
 
-    // servo_manager.backRail_.move(0.55);
-
-    // while (true) ;;
+    //~ while (true) ;;
     ///////////////////////////////////////
 
 

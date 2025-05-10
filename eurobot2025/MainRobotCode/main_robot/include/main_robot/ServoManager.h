@@ -37,6 +37,8 @@ public:
 
     void grabBackPlank();
     void releaseBackPlank();
+    void closeBackPlank();
+    
 // private:
     RobotInterface *robot_;
     STSServoDriver *servos_;
