@@ -33,11 +33,20 @@
 #define PLANK_CLAW 33
 #define BACK_PLANK_CLAW 34
 
+#define FRONT_CLAW_RANGE_OPEN 230
+#define FRONT_CLAW_RANGE_CLOSE 150
+#define FC_R_FOLD 1020
+#define FC_L_FOLD 240
+
+#define BACK_CLAW_RANGE_OPEN 230
+#define BACK_CLAW_RANGE_CLOSE 180
+#define BC_L_FOLD 540
+#define BC_R_FOLD 140
 
 ServoManager::ServoManager():
     frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 190, false), //0.9/* TODO check this value*/
-    frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 730, true), //1.1
-    backRail_(20, 20, 10700, true),
+    frontLeftClaw_(RailServo(10, 24, 9000 /*9500*/, false), 12, 11, 730, true), //1.1
+    backRail_(20, 20, 9600, true),
     frontPlankRail_(6, 21, 8000, false),
     frontCanRail_(5, 22, 7800, true, true)
 {
@@ -77,8 +86,8 @@ void ServoManager::init(RobotInterface *robot)
     railManager_.start(rails);
 
     // Move banner servo to hold position
-    foldBanner();
-    //servos_->setTargetPosition(BANNER_ID, 1850);
+    //foldBanner();
+    servos_->setTargetPosition(BANNER_ID, 1670);
 }
 
 void ServoManager::setRailsToInitPosition()
@@ -87,7 +96,7 @@ void ServoManager::setRailsToInitPosition()
     frontLeftClaw_.rail_.move(0.6);
     frontCanRail_.move(0.0);
     frontPlankRail_.move(0.0);
-    backRail_.move(0.25);
+    backRail_.move(0.30);
 }
 
 void ServoManager::prepareGrab(bool const& front)
@@ -116,17 +125,22 @@ void ServoManager::prepareGrab(bool const& front)
     }
 }
 
-void ServoManager::grab(bool const& front)
+bool ServoManager::grab(bool const& front)
 {
     if (front)
     {
+        // Grab the front towers
         frontRightClaw_.closeClaw();
         frontLeftClaw_.closeClaw();
+        if(!checkGrab(front))
+          return false;
 
+        // Grab the plank
         grabPlank();
         frontClawClose();
         robot_->wait(0.5);
 
+        // Move the rail up
         frontPlankRail_.move(0.1);
         frontCanRail_.move(0.15);
         frontRightClaw_.rail_.move(0.1);
@@ -134,14 +148,71 @@ void ServoManager::grab(bool const& front)
     }
     else
     {
+        // Grab the back towers
         robot_->wait(0.5);
         backRail_.move(0.1);
-        grabBackOnePlank();
         backClawClose();
+        grabBackTwoPlanks();
+        if(!checkGrab(front))
+        {
+          releaseBackPlank();
+          return false;
+        }
         backRail_.move(0.1);
     }
     while (railManager_.areAnyMoving())
         robot_->wait(0.010);
+        
+    return true;
+}
+
+bool ServoManager::checkGrab(bool const& front)
+{
+  // Set the check margin
+  int constexpr check_margin = 50;
+  int constexpr check_threshold = 10;
+
+  // Check the claws
+  if(front)
+  {
+    // Get the claw servos current position
+    int left_pos = servos_->getCurrentPosition(FRONT_CLAW_L);
+    int right_pos = servos_->getCurrentPosition(FRONT_CLAW_R);
+    
+    // Try to close the claws even more
+    int left_tgt = left_pos - check_margin;
+    int right_tgt = right_pos + check_margin;
+    servos_->setTargetPosition(FRONT_CLAW_L, left_tgt);
+    servos_->setTargetPosition(FRONT_CLAW_R, right_tgt);
+    robot_->wait(0.1);
+    
+    // Check if they could reach the new position
+    left_pos = servos_->getCurrentPosition(FRONT_CLAW_L);
+    right_pos = servos_->getCurrentPosition(FRONT_CLAW_R);
+    if(std::fabs(left_pos-left_tgt)<check_threshold) return false;
+    if(std::fabs(right_pos-right_tgt)<check_threshold) return false;
+    
+  } else {
+    
+    // Get the claw servos current position
+    int left_pos = servos_->getCurrentPosition(BACK_CLAW_L);
+    int right_pos = servos_->getCurrentPosition(BACK_CLAW_R);
+
+    // Try to close the claws even more
+    int left_tgt = left_pos + check_margin;
+    int right_tgt = right_pos - check_margin;
+    servos_->setTargetPosition(BACK_CLAW_R, right_tgt);    
+    servos_->setTargetPosition(BACK_CLAW_L, left_tgt);
+    robot_->wait(0.1);
+    
+    // Check if they could reach the new position
+    left_pos = servos_->getCurrentPosition(BACK_CLAW_L);
+    right_pos = servos_->getCurrentPosition(BACK_CLAW_R);
+    if(std::fabs(left_pos-left_tgt)<check_threshold) return false;
+    if(std::fabs(right_pos-right_tgt)<check_threshold) return false;
+  }
+  
+  return true;
 }
 
 void ServoManager::dropBackCans(bool ground)
@@ -187,16 +258,6 @@ void ServoManager::buildFrontTower()
     frontClawOpen();
     releasePlank();
 }
-
-#define FRONT_CLAW_RANGE_OPEN 230
-#define FRONT_CLAW_RANGE_CLOSE 150
-#define FC_R_FOLD 1020
-#define FC_L_FOLD 240
-
-#define BACK_CLAW_RANGE_OPEN 230
-#define BACK_CLAW_RANGE_CLOSE 150
-#define BC_L_FOLD 540
-#define BC_R_FOLD 140 //250
 
 void ServoManager::frontClawOpen()
 {
@@ -260,12 +321,12 @@ void ServoManager::foldPlank()
 }
 
 
-void ServoManager::grabBackOnePlank()
+void ServoManager::grabBackTwoPlanks()
 {
-    servos_->setTargetPosition(BACK_PLANK_CLAW, 300);
+    servos_->setTargetPosition(BACK_PLANK_CLAW, 270); // 300
 }
 
-void ServoManager::grabBackTwoPlanks()
+void ServoManager::grabBackOnePlank()
 {
     servos_->setTargetPosition(BACK_PLANK_CLAW, 340);
 }
@@ -277,7 +338,7 @@ void ServoManager::releaseBackPlank()
 
 void ServoManager::closeBackPlank()
 {
-    servos_->setTargetPosition(BACK_PLANK_CLAW, 530);
+    servos_->setTargetPosition(BACK_PLANK_CLAW, 490);
 }
 
 

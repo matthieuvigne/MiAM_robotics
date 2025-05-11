@@ -148,7 +148,7 @@ void Strategy::match_impl()
 
     servoManager_.frontRightClaw_.move(ClawPosition::FORWARD);
 
-    robot->getMotionController()->goStraight(150);
+    robot->getMotionController()->goStraight(200);
     servoManager_.foldBanner();
     servoManager_.releasePlank();
 

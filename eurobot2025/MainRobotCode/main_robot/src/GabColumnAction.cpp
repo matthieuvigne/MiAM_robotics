@@ -59,8 +59,7 @@ bool GrabColumnAction::performAction()
     else
         servoManager_->backClawOpen();
 
-
-    //startPosition_    
+    // Reach the grab position
     RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
     RobotPosition targetPosition = COLLECT_ZONE_COORDS[zoneId_].forward(forwardAmount);
     targetPosition.theta = startPosition_.theta;
@@ -68,7 +67,6 @@ bool GrabColumnAction::performAction()
     std::vector<RobotPosition> positions;
     positions.push_back(currentPosition);
     positions.push_back(targetPosition.forward(-forwardAmount/2.));
-    //~ positions.push_back(targetPosition);
     positions.push_back(targetPosition.forward(-wpt_margin));
     miam::trajectory::flags flag = front
       ? miam::trajectory::flags::DEFAULT
@@ -84,8 +82,30 @@ bool GrabColumnAction::performAction()
     robot_->getMotionController()->setTrajectoryToFollow(traj);
     robot_->getMotionController()->waitForTrajectoryFinished();
 
-    servoManager_->grab(front);
+    // Grab, check and retry if required
+    bool success = false;
+    int num_attempts = 1;
+    int constexpr max_attempts = 2;
+    do {
+      success = servoManager_->grab(front);
+      if(!success)
+      {
+        // Prepare for retry
+        std::cout << "GRAB FAILURE" << std::endl;
+        if(front)
+          servoManager_->frontClawOpen();
+        else
+          servoManager_->backClawOpen();
+        robot_->getMotionController()->goStraight(front?30:-30, 0.5);
+        robot_->getMotionController()->waitForTrajectoryFinished();
+      } else {
+        std::cout << "GRAB SUCCESS" << std::endl;
+      }
+      num_attempts += 1;
+    } while(!success || num_attempts<=max_attempts);
+    if(!success) return false;
 
+    // Update the game state
     robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
     if (isStartMotionBackward_)
     {
@@ -95,6 +115,8 @@ bool GrabColumnAction::performAction()
     {
         robot_->getGameState()->isFrontClawFull = true;
     }
+    
+    // Go back from the collect zone
     robot_->getMotionController()->goStraight(-forwardAmount*1.5, 1.0);
     // Action should not be done again
     return true;

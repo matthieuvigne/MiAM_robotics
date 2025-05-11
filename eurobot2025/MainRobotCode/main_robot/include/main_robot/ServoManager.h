@@ -26,7 +26,8 @@ public:
     void foldPlank();
 
     void prepareGrab(bool const& front);
-    void grab(bool const& front);
+    bool grab(bool const& front);
+    bool checkGrab(bool const& front);
 
     void frontClawOpen();
     void frontClawClose();
@@ -35,8 +36,8 @@ public:
 
     void foldClaws();
 
-    void grabBackOnePlank();
     void grabBackTwoPlanks();
+    void grabBackOnePlank();
     void releaseBackPlank();
     void closeBackPlank();
     

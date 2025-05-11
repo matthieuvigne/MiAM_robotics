@@ -76,7 +76,7 @@ bool BuildAction::performAction()
         robot_->getMotionController()->pointTurn(M_PI);
         robot_->getMotionController()->goStraight(-(MARGIN + BACK_DIFF_XOFFSET));
         servoManager_->grab(false);
-        servoManager_->backRail_.move(1.0);
+        servoManager_->backRail_.move(0.95);
         while (servoManager_->backRail_.isMoving())
             robot_->wait(0.050);
         robot_->getMotionController()->goStraight(-MARGIN, 0.5);
