@@ -16,6 +16,8 @@ GRPLidar::GRPLidar(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& re
 
 	drawingArea_->set_events(Gdk::SCROLL_MASK);
 	drawingArea_->signal_scroll_event().connect(sigc::mem_fun(drawingArea_, &LidarDrawing::userZoom));
+	set_events(Gdk::KEY_PRESS_MASK);
+	signal_key_press_event().connect(sigc::mem_fun(this, &GRPLidar::keypressZoom));
 	drawingArea_->zoom_ = 1.0;
 }
 
@@ -38,3 +40,13 @@ bool GRPLidar::exit(GdkEventAny* event)
 	return false;
 }
 
+
+bool GRPLidar::keypressZoom(GdkEventKey *event)
+{
+    if (strcmp(gdk_keyval_name(event->keyval), "plus"))
+        drawingArea_->zoom_ += 0.1;
+	else if (strcmp(gdk_keyval_name(event->keyval), "minus"))
+        drawingArea_->zoom_ += 0.1;
+
+	return true;
+}

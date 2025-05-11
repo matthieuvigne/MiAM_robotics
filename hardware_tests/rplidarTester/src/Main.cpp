@@ -8,12 +8,24 @@
 
 #include "GRPLidar.h"
 
-Glib::RefPtr<Gtk::Application> app;
+
+GRPLidar *gprlidar;
+
+// Stop motor before exit.
+void killCode(int x)
+{
+    gprlidar->drawingArea_->lidar.stop();
+    exit(0);
+}
+
 
 int main (int argc, char *argv[])
 {
-    srand (time(NULL));
-    app = Gtk::Application::create(argc, argv);
+    std::string portName = "/dev/ttyUSB0";
+    if (argc > 1)
+        portName = argv[1];
+
+    Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv);
 
     //load main window layout from glade
     auto refBuilder = Gtk::Builder::create();
@@ -33,14 +45,16 @@ int main (int argc, char *argv[])
     {
         std::cerr << "BuilderError: " << ex.what() << std::endl;
     }
-    GRPLidar *gprlidar = nullptr;
     refBuilder->get_widget_derived("mainWindow", gprlidar);
 
-	if(!gprlidar->drawingArea_->lidar.init("/dev/ttyUSB0"))
+	if(!gprlidar->drawingArea_->lidar.init(portName))
 	{
-		std::cout << "Failed to init Lidar" << std::endl;
+		std::cout << "Failed to init lidar on " << portName << std::endl;
         return -1;
 	}
+
+    signal(SIGINT, killCode);
+    signal(SIGTERM, killCode);
 
     return app->run(*gprlidar);
 }

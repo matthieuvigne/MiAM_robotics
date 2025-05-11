@@ -209,3 +209,8 @@ Lidar:
 ```
 SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="RPLIDAR"
 ```
+
+
+## Single click destop icon
+
+Modify `/etc/xdg/libfm/libfm.conf` to set `single_click=1`
