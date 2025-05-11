@@ -19,37 +19,23 @@
 
 #include "tracy/Tracy.hpp"
 
+#include "MPCParameters.h"
+
 /* Some convenient definitions. */
 #define NX          ACADO_NX  /* Number of differential state variables.  */
-#define NXA         ACADO_NXA /* Number of algebraic variables. */
-#define NU          ACADO_NU  /* Number of control inputs. */
-#define NOD         ACADO_NOD  /* Number of online data values. */
-
 #define NY          ACADO_NY  /* Number of measurements/references on nodes 0..N - 1. */
-#define NYN         ACADO_NYN /* Number of measurements/references on node N. */
-
 #define N           ACADO_N   /* Number of intervals in the horizon. */
+#define HORIZON_T   MPC_DELTA_T * N
 
 #define VERBOSE     1         /* Show iterations: 1, silent: 0.  */
 
-/*
- * Parameters with which the custom solver was compiled
- */
 
-// The parameters used to generate the MPC code
-#define MPC_DELTA_T 0.1// 100 ms
-#define MPC_N_TIME_INTERVALS 20 // 20 discrete time intervals
+/* Global variables used by the solver. */
+ACADOvariables acadoVariables;
+ACADOworkspace acadoWorkspace;
 
-#define MPC_MU_TRAJ 100 // weight of the trajectory (x, y) in the optimization algorithm
-#define MPC_MU_THETA 10 // weight of the trajectory (theta) in the optimization algorithm
-#define MPC_MU_VLIN 0.01 // weight of the trajectory (v) in the optimization algorithm
-#define MPC_MU_VANG 0.01 // weight of the trajectory (w) in the optimization algorithm
 
-#define MPC_PONDERATION_FINAL_STATE 10 // scaling factor to account more for the final state
-
-#define DELTA_T    MPC_DELTA_T
-#define HORIZON_T   DELTA_T * N
-
+// Validation constants
 #define MPC_OBJECTIVE_TOLERANCE 10 // mm
 #define MPC_CONSECUTIVE_POINT_TOLERANCE 1 // mm
 #define MPC_CONSECUTIVE_ANGLE_TOLERANCE 0.05 // rad
@@ -57,9 +43,6 @@
 #define MPC_VELOCITY_OVERHEAD_PCT 0.9
 #define MPC_ACCELERATION_OVERHEAD_PCT 0.9
 
-/* Global variables used by the solver. */
-ACADOvariables acadoVariables;
-ACADOworkspace acadoWorkspace;
 
 using namespace miam;
 using namespace std;
@@ -309,7 +292,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     TrajectoryPoint target_position = traj.getCurrentPoint(traj.getDuration());
     TrajectoryVector res;
 
-    int nIterMax = ceil(traj.getDuration() / (HORIZON_T - 2 * DELTA_T)) + 2; // enable that many iterations
+    int nIterMax = ceil(traj.getDuration() / (HORIZON_T - 2 * MPC_DELTA_T)) + 2; // enable that many iterations
     int nIter = 0;
 
     // proceed by increments of HORIZON_T - 2 * DELTA_T (not taking the last point since the final
@@ -320,7 +303,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
             traj,
             start_position,
             target_position,
-            nIter * (HORIZON_T - 2 * DELTA_T),
+            nIter * (HORIZON_T - 2 * MPC_DELTA_T),
             flags
         );
 
@@ -338,7 +321,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
         solvedTrajectory->removePoints(2);
         res.push_back(solvedTrajectory);
 
-        start_position = solvedTrajectory->getCurrentPoint(HORIZON_T - 2 * DELTA_T);
+        start_position = solvedTrajectory->getCurrentPoint(HORIZON_T - 2 * MPC_DELTA_T);
         nIter++;
     }
     std::chrono::high_resolution_clock::time_point mpcTime = std::chrono::high_resolution_clock::now();
@@ -478,7 +461,7 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
         std::vector<double> posX, posY, posTheta, linVel, angVel;
         for (int indice = 0; indice < N+1; indice++)
         {
-            real_t const t = indice * DELTA_T + start_time;
+            real_t const t = indice * MPC_DELTA_T + start_time;
             tp = reference_trajectory.getCurrentPoint(t);
 
             // if the gap is > M_PI, then subtract 2 pi
@@ -562,7 +545,7 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
 
         for (int indice = 0; indice < N+1; indice++) {
 
-            real_t t = indice * DELTA_T + start_time;
+            real_t t = indice * MPC_DELTA_T + start_time;
 
             tp.position.x      = acadoVariables.x[ indice * NX ] * 1000;
             tp.position.y      = acadoVariables.x[ indice * NX + 1] * 1000;
@@ -592,7 +575,7 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
                     // time is greater than reference duration and
                     // two consecutive points in the trajectory are too similar in norm and in angle
                     (
-                        (outputPoints.size()-1) * DELTA_T > reference_trajectory.getDuration() &&
+                        (outputPoints.size()-1) * MPC_DELTA_T > reference_trajectory.getDuration() &&
                         (outputPoints.back().position - tp.position).norm() < MPC_CONSECUTIVE_POINT_TOLERANCE &&
                         std::abs(outputPoints.back().position.theta - tp.position.theta) < MPC_CONSECUTIVE_ANGLE_TOLERANCE
                     )
@@ -610,8 +593,9 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
         cerr << e.what() << endl;
     }
 
+    outputPoints.push_back(target_position);
     TrajectoryConfig config;
-    double duration = std::max(0.0, (outputPoints.size()-1) * DELTA_T);
+    double duration = std::max(0.0, (outputPoints.size()-1) * MPC_DELTA_T);
     if (VERBOSE)
         cout << "Duration of SampledTrajectory generated: " << duration << endl;
     std::shared_ptr<SampledTrajectory > solvedTrajectory(new SampledTrajectory(config, outputPoints, duration));

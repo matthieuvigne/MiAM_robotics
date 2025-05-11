@@ -46,7 +46,7 @@ int main (int argc, char *argv[])
     }
     if (nogui)
     {
-        logger.start("testOutput.data");
+        logger.start("testOutput.miam");
         motionController.resetPosition(startPosition);
         motionController.computeMPCTrajectory(
             targetPosition,

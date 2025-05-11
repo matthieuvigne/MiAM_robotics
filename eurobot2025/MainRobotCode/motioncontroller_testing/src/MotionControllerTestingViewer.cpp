@@ -378,7 +378,7 @@ void MotionControllerTestingViewer::recompute()
 {
     static int nIter = 0;
     isRunning_ = false;
-    logger_->start("testOutput" + std::to_string(nIter) + ".hdf5");
+    logger_->start("testOutput" + std::to_string(nIter) + ".miam");
     nIter++;
 
     motionController_->resetPosition(startPosition_);
