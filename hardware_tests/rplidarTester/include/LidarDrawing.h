@@ -25,7 +25,7 @@
 			bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
 
 			// Zoom handling
-			bool userZoom(GdkEventScroll* event);
+			bool userZoom(GdkEventScroll *event);
 
 			RPLidarHandler lidar;
 

@@ -28,6 +28,7 @@ class GRPLidar : public Gtk::Window
 		bool exit(GdkEventAny* event);
 		LidarDrawing *drawingArea_;
 	private:
+		bool keypressZoom(GdkEventKey *event);
 };
 
 #endif

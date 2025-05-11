@@ -102,7 +102,7 @@ bool LidarDrawing::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
 
 
-bool LidarDrawing::userZoom(GdkEventScroll* event)
+bool LidarDrawing::userZoom(GdkEventScroll *event)
 {
     if(event->direction == GDK_SCROLL_UP)
         zoom_ += 0.1;
@@ -110,4 +110,3 @@ bool LidarDrawing::userZoom(GdkEventScroll* event)
         zoom_ -= 0.1;
     return true;
 }
-
