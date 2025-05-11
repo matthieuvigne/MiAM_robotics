@@ -25,13 +25,18 @@ void GrabColumnAction::updateStartCondition()
     startPosition_ = frontApproach;
 
     // Exclude positions outside table
-    if (!isPositionInTable(frontApproach))
-    {
-        startPosition_ = backApproach;
-    }
-    else
+    //~ if (!isPositionInTable(frontApproach))
+    //~ {
+        //~ startPosition_ = backApproach;
+    //~ }
+    //~ else
     {
         RobotPosition const currentPosition = robot_->getMotionController()->getCurrentPosition();
+        std::cout << "current: " << currentPosition << std::endl;
+        std::cout << "front: " << frontApproach << std::endl;
+        std::cout << "back: " << backApproach << std::endl;
+        std::cout << "normBack: " << (currentPosition - backApproach).norm() << std::endl;
+        std::cout << "normFront: " << (currentPosition - frontApproach).norm() << std::endl;
         if ((currentPosition - backApproach).norm() < (currentPosition - frontApproach).norm())
         {
             startPosition_ = backApproach;
@@ -61,8 +66,8 @@ bool GrabColumnAction::performAction()
 
     // Reach the grab position
     RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
-    RobotPosition targetPosition = COLLECT_ZONE_COORDS[zoneId_].forward(forwardAmount);
-    targetPosition.theta = startPosition_.theta;
+    RobotPosition targetPosition = startPosition_.forward(isStartMotionBackward_?-MARGIN:MARGIN);
+    //~ targetPosition.theta = startPosition_.theta;
     double wpt_margin = !isStartMotionBackward_ ? -20 : 20;
     std::vector<RobotPosition> positions;
     positions.push_back(currentPosition);
@@ -85,7 +90,7 @@ bool GrabColumnAction::performAction()
     // Grab, check and retry if required
     bool success = false;
     int num_attempts = 1;
-    int constexpr max_attempts = 2;
+    int constexpr max_attempts = 3;
     do {
       success = servoManager_->grab(front);
       if(!success)
@@ -96,7 +101,7 @@ bool GrabColumnAction::performAction()
           servoManager_->frontClawOpen();
         else
           servoManager_->backClawOpen();
-        robot_->getMotionController()->goStraight(front?30:-30, 0.5);
+        robot_->getMotionController()->goStraight(front?50:-50, 0.5);
         robot_->getMotionController()->waitForTrajectoryFinished();
       } else {
         std::cout << "GRAB SUCCESS" << std::endl;

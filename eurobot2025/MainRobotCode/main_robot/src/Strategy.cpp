@@ -42,20 +42,23 @@ bool Strategy::setup(RobotInterface *robot)
         // Load actions into action vector.
         actions_.clear();
 
-        // for (int i = 0; i < 9; i++)
-        // {
-        //     actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, i));
-        // }
+        for (int i = 1; i < 9; i++)
+        {
+            // [TODO] : AJOUTER UNE LOGIQUE SPECIFIQUE POUR LA ZONE 0
+            actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, i));
+        }
 
-        // for (int i = 0; i < 4; i++)
-        // {
-        //     actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
-        // }
+        for (int i = 0; i < 3; i++)
+        {
+            // [TODO] : AJOUTER UNE LOGIQUE SPECIFIQUE POUR LA ZONE 4
+            // NE PAS METTRE LA ZONE 4 AVANT QUE LA ZONE DE COLLECTE 9 NE SOIT LIBRE
+            actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
+        }
 
 
-        actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 5));
-        actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 7));
-        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 0));
+        //actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 5));
+        //actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 7));
+        //actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 0));
     }
     if (setupStep_ == 1 && servoManager_.isRailCalibDone())
     {
@@ -119,7 +122,7 @@ void Strategy::goBackToBase()
     robot->getMotionController()->stopCurrentTrajectoryTracking();
 
     // Target depends on start position
-    RobotPosition targetPosition(300, 1400, M_PI);
+    RobotPosition targetPosition(250, 1350, M_PI);
 
     bool targetReached = false;
     while (!targetReached)

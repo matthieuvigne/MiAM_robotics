@@ -84,6 +84,7 @@ int main(int argc, char* argv[])
       servo_manager.releaseBackPlank();
       robot_->wait(0.1);
       success = servo_manager.grab(false);
+      robot_->wait(0.1);
       if(success)
       {
         std::cout << "GRAB SUCCESS!" << std::endl;

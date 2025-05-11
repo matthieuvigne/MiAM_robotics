@@ -70,22 +70,25 @@ bool BuildAction::performAction()
         servoManager_->buildFrontTower();
         robot_->getGameState()->isFrontClawFull = false;
 
-        robot_->getMotionController()->goStraight(-MARGIN);
+        robot_->getMotionController()->goStraight(-MARGIN-100);
 
-        // Raise column
-        robot_->getMotionController()->pointTurn(M_PI);
-        robot_->getMotionController()->goStraight(-(MARGIN + BACK_DIFF_XOFFSET));
-        servoManager_->grab(false);
-        servoManager_->backRail_.move(0.95);
-        while (servoManager_->backRail_.isMoving())
-            robot_->wait(0.050);
-        robot_->getMotionController()->goStraight(-MARGIN, 0.5);
+        //~ // Raise column
+        //~ robot_->getMotionController()->pointTurn(M_PI);
+        //~ robot_->getMotionController()->goStraight(-(MARGIN + BACK_DIFF_XOFFSET));
+        //~ servoManager_->grab(false);
+        //~ servoManager_->backRail_.move(0.95);
+        //~ while (servoManager_->backRail_.isMoving())
+            //~ robot_->wait(0.050);
+        //~ robot_->getMotionController()->goStraight(-MARGIN, 0.5);
 
-        servoManager_->dropBackCans(false);
-        robot_->getMotionController()->goStraight(MARGIN);
+        //~ servoManager_->dropBackCans(false);
+        //~ robot_->getMotionController()->goStraight(MARGIN);
     }
     else
         robot_->getMotionController()->goStraight(-sign * 200);
+    
+    // Raise side claws
+    servoManager_->raiseFrontSideClaws();
 
     // Allow several drops in large zones
     if (largeZone_)

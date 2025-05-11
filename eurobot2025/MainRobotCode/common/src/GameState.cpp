@@ -16,7 +16,7 @@ const miam::RobotPosition COLLECT_ZONE_COORDS[9] =
 
 const miam::RobotPosition CONSTRUCTION_ZONE_COORDS[4] =
 {
-    miam::RobotPosition(1200, 70, -M_PI_2),
+    miam::RobotPosition(1200+100, 70, -M_PI_2),
     miam::RobotPosition(2900, 850, M_PI),
     miam::RobotPosition(750, 70, -M_PI_2),
     miam::RobotPosition(2800, 70, -M_PI_2)
@@ -154,6 +154,44 @@ Map GameState::generateMap()
             RobotPosition bl = COLLECT_ZONE_COORDS[i] + RobotPosition(-200, -50).rotate(COLLECT_ZONE_COORDS[i].theta - M_PI_2);
             RobotPosition tr = COLLECT_ZONE_COORDS[i] + RobotPosition(200, 50).rotate(COLLECT_ZONE_COORDS[i].theta - M_PI_2);
             excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
+        }
+    }
+    
+    for (int i = 0; i < 4; i++)
+    {
+        if (isConstructionZoneUsed[i])
+        {
+            switch(i)
+            {
+                case 0: // (1200, 70, -M_PI_2)
+                {
+                    RobotPosition bl = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(-150,-50);
+                    RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(100,300);
+                    excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
+                    break;
+                }
+                case 1: // (2900, 850, M_PI)
+                {
+                    RobotPosition bl = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(-250,-150);
+                    RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(100,150);
+                    excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
+                    break;
+                }
+                case 2: // (750, 70, -M_PI_2)
+                {
+                    RobotPosition bl = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(-150,-50);
+                    RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(150,50);
+                    excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
+                    break;
+                }
+                case 3: // (2800, 70, -M_PI_2)
+                {
+                    RobotPosition bl = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(-150,-50);
+                    RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(150,50);
+                    excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
+                    break;
+                }
+            }
         }
     }
 

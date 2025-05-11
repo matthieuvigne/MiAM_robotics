@@ -28,6 +28,7 @@ public:
     void prepareGrab(bool const& front);
     bool grab(bool const& front);
     bool checkGrab(bool const& front);
+    bool areBothFrontSideClawsFull();
 
     void frontClawOpen();
     void frontClawClose();
@@ -40,6 +41,8 @@ public:
     void grabBackOnePlank();
     void releaseBackPlank();
     void closeBackPlank();
+    
+    void raiseFrontSideClaws();
     
 // private:
     RobotInterface *robot_;
