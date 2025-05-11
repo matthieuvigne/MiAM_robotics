@@ -83,10 +83,6 @@ int main() {
     mpc.set( GENERATE_SIMULINK_INTERFACE, NO             );
     mpc.set( CG_HARDCODE_CONSTRAINT_VALUES, NO             );
 
-
-    // if (mpc.exportCode( "../src/generated_code" ) != SUCCESSFUL_RETURN)
-    //     exit( EXIT_FAILURE );
-
     if (mpc.exportCode("generated/" ) != SUCCESSFUL_RETURN)
         exit( EXIT_FAILURE );
 

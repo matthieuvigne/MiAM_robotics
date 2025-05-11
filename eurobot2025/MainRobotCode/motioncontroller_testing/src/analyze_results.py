@@ -31,8 +31,9 @@ for k, a in zip(diff, axs):
     # a.bar(X + 1, test_result[k])
     # a.bar(X + 2, ref[k])
     a.scatter(range(len(diff[k])), test_result[k])
-    a.scatter(range(len(diff[k])), ref[k])
+    a.scatter(range(len(diff[k])), ref[k], alpha=0.5)
 
+axs[-1].scatter(range(len(diff[k])), diff[k])
 for a in axs:
     a.grid()
 

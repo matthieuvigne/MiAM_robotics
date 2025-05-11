@@ -25,8 +25,9 @@ RobotPosition generateRandomValidPosition(Map const& map)
 
 int main (int argc, char *argv[])
 {
-    miam::RobotPosition startPosition(1222, 328.168, 1.5708);
-    miam::RobotPosition targetPosition(775, 610, 4.71239);
+    miam::RobotPosition startPosition(2820.81, 1113.5, 1.94296);
+    miam::RobotPosition targetPosition(1322.05, 698.885, 2.00345);
+
 
     Logger logger;
 
@@ -65,9 +66,12 @@ int main (int argc, char *argv[])
         std::ofstream fOutput("test_result.csv");
         fOutput << "AStarComputeDuration,MPCComputeDuration,PrintDuration,PathLength,MPCDuration" << std::endl;
 
+        int niter = 0;
         for (int nObs = 0; nObs <= N_OBS_MAX; nObs++)
             for (int i = 0; i < N_SCENARIOS; i++)
             {
+                logger.start("unittest" + std::to_string(niter) + ".miam");
+                niter++;
                 Map map = motionController.getGameState()->generateMap();
                 // Generate obstacles
                 std::vector<Obstacle> obstacles;

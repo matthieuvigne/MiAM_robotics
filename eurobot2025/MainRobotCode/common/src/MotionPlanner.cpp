@@ -36,7 +36,7 @@ ACADOworkspace acadoWorkspace;
 
 
 // Validation constants
-#define MPC_OBJECTIVE_TOLERANCE 10 // mm
+#define MPC_OBJECTIVE_TOLERANCE 50 // mm
 #define MPC_CONSECUTIVE_POINT_TOLERANCE 1 // mm
 #define MPC_CONSECUTIVE_ANGLE_TOLERANCE 0.05 // rad
 
@@ -45,7 +45,6 @@ ACADOworkspace acadoWorkspace;
 
 
 using namespace miam;
-using namespace std;
 
 #ifdef MOTIONCONTROLLER_UNITTEST
 std::vector<RobotPosition> UNITTEST_ASTAR_POS;
@@ -292,10 +291,11 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     TrajectoryPoint target_position = traj.getCurrentPoint(traj.getDuration());
     TrajectoryVector res;
 
-    int nIterMax = ceil(traj.getDuration() / (HORIZON_T - 2 * MPC_DELTA_T)) + 2; // enable that many iterations
+#define OVERLAP 6
+    int nIterMax = ceil(traj.getDuration() / (HORIZON_T - OVERLAP * MPC_DELTA_T)) + 2; // enable that many iterations
     int nIter = 0;
 
-    // proceed by increments of HORIZON_T - 2 * DELTA_T (not taking the last point since the final
+    // proceed by increments of HORIZON_T - 2 * MPC_DELTA_T (not taking the last point since the final
     // constraint might make the solver brutally go towards the final point
     while (nIter < nIterMax)
     {
@@ -303,10 +303,15 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
             traj,
             start_position,
             target_position,
-            nIter * (HORIZON_T - 2 * MPC_DELTA_T),
+            nIter * (HORIZON_T - OVERLAP * MPC_DELTA_T),
             flags
         );
 
+        if (solvedTrajectory->getDuration() < std::numeric_limits<double>::epsilon())
+        {
+            // MPC failed, abort
+            return TrajectoryVector();
+        }
         // this is the case in which the solved MPC iteration has some
         // stationary points ; the function truncates these points, which renders the duration less
         // than horizon_t
@@ -318,10 +323,10 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
         }
 
         // remove last 2 points
-        solvedTrajectory->removePoints(2);
+        solvedTrajectory->removePoints(OVERLAP);
         res.push_back(solvedTrajectory);
 
-        start_position = solvedTrajectory->getCurrentPoint(HORIZON_T - 2 * MPC_DELTA_T);
+        start_position = solvedTrajectory->getEndPoint();
         nIter++;
     }
     std::chrono::high_resolution_clock::time_point mpcTime = std::chrono::high_resolution_clock::now();
@@ -409,7 +414,7 @@ TrajectoryVector MotionPlanner::computeTrajectoryBasicPath(
     return vector;
 };
 
-std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
+std::shared_ptr<SampledTrajectory> MotionPlanner::solveMPCIteration(
     TrajectoryVector reference_trajectory,
     TrajectoryPoint start_position,
     TrajectoryPoint target_position,
@@ -421,11 +426,11 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
 
     if (VERBOSE)
     {
-        cout << "----------------------------" << endl;
-        cout << "Solving starting time: " <<  start_time << endl;
-        cout << "Start position: " << start_position << endl;
-        cout << "Target position: " << target_position << endl;
-        cout << "N: " << N << endl;
+        *logger_ << "----------------------------" << std::endl;
+        *logger_ << "Solving starting time: " <<  start_time << std::endl;
+        *logger_ << "Start position: " << start_position << std::endl;
+        *logger_ << "Target position: " << target_position << std::endl;
+        *logger_ << "N: " << N << std::endl;
     }
 
 
@@ -436,13 +441,10 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
         if (!is_acado_inited)
         {
             /* Initialize the solver. */
-            cout << "Initializing solver" << endl;
+            *logger_ << "Initializing solver" << std::endl;
             acado_initializeSolver();
             is_acado_inited = true;
         }
-
-        // cout << "ACADO_N: " << ACADO_N << endl;
-        // cout << "MPC_N_TIME_INTERVALS: " << MPC_N_TIME_INTERVALS << endl;
 
 
         // use this to mitigate the theta modulo two pi instability
@@ -467,9 +469,7 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
             // if the gap is > M_PI, then subtract 2 pi
             if ( tp.position.theta - oldtp.position.theta > M_PI)
             {
-                // cout << "Subracting 2pi " << endl;
                 tp.position.theta =  tp.position.theta - 2 * M_PI;
-                // cout << "New angle: " << tp.position.theta << endl;
             }
             // if the gap is < -M_PI, then add 2 pi
             if ( tp.position.theta - oldtp.position.theta < -M_PI)
@@ -486,14 +486,14 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
         }
 
         // Do some padding on theta to better match the desired end angle.
-        double const HALF_WINDOW_SIZE = 7;
+        // double const HALF_WINDOW_SIZE = 7;
         // if (tryEnsureEndAngle)
         // {
         //     for (int i = 0; i < HALF_WINDOW_SIZE; i++)
         //         posTheta.push_back(endAngle);
         // }
         // Filter
-        posTheta = movingAverage(posTheta, HALF_WINDOW_SIZE);
+        // posTheta = movingAverage(posTheta, HALF_WINDOW_SIZE);
 
         // Fill problem
         for (int indice = 0; indice < N+1; indice++)
@@ -532,16 +532,24 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
         acado_preparationStep();
 
         /* Perform the feedback step. */
-        acado_feedbackStep( );
+        int rc = acado_feedbackStep( );
+        if (rc != 0)
+        {
+            *logger_ << "[MotionPlanner] QPOases failed to solve problem: " << rc << std::endl;
+            // acado_mutex.unlock();
+            // return std::make_shared<SampledTrajectory>(TrajectoryConfig(), std::vector<TrajectoryPoint>(), 0.0);
+        }
 
         /* Apply the new control immediately to the process, first NU components. */
 
-        if( VERBOSE ) printf("\t KKT Tolerance = %.3e\n", acado_getKKT() );
+        if( VERBOSE )
+            *logger_ << "\t KKT Tolerance = " <<  acado_getKKT() << std::endl;
 
         /* Read the elapsed time. */
         real_t te = acado_toc( &t );
 
-        if( VERBOSE ) printf("Average time of one real-time iteration:   %.3g microseconds\n", 1e6 * te);
+        if( VERBOSE )
+            *logger_ << "Average time of one real-time iteration:" << 1e6 * te << "microseconds" << std::endl;
 
         for (int indice = 0; indice < N+1; indice++) {
 
@@ -566,7 +574,6 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
             // if distance to the final target is < tolerance
             // or the distance between two consecutive points is < tolerance, then stop
 
-
             if (outputPoints.size() > 0)
             {
                 if (
@@ -588,19 +595,17 @@ std::shared_ptr<SampledTrajectory > MotionPlanner::solveMPCIteration(
             outputPoints.push_back(tp);
 
         }
-    } catch( const exception & e ) {
-        cerr << "ACADO failed!" << endl;
-        cerr << e.what() << endl;
+    } catch( const std::exception & e ) {
+        *logger_ << "ACADO failed!" << std::endl;
+        *logger_ << e.what() << std::endl;
     }
 
     outputPoints.push_back(target_position);
     TrajectoryConfig config;
     double duration = std::max(0.0, (outputPoints.size()-1) * MPC_DELTA_T);
     if (VERBOSE)
-        cout << "Duration of SampledTrajectory generated: " << duration << endl;
+        *logger_ << "Duration of SampledTrajectory generated: " << duration << std::endl;
     std::shared_ptr<SampledTrajectory > solvedTrajectory(new SampledTrajectory(config, outputPoints, duration));
-
-
 
     acado_mutex.unlock();
 

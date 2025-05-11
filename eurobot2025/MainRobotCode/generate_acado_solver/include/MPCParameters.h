@@ -2,7 +2,7 @@
 #define MPC_PARAMETERS_H
 
     #define MPC_DELTA_T 0.1// 100 ms
-    #define MPC_N_TIME_INTERVALS 22 // 20 discrete time intervals
+    #define MPC_N_TIME_INTERVALS 27 // 20 discrete time intervals
 
     #define MPC_MU_TRAJ 5000 // weight of the trajectory (x, y) in the optimization algorithm
     #define MPC_MU_THETA 10 // weight of the trajectory (theta) in the optimization algorithm
