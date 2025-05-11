@@ -92,37 +92,42 @@ void Strategy::match()
     pthread_t handle = ThreadHandler::addThread(stratMain);
     createdThreads_.push_back(handle);
 
-    double const FALLBACK_TIME = 82.0;
+    double const FALLBACK_TIME = 85.0;
     robot->wait(FALLBACK_TIME);
     if (!MATCH_COMPLETED)
-        pthread_cancel(handle);
-    usleep(50000);
-    if (!MATCH_COMPLETED)
     {
+        pthread_cancel(handle);
+        usleep(50000);
         robot->logger_ << "Match almost done, auto-triggering fallback strategy" << std::endl;
+        goBackToBase();
     }
-    robot->setGUIActionName("[Match End] Back to base");
-    // goBackToBase();
+    else
+    {
+        robot->wait(100.0 - FALLBACK_TIME);
+        pthread_cancel(handle);
+    }
 }
 
 
 void Strategy::goBackToBase()
 {
+    MATCH_COMPLETED = true;
+    robot->setGUIActionName("[Match End] Back to base");
     // Clear current trajectory
     robot->getMotionController()->stopCurrentTrajectoryTracking();
 
     // Target depends on start position
-    RobotPosition targetPosition(600, 1600, 0);
+    RobotPosition targetPosition(300, 1400, M_PI);
 
     bool targetReached = false;
-    while (!targetReached && robot->getMatchTime() < 90)
+    while (!targetReached)
     {
 
         TrajectoryVector traj;
         traj = robot->getMotionController()->computeMPCTrajectory(
             targetPosition,
             robot->getMotionController()->getDetectedObstacles(),
-            tf::IGNORE_END_ANGLE);
+            tf::DEFAULT);
         if (!traj.empty())
         {
             robot->getMotionController()->setTrajectoryToFollow(traj);
@@ -132,7 +137,13 @@ void Strategy::goBackToBase()
             targetReached = robot->getMotionController()->goToStraightLine(targetPosition);
     }
     if (targetReached)
+    {
         robot->updateScore(10, "back to base");
+        if (robot->isPlayingRightSide())
+            servoManager_.frontLeftClaw_.move(ClawPosition::SIDE);
+        else
+            servoManager_.frontRightClaw_.move(ClawPosition::SIDE);
+    }
 }
 
 
@@ -243,8 +254,7 @@ void Strategy::match_impl()
         }
     }
     robot->logger_ << "[Strategy] No more action to perform" << std::endl;
-
-
+    goBackToBase();
 }
 
 bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & actionShouldBeRemoved)
