@@ -259,6 +259,7 @@ void Robot::matchEnd()
 {
     if (!testMode_ || !disableLidar_)
         lidar_.stop();
+    servos_.disable(0xFE);
 }
 
 bool Robot::isStartingSwitchPluggedIn() const

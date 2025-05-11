@@ -60,7 +60,7 @@ int main (int argc, char *argv[])
     {
         std::srand(42);
         // Generate random scenarios, solve them, and store result in CSV file
-        int const N_SCENARIOS = 100;
+        int const N_SCENARIOS = 300;
         int const N_OBS_MAX = 2;
 
         std::ofstream fOutput("test_result.csv");

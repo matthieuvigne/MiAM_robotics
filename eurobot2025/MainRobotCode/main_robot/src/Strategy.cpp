@@ -106,6 +106,8 @@ void Strategy::match()
         robot->wait(100.0 - FALLBACK_TIME);
         pthread_cancel(handle);
     }
+    robot->wait(100.0 - robot->getMatchTime());
+    servoManager_.railManager_.abort();
 }
 
 
@@ -140,9 +142,15 @@ void Strategy::goBackToBase()
     {
         robot->updateScore(10, "back to base");
         if (robot->isPlayingRightSide())
+        {
             servoManager_.frontLeftClaw_.move(ClawPosition::SIDE);
+            servoManager_.frontLeftClaw_.rail_.move(0.9);
+        }
         else
+        {
             servoManager_.frontRightClaw_.move(ClawPosition::SIDE);
+            servoManager_.frontRightClaw_.rail_.move(0.9);
+        }
     }
 }
 
