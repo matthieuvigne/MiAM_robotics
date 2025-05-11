@@ -36,7 +36,7 @@ ACADOworkspace acadoWorkspace;
 
 
 // Validation constants
-#define MPC_OBJECTIVE_TOLERANCE 50 // mm
+#define MPC_OBJECTIVE_TOLERANCE 25 // mm
 #define MPC_CONSECUTIVE_POINT_TOLERANCE 1 // mm
 #define MPC_CONSECUTIVE_ANGLE_TOLERANCE 0.05 // rad
 
