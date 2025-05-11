@@ -10,16 +10,16 @@ const miam::RobotPosition COLLECT_ZONE_COORDS[9] =
     miam::RobotPosition(3000 - 1100, 950, M_PI_2),
     miam::RobotPosition(75, 400, M_PI),
     miam::RobotPosition(3000 - 75, 400, M_PI),
-    miam::RobotPosition(775, 250, M_PI_2),
-    miam::RobotPosition(3000 - 775, 250, M_PI_2)
+    miam::RobotPosition(3000 - 775, 250, M_PI_2),
+    miam::RobotPosition(775, 250, M_PI_2) // Small column action
 };
 
 const miam::RobotPosition CONSTRUCTION_ZONE_COORDS[4] =
 {
     miam::RobotPosition(1200+100, 70, -M_PI_2),
-    miam::RobotPosition(2900, 850, M_PI),
+    miam::RobotPosition(2900, 850, 0),
     miam::RobotPosition(750, 70, -M_PI_2),
-    miam::RobotPosition(2800, 70, -M_PI_2)
+    miam::RobotPosition(2700, 70, -M_PI_2)
 };
 
 
@@ -153,10 +153,10 @@ Map GameState::generateMap()
         {
             RobotPosition bl = COLLECT_ZONE_COORDS[i] + RobotPosition(-200, -50).rotate(COLLECT_ZONE_COORDS[i].theta - M_PI_2);
             RobotPosition tr = COLLECT_ZONE_COORDS[i] + RobotPosition(200, 50).rotate(COLLECT_ZONE_COORDS[i].theta - M_PI_2);
-            excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
+            excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 150);
         }
     }
-    
+
     for (int i = 0; i < 4; i++)
     {
         if (isConstructionZoneUsed[i])

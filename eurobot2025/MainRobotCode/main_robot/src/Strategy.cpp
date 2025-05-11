@@ -4,6 +4,7 @@
 
 #include "main_robot/GrabColumnAction.h"
 #include "main_robot/BuildAction.h"
+#include "main_robot/SmallColumnAction.h"
 
 using namespace miam::trajectory;
 using miam::RobotPosition;
@@ -42,23 +43,19 @@ bool Strategy::setup(RobotInterface *robot)
         // Load actions into action vector.
         actions_.clear();
 
-        for (int i = 1; i < 9; i++)
+        for (int i = 1; i < 8; i++)
         {
             // [TODO] : AJOUTER UNE LOGIQUE SPECIFIQUE POUR LA ZONE 0
             actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, i));
         }
 
-        for (int i = 0; i < 3; i++)
-        {
-            // [TODO] : AJOUTER UNE LOGIQUE SPECIFIQUE POUR LA ZONE 4
-            // NE PAS METTRE LA ZONE 4 AVANT QUE LA ZONE DE COLLECTE 9 NE SOIT LIBRE
-            actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
-        }
+        // Build action - no zone 2, this is handled by the SmallColumn action
+        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 0));
+        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 1));
+        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 3));
 
+        actions_.push_back(std::make_shared<SmallColumnAction>(robot, &servoManager_));
 
-        //actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 5));
-        //actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, 7));
-        //actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 0));
     }
     if (setupStep_ == 1 && servoManager_.isRailCalibDone())
     {
