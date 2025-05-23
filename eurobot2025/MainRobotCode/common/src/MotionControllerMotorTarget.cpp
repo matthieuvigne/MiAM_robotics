@@ -56,9 +56,9 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     double trackingAngleError = miam::trajectory::moduloTwoPi(currentPosition.theta - targetPoint.position.theta);
     // std::cout << "end trackingAngleError" << std::endl;
 
-    log("trackingLongitudinalError",trackingLongitudinalError);
-    log("trackingTransverseError",trackingTransverseError);
-    log("trackingAngleError",trackingAngleError);
+    log("MotionController.trackingLongitudinalError",trackingLongitudinalError);
+    log("MotionController.trackingTransverseError",trackingTransverseError);
+    log("MotionController.trackingAngleError",trackingAngleError);
 
     // If we are beyond the end of the trajectory vector, look to see if we are close enough to the target point to stop.
     if (traj->getDuration() <= curvilinearAbscissa_ && currentTrajectories_.size() == 1)

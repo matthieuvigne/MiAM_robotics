@@ -52,11 +52,13 @@ bool BuildAction::performAction()
     {
         servoManager_->dropBackCans();
         robot_->getGameState()->isBackClawFull = false;
+        robot_->updateScore(4, "Lvl.1 tower");
     }
     else
     {
         servoManager_->buildFrontTower();
         robot_->getGameState()->isFrontClawFull = false;
+        robot_->updateScore(12, "Lvl.2 tower");
     }
 
     robot_->getGameState()->isConstructionZoneUsed[zoneId_] = true;
@@ -69,6 +71,8 @@ bool BuildAction::performAction()
         robot_->getMotionController()->goStraight(MARGIN);
         servoManager_->buildFrontTower();
         robot_->getGameState()->isFrontClawFull = false;
+        robot_->updateScore(12, "Lvl.2 tower");
+        robot_->wait(0.2);
 
         robot_->getMotionController()->goStraight(-MARGIN-100);
 
@@ -86,7 +90,7 @@ bool BuildAction::performAction()
     }
     else
         robot_->getMotionController()->goStraight(-sign * 200);
-    
+
     // Raise side claws
     servoManager_->raiseFrontSideClaws();
 

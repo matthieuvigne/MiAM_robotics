@@ -70,6 +70,9 @@ bool Strategy::setup(RobotInterface *robot)
         servoManager_.frontRightClaw_.move(ClawPosition::FOLDED);
         servoManager_.frontLeftClaw_.move(ClawPosition::FOLDED);
         servoManager_.foldPlank();
+        servoManager_.frontRightClaw_.closeClaw();
+        servoManager_.frontLeftClaw_.closeClaw();
+        servoManager_.foldBackPlank();
         return true;
     }
     return false;
@@ -118,8 +121,24 @@ void Strategy::goBackToBase()
     // Clear current trajectory
     robot->getMotionController()->stopCurrentTrajectoryTracking();
 
+    // Release everything
+    servoManager_.backClawOpen();
+    servoManager_.frontClawOpen();
+    servoManager_.releasePlank();
+    servoManager_.releaseBackPlank();
+
+    servoManager_.frontLeftClaw_.rail_.move(0.95);
+    servoManager_.frontRightClaw_.rail_.move(0.95);
+    servoManager_.frontRightClaw_.move(ClawPosition::FORWARD);
+    servoManager_.frontLeftClaw_.move(ClawPosition::FORWARD);
+    servoManager_.frontRightClaw_.openClaw();
+    servoManager_.frontLeftClaw_.openClaw();
+
+    robot->getGameState()->isFrontClawFull = false;
+    robot->getGameState()->isBackClawFull = false;
+
     // Target depends on start position
-    RobotPosition targetPosition(250, 1350, M_PI);
+    RobotPosition targetPosition(300, 1400, M_PI);
 
     bool targetReached = false;
     while (!targetReached)
@@ -144,12 +163,12 @@ void Strategy::goBackToBase()
         if (robot->isPlayingRightSide())
         {
             servoManager_.frontLeftClaw_.move(ClawPosition::SIDE);
-            servoManager_.frontLeftClaw_.rail_.move(0.9);
+            servoManager_.frontLeftClaw_.closeClaw();
         }
         else
         {
             servoManager_.frontRightClaw_.move(ClawPosition::SIDE);
-            servoManager_.frontRightClaw_.rail_.move(0.9);
+            servoManager_.frontRightClaw_.closeClaw();
         }
     }
 }
@@ -164,8 +183,6 @@ void Strategy::match_impl()
     servoManager_.dropBanner();
     robot->wait(0.5);
     robot->updateScore(20, "banner");
-
-    servoManager_.frontRightClaw_.move(ClawPosition::FORWARD);
 
     robot->getMotionController()->goStraight(200);
     servoManager_.foldBanner();

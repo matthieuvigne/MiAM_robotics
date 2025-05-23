@@ -210,6 +210,17 @@
 
             Map map_;
 
+            TrajectoryConfig getCurrentTrajectoryParameters()
+            {
+                TrajectoryConfig conf = robotParams_.getTrajConf();
+                if (gameState_.isBackClawFull || gameState_.isFrontClawFull)
+                {
+                    conf.maxWheelVelocity *= 0.6;
+                    conf.maxWheelAcceleration *= 0.5;
+                }
+                return conf;
+            }
+
         private:
             MotionPlanner motionPlanner_;
             Logger *logger_; ///< Logger object.
@@ -306,5 +317,6 @@
             std::mutex motionPlanningMutex_;
 
             GameState gameState_;
+            DrivetrainTarget lastTarget_;
     };
  #endif

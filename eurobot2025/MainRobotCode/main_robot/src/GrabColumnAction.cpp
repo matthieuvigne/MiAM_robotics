@@ -63,7 +63,16 @@ bool GrabColumnAction::performAction()
     RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
     RobotPosition targetPosition = startPosition_.forward(isStartMotionBackward_?-MARGIN:MARGIN);
     //~ targetPosition.theta = startPosition_.theta;
-    double wpt_margin = !isStartMotionBackward_ ? -10 : 10;
+    double wpt_margin = !isStartMotionBackward_ ? -30 : 30;
+
+    // For those on the side of the field, push them against the border ; try only once
+    int maxGrabAttempts = 2;
+    if (std::fabs(COLLECT_ZONE_COORDS[zoneId_].theta - M_PI) < 0.1)
+    {
+        wpt_margin = !isStartMotionBackward_ ? -60 : 60;
+        maxGrabAttempts = 1;
+    }
+
     std::vector<RobotPosition> positions;
     positions.push_back(currentPosition);
     positions.push_back(targetPosition.forward(-forwardAmount/2.));
@@ -73,9 +82,9 @@ bool GrabColumnAction::performAction()
       : miam::trajectory::flags::BACKWARD;
     flag = static_cast<tf>(flag | miam::trajectory::flags::IGNORE_END_ANGLE);
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
-                      robot_->getMotionController()->robotParams_.getTrajConf(),
+                      robot_->getMotionController()->getCurrentTrajectoryParameters(),
                       positions,
-                      100.0,
+                      200.0,
                       0.3,    // Transition velocity
                       flag
                   );
@@ -85,28 +94,34 @@ bool GrabColumnAction::performAction()
     // Grab, check and retry if required
     bool success = false;
     int num_attempts = 1;
-    int constexpr max_attempts = 3;
-    do {
-      success = servoManager_->grab(front);
-      if(!success)
-      {
-        // Prepare for retry
-        std::cout<< "GRAB FAILURE" << std::endl;
-        if(front)
-          servoManager_->frontClawOpen();
-        else
-          servoManager_->backClawOpen();
-        robot_->getMotionController()->goStraight(front?40:-40, 0.5);
-        robot_->getMotionController()->waitForTrajectoryFinished();
-      } else
-      {
-        std::cout<< "GRAB SUCCESS" << std::endl;
-        success = true;
-      }
-      num_attempts += 1;
-    } while(!success && num_attempts<=max_attempts);
+    while(!success && num_attempts<=maxGrabAttempts)
+    {
+        success = servoManager_->grab(front);
+        if(!success)
+        {
+            // Prepare for retry
+            robot_->logger_ << "[GrabColumnAction] Grab failure, retrying." << std::endl;
+            if(front)
+            {
+                servoManager_->frontClawOpen();
+                servoManager_->frontRightClaw_.openClaw();
+                servoManager_->frontLeftClaw_.openClaw();
+            }
+            else
+                servoManager_->backClawOpen();
+            robot_->wait(0.3);
+            robot_->getMotionController()->goStraight(front? 60:-60);
+            robot_->getMotionController()->waitForTrajectoryFinished();
+        }
+        num_attempts += 1;
+    }
+
     if(!success)
-        return false;
+    {
+        // We couldn't grab anything so we assume the zone is empty now.
+        robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
+        return true;
+    }
 
     // Update the game state
     robot_->getGameState()->isCollectZoneFull[zoneId_] = false;

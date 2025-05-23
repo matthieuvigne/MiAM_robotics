@@ -7,7 +7,7 @@
 
 MotionController::MotionController(RobotParameters const &robotParameters, Logger *logger) :
     robotParams_(robotParameters),
-    motionPlanner_(robotParams_, logger),
+    motionPlanner_(logger),
     logger_(logger)
 {
     kinematics_ = DrivetrainKinematics(robotParams_.rightWheelRadius,
@@ -189,8 +189,23 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     log("motionControllerState", static_cast<int>(motionControllerState_));
     log("detectionCoeff",slowDownCoeff_);
     log("clampedDetectionCoeff", clampedSlowDownCoeff_);
+    log("MotionController.rawCommandVelocityRight",target.motorSpeed.right);
+    log("MotionController.rawCommandVelocityLeft",target.motorSpeed.left);
+
+
+    // Clamp target acceleration
+    double const maxAccel = 3.0 * robotParams_.maxWheelAccelerationTrajectory / robotParams_.rightWheelRadius;
+    target.motorSpeed.right = std::clamp(target.motorSpeed.right,
+                                         lastTarget_.motorSpeed.right - dt * maxAccel,
+                                         lastTarget_.motorSpeed.right + dt * maxAccel);
+    target.motorSpeed.left = std::clamp(target.motorSpeed.left,
+                                        lastTarget_.motorSpeed.left - dt * maxAccel,
+                                        lastTarget_.motorSpeed.left + dt * maxAccel);
+    lastTarget_ = target;
+
     log("MotionController.commandVelocityRight",target.motorSpeed.right);
     log("MotionController.commandVelocityLeft",target.motorSpeed.left);
+
 
     return target;
 }
@@ -436,7 +451,6 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
         //     currentTrajectories_.erase(currentTrajectories_.begin());
         // }
     }
-
     return target;
 }
 
@@ -450,7 +464,7 @@ bool MotionController::goToRoundedCorners(std::vector<RobotPosition> const& posi
     trajPositions.insert(trajPositions.begin(), getCurrentPosition());
 
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
-        robotParams_.getTrajConf(),
+        getCurrentTrajectoryParameters(),
         trajPositions,
         radius,
         transitionVelocityFactor,
@@ -470,7 +484,7 @@ bool MotionController::goToStraightLine(RobotPosition const& position,
     // Don't go faster than maximum
     double const clampedFactor = std::clamp(speedFactor, 0.0, 1.75);
 
-    miam::trajectory::TrajectoryConfig conf = robotParams_.getTrajConf();
+    miam::trajectory::TrajectoryConfig conf = getCurrentTrajectoryParameters();
     conf.maxWheelVelocity *= clampedFactor;
     conf.maxWheelAcceleration *= clampedFactor;
     RobotPosition currentPosition = getCurrentPosition();
@@ -504,7 +518,7 @@ bool MotionController::pointTurn(double const& angle, double const& speedFactor,
     // Don't go faster than maximum
     double const clampedFactor = std::clamp(speedFactor, 0.0, 1.75);
 
-    miam::trajectory::TrajectoryConfig conf = robotParams_.getTrajConf();
+    miam::trajectory::TrajectoryConfig conf = getCurrentTrajectoryParameters();
     conf.maxWheelVelocity *= clampedFactor;
     conf.maxWheelAcceleration *= clampedFactor;
     RobotPosition currentPosition = getCurrentPosition();

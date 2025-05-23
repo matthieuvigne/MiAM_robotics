@@ -60,13 +60,13 @@ bool is_acado_inited = false;
 std::mutex acado_mutex;
 
 
-MotionPlanner::MotionPlanner(RobotParameters const& robotParameters, Logger* logger) :
-    robotParams_(robotParameters),
+MotionPlanner::MotionPlanner(Logger* logger) :
     logger_(logger)
 {
 }
 
 TrajectoryVector MotionPlanner::planMotion(
+            TrajectoryConfig const& config,
             Map & map,
             RobotPosition const& currentPosition,
             RobotPosition const& targetPosition,
@@ -86,7 +86,7 @@ TrajectoryVector MotionPlanner::planMotion(
         RobotPosition offsetPosition = targetPosition - RobotPosition(OFFSET_DISTANCE, 0, 0).rotate(targetPosition.theta);
         if ((offsetPosition - currentPosition).norm() < (targetPosition - currentPosition).norm())
         {
-            planned_path = miam::trajectory::planPath(map, currentPosition, offsetPosition, logger_);
+            planned_path = miam::trajectory::planPath(map, currentPosition, offsetPosition);
             if (planned_path.size() > 0)
             {
                 planned_path.push_back(targetPosition);
@@ -98,7 +98,7 @@ TrajectoryVector MotionPlanner::planMotion(
     // ensureEndAngle = true;
     // If planning failed, or if no offset was asked, plan toward true target.
     if (planned_path.size() == 0)
-        planned_path = miam::trajectory::planPath(map, currentPosition, targetPosition, logger_);
+        planned_path = miam::trajectory::planPath(map, currentPosition, targetPosition);
 
     std::chrono::high_resolution_clock::time_point astarTime = std::chrono::high_resolution_clock::now();
     *logger_ << "A* solved in: " << std::chrono::duration_cast<std::chrono::duration<double>>(astarTime - startTime).count() << std::endl;
@@ -125,7 +125,7 @@ TrajectoryVector MotionPlanner::planMotion(
         for (unsigned int i = 1; i < planned_path.size(); i++)
         {
             TrajectoryVector inc = miam::trajectory::computeTrajectoryStraightLineToPoint(
-                robotParams_.getTrajConf(), pastPosition, planned_path.at(i));
+                config, pastPosition, planned_path.at(i));
             UNITTEST_POINTTURN_TRAJ = UNITTEST_POINTTURN_TRAJ + inc;
             pastPosition = inc.getEndPoint().position;
         }
@@ -134,7 +134,7 @@ TrajectoryVector MotionPlanner::planMotion(
     }
 
     UNITTEST_ROUNDED_TRAJ = computeTrajectoryRoundedCorner(
-            robotParams_.getTrajConf(),
+            config,
             planned_path,
             200,
             0.5,
@@ -145,7 +145,7 @@ TrajectoryVector MotionPlanner::planMotion(
     // If path planning failed, return empty traj
     if (planned_path.size() == 0)
     {
-        *logger_ << "[MotionPlanner] " << "Path planning did not find any path" << std::endl;
+        *logger_ << "[MotionPlanner] Path planning did not find any path" << std::endl;
         return TrajectoryVector();
     }
 
@@ -169,7 +169,7 @@ TrajectoryVector MotionPlanner::planMotion(
         *logger_ << "[MotionPlanner] " << "Smoothing path using trajectory rounded corners" << std::endl;
 
         solvedTrajectory = computeTrajectoryRoundedCorner(
-            robotParams_.getTrajConf(),
+            config,
             planned_path,
             200,
             0.5,
@@ -183,7 +183,7 @@ TrajectoryVector MotionPlanner::planMotion(
         planned_path.back().theta = targetPosition.theta;   // this makes the MPC try to ensure the end angle
                                                             // but end angle is often not reachable so the angle
                                                             // is then ensured with a point turn afterwards
-        solvedTrajectory = solveTrajectoryFromWaypoints(planned_path, flags);
+        solvedTrajectory = solveTrajectoryFromWaypoints(config, planned_path, flags);
     }
 }
 #ifdef MOTIONCONTROLLER_UNITTEST
@@ -222,7 +222,7 @@ TrajectoryVector MotionPlanner::planMotion(
 
         // at start, perform a point turn to get the right angle
         std::shared_ptr<PointTurn > pt_sub_start(
-            new PointTurn(robotParams_.getTrajConf(),
+            new PointTurn(config,
             currentPosition, solvedTrajectory.getCurrentPoint(0.0).position.theta));
         finalTrajectory.push_back(pt_sub_start);
 
@@ -236,7 +236,7 @@ TrajectoryVector MotionPlanner::planMotion(
         {
             // at end, perform a point turn to get the right angle
             std::shared_ptr<PointTurn> pt_sub_end(
-                new PointTurn(robotParams_.getTrajConf(),
+                new PointTurn(config,
                 finalTrajectory.getEndPoint().position,
                 targetPosition.theta)
             );
@@ -256,6 +256,7 @@ TrajectoryVector MotionPlanner::planMotion(
 
 
 TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
+    miam::trajectory::TrajectoryConfig const& config,
     std::vector<RobotPosition> waypoints,
     tf const& flags
 )
@@ -263,7 +264,7 @@ TrajectoryVector MotionPlanner::solveTrajectoryFromWaypoints(
     trajectory::TrajectoryVector traj;
 
     // parameterize solver
-    miam::trajectory::TrajectoryConfig cplan = robotParams_.getTrajConf();
+    miam::trajectory::TrajectoryConfig cplan = config;
     cplan.maxWheelVelocity *= MPC_VELOCITY_OVERHEAD_PCT; // give some overhead to the controller
     cplan.maxWheelAcceleration *= MPC_ACCELERATION_OVERHEAD_PCT; // give some overhead to the controller
 
@@ -600,7 +601,17 @@ std::shared_ptr<SampledTrajectory> MotionPlanner::solveMPCIteration(
         *logger_ << e.what() << std::endl;
     }
 
-    outputPoints.push_back(target_position);
+    TrajectoryPoint tp = target_position;
+    if ( tp.position.theta - outputPoints.back().position.theta > M_PI)
+    {
+        tp.position.theta =  tp.position.theta - 2 * M_PI;
+    }
+    // if the gap is < -M_PI, then add 2 pi
+    if ( tp.position.theta - outputPoints.back().position.theta < -M_PI)
+    {
+        tp.position.theta = tp.position.theta + 2 * M_PI;
+    }
+    outputPoints.push_back(tp);
     TrajectoryConfig config;
     double duration = std::max(0.0, (outputPoints.size()-1) * MPC_DELTA_T);
     if (VERBOSE)

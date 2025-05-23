@@ -26,17 +26,17 @@ class MotionPlanner{
 
     public:
 
-        MotionPlanner(RobotParameters const& robotParameters, Logger *logger);
+        MotionPlanner(Logger *logger);
 
         TrajectoryVector planMotion(
+            TrajectoryConfig const& config,
             Map &map,
             RobotPosition const& currentPosition,
             RobotPosition const& targetPosition,
             tf const& flags,
             bool useTrajectoryRoundedCorners = false);
 
-        RobotParameters robotParams_;
-
+    private:
         /// @brief Compute interpolation trajectory between a list of points, ignoring rotations.
         TrajectoryVector computeTrajectoryBasicPath(
             TrajectoryConfig const& config,
@@ -45,11 +45,11 @@ class MotionPlanner{
             tf const& flags);
 
         TrajectoryVector solveTrajectoryFromWaypoints(
+            TrajectoryConfig const& config,
             std::vector<RobotPosition> waypoints,
             tf const& flags
         );
 
-    private:
         std::shared_ptr<SampledTrajectory > solveMPCIteration(
             TrajectoryVector reference_trajectory,
             TrajectoryPoint start_position,

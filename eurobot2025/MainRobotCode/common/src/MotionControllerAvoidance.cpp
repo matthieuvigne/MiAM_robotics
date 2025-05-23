@@ -136,7 +136,7 @@ TrajectoryVector MotionController::computeBasicAvoidanceTrajectory(RobotPosition
         positions.push_back(left_point);
         positions.push_back(left_point_further);
         positions.push_back(targetPosition);
-        traj = miam::trajectory::computeTrajectoryRoundedCorner(robotParams_.getTrajConf(), positions, 200.0, 0.3, flags);
+        traj = miam::trajectory::computeTrajectoryRoundedCorner(getCurrentTrajectoryParameters(), positions, 200.0, 0.3, flags);
     }
     else
     {
@@ -152,7 +152,7 @@ TrajectoryVector MotionController::computeBasicAvoidanceTrajectory(RobotPosition
             positions.push_back(right_point);
             positions.push_back(right_point_further);
             positions.push_back(targetPosition);
-            traj = miam::trajectory::computeTrajectoryRoundedCorner(robotParams_.getTrajConf(), positions, 200.0, 0.3, flags);
+            traj = miam::trajectory::computeTrajectoryRoundedCorner(getCurrentTrajectoryParameters(), positions, 200.0, 0.3, flags);
         }
     }
 
@@ -203,7 +203,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
         *logger_ << "[MotionController] Target too close, doing a straight line to point" << std::endl;
 
         return computeTrajectoryStraightLineToPoint(
-            robotParams_.getTrajConf(),
+            getCurrentTrajectoryParameters(),
             currentPosition, // start
             targetPosition,
             0.0,
@@ -256,7 +256,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
         *logger_ << "[MotionController] Moved back position: " << newStartPoint << std::endl;
 
         traj = traj + miam::trajectory::computeTrajectoryStraightLine(
-                robotParams_.getTrajConf(),
+                getCurrentTrajectoryParameters(),
                 currentPosition, // start
                 distanceToGoBack
             );
@@ -275,7 +275,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
         *logger_ << "[MotionController] " << closestAvailablePosition << " instead of " <<  newStartPoint << std::endl;
 
         traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(
-            robotParams_.getTrajConf(),
+            getCurrentTrajectoryParameters(),
             newStartPoint,
             closestAvailablePosition,
             0.0,
@@ -285,6 +285,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
 
     // plan motion
     TrajectoryVector mpcTrajectory = motionPlanner_.planMotion(
+        getCurrentTrajectoryParameters(),
         map_,
         newStartPoint,
         targetPosition,

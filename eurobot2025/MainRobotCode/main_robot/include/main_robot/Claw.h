@@ -31,6 +31,7 @@ class Claw
 
         void openClaw();
         void closeClaw();
+        bool isClawFull();
 
         void move(ClawPosition const& clawPos);
 

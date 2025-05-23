@@ -40,10 +40,10 @@ public:
     void grabBackTwoPlanks();
     void grabBackOnePlank();
     void releaseBackPlank();
-    void closeBackPlank();
-    
+    void foldBackPlank(bool init = false);
+
     void raiseFrontSideClaws();
-    
+
 // private:
     RobotInterface *robot_;
     STSServoDriver *servos_;

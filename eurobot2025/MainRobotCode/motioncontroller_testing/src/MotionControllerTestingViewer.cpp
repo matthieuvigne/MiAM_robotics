@@ -236,7 +236,7 @@ bool MotionControllerTestingViewer::redraw(const Cairo::RefPtr<Cairo::Context>& 
     pos.push_back(startPosition_);
     pos.push_back(endPosition_);
     drawTrajectory(cr,
-        miam::trajectory::computeTrajectoryStraightLineToPoint(motionController_->robotParams_.getTrajConf(), startPosition_, endPosition_),
+        miam::trajectory::computeTrajectoryStraightLineToPoint(motionController_->getCurrentTrajectoryParameters(), startPosition_, endPosition_),
         0.3, 0.3, 0.3, 0.8);
 
 

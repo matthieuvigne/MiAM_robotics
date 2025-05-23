@@ -44,7 +44,7 @@ bool SmallColumnAction::performAction()
     positions.push_back(targetPosition.forward(30));
 
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
-                      robot_->getMotionController()->robotParams_.getTrajConf(),
+                      robot_->getMotionController()->getCurrentTrajectoryParameters(),
                       positions,
                       100.0,
                       0.3,    // Transition velocity
@@ -56,22 +56,29 @@ bool SmallColumnAction::performAction()
     // Grab, check and retry if required
     bool success = false;
     int num_attempts = 1;
-    int constexpr max_attempts = 3;
-    do {
+    int constexpr max_attempts = 2;
+    while(!success && num_attempts<=max_attempts)
+    {
       success = servoManager_->grab(true);
       if(!success)
       {
         // Prepare for retry
         servoManager_->frontClawOpen();
+        servoManager_->frontRightClaw_.openClaw();
+        servoManager_->frontLeftClaw_.openClaw();
+        robot_->logger_ << "[SmallColumnAction] Grab failure, retrying." << std::endl;
         robot_->getMotionController()->goStraight(50, 0.5);
         robot_->getMotionController()->waitForTrajectoryFinished();
       }
       num_attempts += 1;
-    } while(!success && num_attempts<=max_attempts);
+    }
+
+    // Clear zone
+    robot_->getGameState()->isCollectZoneFull[ZONE_ID] = false;
 
     // Abort action
     if(!success)
-        return false;
+        return true;
 
     // Move forward and build
     robot_->getMotionController()->goStraight(robot_->getMotionController()->getCurrentPosition().y - FRONT_CLAW_XOFFSET - 90);
@@ -79,7 +86,6 @@ bool SmallColumnAction::performAction()
     servoManager_->buildFrontTower();
 
     // Update game state and score
-    robot_->getGameState()->isCollectZoneFull[ZONE_ID] = false;
     robot_->getGameState()->isConstructionZoneUsed[2] = true;
     robot_->updateScore(12, "Lvl.2 tower");
 

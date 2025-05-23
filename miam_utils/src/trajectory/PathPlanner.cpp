@@ -4,7 +4,7 @@
 #include "miam_utils/AStar.hpp"
 
 namespace miam::trajectory{
-    std::vector<RobotPosition> planPath(Map& map, RobotPosition const& start, RobotPosition const& end, Logger *logger)
+    std::vector<RobotPosition> planPath(Map& map, RobotPosition const& start, RobotPosition const& end)
     {
         AStar::Generator generator;
         generator.setHeuristic(AStar::Heuristic::euclidean);
@@ -16,19 +16,13 @@ namespace miam::trajectory{
         MapCoord startPoint = map.posToCoord(start);
         MapCoord endPoint = map.posToCoord(end);
 
-        *logger << "[PathPlanner] Planning from: " << startPoint.x << " " << startPoint.y << std::endl;
-        *logger << "[PathPlanner] Planning to  : " << endPoint.x << " " << endPoint.y << std::endl;
-
         // remove start position from obstacles
         map(startPoint.x, startPoint.y) = 0;
 
+        // Abort if end point is in collision
         if (map.detectCollision(endPoint))
-        {
-            *logger << "[PathPlanner] PathPlanning failed: end point is in obstacle!" << std::endl;
             return positions;
-        }
 
-        *logger << "[PathPlanner] Generate path ... " << std::endl;
         auto path = generator.findPath(
             map,
             startPoint,
@@ -74,10 +68,6 @@ namespace miam::trajectory{
             }
             if (positions.size() > 1)
                 positions.at(0).theta = positions.at(1).theta;
-        }
-        else
-        {
-            *logger << "[PathPlanner] Path planning failed" << std::endl;
         }
 
         return positions;

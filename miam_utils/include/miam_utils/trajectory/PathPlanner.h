@@ -23,8 +23,7 @@
             std::vector<RobotPosition> planPath(
                 Map& map,
                 RobotPosition const& start,
-                RobotPosition const& end,
-                Logger *logger);
+                RobotPosition const& end);
         }
     }
 

@@ -62,9 +62,53 @@ int main(int argc, char* argv[])
         robot_->wait(0.1);
     std::cout << "Calib done" << std::endl;
 
+    servo_manager.grabPlank();
+    servo_manager.releasePlank();
+    servo_manager.backRail_.move(0.05);
+    servo_manager.frontRightClaw_.rail_.move(0.05);
+    servo_manager.frontLeftClaw_.rail_.move(0.05);
     std::cout << "Press enter to continue" << std::endl;
     std::cin >> userInput;
 
+    while (true)
+    {
+        servo_manager.backClawClose();
+        servo_manager.frontClawClose();
+        servo_manager.frontRightClaw_.closeClaw();
+        servo_manager.frontLeftClaw_.closeClaw();
+        robot_->wait(0.3);
+
+        std::cout << "Front:" << std::endl;
+        std::cout << servo_manager.checkGrab(true) << std::endl;
+        servo_manager.frontRightClaw_.isClawFull();
+        servo_manager.frontLeftClaw_.isClawFull();
+        std::cout << "Back:" << std::endl;
+        std::cout << servo_manager.checkGrab(false) << std::endl;
+
+        std::cout << "Press enter to continue" << std::endl;
+        std::cin >> userInput;
+
+
+        std::cout << "Front:" << std::endl;
+        std::cout << servo_manager.checkGrab(true) << std::endl;
+        std::cout << "Back:" << std::endl;
+        std::cout << servo_manager.checkGrab(false) << std::endl;
+
+        servo_manager.backClawOpen();
+        servo_manager.frontClawOpen();
+        servo_manager.frontRightClaw_.openClaw();
+        servo_manager.frontLeftClaw_.openClaw();
+        robot_->wait(0.5);
+        std::cout << "Press enter to continue" << std::endl;
+        std::cin >> userInput;
+
+
+        std::cout << "Front:" << std::endl;
+        std::cout << servo_manager.checkGrab(true) << std::endl;
+        std::cout << "Back:" << std::endl;
+        std::cout << servo_manager.checkGrab(false) << std::endl;
+
+    }
     ///////////////////////////////////////
     // Back test
     ///////////////////////////////////////
@@ -73,7 +117,7 @@ int main(int argc, char* argv[])
     do {
 
       // Prepare the grab
-      servo_manager.closeBackPlank();
+      servo_manager.releaseBackPlank();
       servo_manager.prepareGrab(false);
       while (servo_manager.railManager_.areAnyMoving())
           robot_->wait(0.050);

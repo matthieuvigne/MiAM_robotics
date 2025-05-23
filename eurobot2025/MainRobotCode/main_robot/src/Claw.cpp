@@ -2,7 +2,6 @@
 #include <unistd.h>
 
 
-
 #define CLAW_STRAIGHT 2048
 
 Claw::Claw(RailServo rail,
@@ -36,6 +35,16 @@ void Claw::closeClaw()
     driver_->setTargetPosition(clawServoId_, clawOpenValue_ + sign_ * 120);
 }
 
+bool Claw::isClawFull()
+{
+#ifdef SIMULATION
+    return true;
+#endif
+    int const MIN_TH = 15;
+    int const MAX_TH = 50;
+    int const err = std::abs(driver_->getCurrentPosition(clawServoId_) - (clawOpenValue_ + sign_ * 120));
+    return err > MIN_TH && err < MAX_TH;
+}
 
 void Claw::move(ClawPosition const& clawPos)
 {
