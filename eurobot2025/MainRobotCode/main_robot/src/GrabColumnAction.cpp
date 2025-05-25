@@ -12,6 +12,7 @@ void GrabColumnAction::updateStartCondition()
     {
         priority_ = 5;
     }
+    ignoreFinalRotation_ = true;
 
     // Always grab front first
     isStartMotionBackward_ = robot_->getGameState()->isFrontClawFull;
@@ -67,7 +68,7 @@ bool GrabColumnAction::performAction()
     {
         servoManager_->backClawOpen();
     }
-    
+
     // Reach the grab position
     RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
     RobotPosition targetPosition = startPosition_.forward(isStartMotionBackward_?-MARGIN:MARGIN);
@@ -93,8 +94,8 @@ bool GrabColumnAction::performAction()
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
                       robot_->getMotionController()->getCurrentTrajectoryParameters(),
                       positions,
-                      100.0,
-                      0.1,    // Transition velocity
+                      70.0,
+                      0.15,    // Transition velocity
                       flag
                   );
     robot_->getMotionController()->setTrajectoryToFollow(traj);

@@ -160,16 +160,17 @@ void Strategy::goBackToBase()
     }
     if (targetReached)
     {
+        servoManager_.backClawClose();
         robot->updateScore(10, "back to base");
         if (robot->isPlayingRightSide())
         {
             servoManager_.frontLeftClaw_.move(ClawPosition::SIDE);
-            servoManager_.frontLeftClaw_.closeClaw();
+            servoManager_.frontLeftClaw_.foldClaw();
         }
         else
         {
             servoManager_.frontRightClaw_.move(ClawPosition::SIDE);
-            servoManager_.frontRightClaw_.closeClaw();
+            servoManager_.frontRightClaw_.foldClaw();
         }
     }
 }
@@ -295,11 +296,14 @@ bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & acti
     robot->logger_ << "[Strategy] Performing action: " << *action << std::endl;
     robot->getMotionController()->enableDetection(true);
     // Go to the start of the action
+    tf flags = (action->isStartMotionBackward_ ? tf::BACKWARD : tf::DEFAULT);
+    if (action->ignoreFinalRotation_)
+        flags = static_cast<tf>(flags | tf::IGNORE_END_ANGLE);
     TrajectoryVector traj;
     traj = robot->getMotionController()->computeMPCTrajectory(
         action->startPosition_,
         robot->getMotionController()->getDetectedObstacles(),
-        (action->isStartMotionBackward_ ? tf::BACKWARD : tf::DEFAULT));
+        flags);
     if (traj.empty())
     {
         robot->logger_ << "[Strategy] Motion planning to action failed!" << std::endl;

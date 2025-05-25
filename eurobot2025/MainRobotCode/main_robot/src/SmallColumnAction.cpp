@@ -17,6 +17,7 @@ void SmallColumnAction::updateStartCondition()
             priority_ += 10;
     }
     isStartMotionBackward_ = false;
+    ignoreFinalRotation_ = true;
 
 
     startPosition_ =  COLLECT_ZONE_COORDS[ZONE_ID].forward(FRONT_CLAW_XOFFSET + MARGIN);
@@ -53,8 +54,8 @@ bool SmallColumnAction::performAction()
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
                       robot_->getMotionController()->getCurrentTrajectoryParameters(),
                       positions,
-                      100.0,
-                      0.3,    // Transition velocity
+                      70.0,
+                      0.15,    // Transition velocity
                       miam::trajectory::flags::IGNORE_END_ANGLE
                   );
     robot_->getMotionController()->setTrajectoryToFollow(traj);

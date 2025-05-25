@@ -95,7 +95,8 @@ bool BuildAction::performAction()
                 // If the base was not grabbed successfully, abort
                 robot_->logger_ << "[BuildAction] Back grab fail, abort level 3" << std::endl;
                 servoManager_->backClawOpen();
-                robot_->wait(0.3);
+                servoManager_->releaseBackPlank();
+                robot_->wait(0.4);
                 robot_->getMotionController()->goStraight(MARGIN);
                 return true;
             }

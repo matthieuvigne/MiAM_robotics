@@ -37,6 +37,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const AbstractAction& dt);
     RobotPosition startPosition_;
     bool isStartMotionBackward_ = false; ///< Go to start should be done backward
+    bool ignoreFinalRotation_ = false; ///< Go to start should be done backward
     int priority_ = -1; ///< Action priority: higher priority actions will be attempted first. Action with negative priorities will not be performed.
     bool wasFailed = false;
 
