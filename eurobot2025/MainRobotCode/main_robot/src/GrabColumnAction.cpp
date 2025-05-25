@@ -55,10 +55,19 @@ bool GrabColumnAction::performAction()
 
     double forwardAmount = (isStartMotionBackward_ ? -BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET);
     if (front)
+    {
         servoManager_->frontClawOpen();
+        servoManager_->frontRightClaw_.rail_.move(0.05);
+        servoManager_->frontLeftClaw_.rail_.move(0.05);
+        while (servoManager_->frontRightClaw_.rail_.isMoving()
+            || servoManager_->frontLeftClaw_.rail_.isMoving())
+                robot_->wait(0.050);
+    }
     else
+    {
         servoManager_->backClawOpen();
-
+    }
+    
     // Reach the grab position
     RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
     RobotPosition targetPosition = startPosition_.forward(isStartMotionBackward_?-MARGIN:MARGIN);

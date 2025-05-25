@@ -31,8 +31,15 @@ void SmallColumnAction::actionStartTrigger()
 
 bool SmallColumnAction::performAction()
 {
-
+    // Initiliaze
     servoManager_->frontClawOpen();
+    servoManager_->frontRightClaw_.rail_.move(0.05);
+    servoManager_->frontLeftClaw_.rail_.move(0.05);
+    while (servoManager_->frontRightClaw_.rail_.isMoving()
+        || servoManager_->frontLeftClaw_.rail_.isMoving())
+            robot_->wait(0.050);
+
+
 
     // Reach the grab position
     RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();

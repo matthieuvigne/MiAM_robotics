@@ -107,8 +107,10 @@ void ServoManager::prepareGrab(bool const& front)
     if (front)
     {
 
-        frontRightClaw_.rail_.move(0.05);
-        frontLeftClaw_.rail_.move(0.05);
+        //frontRightClaw_.rail_.move(0.05);
+        //frontLeftClaw_.rail_.move(0.05);
+        frontRightClaw_.rail_.move(0.50);
+        frontLeftClaw_.rail_.move(0.50);
         frontCanRail_.move(0.0);
         frontPlankRail_.move(0.0);
 

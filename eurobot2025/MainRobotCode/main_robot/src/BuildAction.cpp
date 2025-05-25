@@ -92,6 +92,7 @@ bool BuildAction::performAction()
             robot_->wait(0.3);
             if (!servoManager_->checkGrab(false))
             {
+                // If the base was not grabbed successfully, abort
                 robot_->logger_ << "[BuildAction] Back grab fail, abort level 3" << std::endl;
                 servoManager_->backClawOpen();
                 robot_->wait(0.3);
@@ -120,8 +121,8 @@ bool BuildAction::performAction()
     if (largeZone_)
     {
         nDrop_ ++;
-        return nDrop_ > 0;
-        // return nDrop_ > 1;
+        //return nDrop_ > 0;
+        return nDrop_ > 1;
     }
     return true;
 }
