@@ -29,9 +29,11 @@ void Claw::openClaw()
     driver_->setTargetPosition(clawServoId_, clawOpenValue_);
 }
 
+#define CLOSE_RANGE 130
+
 void Claw::closeClaw()
 {
-    driver_->setTargetPosition(clawServoId_, clawOpenValue_ + sign_ * 125);
+    driver_->setTargetPosition(clawServoId_, clawOpenValue_ + sign_ * CLOSE_RANGE);
 }
 
 void Claw::foldClaw()
@@ -46,7 +48,7 @@ bool Claw::isClawFull()
 #endif
     int const MIN_TH = 10;
     int const MAX_TH = 50;
-    int const err = std::abs(driver_->getCurrentPosition(clawServoId_) - (clawOpenValue_ + sign_ * 120));
+    int const err = std::abs(driver_->getCurrentPosition(clawServoId_) - (clawOpenValue_ + sign_ * CLOSE_RANGE));
     std::cout << "Claw grab check: " << err << std::endl;
     return err > MIN_TH && err < MAX_TH;
 }

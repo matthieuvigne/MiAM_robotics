@@ -95,10 +95,10 @@ void ServoManager::init(RobotInterface *robot)
 
 void ServoManager::setRailsToInitPosition()
 {
-    frontRightClaw_.rail_.move(0.6);
-    frontLeftClaw_.rail_.move(0.6);
-    frontCanRail_.move(0.0);
-    frontPlankRail_.move(0.0);
+    frontRightClaw_.rail_.move(0.9);
+    frontLeftClaw_.rail_.move(0.9);
+    frontCanRail_.move(0.4);
+    frontPlankRail_.move(0.4);
     backRail_.move(0.30);
 }
 
@@ -325,7 +325,7 @@ void ServoManager::releasePlank()
 
 void ServoManager::foldPlank()
 {
-    servos_->setTargetPosition(PLANK_WRIST, 3000);
+    servos_->setTargetPosition(PLANK_WRIST, 2800);
     servos_->setTargetPosition(PLANK_CLAW, 2048);
 }
 

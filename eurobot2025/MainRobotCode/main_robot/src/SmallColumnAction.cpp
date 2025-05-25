@@ -80,11 +80,14 @@ bool SmallColumnAction::performAction()
     // Move forward and build
     robot_->getMotionController()->goStraight(robot_->getMotionController()->getCurrentPosition().y - FRONT_CLAW_XOFFSET - 90);
 
-    servoManager_->buildFrontTower();
+    bool lvl2 = servoManager_->buildFrontTower();
 
     // Update game state and score
     robot_->getGameState()->isConstructionZoneUsed[2] = true;
-    robot_->updateScore(12, "Lvl.2 tower");
+    if (lvl2)
+        robot_->updateScore(12, "Lvl.2 tower");
+    else
+        robot_->updateScore(4, "Lvl.1 tower");
 
     robot_->getMotionController()->goStraight(-MARGIN);
     // Action should not be done again

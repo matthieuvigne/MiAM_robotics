@@ -118,6 +118,8 @@ bool GrabColumnAction::performAction()
     {
         // We couldn't grab anything so we assume the zone is empty now.
         robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
+        // Go back before next action
+        robot_->getMotionController()->goStraight(front? -120:120);
         return true;
     }
 

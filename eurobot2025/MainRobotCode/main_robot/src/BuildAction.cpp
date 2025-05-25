@@ -98,7 +98,7 @@ bool BuildAction::performAction()
                 robot_->getMotionController()->goStraight(MARGIN);
                 return true;
             }
-            servoManager_->backRail_.move(0.95);
+            servoManager_->backRail_.move(0.98);
             while (servoManager_->backRail_.isMoving())
                 robot_->wait(0.050);
             robot_->getMotionController()->enableDetection(false);
