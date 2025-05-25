@@ -57,20 +57,17 @@ bool SmallColumnAction::performAction()
     bool success = false;
     int num_attempts = 1;
     int constexpr max_attempts = 2;
+    success = servoManager_->grab(true);
     while(!success && num_attempts<=max_attempts)
     {
-      success = servoManager_->grab(true);
-      if(!success)
-      {
-        // Prepare for retry
         servoManager_->frontClawOpen();
         servoManager_->frontRightClaw_.openClaw();
         servoManager_->frontLeftClaw_.openClaw();
         robot_->logger_ << "[SmallColumnAction] Grab failure, retrying." << std::endl;
         robot_->getMotionController()->goStraight(50, 0.5);
         robot_->getMotionController()->waitForTrajectoryFinished();
-      }
-      num_attempts += 1;
+        success = servoManager_->grab(true);
+        num_attempts += 1;
     }
 
     // Clear zone

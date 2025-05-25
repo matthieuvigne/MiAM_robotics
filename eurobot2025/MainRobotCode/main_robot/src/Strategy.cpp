@@ -70,8 +70,8 @@ bool Strategy::setup(RobotInterface *robot)
         servoManager_.frontRightClaw_.move(ClawPosition::FOLDED);
         servoManager_.frontLeftClaw_.move(ClawPosition::FOLDED);
         servoManager_.foldPlank();
-        servoManager_.frontRightClaw_.closeClaw();
-        servoManager_.frontLeftClaw_.closeClaw();
+        servoManager_.frontRightClaw_.foldClaw();
+        servoManager_.frontLeftClaw_.foldClaw();
         servoManager_.foldBackPlank();
         return true;
     }
@@ -117,6 +117,7 @@ void Strategy::match()
 void Strategy::goBackToBase()
 {
     MATCH_COMPLETED = true;
+    robot->getMotionController()->enableDetection(true);
     robot->setGUIActionName("[Match End] Back to base");
     // Clear current trajectory
     robot->getMotionController()->stopCurrentTrajectoryTracking();
@@ -240,11 +241,6 @@ void Strategy::match_impl()
         bool actionShouldBeRemoved;
         bool actionSuccessful = performAction(actions_.at(selectedAction), actionShouldBeRemoved);
 
-        // After each action: raise arms, we never want to transition with low arms.
-        // servoManager_.setClawPosition(ClawSide::FRONT, ClawPosition::HIGH_POSITION);
-        // servoManager_.setClawPosition(ClawSide::BACK, ClawPosition::HIGH_POSITION);
-
-
         // If action failed: don't try it again for now until one is successful
         if (actionSuccessful)
         {
@@ -265,6 +261,12 @@ void Strategy::match_impl()
             if (allFail)
             {
                 robot->logger_ << "[Strategy] All actions have failed, let's reset." << std::endl;
+                if (robot->getMatchTime() > 80.0)
+                {
+                    robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
+                    actions_.clear();
+                    actionShouldBeRemoved = false;
+                }
                 for (unsigned int i = 0; i < actions_.size(); i++)
                 {
                     actions_.at(i)->wasFailed = false;
@@ -285,7 +287,13 @@ void Strategy::match_impl()
 bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & actionShouldBeRemoved)
 {
     actionShouldBeRemoved = false;
+    if (action->priority_ < 0)
+    {
+        robot->logger_ << "[Strategy] Action aborted, negative priority." << *action << std::endl;
+        return false;
+    }
     robot->logger_ << "[Strategy] Performing action: " << *action << std::endl;
+    robot->getMotionController()->enableDetection(true);
     // Go to the start of the action
     TrajectoryVector traj;
     traj = robot->getMotionController()->computeMPCTrajectory(

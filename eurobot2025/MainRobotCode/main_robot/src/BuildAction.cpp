@@ -2,7 +2,8 @@
 
 #define BACK_EXTRA_OFFSET 48
 
-#define MARGIN 200
+#define MARGIN 170
+#define BUILD_DISTANCE 180
 
 
 void BuildAction::updateStartCondition()
@@ -56,9 +57,12 @@ bool BuildAction::performAction()
     }
     else
     {
-        servoManager_->buildFrontTower();
+        bool lvl2 = servoManager_->buildFrontTower();
         robot_->getGameState()->isFrontClawFull = false;
-        robot_->updateScore(12, "Lvl.2 tower");
+        if (lvl2)
+            robot_->updateScore(12, "Lvl.2 tower");
+        else
+            robot_->updateScore(4, "Lvl.1 tower");
     }
 
     robot_->getGameState()->isConstructionZoneUsed[zoneId_] = true;
@@ -66,27 +70,45 @@ bool BuildAction::performAction()
     if (isStartMotionBackward_ && robot_->getGameState()->isFrontClawFull && (largeZone_))
     {
         // Build front tower, put it on top of the other one
-        robot_->getMotionController()->goStraight(2 * MARGIN);
+        robot_->getMotionController()->goStraight(MARGIN + BUILD_DISTANCE);
         robot_->getMotionController()->pointTurn(M_PI);
         robot_->getMotionController()->goStraight(MARGIN);
-        servoManager_->buildFrontTower();
+        bool lvl2 = servoManager_->buildFrontTower();
         robot_->getGameState()->isFrontClawFull = false;
-        robot_->updateScore(12, "Lvl.2 tower");
-        robot_->wait(0.2);
+        if (lvl2)
+            robot_->updateScore(12, "Lvl.2 tower");
+        else
+            robot_->updateScore(4, "Lvl.1 tower");
 
-        robot_->getMotionController()->goStraight(-MARGIN-100);
+        robot_->getMotionController()->goStraight(-MARGIN);
 
-        //~ // Raise column
-        //~ robot_->getMotionController()->pointTurn(M_PI);
-        //~ robot_->getMotionController()->goStraight(-(MARGIN + BACK_DIFF_XOFFSET));
-        //~ servoManager_->grab(false);
-        //~ servoManager_->backRail_.move(0.95);
-        //~ while (servoManager_->backRail_.isMoving())
-            //~ robot_->wait(0.050);
-        //~ robot_->getMotionController()->goStraight(-MARGIN, 0.5);
+        if (lvl2)
+        {
+            // Try to build a level 3 column
+            robot_->getMotionController()->pointTurn(M_PI);
+            robot_->getMotionController()->goStraight(-(MARGIN + BACK_DIFF_XOFFSET), 0.5);
+            servoManager_->backClawClose();
+            servoManager_->grabBackTwoPlanks();
+            robot_->wait(0.3);
+            if (!servoManager_->checkGrab(false))
+            {
+                robot_->logger_ << "[BuildAction] Back grab fail, abort level 3" << std::endl;
+                servoManager_->backClawOpen();
+                robot_->wait(0.3);
+                robot_->getMotionController()->goStraight(MARGIN);
+                return true;
+            }
+            servoManager_->backRail_.move(0.95);
+            while (servoManager_->backRail_.isMoving())
+                robot_->wait(0.050);
+            robot_->getMotionController()->enableDetection(false);
+            robot_->getMotionController()->goStraight(-BUILD_DISTANCE + 30, 0.3);
+            robot_->getMotionController()->enableDetection(true);
 
-        //~ servoManager_->dropBackCans(false);
-        //~ robot_->getMotionController()->goStraight(MARGIN);
+            servoManager_->dropBackCans(false);
+            robot_->getMotionController()->goStraight(MARGIN);
+            robot_->updateScore(12, "Lvl.3 tower");
+        }
     }
     else
         robot_->getMotionController()->goStraight(-sign * 200);

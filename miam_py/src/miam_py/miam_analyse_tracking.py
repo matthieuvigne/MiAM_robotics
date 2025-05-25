@@ -143,8 +143,8 @@ def main():
     axs[0][0].plot(time, trajectory_theta, label="Target angle")
     axs[0][0].plot(time, [theta[i] - trajectory_theta[i] for i in range(len(theta))], label="Error")
 
-    axs[0][1].plot(time, get_data_resampled(logfile, 'trackingLongitudinalError', time), label="Longitudinal error")
-    axs[0][1].plot(time, get_data_resampled(logfile, 'trackingTransverseError', time), label="Transverse error")
+    axs[0][1].plot(time, get_data_resampled(logfile, 'MotionController.trackingLongitudinalError', time), label="Longitudinal error")
+    axs[0][1].plot(time, get_data_resampled(logfile, 'MotionController.trackingTransverseError', time), label="Transverse error")
 
     axs[1][0].plot(time, v, label="Linear velocity")
     axs[1][0].plot(time, trajectory_v, label="Trajectory linear velocity")

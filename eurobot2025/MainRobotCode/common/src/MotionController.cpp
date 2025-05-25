@@ -160,7 +160,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         displayDetectedObstacles_.push_back(obspos);
 
         // Ignore obstacles for the first second of the match
-        if (measurements.matchTime > 1.0)
+        if (measurements.matchTime > 1.0 && isDetectionEnabled_)
         {
             detectedObstacles_.push_back(std::make_tuple(obspos, detection::mpc_obstacle_size));
             nObstaclesOnTable += 1;
@@ -194,7 +194,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
 
     // Clamp target acceleration
-    double const maxAccel = 3.0 * robotParams_.maxWheelAccelerationTrajectory / robotParams_.rightWheelRadius;
+    double const maxAccel = 2.0 * robotParams_.maxWheelAccelerationTrajectory / robotParams_.rightWheelRadius;
     target.motorSpeed.right = std::clamp(target.motorSpeed.right,
                                          lastTarget_.motorSpeed.right - dt * maxAccel,
                                          lastTarget_.motorSpeed.right + dt * maxAccel);
@@ -219,7 +219,7 @@ void MotionController::changeMotionControllerState()
     newTrajectoryMutex_.lock();
     if (!newTrajectories_.empty())
     {
-        *logger_ << "[MotionController] New trajectories, reset controller state to WAIT_FOR_TRAJECTORY" << std::endl;
+        // *logger_ << "[MotionController] New trajectories, reset controller state to WAIT_FOR_TRAJECTORY" << std::endl;
         motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
     }
 
@@ -236,15 +236,14 @@ void MotionController::changeMotionControllerState()
     {
         if (!newTrajectories_.empty())
         {
-            *logger_ << "[MotionController] Start reading trajectories " << std::endl;
+            // *logger_ << "[MotionController] Start reading trajectories " << std::endl;
             // We have new trajectories, erase the current trajectories and follow the new one.
             currentTrajectories_ = newTrajectories_;
             curvilinearAbscissa_ = 0;
             avoidanceCount_ = 0;
             trajectoryDone_ = false;
             newTrajectories_.clear();
-            *logger_ << "[MotionController] Recieved " << currentTrajectories_.size() << " new trajectories from strategy" << std::endl;
-            *logger_ << "[MotionController] Now tracking: " << currentTrajectories_.at(0)->description_ << std::endl;
+            // *logger_ << "[MotionController] Recieved " << currentTrajectories_.size() << " new trajectories from strategy" << std::endl;
 
             nextMotionControllerState = CONTROLLER_TRAJECTORY_TRACKING;
         }
@@ -275,7 +274,7 @@ void MotionController::changeMotionControllerState()
                     // Not optimal, could be improved.
                     traj = currentTrajectories_.at(0).get();
                     curvilinearAbscissa_ = 0.0;
-                    *logger_ << "[MotionController] Now tracking: " << traj->description_ << std::endl;
+                    // *logger_ << "[MotionController] Now tracking: " << traj->description_ << std::endl;
                 }
                 else
                 {
@@ -532,4 +531,15 @@ bool MotionController::pointTurn(double const& angle, double const& speedFactor,
     if (!(flags & tf::NO_WAIT_FOR_END))
         return waitForTrajectoryFinished();
     return true;
+}
+
+TrajectoryConfig MotionController::getCurrentTrajectoryParameters()
+{
+    TrajectoryConfig conf = robotParams_.getTrajConf();
+    if (gameState_.isBackClawFull || gameState_.isFrontClawFull)
+    {
+        conf.maxWheelVelocity *= 0.7;
+        conf.maxWheelAcceleration *= 0.6;
+    }
+    return conf;
 }

@@ -1,5 +1,6 @@
 #include "main_robot/Claw.h"
 #include <unistd.h>
+#include <iostream>
 
 
 #define CLAW_STRAIGHT 2048
@@ -26,13 +27,16 @@ void Claw::init(STSServoDriver *driver)
 void Claw::openClaw()
 {
     driver_->setTargetPosition(clawServoId_, clawOpenValue_);
-
 }
 
 void Claw::closeClaw()
 {
+    driver_->setTargetPosition(clawServoId_, clawOpenValue_ + sign_ * 125);
+}
 
-    driver_->setTargetPosition(clawServoId_, clawOpenValue_ + sign_ * 120);
+void Claw::foldClaw()
+{
+    driver_->setTargetPosition(clawServoId_, clawOpenValue_ + sign_ * 155);
 }
 
 bool Claw::isClawFull()
@@ -40,9 +44,10 @@ bool Claw::isClawFull()
 #ifdef SIMULATION
     return true;
 #endif
-    int const MIN_TH = 15;
+    int const MIN_TH = 10;
     int const MAX_TH = 50;
     int const err = std::abs(driver_->getCurrentPosition(clawServoId_) - (clawOpenValue_ + sign_ * 120));
+    std::cout << "Claw grab check: " << err << std::endl;
     return err > MIN_TH && err < MAX_TH;
 }
 

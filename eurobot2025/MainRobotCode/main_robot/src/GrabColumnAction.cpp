@@ -69,7 +69,7 @@ bool GrabColumnAction::performAction()
     int maxGrabAttempts = 2;
     if (std::fabs(COLLECT_ZONE_COORDS[zoneId_].theta - M_PI) < 0.1)
     {
-        wpt_margin = !isStartMotionBackward_ ? -60 : 60;
+        wpt_margin = !isStartMotionBackward_ ? -40 : 40;
         maxGrabAttempts = 1;
     }
 
@@ -84,8 +84,8 @@ bool GrabColumnAction::performAction()
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
                       robot_->getMotionController()->getCurrentTrajectoryParameters(),
                       positions,
-                      200.0,
-                      0.3,    // Transition velocity
+                      100.0,
+                      0.1,    // Transition velocity
                       flag
                   );
     robot_->getMotionController()->setTrajectoryToFollow(traj);
@@ -94,25 +94,23 @@ bool GrabColumnAction::performAction()
     // Grab, check and retry if required
     bool success = false;
     int num_attempts = 1;
+    success = servoManager_->grab(front);
     while(!success && num_attempts<=maxGrabAttempts)
     {
-        success = servoManager_->grab(front);
-        if(!success)
+        robot_->logger_ << "[GrabColumnAction] Grab failure, retrying." << std::endl;
+        if(front)
         {
-            // Prepare for retry
-            robot_->logger_ << "[GrabColumnAction] Grab failure, retrying." << std::endl;
-            if(front)
-            {
-                servoManager_->frontClawOpen();
-                servoManager_->frontRightClaw_.openClaw();
-                servoManager_->frontLeftClaw_.openClaw();
-            }
-            else
-                servoManager_->backClawOpen();
-            robot_->wait(0.3);
-            robot_->getMotionController()->goStraight(front? 60:-60);
-            robot_->getMotionController()->waitForTrajectoryFinished();
+            servoManager_->frontClawOpen();
+            servoManager_->frontRightClaw_.openClaw();
+            servoManager_->frontLeftClaw_.openClaw();
         }
+        else
+            servoManager_->backClawOpen();
+        robot_->wait(0.3);
+        robot_->getMotionController()->goStraight(front? 60:-60);
+        robot_->getMotionController()->waitForTrajectoryFinished();
+
+        success = servoManager_->grab(front);
         num_attempts += 1;
     }
 

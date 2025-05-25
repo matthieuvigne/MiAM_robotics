@@ -89,7 +89,8 @@ bool Robot::initSystem()
             guiState_.debugStatus += "Servo init failed\n";
     }
 
-    if (!isLidarInit_ && !disableLidar_)
+    // Only init lidar after motor, to make sure power supply is up.
+    if (isMotorsInit_ && !isLidarInit_ && !disableLidar_)
     {
         isLidarInit_ = lidar_.init("/dev/RPLIDAR", motionController_.robotParams_.lidarNPointsPerTurn);
         if (!isLidarInit_)
@@ -234,8 +235,8 @@ void Robot::applyMotorTarget(DrivetrainTarget const& target)
     {
         if (std::abs(target.motorSpeed.right) < 0.001 && std::abs(target.motorSpeed.left) < 0.001 )
         {
-            if (wasRunning)
-                logger_ << "[Robot] Motors stopping" << std::endl;
+            // if (wasRunning)
+            //     logger_ << "[Robot] Motors stopping" << std::endl;
             wasRunning = false;
             rightMotor_.stop();
             leftMotor_.stop();
@@ -243,8 +244,8 @@ void Robot::applyMotorTarget(DrivetrainTarget const& target)
         }
         else
         {
-            if (!wasRunning)
-                logger_ << "[Robot] Motors running" << std::endl;
+            // if (!wasRunning)
+            //     logger_ << "[Robot] Motors running" << std::endl;
             wasRunning = true;
             int sign = motionController_.robotParams_.rightMotorDirection;
             rightMotor_.setTargetVelocity(sign * target.motorSpeed.right);

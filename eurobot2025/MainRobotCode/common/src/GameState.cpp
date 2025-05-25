@@ -16,8 +16,8 @@ const miam::RobotPosition COLLECT_ZONE_COORDS[9] =
 
 const miam::RobotPosition CONSTRUCTION_ZONE_COORDS[4] =
 {
-    miam::RobotPosition(1200+50, 70, -M_PI_2),
-    miam::RobotPosition(2900, 850, 0),
+    miam::RobotPosition(1200+50, 85, -M_PI_2),
+    miam::RobotPosition(2880, 875, 0),
     miam::RobotPosition(750, 70, -M_PI_2),
     miam::RobotPosition(2700, 70, -M_PI_2)
 };
@@ -144,7 +144,7 @@ Map GameState::generateMap()
     // Other robot start / drop zones
     excludeRectangle(map, 0, 650, 450, 1100);
     excludeRectangle(map, 0, 0, 450, 150);
-    excludeRectangle(map, 1550, 0, 2000, 450);
+    excludeRectangle(map, 1550, 0, 2000, 500);
     excludeRectangle(map, 2000, 0, 2450, 150);
 
     for (int i = 0; i < 9; i++)

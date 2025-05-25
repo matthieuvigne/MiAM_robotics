@@ -210,17 +210,14 @@
 
             Map map_;
 
-            TrajectoryConfig getCurrentTrajectoryParameters()
-            {
-                TrajectoryConfig conf = robotParams_.getTrajConf();
-                if (gameState_.isBackClawFull || gameState_.isFrontClawFull)
-                {
-                    conf.maxWheelVelocity *= 0.6;
-                    conf.maxWheelAcceleration *= 0.5;
-                }
-                return conf;
-            }
+            TrajectoryConfig getCurrentTrajectoryParameters();
 
+            /// @brief Enable / disable detection for specific actions
+            /// @param enable True to enable detection
+            void enableDetection(bool const& enable)
+            {
+                isDetectionEnabled_ = enable;
+            }
         private:
             MotionPlanner motionPlanner_;
             Logger *logger_; ///< Logger object.
@@ -318,5 +315,6 @@
 
             GameState gameState_;
             DrivetrainTarget lastTarget_;
+            bool isDetectionEnabled_ = true;
     };
  #endif
