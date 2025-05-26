@@ -144,7 +144,7 @@ Map GameState::generateMap()
     // Other robot start / drop zones
     excludeRectangle(map, 0, 650, 450, 1100);
     excludeRectangle(map, 0, 0, 450, 150);
-    excludeRectangle(map, 1550, 0, 2000, 500);
+    excludeRectangle(map, 1500, 0, 2050, 550);
     excludeRectangle(map, 2000, 0, 2450, 150);
 
     for (int i = 0; i < 9; i++)
@@ -166,7 +166,7 @@ Map GameState::generateMap()
                 case 0: // (1200, 70, -M_PI_2)
                 {
                     RobotPosition bl = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(-150,-50);
-                    RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(100,300);
+                    RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(100, -100);
                     excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
                     break;
                 }
@@ -180,7 +180,7 @@ Map GameState::generateMap()
                 case 2: // (750, 70, -M_PI_2)
                 {
                     RobotPosition bl = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(-150,-50);
-                    RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(150,50);
+                    RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(150, 150);
                     excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
                     break;
                 }

@@ -72,10 +72,19 @@ bool BuildAction::performAction()
     {
         // Build front tower, put it on top of the other one
         robot_->getMotionController()->goStraight(MARGIN + BUILD_DISTANCE);
+
         RobotPosition target = startPosition_;
         target.x = robot_->getMotionController()->getCurrentPosition().x;
         target.theta += M_PI;
-        robot_->getMotionController()->goToStraightLine(target);
+
+        bool moveSuccesful;
+        moveSuccesful = robot_->getMotionController()->goToStraightLine(target);
+        if (!moveSuccesful)
+        {
+            robot_->logger_ << "[BuildAction] Could not perform build due to detection, aborting" << std::endl;
+            nDrop_ ++;
+            return nDrop_ > 2;
+        }
         bool lvl2 = servoManager_->buildFrontTower();
         robot_->getGameState()->isFrontClawFull = false;
         if (lvl2)
@@ -83,9 +92,9 @@ bool BuildAction::performAction()
         else
             robot_->updateScore(4, "Lvl.1 tower");
 
-        robot_->getMotionController()->goStraight(-MARGIN);
+        moveSuccesful = robot_->getMotionController()->goStraight(-MARGIN);
 
-        if (lvl2)
+        if (moveSuccesful && lvl2)
         {
             // Try to build a level 3 column
             robot_->getMotionController()->pointTurn(M_PI);

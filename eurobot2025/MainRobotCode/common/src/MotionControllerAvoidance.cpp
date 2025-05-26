@@ -266,22 +266,29 @@ TrajectoryVector MotionController::computeMPCTrajectory(
 
     // At this point, we've tried to move back as much as possible from an obstacle. Nevertheless,
     // we may still be in an obstacle (table limit, robot)...
-    // Now we ask the path planner to give us the closest point which is not an obstacle, and we will start planning from there.
-    RobotPosition const closestAvailablePosition = map_.getNearestAvailablePosition(newStartPoint);
 
-    if ((closestAvailablePosition - newStartPoint).norm() > 30)
+    // For this year: we just fail, we don't want to risk breaking stuff.
+    if (map_.detectCollision(newStartPoint))
     {
-        *logger_ << "[MotionController] Desired point is not available, using closest point in grid: " << std::endl;
-        *logger_ << "[MotionController] " << closestAvailablePosition << " instead of " <<  newStartPoint << std::endl;
-
-        traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(
-            getCurrentTrajectoryParameters(),
-            newStartPoint,
-            closestAvailablePosition,
-            0.0,
-            static_cast<tf>(flags | tf::IGNORE_END_ANGLE));
-        newStartPoint = traj.getEndPoint().position;
+        *logger_ << "[MotionController] Cannot plan: " << newStartPoint << " is in obstacle" << std::endl;
+        return TrajectoryVector();
     }
+    // // Now we ask the path planner to give us the closest point which is not an obstacle, and we will start planning from there.
+    // RobotPosition const closestAvailablePosition = map_.getNearestAvailablePosition(newStartPoint);
+
+    // if ((closestAvailablePosition - newStartPoint).norm() > 30)
+    // {
+    //     *logger_ << "[MotionController] Desired point is not available, using closest point in grid: " << std::endl;
+    //     *logger_ << "[MotionController] " << closestAvailablePosition << " instead of " <<  newStartPoint << std::endl;
+
+    //     traj = traj + miam::trajectory::computeTrajectoryStraightLineToPoint(
+    //         getCurrentTrajectoryParameters(),
+    //         newStartPoint,
+    //         closestAvailablePosition,
+    //         0.0,
+    //         static_cast<tf>(flags | tf::IGNORE_END_ANGLE));
+    //     newStartPoint = traj.getEndPoint().position;
+    // }
 
     // plan motion
     TrajectoryVector mpcTrajectory = motionPlanner_.planMotion(

@@ -88,7 +88,11 @@ bool SmallColumnAction::performAction()
         return true;
 
     // Move forward and build
-    robot_->getMotionController()->goStraight(robot_->getMotionController()->getCurrentPosition().y - FRONT_CLAW_XOFFSET - 90);
+    targetPosition = robot_->getMotionController()->getCurrentPosition();
+    targetPosition.x = 720;
+    targetPosition.y = FRONT_CLAW_XOFFSET + 80;
+    targetPosition.theta = -M_PI_2;
+    robot_->getMotionController()->goToStraightLine(targetPosition);
 
     bool lvl2 = servoManager_->buildFrontTower();
 

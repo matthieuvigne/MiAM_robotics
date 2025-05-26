@@ -91,6 +91,9 @@ bool GrabColumnAction::performAction()
         wpt_margin = !isStartMotionBackward_ ? -40 : 40;
         maxGrabAttempts = 1;
     }
+    // Don't enter opponent zone
+    if (zoneId_ == 7)
+        maxGrabAttempts = 1;
 
     std::vector<RobotPosition> positions;
     positions.push_back(currentPosition);

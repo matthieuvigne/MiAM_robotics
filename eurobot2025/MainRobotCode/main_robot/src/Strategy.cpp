@@ -155,8 +155,9 @@ void Strategy::goBackToBase()
             robot->getMotionController()->setTrajectoryToFollow(traj);
             targetReached = robot->getMotionController()->waitForTrajectoryFinished();
         }
-        else
-            targetReached = robot->getMotionController()->goToStraightLine(targetPosition);
+        // No fallback this time
+        // else
+        //     targetReached = robot->getMotionController()->goToStraightLine(targetPosition);
     }
     if (targetReached)
     {
