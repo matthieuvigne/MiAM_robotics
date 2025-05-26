@@ -43,7 +43,7 @@
 #define FC_L_FOLD 240
 
 #define BACK_CLAW_RANGE_OPEN 230
-#define BACK_CLAW_RANGE_CLOSE 165
+#define BACK_CLAW_RANGE_CLOSE 175
 #define BC_L_FOLD 540
 #define BC_R_FOLD 140
 
@@ -109,8 +109,8 @@ void ServoManager::prepareGrab(bool const& front)
 
         //frontRightClaw_.rail_.move(0.05);
         //frontLeftClaw_.rail_.move(0.05);
-        frontRightClaw_.rail_.move(0.50);
-        frontLeftClaw_.rail_.move(0.50);
+        frontRightClaw_.rail_.move(0.60);
+        frontLeftClaw_.rail_.move(0.60);
         frontCanRail_.move(0.0);
         frontPlankRail_.move(0.0);
 
@@ -120,11 +120,11 @@ void ServoManager::prepareGrab(bool const& front)
         frontLeftClaw_.openClaw();
 
         releasePlank();
-        frontClawOpen();
+        frontClawClose();
     }
     else
     {
-        backClawOpen();
+        backClawClose();
         releaseBackPlank();
         backRail_.move(0.0);
     }
@@ -135,7 +135,7 @@ bool ServoManager::areBothFrontSideClawsFull()
     return frontRightClaw_.isClawFull() && frontLeftClaw_.isClawFull();
 }
 
-bool ServoManager::grab(bool const& front)
+bool ServoManager::grab(bool const& front, bool const& frontFullGrab)
 {
     if (front)
     {
@@ -145,8 +145,8 @@ bool ServoManager::grab(bool const& front)
         frontClawClose();
         // Grab the plank
         grabPlank();
-        robot_->wait(0.3);
-        if(!checkGrab(front))
+        robot_->wait(0.1);
+        if(!checkGrab(front) || (frontFullGrab && !areBothFrontSideClawsFull()))
         {
             releasePlank();
             return false;
@@ -316,6 +316,7 @@ void ServoManager::dropBanner()
 void ServoManager::grabPlank()
 {
     servos_->setTargetPosition(PLANK_WRIST, 2048);
+    robot_->wait(0.3);
     servos_->setTargetPosition(PLANK_CLAW, 1900);
 }
 
@@ -354,8 +355,8 @@ void ServoManager::releaseBackPlank()
 
 void ServoManager::foldBackPlank(bool init)
 {
-    servos_->setTargetPosition(BACK_PLANK_CLAW, (init ? 120 : 0) + BACK_PLANK_STRAIGHT);
-    servos_->setTargetPosition(BACK_PLANK_FINGER, (init ? -500: 0) + BACK_FINGER_CLOSE);
+    servos_->setTargetPosition(BACK_PLANK_CLAW, (init ? 100 : 0) + BACK_PLANK_STRAIGHT);
+    servos_->setTargetPosition(BACK_PLANK_FINGER, BACK_FINGER_CLOSE);
 }
 
 

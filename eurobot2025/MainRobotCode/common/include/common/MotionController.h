@@ -77,6 +77,8 @@
             /// \param[in] resetTheta Wheather or not to reset the angle.
             void resetPosition(RobotPosition const& resetPosition, bool const& resetX = true, bool const& resetY = true, bool const& resetTheta = true);
 
+            void startMatch(RobotPosition const& startPosition);
+
             /// \brief Set new trajectory set to follow.
             /// \details This function is used to set the trajectories which will be followed by
             ///          the low-level thread. This function simply gives the input to the low-level thread

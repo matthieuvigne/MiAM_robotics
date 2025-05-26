@@ -27,7 +27,7 @@
 #define N           ACADO_N   /* Number of intervals in the horizon. */
 #define HORIZON_T   MPC_DELTA_T * N
 
-#define VERBOSE     1         /* Show iterations: 1, silent: 0.  */
+#define VERBOSE     false         /* Show iterations: 1, silent: 0.  */
 
 
 /* Global variables used by the solver. */

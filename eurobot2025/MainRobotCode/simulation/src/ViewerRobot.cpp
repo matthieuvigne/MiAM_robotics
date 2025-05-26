@@ -140,7 +140,7 @@ void ViewerRobot::applyMotorTarget(DrivetrainTarget const& target)
     // Handle init
     if (guiState_.state != robotstate::MATCH)
     {
-        simulationPosition_ = motionController_.getCurrentPosition();
+        simulationPosition_ = gui_.getStartPosition();
 
         if (isPlayingRightSide())
         {

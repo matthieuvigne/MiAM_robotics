@@ -34,10 +34,15 @@
 
                 /// @brief Block motor during init phase
                 bool getBlockMotors();
+
+                /// @brief Detect borders to setup initial position
+                bool getAskedDetectBorders();
+
             protected:
                 void sideButtonClicked();
                 void startPositionButtonClicked();
                 void blockMotorsButtonClicked();
+                void detectBordersClicked();
 
             private:
                 bool doUpdate();
@@ -58,8 +63,10 @@
                 Gtk::Button sideButton_;
                 Gtk::Button startPositionButton_;
                 Gtk::Button blockMotorsButton_;
+                Gtk::Button detectBordersButton_;
 
                 bool areMotorsBlocked_ = false;
+                bool askedDetectBorders_ = false;
 
                 TableDrawing drawingArea_;
 

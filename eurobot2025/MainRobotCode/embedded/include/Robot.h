@@ -81,6 +81,8 @@
             VL53L0X vlxSensor_;
 
             void updateRangeMeasurement(); // Thread handling VLX acquisition
+            void detectBorders(); // Thread to detect borders, for match start.
+            bool touchBorder();
 
             // Init variables.
             bool isMotorsInit_ = false;
@@ -96,5 +98,7 @@
             WheelSpeed lastEncoderReading_;
             WheelSpeed lastMotorReading_;
             bool isEncoderInvalid_ = false;
+
+            bool inBorderDetection_ = false;
     };
  #endif

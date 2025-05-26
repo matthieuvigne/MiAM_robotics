@@ -118,11 +118,10 @@ void RobotInterface::lowLevelLoop()
         if (!hasMatchStarted_)
         {
             motionController_.isPlayingRightSide_ = gui_->getIsPlayingRightSide();
-            motionController_.resetPosition(getStartPosition());
-            motorEstimatedPosition_ = motionController_.getCurrentPosition();
             hasMatchStarted_ = setupBeforeMatchStart();
             if (hasMatchStarted_)
             {
+                motionController_.startMatch(getStartPosition());
                 matchStartTime_ = currentTime_;
                 logger_ << "[Robot] Starting match, isPlayingRightSide_: " << motionController_.isPlayingRightSide_ << std::endl;
                 guiState_.state = robotstate::MATCH;
@@ -131,6 +130,7 @@ void RobotInterface::lowLevelLoop()
                 strategyThread = std::thread(&AbstractStrategy::match, strategy_);
                 strategyHandle = ThreadHandler::addThread(strategyThread);
             }
+            motorEstimatedPosition_ = motionController_.getCurrentPosition();
         }
 
         // Can run only after init
@@ -161,20 +161,23 @@ void RobotInterface::lowLevelLoop()
             debugTimeAfterCompute = getTime();
 
             // Sanity check on encoder: this is to prevent the robot from becoming crazy when an encoder is lost.
-            motionController_.getKinematics().integratePosition(
-                dt_ * measurements_.drivetrainMeasurements.motorSpeed,
-                motorEstimatedPosition_,
-                false);
-            double const angleError = std::abs(motorEstimatedPosition_.theta - motionController_.getCurrentPosition().theta);
-            logger_.log("Robot.estimatedAngleDifference", currentTime_, angleError);
-            if (angleError > 0.5 * M_PI)
+            if (hasMatchStarted_)
             {
-                logger_ << "[ERROR] PANIC! Encoders and motors are inconsistent!" << std::endl;
-                logger_ << "Stopping everything to avoid further dammage..." << std::endl;
-                for (auto handle: strategy_->createdThreads_)
-                    pthread_cancel(handle);
-                pthread_cancel(strategyHandle);
-                shutdown();
+                motionController_.getKinematics().integratePosition(
+                    dt_ * measurements_.drivetrainMeasurements.motorSpeed,
+                    motorEstimatedPosition_,
+                    false);
+                double const angleError = std::abs(motorEstimatedPosition_.theta - motionController_.getCurrentPosition().theta);
+                logger_.log("Robot.estimatedAngleDifference", currentTime_, angleError);
+                if (angleError > 0.5 * M_PI)
+                {
+                    logger_ << "[ERROR] PANIC! Encoders and motors are inconsistent!" << std::endl;
+                    logger_ << "Stopping everything to avoid further dammage..." << std::endl;
+                    for (auto handle: strategy_->createdThreads_)
+                        pthread_cancel(handle);
+                    pthread_cancel(strategyHandle);
+                    shutdown();
+                }
             }
             // Apply target to the robot
             applyMotorTarget(target);

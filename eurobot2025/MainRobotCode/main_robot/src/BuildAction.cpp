@@ -2,7 +2,7 @@
 
 #define BACK_EXTRA_OFFSET 48
 
-#define MARGIN 170
+#define MARGIN 120
 #define BUILD_DISTANCE 180
 
 
@@ -31,8 +31,8 @@ void BuildAction::updateStartCondition()
     else
         isStartMotionBackward_ = !robot_->getGameState()->isFrontClawFull;
 
-    double const xoffset = (isStartMotionBackward_ ? BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET) + MARGIN;
-    startPosition_ = CONSTRUCTION_ZONE_COORDS[zoneId_].forward(-xoffset - 230 * nDrop_);
+    double const xoffset = 20 + (isStartMotionBackward_ ? BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET) + MARGIN;
+    startPosition_ = CONSTRUCTION_ZONE_COORDS[zoneId_].forward(-xoffset - BUILD_DISTANCE * nDrop_);
 
     if (isStartMotionBackward_)
         startPosition_.theta += M_PI;
@@ -46,9 +46,10 @@ void BuildAction::actionStartTrigger()
 
 bool BuildAction::performAction()
 {
+    robot_->logger_ << "[BuildAction] Starting action " << zoneId_ << std::endl;
     int const sign = (isStartMotionBackward_ ? -1 : 1);
 
-    robot_->getMotionController()->goStraight(sign * MARGIN);
+    robot_->getMotionController()->goStraight(sign * BUILD_DISTANCE);
     if (isStartMotionBackward_)
     {
         servoManager_->dropBackCans();
@@ -71,8 +72,10 @@ bool BuildAction::performAction()
     {
         // Build front tower, put it on top of the other one
         robot_->getMotionController()->goStraight(MARGIN + BUILD_DISTANCE);
-        robot_->getMotionController()->pointTurn(M_PI);
-        robot_->getMotionController()->goStraight(MARGIN);
+        RobotPosition target = startPosition_;
+        target.x = robot_->getMotionController()->getCurrentPosition().x;
+        target.theta += M_PI;
+        robot_->getMotionController()->goToStraightLine(target);
         bool lvl2 = servoManager_->buildFrontTower();
         robot_->getGameState()->isFrontClawFull = false;
         if (lvl2)
@@ -98,7 +101,9 @@ bool BuildAction::performAction()
                 servoManager_->releaseBackPlank();
                 robot_->wait(0.4);
                 robot_->getMotionController()->goStraight(MARGIN);
-                return true;
+
+                nDrop_ +=2;
+                return nDrop_ > 2;
             }
             servoManager_->backRail_.move(0.98);
             while (servoManager_->backRail_.isMoving())
@@ -122,8 +127,7 @@ bool BuildAction::performAction()
     if (largeZone_)
     {
         nDrop_ ++;
-        //return nDrop_ > 0;
-        return nDrop_ > 1;
+        return nDrop_ > 2;
     }
     return true;
 }

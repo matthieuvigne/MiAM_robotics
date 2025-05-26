@@ -208,6 +208,13 @@ void Robot::updateSensorData()
         logger_.log("Robot.battery.power", currentTime_, inaReading.power);
         logger_.log("Robot.vlxDistance", currentTime_, measurements_.vlxDistance);
     }
+
+    if (!hasMatchStarted_ && !inBorderDetection_ && gui_->getAskedDetectBorders())
+    {
+        logger_ << "[Robot] Border detection started" << std::endl;
+        std::thread measureThread = std::thread(&Robot::detectBorders, this);
+        measureThread.detach();
+    }
 }
 
 void Robot::applyMotorTarget(DrivetrainTarget const& target)
@@ -218,7 +225,7 @@ void Robot::applyMotorTarget(DrivetrainTarget const& target)
         rightMotor_.stop();
         leftMotor_.stop();
     }
-    else if (!hasMatchStarted_)
+    else if (!hasMatchStarted_ && !inBorderDetection_)
     {
         if (gui_->getBlockMotors())
         {
@@ -281,6 +288,92 @@ void Robot::shutdown()
     logger_.close();
 }
 
+
+bool Robot::touchBorder()
+{
+    motionController_.goStraight(500, 0.1, tf::NO_WAIT_FOR_END);
+    wait(1.0);
+    bool still = false;
+    while (!motionController_.isTrajectoryFinished())
+    {
+        if (std::abs(measurements_.drivetrainMeasurements.motorSpeed.right) > 1 && std::abs(measurements_.drivetrainMeasurements.motorSpeed.left) > 1)
+            if (std::abs(measurements_.drivetrainMeasurements.encoderPositionIncrement.right / (1e-9 * ROBOT_UPDATE_PERIOD)) < 0.05 &&
+                std::abs(measurements_.drivetrainMeasurements.encoderPositionIncrement.left / (1e-9 * ROBOT_UPDATE_PERIOD)) < 0.05)
+            {
+                motionController_.stopCurrentTrajectoryTracking();
+                still = true;
+            }
+        }
+    return still;
+}
+
+// static bool side = true;
+void Robot::detectBorders()
+{
+    pthread_setname_np(pthread_self(), "robot_detectBorders");
+    inBorderDetection_ = true;
+
+    // motionController_.goStraight(-1000);
+    // strategy_->testSquare(side, 500);
+    // side = !side;
+    // inBorderDetection_ = false;
+    // return;
+
+    if (!touchBorder())
+    {
+        logger_ << "[Robot] Failed to reach border, aborting!" << std::endl;
+        inBorderDetection_ = false;
+        return;
+    }
+    wait(0.5);
+    double const CHASSIS = 140;
+    RobotPosition pos(0, CHASSIS, -M_PI_2);
+    motionController_.resetPosition(pos, false, true, true);
+
+    // Touch other border
+    motionController_.goStraight(-CHASSIS);
+    motionController_.pointTurn(-M_PI_2);
+
+    // Touch border
+    if (!touchBorder())
+    {
+        logger_ << "[Robot] Failed to reach border, aborting!" << std::endl;
+        inBorderDetection_ = false;
+        return;
+    }
+    wait(0.5);
+    pos = RobotPosition(CHASSIS, 0, M_PI);
+    motionController_.resetPosition(pos, true, false, true);
+    motionController_.goStraight(-CHASSIS);
+
+    // Go to start position
+    RobotPosition target = gui_->getStartPosition();
+    target.y += CHASSIS;
+    motionController_.goToStraightLine(target, 1.0, tf::IGNORE_END_ANGLE);
+
+    motionController_.pointTurn(-M_PI_2);
+    if (!touchBorder())
+    {
+        logger_ << "[Robot] Failed to reach border, aborting!" << std::endl;
+        inBorderDetection_ = false;
+        return;
+    }
+    RobotPosition currentPos = motionController_.getCurrentPosition();
+    logger_ << "[Robot] Border position " << currentPos << std::endl;
+    if (std::abs(currentPos.y - CHASSIS) < 30)
+    {
+        pos = RobotPosition(0, CHASSIS, -M_PI_2);
+        motionController_.resetPosition(pos, false, true, true);
+        motionController_.goStraight(-CHASSIS * 1.5);
+
+        motionController_.goToStraightLine(gui_->getStartPosition(), 1.0, tf::BACKWARD);
+        logger_ << "[Robot] Border setup successful!" << std::endl;
+    }
+    else
+        logger_ << "[Robot] Border position mismatch!" << std::endl;
+    inBorderDetection_ = false;
+
+}
 
 void Robot::updateRangeMeasurement()
 {

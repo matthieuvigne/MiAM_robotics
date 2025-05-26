@@ -116,6 +116,14 @@ bool MotionController::wasTrajectoryFollowingSuccessful()
     return wasTrajectoryFollowingSuccessful_;
 }
 
+void MotionController::startMatch(RobotPosition const& startPosition)
+{
+    resetPosition(startPosition);
+    PIDLinear_.resetIntegral(0.0);
+    PIDAngular_.resetIntegral(0.0);
+}
+
+
 DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurements const &measurements,
                                                            double const &dt)
 {
@@ -377,46 +385,46 @@ void MotionController::changeMotionControllerState()
     }
 
     // print and change
-    if (motionControllerState_ != nextMotionControllerState)
-    {
-        std::string current;
-        if (motionControllerState_ == CONTROLLER_STOP)
-        {
-            current = "STOP";
-        }
-        else if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
-        {
-            current = "TRAJECTORY_TRACKING";
-        }
-        else if (motionControllerState_ == CONTROLLER_WAIT_FOR_AVOIDANCE)
-        {
-            current = "WAIT_FOR_AVOIDANCE";
-        }
-        else if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
-        {
-            current = "WAIT_FOR_TRAJECTORY";
-        }
+    // if (motionControllerState_ != nextMotionControllerState)
+    // {
+    //     std::string current;
+    //     if (motionControllerState_ == CONTROLLER_STOP)
+    //     {
+    //         current = "STOP";
+    //     }
+    //     else if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
+    //     {
+    //         current = "TRAJECTORY_TRACKING";
+    //     }
+    //     else if (motionControllerState_ == CONTROLLER_WAIT_FOR_AVOIDANCE)
+    //     {
+    //         current = "WAIT_FOR_AVOIDANCE";
+    //     }
+    //     else if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
+    //     {
+    //         current = "WAIT_FOR_TRAJECTORY";
+    //     }
 
-        std::string next;
-        if (nextMotionControllerState == CONTROLLER_STOP)
-        {
-            next = "STOP";
-        }
-        else if (nextMotionControllerState == CONTROLLER_TRAJECTORY_TRACKING)
-        {
-            next = "TRAJECTORY_TRACKING";
-        }
-        else if (nextMotionControllerState == CONTROLLER_WAIT_FOR_AVOIDANCE)
-        {
-            next = "WAIT_FOR_AVOIDANCE";
-        }
-        else if (nextMotionControllerState == CONTROLLER_WAIT_FOR_TRAJECTORY)
-        {
-            next = "WAIT_FOR_TRAJECTORY";
-        }
+    //     std::string next;
+    //     if (nextMotionControllerState == CONTROLLER_STOP)
+    //     {
+    //         next = "STOP";
+    //     }
+    //     else if (nextMotionControllerState == CONTROLLER_TRAJECTORY_TRACKING)
+    //     {
+    //         next = "TRAJECTORY_TRACKING";
+    //     }
+    //     else if (nextMotionControllerState == CONTROLLER_WAIT_FOR_AVOIDANCE)
+    //     {
+    //         next = "WAIT_FOR_AVOIDANCE";
+    //     }
+    //     else if (nextMotionControllerState == CONTROLLER_WAIT_FOR_TRAJECTORY)
+    //     {
+    //         next = "WAIT_FOR_TRAJECTORY";
+    //     }
 
-        *logger_ << "[MotionController] State changed: from " << current << " to " << next << std::endl;
-    }
+    //     *logger_ << "[MotionController] State changed: from " << current << " to " << next << std::endl;
+    // }
 
     motionControllerState_ = nextMotionControllerState;
 }
@@ -431,12 +439,7 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
     target.motorSpeed.right = 0.0;
     target.motorSpeed.left = 0.0;
 
-    if (!hasMatchStarted)
-    {
-        PIDLinear_.resetIntegral(0.0);
-        PIDAngular_.resetIntegral(0.0);
-    }
-    else if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
+    if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
     {
         // Load first trajectory, look if we are done following it.
         Trajectory *traj = currentTrajectories_.at(0).get();
@@ -538,7 +541,7 @@ TrajectoryConfig MotionController::getCurrentTrajectoryParameters()
     TrajectoryConfig conf = robotParams_.getTrajConf();
     if (gameState_.isBackClawFull || gameState_.isFrontClawFull)
     {
-        conf.maxWheelVelocity *= 0.7;
+        conf.maxWheelVelocity *= 0.6;
         conf.maxWheelAcceleration *= 0.6;
     }
     return conf;

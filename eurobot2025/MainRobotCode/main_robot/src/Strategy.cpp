@@ -43,9 +43,9 @@ bool Strategy::setup(RobotInterface *robot)
         // Load actions into action vector.
         actions_.clear();
 
+        // Zone 0 disabled to protect PAMI
         for (int i = 1; i < 8; i++)
         {
-            // [TODO] : AJOUTER UNE LOGIQUE SPECIFIQUE POUR LA ZONE 0
             actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, i));
         }
 
@@ -95,7 +95,7 @@ void Strategy::match()
     pthread_t handle = ThreadHandler::addThread(stratMain);
     createdThreads_.push_back(handle);
 
-    double const FALLBACK_TIME = 85.0;
+    double const FALLBACK_TIME = 82.0;
     robot->wait(FALLBACK_TIME);
     if (!MATCH_COMPLETED)
     {
@@ -160,7 +160,7 @@ void Strategy::goBackToBase()
     }
     if (targetReached)
     {
-        servoManager_.backClawClose();
+        servoManager_.foldClaws();
         robot->updateScore(10, "back to base");
         if (robot->isPlayingRightSide())
         {
@@ -186,7 +186,16 @@ void Strategy::match_impl()
     robot->wait(0.5);
     robot->updateScore(20, "banner");
 
-    robot->getMotionController()->goStraight(200);
+    SmallColumnAction act(robot, &servoManager_);
+    act.updateStartCondition();
+    RobotPosition current = robot->getMotionController()->getCurrentPosition();
+    RobotPosition final = act.startPosition_;
+
+    std::vector<RobotPosition> positions;
+    current.y = final.y;
+    positions.push_back(current);
+    positions.push_back(final);
+    robot->getMotionController()->goToRoundedCorners(positions, 200, 0.3);
     servoManager_.foldBanner();
     servoManager_.releasePlank();
 
@@ -262,7 +271,7 @@ void Strategy::match_impl()
             if (allFail)
             {
                 robot->logger_ << "[Strategy] All actions have failed, let's reset." << std::endl;
-                if (robot->getMatchTime() > 80.0)
+                if (robot->getMatchTime() > 70.0)
                 {
                     robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
                     actions_.clear();
@@ -299,27 +308,33 @@ bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & acti
     tf flags = (action->isStartMotionBackward_ ? tf::BACKWARD : tf::DEFAULT);
     if (action->ignoreFinalRotation_)
         flags = static_cast<tf>(flags | tf::IGNORE_END_ANGLE);
-    TrajectoryVector traj;
-    traj = robot->getMotionController()->computeMPCTrajectory(
-        action->startPosition_,
-        robot->getMotionController()->getDetectedObstacles(),
-        flags);
-    if (traj.empty())
-    {
-        robot->logger_ << "[Strategy] Motion planning to action failed!" << std::endl;
-        return false;
-    }
 
     // Perform trigger action
     action->actionStartTrigger();
 
-    // Follow trajectory to action start
-    robot->getMotionController()->setTrajectoryToFollow(traj);
-    if (!robot->getMotionController()->waitForTrajectoryFinished())
+    // Only do pathplanning if not there yet
+    if (!(action->ignoreFinalRotation_ && (robot->getMotionController()->getCurrentPosition() - action->startPosition_).norm() < 20))
     {
-        robot->logger_ << "[Strategy] Action failed, could not reach start position." << std::endl;
-        // action was not successful
-        return false;
+        TrajectoryVector traj;
+        traj = robot->getMotionController()->computeMPCTrajectory(
+            action->startPosition_,
+            robot->getMotionController()->getDetectedObstacles(),
+            flags);
+        if (traj.empty())
+        {
+            robot->logger_ << "[Strategy] Motion planning to action failed!" << std::endl;
+            return false;
+        }
+
+
+        // Follow trajectory to action start
+        robot->getMotionController()->setTrajectoryToFollow(traj);
+        if (!robot->getMotionController()->waitForTrajectoryFinished())
+        {
+            robot->logger_ << "[Strategy] Action failed, could not reach start position." << std::endl;
+            // action was not successful
+            return false;
+        }
     }
     actionShouldBeRemoved = action->performAction();
     return actionShouldBeRemoved;

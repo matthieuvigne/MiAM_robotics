@@ -9,7 +9,7 @@
 
 
 std::vector<miam::RobotPosition> START_POSITIONS({
-    miam::RobotPosition(1222, 178, M_PI_2)
+    miam::RobotPosition(1225, 178, M_PI_2)
 });
 
 RobotGUI::RobotGUI()
@@ -58,6 +58,9 @@ RobotGUI::RobotGUI()
 
     blockMotorsButton_ = Gtk::Button("Block motors");
     blockMotorsButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::blockMotorsButtonClicked));
+
+    detectBordersButton_ = Gtk::Button("Detect borders");
+    detectBordersButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::detectBordersClicked));
 
     scoreLabel_.set_name("score");
     add(box_);
@@ -127,12 +130,13 @@ bool RobotGUI::doUpdate()
         {
             box_.pack_start(debugLabel_);
         }
-        if (robotData.state == robotstate::WAITING_FOR_START)
+        if (robotData.state == robotstate::WAITING_FOR_START || robotData.state == robotstate::WAITING_FOR_CABLE)
         {
             box_.pack_start(sideButton_);
             // Remove, we never change zone.
             // box_.pack_start(startPositionButton_);
             box_.pack_start(blockMotorsButton_);
+            // box_.pack_start(detectBordersButton_); // Disabled for now
             box_.pack_start(drawingArea_);
         }
         if (robotData.state == robotstate::MATCH)
@@ -184,6 +188,12 @@ void RobotGUI::blockMotorsButtonClicked()
 }
 
 
+void RobotGUI::detectBordersClicked()
+{
+    askedDetectBorders_ = true;
+}
+
+
 miam::RobotPosition RobotGUI::getStartPosition()
 {
     miam::RobotPosition startPos = START_POSITIONS[startPositionIdx_];
@@ -193,6 +203,13 @@ miam::RobotPosition RobotGUI::getStartPosition()
 bool RobotGUI::getBlockMotors()
 {
     return areMotorsBlocked_;
+}
+
+bool RobotGUI::getAskedDetectBorders()
+{
+    bool res = askedDetectBorders_;
+    askedDetectBorders_ = false;
+    return res;
 }
 
 bool TableDrawing::on_draw(Cairo::RefPtr<Cairo::Context> const& cr)

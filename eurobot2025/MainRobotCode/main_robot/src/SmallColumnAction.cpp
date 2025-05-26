@@ -1,6 +1,6 @@
 #include "main_robot/SmallColumnAction.h"
 
-#define MARGIN 160
+#define MARGIN 120
 
 #define ZONE_ID 8
 
@@ -28,6 +28,8 @@ void SmallColumnAction::updateStartCondition()
 void SmallColumnAction::actionStartTrigger()
 {
     servoManager_->prepareGrab(true);
+    servoManager_->frontRightClaw_.rail_.move(0.05);
+    servoManager_->frontLeftClaw_.rail_.move(0.05);
 }
 
 bool SmallColumnAction::performAction()
@@ -74,7 +76,7 @@ bool SmallColumnAction::performAction()
         robot_->logger_ << "[SmallColumnAction] Grab failure, retrying." << std::endl;
         robot_->getMotionController()->goStraight(50, 0.5);
         robot_->getMotionController()->waitForTrajectoryFinished();
-        success = servoManager_->grab(true);
+        success = servoManager_->grab(true, !(num_attempts == max_attempts - 1));
         num_attempts += 1;
     }
 

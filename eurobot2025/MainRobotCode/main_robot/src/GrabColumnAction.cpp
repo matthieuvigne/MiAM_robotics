@@ -10,7 +10,15 @@ void GrabColumnAction::updateStartCondition()
     }
     else
     {
-        priority_ = 5;
+        switch(zoneId_)
+        {
+            case 0: priority_ = 3; break;
+            case 1: priority_ = 3; break;
+            case 3: priority_ = 5; break;
+            case 5: priority_ = 4; break;
+            case 7: priority_ = 1; break;
+            default: priority_ = 2; break;
+        }
     }
     ignoreFinalRotation_ = true;
 
@@ -52,6 +60,7 @@ void GrabColumnAction::actionStartTrigger()
 
 bool GrabColumnAction::performAction()
 {
+    robot_->logger_ << "[GrabColumnAction] Starting action " << zoneId_ << " " << isStartMotionBackward_ << std::endl;
     bool const front = !isStartMotionBackward_;
 
     double forwardAmount = (isStartMotionBackward_ ? -BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET);
@@ -73,7 +82,7 @@ bool GrabColumnAction::performAction()
     RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
     RobotPosition targetPosition = startPosition_.forward(isStartMotionBackward_?-MARGIN:MARGIN);
     //~ targetPosition.theta = startPosition_.theta;
-    double wpt_margin = !isStartMotionBackward_ ? -30 : 30;
+    double wpt_margin = !isStartMotionBackward_ ? -40 : 40;
 
     // For those on the side of the field, push them against the border ; try only once
     int maxGrabAttempts = 2;
@@ -120,7 +129,7 @@ bool GrabColumnAction::performAction()
         robot_->getMotionController()->goStraight(front? 60:-60);
         robot_->getMotionController()->waitForTrajectoryFinished();
 
-        success = servoManager_->grab(front);
+        success = servoManager_->grab(front, !(num_attempts == maxGrabAttempts - 1));
         num_attempts += 1;
     }
 
