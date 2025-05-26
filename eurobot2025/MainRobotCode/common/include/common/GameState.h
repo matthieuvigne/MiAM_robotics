@@ -29,5 +29,13 @@
 
             /// @brief Generate map for obstacle avoidance
             Map generateMap();
+
+            /// \brief Try to guess the actions of the other robot from the obstacle list
+            /// \param[in] obstacles List of obstacles
+            /// \param[in] time Current match time
+            /// \param[in] logger Debugging logger
+            void detectOtherRobotAction(std::vector<Obstacle> const& obstacles, double time, Logger *logger);
+        private:
+            double timeOtherRobotEnteredZone_[9] = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
     };
  #endif

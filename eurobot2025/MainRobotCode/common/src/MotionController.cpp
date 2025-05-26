@@ -176,6 +176,10 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     }
     log("lidarNumberOfObstacles", nObstaclesOnTable);
 
+    // Update game state based on other robot
+    if (measurements.matchTime > 1.0)
+        gameState_.detectOtherRobotAction(detectedObstacles_, measurements.matchTime, logger_);
+
     // add obstacles
     for (auto obstacle : getPersistentObstacles())
     {

@@ -49,7 +49,7 @@
 
 ServoManager::ServoManager():
     frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 195, false), //0.9/* TODO check this value*/
-    frontLeftClaw_(RailServo(10, 24, 9000 /*9500*/, false), 12, 11, 730, true), //1.1
+    frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 730, true), //1.1
     backRail_(20, 20, 9600, true),
     frontPlankRail_(6, 21, 8000, false),
     frontCanRail_(5, 22, 7800, true, true)
@@ -95,10 +95,10 @@ void ServoManager::init(RobotInterface *robot)
 
 void ServoManager::setRailsToInitPosition()
 {
-    frontRightClaw_.rail_.move(0.9);
-    frontLeftClaw_.rail_.move(0.9);
-    frontCanRail_.move(0.4);
-    frontPlankRail_.move(0.4);
+    frontRightClaw_.rail_.move(0.4);
+    frontLeftClaw_.rail_.move(0.4);
+    frontCanRail_.move(0.0);
+    frontPlankRail_.move(0.0);
     backRail_.move(0.30);
 }
 
@@ -107,26 +107,56 @@ void ServoManager::prepareGrab(bool const& front)
     if (front)
     {
 
-        //frontRightClaw_.rail_.move(0.05);
-        //frontLeftClaw_.rail_.move(0.05);
-        frontRightClaw_.rail_.move(0.60);
-        frontLeftClaw_.rail_.move(0.60);
-        frontCanRail_.move(0.0);
-        frontPlankRail_.move(0.0);
-
         frontRightClaw_.move(ClawPosition::FORWARD);
         frontRightClaw_.openClaw();
         frontLeftClaw_.move(ClawPosition::FORWARD);
         frontLeftClaw_.openClaw();
 
+        frontRightClaw_.rail_.move(0.05);
+        frontLeftClaw_.rail_.move(0.05);
+        frontCanRail_.move(0.0);
+        frontPlankRail_.move(0.0);
+
+        while (railManager_.areAnyMoving())
+            robot_->wait(0.010);
+
         releasePlank();
-        frontClawClose();
+        frontClawOpen();
     }
     else
     {
-        backClawClose();
-        releaseBackPlank();
         backRail_.move(0.0);
+        while (backRail_.isMoving())
+            robot_->wait(0.010);
+        backClawOpen();
+        releaseBackPlank();
+    }
+}
+
+void ServoManager::clawsToMoveConfiguration(bool const& front)
+{
+    if (front)
+    {
+        frontRightClaw_.rail_.move(0.40);
+        frontLeftClaw_.rail_.move(0.40);
+        frontCanRail_.move(0.0);
+        frontPlankRail_.move(0.0);
+        while (railManager_.areAnyMoving())
+            robot_->wait(0.010);
+        servos_->setTargetPosition(FRONT_CLAW_R, FC_R_FOLD);
+        servos_->setTargetPosition(FRONT_CLAW_L, FC_L_FOLD);
+
+        frontRightClaw_.move(ClawPosition::FOLDED);
+        frontRightClaw_.foldClaw();
+        frontLeftClaw_.move(ClawPosition::FOLDED);
+        frontLeftClaw_.foldClaw();
+        releasePlank();
+    }
+    else
+    {
+        servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD);
+        servos_->setTargetPosition(BACK_CLAW_R, BC_R_FOLD);
+        releaseBackPlank();
     }
 }
 

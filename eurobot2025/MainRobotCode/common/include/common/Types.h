@@ -52,4 +52,6 @@
         double vlxDistance = 0.0;
     };
 
+    typedef std::tuple<miam::RobotPosition, double> Obstacle;
+
  #endif

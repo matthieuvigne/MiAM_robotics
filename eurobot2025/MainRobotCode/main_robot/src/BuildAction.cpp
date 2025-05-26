@@ -65,7 +65,6 @@ bool BuildAction::performAction()
         else
             robot_->updateScore(4, "Lvl.1 tower");
     }
-
     robot_->getGameState()->isConstructionZoneUsed[zoneId_] = true;
 
     if (isStartMotionBackward_ && robot_->getGameState()->isFrontClawFull && (largeZone_))
@@ -93,6 +92,7 @@ bool BuildAction::performAction()
             robot_->updateScore(4, "Lvl.1 tower");
 
         moveSuccesful = robot_->getMotionController()->goStraight(-MARGIN);
+        servoManager_->clawsToMoveConfiguration(true);
 
         if (moveSuccesful && lvl2)
         {
@@ -111,6 +111,7 @@ bool BuildAction::performAction()
                 robot_->wait(0.4);
                 robot_->getMotionController()->goStraight(MARGIN);
 
+                servoManager_->clawsToMoveConfiguration(false);
                 nDrop_ +=2;
                 return nDrop_ > 2;
             }
@@ -124,13 +125,14 @@ bool BuildAction::performAction()
             servoManager_->dropBackCans(false);
             robot_->getMotionController()->goStraight(MARGIN);
             robot_->updateScore(12, "Lvl.3 tower");
+            servoManager_->clawsToMoveConfiguration(false);
         }
     }
     else
+    {
         robot_->getMotionController()->goStraight(-sign * 200);
-
-    // Raise side claws
-    servoManager_->raiseFrontSideClaws();
+        servoManager_->clawsToMoveConfiguration(isStartMotionBackward_);
+    }
 
     // Allow several drops in large zones
     if (largeZone_)

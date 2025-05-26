@@ -197,3 +197,31 @@ Map GameState::generateMap()
 
     return map;
 }
+
+void GameState::detectOtherRobotAction(std::vector<Obstacle> const& obstacles, double time, Logger *logger)
+{
+    for (int i = 0; i < 9; i++)
+    {
+        if (isCollectZoneFull[i])
+        {
+            for (auto const& o : obstacles)
+            {
+                if((std::get<0>(o) - COLLECT_ZONE_COORDS[i]).norm() < 300)
+                {
+                    if (timeOtherRobotEnteredZone_[i] < 0)
+                        timeOtherRobotEnteredZone_[i] = time;
+                    if (time - timeOtherRobotEnteredZone_[i] > 2.0)
+                    {
+                        *logger << "[GameState] Zone " << i << " picked up by other robot, removing" << std::endl;
+                         isCollectZoneFull[i] = false;
+                         break;
+                    }
+                }
+                else
+                {
+                    timeOtherRobotEnteredZone_[i] = -1;
+                }
+            }
+        }
+    }
+}

@@ -55,13 +55,14 @@ void GrabColumnAction::updateStartCondition()
 
 void GrabColumnAction::actionStartTrigger()
 {
-    servoManager_->prepareGrab(!isStartMotionBackward_);
 }
 
 bool GrabColumnAction::performAction()
 {
     robot_->logger_ << "[GrabColumnAction] Starting action " << zoneId_ << " " << isStartMotionBackward_ << std::endl;
     bool const front = !isStartMotionBackward_;
+
+    servoManager_->prepareGrab(!isStartMotionBackward_);
 
     double forwardAmount = (isStartMotionBackward_ ? -BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET);
     if (front)

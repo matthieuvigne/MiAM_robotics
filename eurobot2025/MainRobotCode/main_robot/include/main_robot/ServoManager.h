@@ -26,6 +26,8 @@ public:
     void foldPlank();
 
     void prepareGrab(bool const& front);
+    void clawsToMoveConfiguration(bool const& front);
+
     bool grab(bool const& front, bool const& frontFullGrab = true);
     bool checkGrab(bool const& front);
     bool areBothFrontSideClawsFull();

@@ -27,21 +27,12 @@ void SmallColumnAction::updateStartCondition()
 
 void SmallColumnAction::actionStartTrigger()
 {
-    servoManager_->prepareGrab(true);
-    servoManager_->frontRightClaw_.rail_.move(0.05);
-    servoManager_->frontLeftClaw_.rail_.move(0.05);
 }
 
 bool SmallColumnAction::performAction()
 {
-    // Initiliaze
-    servoManager_->frontClawOpen();
-    servoManager_->frontRightClaw_.rail_.move(0.05);
-    servoManager_->frontLeftClaw_.rail_.move(0.05);
-    while (servoManager_->frontRightClaw_.rail_.isMoving()
-        || servoManager_->frontLeftClaw_.rail_.isMoving())
-            robot_->wait(0.050);
-
+    robot_->logger_ << "[SmallColumnAction] Starting action." << std::endl;
+    servoManager_->prepareGrab(true);
 
 
     // Reach the grab position

@@ -48,8 +48,6 @@
         CONTROLLER_WAIT_FOR_TRAJECTORY  = 3
     };
 
-    typedef std::tuple<RobotPosition, double> Obstacle;
-
     using tf = miam::trajectory::flags;
 
     class MotionController
