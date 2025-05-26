@@ -95,6 +95,7 @@ bool SmallColumnAction::performAction()
         robot_->updateScore(4, "Lvl.1 tower");
 
     robot_->getMotionController()->goStraight(-MARGIN);
+    servoManager_->clawsToMoveConfiguration(true);
     // Action should not be done again
     return true;
 }

@@ -95,7 +95,7 @@ void Strategy::match()
     pthread_t handle = ThreadHandler::addThread(stratMain);
     createdThreads_.push_back(handle);
 
-    double const FALLBACK_TIME = 82.0;
+    double const FALLBACK_TIME = 85.0;
     robot->wait(FALLBACK_TIME);
     if (!MATCH_COMPLETED)
     {
@@ -272,12 +272,6 @@ void Strategy::match_impl()
             if (allFail)
             {
                 robot->logger_ << "[Strategy] All actions have failed, let's reset." << std::endl;
-                if (robot->getMatchTime() > 70.0)
-                {
-                    robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
-                    actions_.clear();
-                    actionShouldBeRemoved = false;
-                }
                 for (unsigned int i = 0; i < actions_.size(); i++)
                 {
                     actions_.at(i)->wasFailed = false;
@@ -289,6 +283,12 @@ void Strategy::match_impl()
         if (actionShouldBeRemoved)
         {
             actions_.erase(actions_.begin() + selectedAction);
+        }
+
+        if (robot->getMatchTime() > 80.0)
+        {
+            robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
+            break;
         }
     }
     robot->logger_ << "[Strategy] No more action to perform" << std::endl;

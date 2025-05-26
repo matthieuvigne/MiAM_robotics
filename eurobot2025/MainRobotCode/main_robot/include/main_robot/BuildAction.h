@@ -31,6 +31,8 @@ private:
 
     bool largeZone_;
     int nDrop_;
+
+    bool specialReverse_ = false;
 };
 
 

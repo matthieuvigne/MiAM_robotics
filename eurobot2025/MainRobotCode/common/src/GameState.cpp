@@ -16,7 +16,7 @@ const miam::RobotPosition COLLECT_ZONE_COORDS[9] =
 
 const miam::RobotPosition CONSTRUCTION_ZONE_COORDS[4] =
 {
-    miam::RobotPosition(1200+50, 85, -M_PI_2),
+    miam::RobotPosition(1200 + 50, 100, -M_PI_2),
     miam::RobotPosition(2880, 875, 0),
     miam::RobotPosition(750, 70, -M_PI_2),
     miam::RobotPosition(2700, 70, -M_PI_2)
@@ -90,7 +90,7 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
     {
         for (int j = 0; j < 4; j++)
         {
-            cr->arc(150, 50 * (-3 + 2 * j), 20, 0.0, 2.0 * M_PI);
+            cr->arc(182.0, 50 * (-3 + 2 * j), 20, 0.0, 2.0 * M_PI);
             cr->fill();
         }
     }
@@ -98,7 +98,7 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
     {
         for (int j = 0; j < 4; j++)
         {
-            cr->arc(-150, 50 * (-3 + 2 * j), 20, 0.0, 2.0 * M_PI);
+            cr->arc(-135.0, 50 * (-3 + 2 * j), 20, 0.0, 2.0 * M_PI);
             cr->fill();
         }
     }
