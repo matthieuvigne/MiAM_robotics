@@ -140,3 +140,24 @@ void Map::addCollisionCircle(RobotPosition const& position, double radius)
         }
     }
 }
+
+void Map::addCollisionSquare(RobotPosition const& position, double halfDiameter)
+{
+    // number of grid units to be taken into account
+    int grid_distance = ceil(halfDiameter * std::sqrt(2) / 2.0 / gridSize_);
+    MapCoord center_position = posToCoord(position);
+
+    // in a big square around the center position, draw obstacle
+    for (int i = std::max(0, center_position.x - grid_distance);
+        i < std::min(static_cast<int>(rows()), center_position.x + grid_distance + 1);
+        i++)
+    {
+        for (int j = std::max(0, center_position.y - grid_distance);
+            j < std::min(static_cast<int>(cols()), center_position.y + grid_distance + 1);
+            j++)
+        {
+            RobotPosition obsPosition = coordToPos({i, j});
+            (*this)(i, j) = 1;
+        }
+    }
+}

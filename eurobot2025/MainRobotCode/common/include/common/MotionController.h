@@ -191,7 +191,8 @@
                 RobotPosition const targetPosition,
                 std::vector<Obstacle> const detectedObstacles,
                 tf const& flags,
-                double const initialBackwardMotionMargin = 0);
+                double const initialBackwardMotionMargin = 0,
+                bool assumeRoundObstacle = true);
 
             TrajectoryVector computeBasicAvoidanceTrajectory(
                 RobotPosition targetPosition,

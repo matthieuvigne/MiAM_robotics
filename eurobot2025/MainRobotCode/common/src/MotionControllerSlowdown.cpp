@@ -128,13 +128,29 @@ double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory()
         // double minDistanceToObstacle = 1e6;
         for (auto& obstacle : detectedObstacles_)
         {
-            // If we detect a future collision
-            if ((futureTrajectoryPoint.position - std::get<0>(obstacle)).norm() < std::get<1>(obstacle))
-            {
-                // If we are going away from the obstacle, authorize the move
-                RobotPosition const obstacleInRobotReferential =
+            bool obstacleIsInCollisionCourse = false;
+            bool obstacleSquareTriggered = false;
+
+            RobotPosition const obstacleInRobotReferential =
                     (std::get<0>(obstacle) - futureTrajectoryPoint.position).rotate(-futureTrajectoryPoint.position.theta);
 
+
+            // Assume obstacle is round: take the norm of the difference of positions
+            obstacleIsInCollisionCourse = (futureTrajectoryPoint.position - std::get<0>(obstacle)).norm() < std::get<1>(obstacle);
+
+            if (obstacleIsInCollisionCourse)
+            {
+                obstacleSquareTriggered = true;
+                // Check whether the corners of the robot are within the rectangle
+                float robotWidth = std::get<1>(obstacle);
+                float robotHeight = std::get<1>(obstacle);
+                obstacleIsInCollisionCourse = (std::abs(obstacleInRobotReferential.x) < (robotHeight / 2.0)) && (std::abs(obstacleInRobotReferential.y) < (robotWidth / 2.0));
+            }
+
+            // If we detect a future collision
+            if (obstacleIsInCollisionCourse)
+            {
+                // If we are going away from the obstacle, authorize the move
                 // The obstacle is in front of the robot
                 if (futureTrajectoryPoint.linearVelocity * obstacleInRobotReferential.x > 0)
                 {
@@ -146,6 +162,11 @@ double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory()
                     else
                     {
                         coeff = std::min(coeff, minSlowDown + (timeHorizon - minTimeHorizon) / (maxTimeHorizon - minTimeHorizon) * (maxSlowDown - minSlowDown));
+                        // If avoidance squared has been triggered, then slow down the robot even more
+                        if (obstacleSquareTriggered)
+                        {
+                            coeff *= 0.7;
+                        }
                     }
                 }
             }

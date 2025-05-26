@@ -45,7 +45,7 @@ TrajectoryVector MotionController::performAvoidance()
     {
         // The more avoidance fails, the more we go backward.
         double const backwardMargin = std::min(avoidanceCount_ * 75, 150);
-        traj = computeMPCTrajectory(targetPosition, detectedObstacles, flags, backwardMargin);
+        traj = computeMPCTrajectory(targetPosition, detectedObstacles, flags, backwardMargin, avoidanceCount_ == 0);
     }
 
     for (auto& subtraj : traj)
@@ -164,7 +164,8 @@ TrajectoryVector MotionController::computeMPCTrajectory(
     RobotPosition const targetPosition,
     std::vector<Obstacle> const detectedObstacles,
     tf const& flags,
-    double const initialBackwardMotionMargin)
+    double const initialBackwardMotionMargin,
+    bool assumeRoundObstacle)
 {
     ZoneScopedN("planMotion");
     // Only one thread may perform planning at a given time.
@@ -173,6 +174,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
     RobotPosition currentPosition = getCurrentPosition();
 
     *logger_ << "[MotionController] Trying to plan MPC from " << currentPosition << " to " << targetPosition << std::endl;
+    *logger_ << "Assume obstacle is " << (assumeRoundObstacle ? "ROUND" : "SQUARE") << std::endl;
 
     // Update obstacle map
     double minDistanceToObstacle = 10000;
@@ -184,7 +186,16 @@ TrajectoryVector MotionController::computeMPCTrajectory(
 
     for (auto const& obstacle : detectedObstacles)
     {
-        map_.addCollisionCircle(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
+        // For the first avoidance attempt, the obstacle is assumed round
+        if (assumeRoundObstacle)
+        {
+            map_.addCollisionCircle(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
+        }
+        // For the following attempts, it is assumed square within the same radius
+        else
+        {
+            map_.addCollisionSquare(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
+        }
         double const distance = (std::get<0>(obstacle) - currentPosition).norm();
         if (distance < minDistanceToObstacle)
         {

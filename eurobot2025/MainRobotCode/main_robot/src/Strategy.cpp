@@ -321,6 +321,18 @@ bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & acti
             action->startPosition_,
             robot->getMotionController()->getDetectedObstacles(),
             flags);
+
+        // Second attempt assuming obstacle is square
+        if (traj.empty())
+        {
+            traj = robot->getMotionController()->computeMPCTrajectory(
+            action->startPosition_,
+            robot->getMotionController()->getDetectedObstacles(),
+            flags,
+            0,
+            false);
+        }
+
         if (traj.empty())
         {
             robot->logger_ << "[Strategy] Motion planning to action failed!" << std::endl;

@@ -45,6 +45,11 @@ class Map: public Eigen::MatrixXi
         /// @param radius radius of the collision in mm
         void addCollisionCircle(RobotPosition const& position, double radius);
 
+        /// @brief Adds a collision square to the a-star map
+        /// @param position position in robotposition
+        /// @param halfDiameter half of the diameter of the square of the collision in mm
+        void addCollisionSquare(RobotPosition const& position, double halfDiameter);
+
         /// @brief Return the closest position in the grid which is not in an obstacle.
         /// @param desiredPosition Desired position
         /// @return Closest available cell*
