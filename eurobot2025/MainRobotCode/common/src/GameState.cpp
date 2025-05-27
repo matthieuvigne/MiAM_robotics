@@ -141,6 +141,11 @@ Map GameState::generateMap()
     // Scene
     excludeRectangle(map, 1050, 1550, 3000, 2000);
 
+    if (arePAMIMoving_)
+    {
+        excludeRectangle(map, 900, 1400, 3000, 2000);
+    }
+
     // Other robot start / drop zones
     excludeRectangle(map, 0, 650, 450, 1100);
     excludeRectangle(map, 0, 0, 450, 150);

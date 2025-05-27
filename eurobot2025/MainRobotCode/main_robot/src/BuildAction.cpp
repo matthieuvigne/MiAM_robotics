@@ -131,7 +131,7 @@ bool BuildAction::performAction()
                 nDrop_ +=2;
                 return nDrop_ > 2;
             }
-            servoManager_->backRail_.move(0.98);
+            servoManager_->backRail_.move(1.0);
             while (servoManager_->backRail_.isMoving())
                 robot_->wait(0.050);
             robot_->getMotionController()->enableDetection(false);

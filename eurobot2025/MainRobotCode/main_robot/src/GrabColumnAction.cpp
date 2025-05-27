@@ -161,7 +161,7 @@ bool GrabColumnAction::performAction()
     if (zoneId_ == 1)
         robot_->getMotionController()->goStraight(-500, 1.0);
     else
-        robot_->getMotionController()->goStraight(-forwardAmount*1.2, 1.0);
+        robot_->getMotionController()->goStraight((isStartMotionBackward_ ? 1.0 : -1.0) * MARGIN, 1.0);
     // Action should not be done again
     return true;
 }

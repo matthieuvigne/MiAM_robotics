@@ -23,6 +23,8 @@
             bool isFrontClawFull = false;
             bool isBackClawFull = false;
 
+            bool arePAMIMoving_ = false;
+
             /// @brief Draw current state as overlay on the table.
             /// @param cr A cairo::context, correctly scaled and offsetted.
             void draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPosition const& robotPosition, bool const& isPlayingRightSide);

@@ -119,6 +119,7 @@ void Strategy::goBackToBase()
 {
     MATCH_COMPLETED = true;
     robot->getMotionController()->enableDetection(true);
+    robot->getGameState()->arePAMIMoving_ = true;
     robot->setGUIActionName("[Match End] Back to base");
     // Clear current trajectory
     robot->getMotionController()->stopCurrentTrajectoryTracking();
