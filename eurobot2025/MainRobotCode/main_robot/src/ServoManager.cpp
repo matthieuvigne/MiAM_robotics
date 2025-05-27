@@ -38,12 +38,12 @@
 #define BACK_PLANK_FINGER 35
 
 #define FRONT_CLAW_RANGE_OPEN 230
-#define FRONT_CLAW_RANGE_CLOSE 175
+#define FRONT_CLAW_RANGE_CLOSE 182
 #define FC_R_FOLD 715
 #define FC_L_FOLD 240
 
-#define BACK_CLAW_RANGE_OPEN 230
-#define BACK_CLAW_RANGE_CLOSE 175
+#define BACK_CLAW_RANGE_OPEN 240
+#define BACK_CLAW_RANGE_CLOSE 182
 #define BC_L_FOLD 540
 #define BC_R_FOLD 140
 
@@ -80,6 +80,8 @@ void ServoManager::init(RobotInterface *robot)
     foldClaws();
     releasePlank();
     foldBackPlank(true);
+    // Disable finger
+    servos_->writeRegister(BACK_PLANK_FINGER, STS::registers::TORQUE_SWITCH, 0);
 
     std::vector<RailServo*> rails({
         &frontRightClaw_.rail_,
@@ -89,8 +91,7 @@ void ServoManager::init(RobotInterface *robot)
         &frontCanRail_});
     railManager_.start(rails);
 
-    // Move banner servo to hold position
-    servos_->setTargetPosition(BANNER_ID, 1750);
+    foldBanner();
 }
 
 void ServoManager::setRailsToInitPosition()
@@ -100,6 +101,7 @@ void ServoManager::setRailsToInitPosition()
     frontCanRail_.move(0.0);
     frontPlankRail_.move(0.0);
     backRail_.move(0.30);
+    servos_->setTargetPosition(BANNER_ID, 1750);
 }
 
 void ServoManager::prepareGrab(bool const& front)
@@ -141,6 +143,8 @@ void ServoManager::clawsToMoveConfiguration(bool const& front)
         frontLeftClaw_.rail_.move(0.40);
         frontCanRail_.move(0.0);
         frontPlankRail_.move(0.0);
+        releasePlank();
+        servos_->setTargetPosition(PLANK_WRIST, 2600);
         while (railManager_.areAnyMoving())
             robot_->wait(0.010);
         servos_->setTargetPosition(FRONT_CLAW_R, FC_R_FOLD);
@@ -150,7 +154,6 @@ void ServoManager::clawsToMoveConfiguration(bool const& front)
         frontRightClaw_.foldClaw();
         frontLeftClaw_.move(ClawPosition::FOLDED);
         frontLeftClaw_.foldClaw();
-        releasePlank();
     }
     else
     {
@@ -214,8 +217,8 @@ bool ServoManager::checkGrab(bool const& front)
 #ifdef SIMULATION
     return true;
 #endif
-    int const MIN_TH = 15;
-    int const MAX_TH = 50;
+    int const MIN_TH = 7;
+    int const MAX_TH = 40;
 
     int servoIds[2] = {BACK_CLAW_R, BACK_CLAW_L};
     int targetPosition[2] = {BC_R_FOLD + BACK_CLAW_RANGE_CLOSE, BC_L_FOLD - BACK_CLAW_RANGE_CLOSE};
@@ -278,8 +281,8 @@ bool ServoManager::buildFrontTower()
     frontRightClaw_.move(ClawPosition::SIDE);
     frontLeftClaw_.move(ClawPosition::SIDE);
     robot_->wait(0.4);
-    frontRightClaw_.rail_.move(0.94);
-    frontLeftClaw_.rail_.move(0.94);
+    frontRightClaw_.rail_.move(0.92);
+    frontLeftClaw_.rail_.move(0.92);
     frontCanRail_.move(0.0);
     while (frontRightClaw_.rail_.isMoving() || frontLeftClaw_.rail_.isMoving())
         robot_->wait(0.05);
@@ -367,7 +370,7 @@ void ServoManager::foldPlank()
 
 void ServoManager::grabBackTwoPlanks()
 {
-    servos_->setTargetPosition(BACK_PLANK_CLAW, BACK_PLANK_STRAIGHT + 20); // 300
+    servos_->setTargetPosition(BACK_PLANK_CLAW, BACK_PLANK_STRAIGHT); // 300
     servos_->setTargetPosition(BACK_PLANK_FINGER, BACK_FINGER_CLOSE - 270); // 300
 }
 
@@ -379,7 +382,7 @@ void ServoManager::grabBackOnePlank()
 
 void ServoManager::releaseBackPlank()
 {
-    servos_->setTargetPosition(BACK_PLANK_CLAW, BACK_PLANK_STRAIGHT - 20);
+    servos_->setTargetPosition(BACK_PLANK_CLAW, BACK_PLANK_STRAIGHT - 25);
     servos_->setTargetPosition(BACK_PLANK_FINGER, BACK_FINGER_CLOSE - 400);
 }
 

@@ -95,21 +95,22 @@ void Strategy::match()
     pthread_t handle = ThreadHandler::addThread(stratMain);
     createdThreads_.push_back(handle);
 
-    double const FALLBACK_TIME = 85.0;
+    // Disable fallback, action system does it by itself.
+    double const FALLBACK_TIME = 100.0;
     robot->wait(FALLBACK_TIME);
-    if (!MATCH_COMPLETED)
-    {
-        pthread_cancel(handle);
-        usleep(50000);
-        robot->logger_ << "Match almost done, auto-triggering fallback strategy" << std::endl;
-        goBackToBase();
-    }
-    else
-    {
-        robot->wait(100.0 - FALLBACK_TIME);
-        pthread_cancel(handle);
-    }
-    robot->wait(100.0 - robot->getMatchTime());
+    // if (!MATCH_COMPLETED)
+    // {
+    //     pthread_cancel(handle);
+    //     usleep(50000);
+    //     robot->logger_ << "Match almost done, auto-triggering fallback strategy" << std::endl;
+    //     goBackToBase();
+    // }
+    // else
+    // {
+    //     robot->wait(100.0 - FALLBACK_TIME);
+    //     pthread_cancel(handle);
+    // }
+    // robot->wait(100.0 - robot->getMatchTime());
     servoManager_.railManager_.abort();
 }
 
@@ -285,7 +286,7 @@ void Strategy::match_impl()
             actions_.erase(actions_.begin() + selectedAction);
         }
 
-        if (robot->getMatchTime() > 80.0)
+        if (robot->getMatchTime() > 82.0)
         {
             robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
             break;

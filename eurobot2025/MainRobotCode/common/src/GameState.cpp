@@ -16,8 +16,8 @@ const miam::RobotPosition COLLECT_ZONE_COORDS[9] =
 
 const miam::RobotPosition CONSTRUCTION_ZONE_COORDS[4] =
 {
-    miam::RobotPosition(1200 + 50, 100, -M_PI_2),
-    miam::RobotPosition(2880, 875, 0),
+    miam::RobotPosition(1200 + 50, 80, -M_PI_2),
+    miam::RobotPosition(2900, 875, 0),
     miam::RobotPosition(750, 70, -M_PI_2),
     miam::RobotPosition(2700, 70, -M_PI_2)
 };

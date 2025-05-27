@@ -1,6 +1,6 @@
 #include "main_robot/SmallColumnAction.h"
 
-#define MARGIN 120
+#define MARGIN 130
 
 #define ZONE_ID 8
 

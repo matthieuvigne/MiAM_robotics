@@ -1,7 +1,7 @@
 #include "main_robot/BuildAction.h"
 
-#define MARGIN 120
-#define BUILD_DISTANCE 140
+#define MARGIN 130
+#define BUILD_DISTANCE 170
 
 
 void BuildAction::updateStartCondition()
@@ -34,8 +34,8 @@ void BuildAction::updateStartCondition()
 
     // We want to build at CONSTRUCTION_ZONE_COORDS + BUILD_DISTANCE * nDrop_
     // yoffset is here to position the robot so that when it moves back by MARGIN, the cans are in the right place.
-    double const yoffset = (isStartMotionBackward_ ? BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET) + MARGIN;
-    startPosition_ = CONSTRUCTION_ZONE_COORDS[zoneId_].forward(-yoffset - BUILD_DISTANCE * nDrop_);
+    double const offset = (isStartMotionBackward_ ? BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET) + MARGIN;
+    startPosition_ = CONSTRUCTION_ZONE_COORDS[zoneId_].forward(-offset - BUILD_DISTANCE * nDrop_);
 
     if (isStartMotionBackward_)
         startPosition_.theta += M_PI;
@@ -82,11 +82,15 @@ bool BuildAction::performAction()
         // Build front tower, put it on top of the other one
         robot_->getMotionController()->goStraight(MARGIN + BUILD_DISTANCE);
 
-        RobotPosition target = startPosition_;
-        target.x = robot_->getMotionController()->getCurrentPosition().x;
-        target.y = CONSTRUCTION_ZONE_COORDS[zoneId_].y +  BUILD_DISTANCE * (nDrop_ + 1) + FRONT_CLAW_XOFFSET;
-        target.theta += M_PI;
-
+        RobotPosition target = CONSTRUCTION_ZONE_COORDS[zoneId_].forward(-(BUILD_DISTANCE * (nDrop_ + 1) + FRONT_CLAW_XOFFSET));
+        if (std::abs(std::abs(target.theta) - M_PI_2) < 0.01)
+        {
+            target.x = robot_->getMotionController()->getCurrentPosition().x;
+        }
+        else
+        {
+            target.y = robot_->getMotionController()->getCurrentPosition().y;
+        }
         bool moveSuccesful;
         moveSuccesful = robot_->getMotionController()->goToStraightLine(target);
         if (!moveSuccesful)
@@ -107,7 +111,7 @@ bool BuildAction::performAction()
 
         if (moveSuccesful && lvl2)
         {
-            double towerPenetration = 0;
+            double towerPenetration = 30;
             // Try to build a level 3 column
             robot_->getMotionController()->pointTurn(M_PI);
             robot_->getMotionController()->goStraight(-(MARGIN + BACK_DIFF_XOFFSET + towerPenetration), 0.5);

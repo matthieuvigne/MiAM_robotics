@@ -279,6 +279,8 @@
             double clampedSlowDownCoeff_ = 1.0;
 
             std::chrono::steady_clock::time_point timeSinceFirstStopped_;
+            bool lockTimeSinceFirstStop_ = false;
+            std::chrono::steady_clock::time_point fullSpeedStartTime_;
             std::chrono::steady_clock::time_point timeSinceLastAvoidance_;
 
             std::mutex avoidanceComputationMutex_;

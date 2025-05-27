@@ -157,8 +157,11 @@ bool GrabColumnAction::performAction()
         robot_->getGameState()->isFrontClawFull = true;
     }
 
-    // Go back from the collect zone
-    robot_->getMotionController()->goStraight(-forwardAmount*1.2, 1.0);
+    // Go back from the collect zone ; move further to avoid oponnent zone
+    if (zoneId_ == 1)
+        robot_->getMotionController()->goStraight(-500, 1.0);
+    else
+        robot_->getMotionController()->goStraight(-forwardAmount*1.2, 1.0);
     // Action should not be done again
     return true;
 }
