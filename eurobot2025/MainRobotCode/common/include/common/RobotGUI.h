@@ -46,6 +46,7 @@
 
             private:
                 bool doUpdate();
+                void quit();
 
                 void drawTable(Cairo::RefPtr<Cairo::Context> const& cr, int width, int height);
 
@@ -64,6 +65,7 @@
                 Gtk::Button startPositionButton_;
                 Gtk::Button blockMotorsButton_;
                 Gtk::Button detectBordersButton_;
+                Gtk::Button quitButton_;
 
                 bool areMotorsBlocked_ = false;
                 bool askedDetectBorders_ = false;

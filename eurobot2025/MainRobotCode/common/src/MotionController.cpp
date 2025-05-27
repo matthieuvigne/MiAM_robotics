@@ -23,13 +23,6 @@ void MotionController::init(RobotPosition const& startPosition)
     currentPosition_.set(startPosition);
     currentTime_ = 0.0;
 
-    // Set initial positon.
-    RobotPosition initialPosition;
-    initialPosition.x = 120;
-    initialPosition.y = 1200;
-    initialPosition.theta = 0;
-    currentPosition_.set(initialPosition);
-
     // Set PIDs.
     PIDLinear_ = miam::PID(robotParams_.linearKp, robotParams_.linearKd, robotParams_.linearKi, 0.2);
     PIDAngular_ = miam::PID(robotParams_.rotationKp, robotParams_.rotationKd, robotParams_.rotationKi, 0.15);

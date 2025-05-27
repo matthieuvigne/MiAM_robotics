@@ -76,13 +76,15 @@ bool BuildAction::performAction()
             robot_->updateScore(4, "Lvl.1 tower");
     }
     robot_->getGameState()->isConstructionZoneUsed[zoneId_] = true;
+    nDrop_ ++;
+
 
     if (isStartMotionBackward_ && robot_->getGameState()->isFrontClawFull && (largeZone_))
     {
         // Build front tower, put it on top of the other one
         robot_->getMotionController()->goStraight(MARGIN + BUILD_DISTANCE);
 
-        RobotPosition target = CONSTRUCTION_ZONE_COORDS[zoneId_].forward(-(BUILD_DISTANCE * (nDrop_ + 1) + FRONT_CLAW_XOFFSET));
+        RobotPosition target = CONSTRUCTION_ZONE_COORDS[zoneId_].forward(-(BUILD_DISTANCE * nDrop_ + FRONT_CLAW_XOFFSET));
         if (std::abs(std::abs(target.theta) - M_PI_2) < 0.01)
         {
             target.x = robot_->getMotionController()->getCurrentPosition().x;
@@ -96,10 +98,11 @@ bool BuildAction::performAction()
         if (!moveSuccesful)
         {
             robot_->logger_ << "[BuildAction] Could not perform build due to detection, aborting" << std::endl;
-            nDrop_ ++;
             return nDrop_ > 2;
         }
         bool lvl2 = servoManager_->buildFrontTower();
+        nDrop_++,
+
         robot_->getGameState()->isFrontClawFull = false;
         if (lvl2)
             robot_->updateScore(12, "Lvl.2 tower");
@@ -128,7 +131,8 @@ bool BuildAction::performAction()
                 robot_->getMotionController()->goStraight(MARGIN);
 
                 servoManager_->clawsToMoveConfiguration(false);
-                nDrop_ +=2;
+                servoManager_->clawsToMoveConfiguration(true);
+                nDrop_ ++;
                 return nDrop_ > 2;
             }
             servoManager_->backRail_.move(1.0);
@@ -142,6 +146,8 @@ bool BuildAction::performAction()
             robot_->updateScore(12, "Lvl.3 tower");
             robot_->getMotionController()->goStraight(2. * MARGIN);
             servoManager_->clawsToMoveConfiguration(false);
+            servoManager_->clawsToMoveConfiguration(true);
+            nDrop_ --;
         }
     }
     else
@@ -152,10 +158,7 @@ bool BuildAction::performAction()
 
     // Allow several drops in large zones
     if (largeZone_)
-    {
-        nDrop_ ++;
         return nDrop_ > 2;
-    }
     return true;
 }
 

@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <iomanip>
 #include <iostream>
-
+#include <signal.h>
 
 std::vector<miam::RobotPosition> START_POSITIONS({
     miam::RobotPosition(1225, 178, M_PI_2)
@@ -22,6 +22,7 @@ RobotGUI::RobotGUI()
     provider->load_from_data("label {font-size:22px;}"
             "#blue {background:#5485a4;}"
             "#yellow {background:#e0bc48;}"
+            "#red {background:#ff0000;}"
             "#button_text {color:#FFFFFF;}"
             "#score {font-size:40; color:#0000FF;}");
     Gtk::StyleContext::add_provider_for_screen(get_screen(), provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
@@ -61,6 +62,11 @@ RobotGUI::RobotGUI()
 
     detectBordersButton_ = Gtk::Button("Detect borders");
     detectBordersButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::detectBordersClicked));
+
+    quitButton_ = Gtk::Button("Quit");
+    quitButton_.set_name("red");
+    quitButton_.get_child()->set_name("button_text");
+    quitButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::quit));
 
     scoreLabel_.set_name("score");
     add(box_);
@@ -149,6 +155,11 @@ bool RobotGUI::doUpdate()
         {
             box_.pack_start(scoreLabel_);
         }
+        if (robotData.state == robotstate::MATCH_QUIT)
+        {
+            box_.pack_start(scoreLabel_);
+            box_.pack_start(quitButton_);
+        }
         show_all();
         lastState_ = robotData.state;
     }
@@ -210,6 +221,11 @@ bool RobotGUI::getAskedDetectBorders()
     bool res = askedDetectBorders_;
     askedDetectBorders_ = false;
     return res;
+}
+
+void RobotGUI::quit()
+{
+    ::raise(SIGINT);
 }
 
 bool TableDrawing::on_draw(Cairo::RefPtr<Cairo::Context> const& cr)

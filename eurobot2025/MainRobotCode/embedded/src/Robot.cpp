@@ -254,6 +254,18 @@ void Robot::matchEnd()
     if (!testMode_ || !disableLidar_)
         lidar_.stop();
     servos_.disable(0xFE);
+
+    // Show end button
+    while (true)
+    {
+        if (isStartingSwitchPluggedIn())
+        {
+            guiState_.state = robotstate::MATCH_QUIT;
+            gui_->update(guiState_);
+            return;
+        }
+        wait(0.050);
+    }
 }
 
 bool Robot::isStartingSwitchPluggedIn() const
