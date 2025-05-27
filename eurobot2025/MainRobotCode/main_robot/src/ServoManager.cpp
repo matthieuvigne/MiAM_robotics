@@ -38,18 +38,18 @@
 #define BACK_PLANK_FINGER 35
 
 #define FRONT_CLAW_RANGE_OPEN 230
-#define FRONT_CLAW_RANGE_CLOSE 182
-#define FC_R_FOLD 715
-#define FC_L_FOLD 240
+#define FRONT_CLAW_RANGE_CLOSE 170
+#define FC_R_FOLD 730
+#define FC_L_FOLD 245
 
 #define BACK_CLAW_RANGE_OPEN 240
-#define BACK_CLAW_RANGE_CLOSE 182
+#define BACK_CLAW_RANGE_CLOSE 170
 #define BC_L_FOLD 540
 #define BC_R_FOLD 140
 
 ServoManager::ServoManager():
     frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 195, false), //0.9/* TODO check this value*/
-    frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 730, true), //1.1
+    frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 735, true), //1.1
     backRail_(20, 20, 9600, true),
     frontPlankRail_(6, 21, 8000, false),
     frontCanRail_(5, 22, 7800, true, true)
@@ -165,7 +165,11 @@ void ServoManager::clawsToMoveConfiguration(bool const& front)
 
 bool ServoManager::areBothFrontSideClawsFull()
 {
-    return frontRightClaw_.isClawFull() && frontLeftClaw_.isClawFull();
+    int rErr, lErr;
+    bool const sR= frontRightClaw_.isClawFull(rErr);
+    bool const sL= frontLeftClaw_.isClawFull(lErr);
+    robot_->logger_  << "[Servo manager] Claw front side check check" <<  rErr << " " << lErr << std::endl;
+    return sR && sL;
 }
 
 bool ServoManager::grab(bool const& front, bool const& frontFullGrab)
@@ -230,13 +234,15 @@ bool ServoManager::checkGrab(bool const& front)
         targetPosition[1] = FC_L_FOLD + FRONT_CLAW_RANGE_CLOSE;
     }
 
+    int errors[2];
     bool success = true;
     for (int i = 0; i < 2; i++)
     {
-        int error = std::abs(servos_->getCurrentPosition(servoIds[i]) - targetPosition[i]);
+        int const  error = std::abs(servos_->getCurrentPosition(servoIds[i]) - targetPosition[i]);
         success  &= (error < MAX_TH && error > MIN_TH);
-        std::cout << "Grab check " << (front ? "front " : "back ") <<  error << std::endl;
+        errors[i] = error;
     }
+    robot_->logger_  << "[Servo manager] Grab check " << (front ? "front " : "back ") <<  errors[0] << " " << errors[1] << std::endl;
     return success;
 }
 
@@ -260,7 +266,7 @@ void ServoManager::raiseFrontSideClaws()
 
 bool ServoManager::buildFrontTower()
 {
-    if(!areBothFrontSideClawsFull())
+    if(!areBothFrontSideClawsFull() || !checkGrab(true))
     {
         frontRightClaw_.openClaw();
         frontLeftClaw_.openClaw();

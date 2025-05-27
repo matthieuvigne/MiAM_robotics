@@ -29,8 +29,15 @@ class LogLoader:
                     continue
                 val = np.array(f[n])
                 self.data[n] = (val[0], val[1])
-        self.variables = list(self.data.keys())
 
+            # Find start time
+            self.start_time = 0.0
+            for s in f["textLog/log"]:
+                s = s.decode()
+                if "Starting match" in s:
+                    self.start_time = float(s.split("[")[1].split("]")[0])
+
+        self.variables = list(self.data.keys())
 
     def _from_csv(self, filepath):
         # Load log file

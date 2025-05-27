@@ -80,8 +80,7 @@ int main(int argc, char* argv[])
 
         std::cout << "Front:" << std::endl;
         std::cout << servo_manager.checkGrab(true) << std::endl;
-        servo_manager.frontRightClaw_.isClawFull();
-        servo_manager.frontLeftClaw_.isClawFull();
+        std::cout << servo_manager.areBothFrontSideClawsFull() << std::endl;
         std::cout << "Back:" << std::endl;
         std::cout << servo_manager.checkGrab(false) << std::endl;
 
@@ -147,7 +146,7 @@ int main(int argc, char* argv[])
     //~ std::cin >> userInput;
     //~ servo_manager.grabBackTwoPlanks();
     //~ servo_manager.backClawClose();
-    
+
     //~ std::cout << "Press enter to continue" << std::endl;
     //~ std::cin >> userInput;
     //~ servo_manager.backRail_.move(1.0);

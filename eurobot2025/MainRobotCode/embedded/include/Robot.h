@@ -90,8 +90,6 @@
             bool isLidarInit_ = false; ///< Boolean representing the initialization of the lidar.
             bool isServoInit_ = false;
             bool isINAInit_ = false;
-            bool isVlxInit_ = false;
-            bool isMCPInit_ = false;
 
             bool areMotorsLocked_ = false;
 

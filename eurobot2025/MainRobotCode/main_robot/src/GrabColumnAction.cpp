@@ -87,9 +87,9 @@ bool GrabColumnAction::performAction()
 
     // For those on the side of the field, push them against the border ; try only once
     int maxGrabAttempts = 2;
-    if (std::fabs(COLLECT_ZONE_COORDS[zoneId_].theta - M_PI) < 0.1)
+    if (std::fabs(std::fabs(COLLECT_ZONE_COORDS[zoneId_].theta) - M_PI_2) > 0.1)
     {
-        wpt_margin = !isStartMotionBackward_ ? -40 : 40;
+        wpt_margin = !isStartMotionBackward_ ? -45 : 45;
         maxGrabAttempts = 1;
     }
     // Don't enter opponent zone
@@ -159,7 +159,7 @@ bool GrabColumnAction::performAction()
 
     // Go back from the collect zone ; move further to avoid oponnent zone
     if (zoneId_ == 1)
-        robot_->getMotionController()->goStraight(-500, 1.0);
+        robot_->getMotionController()->goStraight((isStartMotionBackward_ ? 500 : -500), 1.0);
     else
         robot_->getMotionController()->goStraight((isStartMotionBackward_ ? 1.0 : -1.0) * MARGIN, 1.0);
     // Action should not be done again

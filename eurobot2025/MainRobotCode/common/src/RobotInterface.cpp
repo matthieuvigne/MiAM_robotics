@@ -53,7 +53,7 @@ void RobotInterface::lowLevelLoop()
 
     // Initalize / reset everything.
     initLogger();
-    motionController_.init(RobotPosition());
+    motionController_.init(gui_->getStartPosition());
     guiState_.state = robotstate::INIT;
     hasMatchStarted_ = false;
     matchStartTime_ = 0.0;

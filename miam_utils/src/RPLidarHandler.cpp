@@ -140,7 +140,7 @@ int RPLidarHandler::update()
             {
                 // The blob is over: process its data.
                 int nPoints = pointsInBlob_.size();
-                if (nPoints >= MIN_POINTS)
+                if (nPoints >= MIN_POINTS || (newPoint.r > 700 && nPoints >= MIN_POINTS / 2))
                 {
                     LidarPoint a = pointsInBlob_[0];
                     LidarPoint b = pointsInBlob_[nPoints - 1];

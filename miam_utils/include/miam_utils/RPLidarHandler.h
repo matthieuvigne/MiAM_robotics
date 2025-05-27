@@ -23,7 +23,7 @@
     #define DEBUGGING_BUFFER_LENGTH 2000
 
 
-    const double MAX_DISTANCE = 1700.0; ///< Maximum distance for processing, in mm: points above that distance are discarded.
+    const double MAX_DISTANCE = 2000.0; ///< Maximum distance for processing, in mm: points above that distance are discarded.
     const double MIN_DISTANCE = 50.0; ///< Minimum distance for processing, in mm: points below that distance are discarded.
 
     const double BLOB_THICKNESS = 40.0;///< Distance between two adjacent points to consider that they belong to the same blob, in mm.
@@ -32,10 +32,10 @@
 
     const int BLOB_BREAK = 2;///< Number of points needed to consider that a block has come to an end.
 
-    const int MIN_POINTS = 6;///< Minimum number of points inside a blob to be considered a robot.
-                                ///< At 1.5m, 600rpm, 8ksamples/s, a circle of 70mm corresponds to 6 points.
+    const int MIN_POINTS = 5;///< Minimum number of points inside a blob to be considered a robot.
+                             ///< At 1.5m, 600rpm, 8ksamples/s, a circle of 70mm corresponds to 6 points.
 
-    const double TIMEOUT_NTURNS = 1.2; /// Number of turns before removing the robot: 1.2 turns.
+    const double TIMEOUT_NTURNS = 1.1; /// Number of turns before removing the robot: 1.2 turns.
 
     /// \brief Structure representing a data point returned by the lidar.
     struct LidarPoint

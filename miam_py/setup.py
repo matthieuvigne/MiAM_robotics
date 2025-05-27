@@ -17,6 +17,7 @@ setup(
             'miam_extract_text = miam_py.miam_extract_text:main',
             'miam_get_latest_log = miam_py.miam_get_latest_log:main',
             'miam_analyse_tracking = miam_py.miam_analyse_tracking:main',
+            'miam_analyse_obstacles = miam_py.plot_obstacles:main',
         ],
     },
     data_files=[('images', ['images/table.png'])],

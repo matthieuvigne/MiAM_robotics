@@ -14,11 +14,15 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     targetPoint.linearVelocity *= slowDownRatio;
     targetPoint.angularVelocity *= slowDownRatio;
 
-    log("MotionController.targetPositionX",targetPoint.position.x);
-    log("MotionController.targetPositionY",targetPoint.position.y);
-    log("MotionController.targetPositionTheta",targetPoint.position.theta);
-    log("MotionController.targetVelocityLinear",targetPoint.linearVelocity);
-    log("MotionController.targetVelocityAngular",targetPoint.angularVelocity);
+
+    if (measurements.matchTime > 0.0)
+    {
+        log("MotionController.targetPositionX",targetPoint.position.x);
+        log("MotionController.targetPositionY",targetPoint.position.y);
+        log("MotionController.targetPositionTheta",targetPoint.position.theta);
+        log("MotionController.targetVelocityLinear",targetPoint.linearVelocity);
+        log("MotionController.targetVelocityAngular",targetPoint.angularVelocity);
+    }
 
     // Compute targets for rotation and translation motors.
     BaseSpeed targetSpeed;
@@ -35,10 +39,14 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     speed.left /= dt;
     speed.right /= dt;
     BaseSpeed currentSpeed = kinematics_.forwardKinematics(speed, true);
-    log("MotionController.currentVelocityLinear", currentSpeed.linear);
-    log("MotionController.currentVelocityAngular", currentSpeed.angular);
-    log("MotionController.encoderVelocityRight", speed.right);
-    log("MotionController.encoderVelocityLeft", speed.left);
+
+    if (measurements.matchTime > 0.0)
+    {
+        log("MotionController.currentVelocityLinear", currentSpeed.linear);
+        log("MotionController.currentVelocityAngular", currentSpeed.angular);
+        log("MotionController.encoderVelocityRight", speed.right);
+        log("MotionController.encoderVelocityLeft", speed.left);
+    }
 
     // Rotate by -theta to express the error in the tangent frame.
     RobotPosition rotatedError = error.rotate(-targetPoint.position.theta);
@@ -50,15 +58,8 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     if (targetPoint.linearVelocity < 0)
         trackingTransverseError = -trackingTransverseError;
 
-    // std::cout << "start trackingAngleError" << std::endl;
-    // std::cout << "currentPosition " << currentPosition << std::endl;
-    // std::cout << "targetPoint " << targetPoint << std::endl;
     double trackingAngleError = miam::trajectory::moduloTwoPi(currentPosition.theta - targetPoint.position.theta);
-    // std::cout << "end trackingAngleError" << std::endl;
 
-    log("MotionController.trackingLongitudinalError",trackingLongitudinalError);
-    log("MotionController.trackingTransverseError",trackingTransverseError);
-    log("MotionController.trackingAngleError",trackingAngleError);
 
     // If we are beyond the end of the trajectory vector, look to see if we are close enough to the target point to stop.
     if (traj->getDuration() <= curvilinearAbscissa_ && currentTrajectories_.size() == 1)
@@ -115,8 +116,13 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
         target.motorSpeed.left = -maxAngularVelocity;
 
 
-    log("MotionController.linearPIDCorrection",pidLinearCorrection);
-    log("MotionController.angularPIDCorrection",PIDAngular_.getCorrection());
-
+    if (measurements.matchTime > 0.0)
+    {
+        log("MotionController.trackingLongitudinalError",trackingLongitudinalError);
+        log("MotionController.trackingTransverseError",trackingTransverseError);
+        log("MotionController.trackingAngleError",trackingAngleError);
+        log("MotionController.linearPIDCorrection",pidLinearCorrection);
+        log("MotionController.angularPIDCorrection",PIDAngular_.getCorrection());
+    }
     return false;
 }

@@ -147,7 +147,7 @@ bool BuildAction::performAction()
     else
     {
         robot_->getMotionController()->goStraight(-sign * 200);
-        servoManager_->clawsToMoveConfiguration(isStartMotionBackward_);
+        servoManager_->clawsToMoveConfiguration(!isStartMotionBackward_);
     }
 
     // Allow several drops in large zones

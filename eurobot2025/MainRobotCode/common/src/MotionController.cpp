@@ -130,16 +130,23 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     // Log input
     currentTime_ += dt;
     log("timeIncrement",dt);
-    log("MotionController.encoderRight",measurements.encoderPosition.right);
-    log("MotionController.encoderLeft",measurements.encoderPosition.left);
-    log("MotionController.motorVelocityRight", measurements.motorSpeed.right);
-    log("MotionController.motorVelocityLeft", measurements.motorSpeed.left);
+
 
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderPositionIncrement);
-    log("MotionController.currentPositionX",currentPosition.x);
-    log("MotionController.currentPositionY",currentPosition.y);
-    log("MotionController.currentPositionTheta",currentPosition.theta);
+
+
+    // Only log after match start
+    if (measurements.matchTime > 0.0)
+    {
+        log("MotionController.encoderRight",measurements.encoderPosition.right);
+        log("MotionController.encoderLeft",measurements.encoderPosition.left);
+        log("MotionController.motorVelocityRight", measurements.motorSpeed.right);
+        log("MotionController.motorVelocityLeft", measurements.motorSpeed.left);
+        log("MotionController.currentPositionX",currentPosition.x);
+        log("MotionController.currentPositionY",currentPosition.y);
+        log("MotionController.currentPositionTheta",currentPosition.theta);
+    }
 
     DrivetrainTarget target;
 
@@ -171,9 +178,17 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         if (measurements.matchTime > 1.0 && isDetectionEnabled_)
         {
             detectedObstacles_.push_back(std::make_tuple(obspos, detection::mpc_obstacle_size));
+            // Log
+            if (nObstaclesOnTable < 5)
+            {
+                log("ObstacleX_" + std::to_string(nObstaclesOnTable), obspos.x);
+                log("ObstacleY_" + std::to_string(nObstaclesOnTable), obspos.y);
+                log("ObstacleN_" + std::to_string(nObstaclesOnTable), robot.nPoints);
+            }
             nObstaclesOnTable += 1;
         }
     }
+    // Log obstacles
     log("lidarNumberOfObstacles", nObstaclesOnTable);
 
     // Update game state based on other robot
@@ -198,12 +213,15 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
     target = resolveMotionControllerState(measurements, dt, measurements.matchTime > 0);
 
-    log("motionControllerState", static_cast<int>(motionControllerState_));
-    log("detectionCoeff",slowDownCoeff_);
-    log("clampedDetectionCoeff", clampedSlowDownCoeff_);
-    log("MotionController.rawCommandVelocityRight",target.motorSpeed.right);
-    log("MotionController.rawCommandVelocityLeft",target.motorSpeed.left);
 
+    if (measurements.matchTime > 0.0)
+    {
+        log("motionControllerState", static_cast<int>(motionControllerState_));
+        log("detectionCoeff",slowDownCoeff_);
+        log("clampedDetectionCoeff", clampedSlowDownCoeff_);
+        log("MotionController.rawCommandVelocityRight",target.motorSpeed.right);
+        log("MotionController.rawCommandVelocityLeft",target.motorSpeed.left);
+    }
 
     // Clamp target acceleration
     double const maxAccel = 2.0 * robotParams_.maxWheelAccelerationTrajectory / robotParams_.rightWheelRadius;
@@ -215,9 +233,13 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
                                         lastTarget_.motorSpeed.left + dt * maxAccel);
     lastTarget_ = target;
 
-    log("MotionController.commandVelocityRight",target.motorSpeed.right);
-    log("MotionController.commandVelocityLeft",target.motorSpeed.left);
-    log("MotionController.lockTimeSinceFirstStop",lockTimeSinceFirstStop_);
+
+    if (measurements.matchTime > 0.0)
+    {
+        log("MotionController.commandVelocityRight",target.motorSpeed.right);
+        log("MotionController.commandVelocityLeft",target.motorSpeed.left);
+        log("MotionController.lockTimeSinceFirstStop",lockTimeSinceFirstStop_);
+    }
 
     return target;
 }

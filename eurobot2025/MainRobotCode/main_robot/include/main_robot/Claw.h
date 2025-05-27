@@ -32,7 +32,7 @@ class Claw
         void openClaw();
         void closeClaw();
         void foldClaw();
-        bool isClawFull();
+        bool isClawFull(int &error);
 
         void move(ClawPosition const& clawPos);
 
