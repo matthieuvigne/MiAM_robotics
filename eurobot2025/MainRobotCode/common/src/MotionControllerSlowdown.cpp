@@ -148,7 +148,7 @@ double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory()
             }
 
             // If we detect a future collision
-            if (obstacleIsInCollisionCourse)
+            if (obstacleIsInCollisionCourse || obstacleSquareTriggered)
             {
                 // If we are going away from the obstacle, authorize the move
                 // The obstacle is in front of the robot
@@ -162,14 +162,16 @@ double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory()
                     else
                     {
                         coeff = std::min(coeff, minSlowDown + (timeHorizon - minTimeHorizon) / (maxTimeHorizon - minTimeHorizon) * (maxSlowDown - minSlowDown));
-                        // If avoidance squared has been triggered, then slow down the robot even more
-                        if (obstacleSquareTriggered)
-                        {
-                            coeff *= 0.7;
-                        }
                     }
                 }
+
+                // If avoidance squared has been triggered, then slow down the robot even more
+                if (obstacleSquareTriggered)
+                {
+                    coeff = std::min(coeff, 0.8);
+                }
             }
+
         }
     }
 
