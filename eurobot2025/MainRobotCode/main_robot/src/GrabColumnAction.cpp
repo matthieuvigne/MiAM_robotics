@@ -104,8 +104,11 @@ bool GrabColumnAction::performAction()
       ? miam::trajectory::flags::DEFAULT
       : miam::trajectory::flags::BACKWARD;
     flag = static_cast<tf>(flag | miam::trajectory::flags::IGNORE_END_ANGLE);
+    TrajectoryConfig params = robot_->getMotionController()->getCurrentTrajectoryParameters();
+    params.maxWheelAcceleration = 300;
+
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
-                      robot_->getMotionController()->getCurrentTrajectoryParameters(),
+                      params,
                       positions,
                       70.0,
                       0.15,    // Transition velocity

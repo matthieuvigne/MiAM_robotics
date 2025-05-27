@@ -577,7 +577,7 @@ TrajectoryConfig MotionController::getCurrentTrajectoryParameters()
     if (gameState_.isBackClawFull || gameState_.isFrontClawFull)
     {
         conf.maxWheelVelocity *= 0.6;
-        conf.maxWheelAcceleration *= 0.6;
+        conf.maxWheelAcceleration *= 0.7;
     }
     return conf;
 }

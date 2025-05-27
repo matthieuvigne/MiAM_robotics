@@ -287,8 +287,8 @@ bool ServoManager::buildFrontTower()
     frontRightClaw_.move(ClawPosition::SIDE);
     frontLeftClaw_.move(ClawPosition::SIDE);
     robot_->wait(0.4);
-    frontRightClaw_.rail_.move(0.92);
-    frontLeftClaw_.rail_.move(0.92);
+    frontRightClaw_.rail_.move(0.91);
+    frontLeftClaw_.rail_.move(0.86);
     frontCanRail_.move(0.0);
     while (frontRightClaw_.rail_.isMoving() || frontLeftClaw_.rail_.isMoving())
         robot_->wait(0.05);
@@ -296,6 +296,7 @@ bool ServoManager::buildFrontTower()
     frontRightClaw_.move(ClawPosition::FORWARD);
     frontLeftClaw_.move(ClawPosition::FORWARD);
     robot_->wait(0.8);
+
     frontRightClaw_.openClaw();
     frontLeftClaw_.openClaw();
 

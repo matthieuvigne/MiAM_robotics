@@ -110,7 +110,12 @@ bool BuildAction::performAction()
             robot_->updateScore(4, "Lvl.1 tower");
 
         moveSuccesful = robot_->getMotionController()->goStraight(-MARGIN);
-        servoManager_->clawsToMoveConfiguration(true);
+
+        // Anticipate rail motion
+        servoManager_->frontRightClaw_.rail_.move(0.40);
+        servoManager_->frontLeftClaw_.rail_.move(0.40);
+        servoManager_->frontCanRail_.move(0.0);
+        servoManager_->frontPlankRail_.move(0.0);
 
         if (moveSuccesful && lvl2)
         {

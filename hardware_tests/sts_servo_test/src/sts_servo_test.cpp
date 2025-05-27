@@ -62,122 +62,121 @@ int main(int argc, char* argv[])
         robot_->wait(0.1);
     std::cout << "Calib done" << std::endl;
 
-    servo_manager.grabPlank();
-    servo_manager.releasePlank();
-    servo_manager.backRail_.move(0.05);
-    servo_manager.frontRightClaw_.rail_.move(0.05);
-    servo_manager.frontLeftClaw_.rail_.move(0.05);
-    std::cout << "Press enter to continue" << std::endl;
-    std::cin >> userInput;
+    // servo_manager.grabPlank();
+    // servo_manager.releasePlank();
+    // servo_manager.backRail_.move(0.05);
+    // servo_manager.frontRightClaw_.rail_.move(0.05);
+    // servo_manager.frontLeftClaw_.rail_.move(0.05);
+    // std::cout << "Press enter to continue" << std::endl;
+    // std::cin >> userInput;
 
-    while (true)
-    {
-        servo_manager.backClawClose();
-        servo_manager.frontClawClose();
-        servo_manager.frontRightClaw_.closeClaw();
-        servo_manager.frontLeftClaw_.closeClaw();
-        robot_->wait(0.3);
+    // while (true)
+    // {
+    //     servo_manager.backClawClose();
+    //     servo_manager.frontClawClose();
+    //     servo_manager.frontRightClaw_.closeClaw();
+    //     servo_manager.frontLeftClaw_.closeClaw();
+    //     robot_->wait(0.3);
 
-        std::cout << "Front:" << std::endl;
-        std::cout << servo_manager.checkGrab(true) << std::endl;
-        std::cout << servo_manager.areBothFrontSideClawsFull() << std::endl;
-        std::cout << "Back:" << std::endl;
-        std::cout << servo_manager.checkGrab(false) << std::endl;
+    //     std::cout << "Front:" << std::endl;
+    //     std::cout << servo_manager.checkGrab(true) << std::endl;
+    //     std::cout << servo_manager.areBothFrontSideClawsFull() << std::endl;
+    //     std::cout << "Back:" << std::endl;
+    //     std::cout << servo_manager.checkGrab(false) << std::endl;
 
-        std::cout << "Press enter to continue" << std::endl;
-        std::cin >> userInput;
-
-
-        std::cout << "Front:" << std::endl;
-        std::cout << servo_manager.checkGrab(true) << std::endl;
-        std::cout << "Back:" << std::endl;
-        std::cout << servo_manager.checkGrab(false) << std::endl;
-
-        servo_manager.backClawOpen();
-        servo_manager.frontClawOpen();
-        servo_manager.frontRightClaw_.openClaw();
-        servo_manager.frontLeftClaw_.openClaw();
-        robot_->wait(0.5);
-        std::cout << "Press enter to continue" << std::endl;
-        std::cin >> userInput;
+    //     std::cout << "Press enter to continue" << std::endl;
+    //     std::cin >> userInput;
 
 
-        std::cout << "Front:" << std::endl;
-        std::cout << servo_manager.checkGrab(true) << std::endl;
-        std::cout << "Back:" << std::endl;
-        std::cout << servo_manager.checkGrab(false) << std::endl;
+    //     std::cout << "Front:" << std::endl;
+    //     std::cout << servo_manager.checkGrab(true) << std::endl;
+    //     std::cout << "Back:" << std::endl;
+    //     std::cout << servo_manager.checkGrab(false) << std::endl;
 
-    }
+    //     servo_manager.backClawOpen();
+    //     servo_manager.frontClawOpen();
+    //     servo_manager.frontRightClaw_.openClaw();
+    //     servo_manager.frontLeftClaw_.openClaw();
+    //     robot_->wait(0.5);
+    //     std::cout << "Press enter to continue" << std::endl;
+    //     std::cin >> userInput;
+
+
+    //     std::cout << "Front:" << std::endl;
+    //     std::cout << servo_manager.checkGrab(true) << std::endl;
+    //     std::cout << "Back:" << std::endl;
+    //     std::cout << servo_manager.checkGrab(false) << std::endl;
+
+    // }
     ///////////////////////////////////////
     // Back test
     ///////////////////////////////////////
 
-    bool success = false;
-    do {
+    // bool success = false;
+    // do {
 
-      // Prepare the grab
-      servo_manager.releaseBackPlank();
-      servo_manager.prepareGrab(false);
-      while (servo_manager.railManager_.areAnyMoving())
-          robot_->wait(0.050);
+    //   // Prepare the grab
+    //   servo_manager.releaseBackPlank();
+    //   servo_manager.prepareGrab(false);
+    //   while (servo_manager.railManager_.areAnyMoving())
+    //       robot_->wait(0.050);
 
-      // Try grab the columns
-      std::cout << "Press enter to try grab" << std::endl;
-      std::cin >> userInput;
-      servo_manager.releaseBackPlank();
-      robot_->wait(0.1);
-      success = servo_manager.grab(false);
-      robot_->wait(0.1);
-      if(success)
-      {
-        std::cout << "GRAB SUCCESS!" << std::endl;
-      } else {
-        std::cout << "GRAB FAILURE!" << std::endl;
-        std::cout << "Press enter to retry" << std::endl;
-        std::cin >> userInput;
-        servo_manager.backClawOpen();
-        //robot_->getMotionController()->goStraight(50, 0.5);
-        //robot_->getMotionController()->waitForTrajectoryFinished();
-      }
-    } while(!success);
-    while(true);;
+    //   // Try grab the columns
+    //   std::cout << "Press enter to try grab" << std::endl;
+    //   std::cin >> userInput;
+    //   servo_manager.releaseBackPlank();
+    //   robot_->wait(0.1);
+    //   success = servo_manager.grab(false);
+    //   robot_->wait(0.1);
+    //   if(success)
+    //   {
+    //     std::cout << "GRAB SUCCESS!" << std::endl;
+    //   } else {
+    //     std::cout << "GRAB FAILURE!" << std::endl;
+    //     std::cout << "Press enter to retry" << std::endl;
+    //     std::cin >> userInput;
+    //     servo_manager.backClawOpen();
+    //     //robot_->getMotionController()->goStraight(50, 0.5);
+    //     //robot_->getMotionController()->waitForTrajectoryFinished();
+    //   }
+    // } while(!success);
+    // while(true);;
 
-    //~ std::cout << "Press enter to continue" << std::endl;
-    //~ std::cin >> userInput;
-    //~ servo_manager.grabBackTwoPlanks();
-    //~ servo_manager.backClawClose();
+    //std::cout << "Press enter to continue" << std::endl;
+    //std::cin >> userInput;
+    //servo_manager.grabBackTwoPlanks();
+    //servo_manager.backClawClose();
 
-    //~ std::cout << "Press enter to continue" << std::endl;
-    //~ std::cin >> userInput;
-    //~ servo_manager.backRail_.move(1.0);
+    //std::cout << "Press enter to continue" << std::endl;
+    //std::cin >> userInput;
+    //servo_manager.backRail_.move(1.0);
 
-    //~ while (true) ;;
+    //while (true) ;;
     ///////////////////////////////////////
 
 
     ///////////////////////////////////////
     // Front test
     ///////////////////////////////////////
-    //~ servo_manager.prepareGrab(true);
-    //~ while (servo_manager.railManager_.areAnyMoving())
-        //~ robot_->wait(0.050);
-    //~ servo_manager.frontClawOpen();
-    //~ std::cout << "prepareGrab done" << std::endl;
+    servo_manager.prepareGrab(true);
+    while (servo_manager.railManager_.areAnyMoving())
+        robot_->wait(0.050);
+    servo_manager.frontClawOpen();
+    std::cout << "prepareGrab done" << std::endl;
 
-    //~ std::cout << "Press enter to continue" << std::endl;
-    //~ std::cin >> userInput;
-    //~ bool success = servo_manager.grab(true);
-    //~ if(success) std::cout << "GRAB SUCCESS!" << std::endl;
-    //~ else std::cout << "GRAB FAILURE!" << std::endl;
-    //~ while(true);;
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+    bool success = servo_manager.grab(true);
+    if(success) std::cout << "GRAB SUCCESS!" << std::endl;
+    else std::cout << "GRAB FAILURE!" << std::endl;
 
-    //~ while (servo_manager.railManager_.areAnyMoving())
-        //~ robot_->wait(0.1);
+    while (servo_manager.railManager_.areAnyMoving())
+        robot_->wait(0.1);
 
-    //~ std::cout << "Press enter to continue" << std::endl;
-    //~ std::cin >> userInput;
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
 
-    //~ servo_manager.buildFrontTower();
+    servo_manager.buildFrontTower();
 
     ///////////////////////////////////////
 
