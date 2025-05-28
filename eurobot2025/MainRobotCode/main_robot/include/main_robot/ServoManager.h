@@ -57,6 +57,11 @@ public:
     RailServo backRail_;
     RailServo frontPlankRail_;
     RailServo frontCanRail_;
+
+    int lastCloseTarget_back_R;
+    int lastCloseTarget_back_L;
+    int lastCloseTarget_front_R;
+    int lastCloseTarget_front_L;
 };
 
 #endif

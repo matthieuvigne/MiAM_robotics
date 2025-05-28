@@ -45,6 +45,9 @@ class Claw
         int clawServoId_;
         int clawOpenValue_;
 
+        int defaultCloseTarget_;
+        int lastCloseTarget_;
+
         int sign_;
 
         int mirror(int const& pos);

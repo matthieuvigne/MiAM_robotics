@@ -186,7 +186,7 @@ void Strategy::match_impl()
     pthread_setname_np(pthread_self(), "strat_matchImpl");
 
     servoManager_.dropBanner();
-    robot->wait(0.5);
+    robot->wait(0.7);
     robot->updateScore(20, "banner");
 
     SmallColumnAction act(robot, &servoManager_);

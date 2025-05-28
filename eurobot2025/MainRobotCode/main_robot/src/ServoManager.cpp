@@ -47,6 +47,14 @@
 #define BC_L_FOLD 540
 #define BC_R_FOLD 140
 
+#define OFFSET_STEP 10
+
+#define FC_R_DEFAULT_CLOSE FC_R_FOLD - FRONT_CLAW_RANGE_CLOSE
+#define FC_L_DEFAULT_CLOSE FC_L_FOLD + FRONT_CLAW_RANGE_CLOSE
+
+#define BC_L_DEFAULT_CLOSE BC_L_FOLD - BACK_CLAW_RANGE_CLOSE
+#define BC_R_DEFAULT_CLOSE BC_R_FOLD + BACK_CLAW_RANGE_CLOSE
+
 ServoManager::ServoManager():
     frontRightClaw_(RailServo(13, 23, 9500, true), 14, 15, 195, false), //0.9/* TODO check this value*/
     frontLeftClaw_(RailServo(10, 24, 9500, false), 12, 11, 735, true), //1.1
@@ -225,23 +233,72 @@ bool ServoManager::checkGrab(bool const& front)
     int const MAX_TH = 40;
 
     int servoIds[2] = {BACK_CLAW_R, BACK_CLAW_L};
-    int targetPosition[2] = {BC_R_FOLD + BACK_CLAW_RANGE_CLOSE, BC_L_FOLD - BACK_CLAW_RANGE_CLOSE};
+    int targetPosition[2] = {lastCloseTarget_back_R, lastCloseTarget_back_L};
+    int defaultTargetPositions[2] = {BC_R_DEFAULT_CLOSE, BC_L_DEFAULT_CLOSE};
     if (front)
     {
         servoIds[0] = FRONT_CLAW_R;
         servoIds[1] = FRONT_CLAW_L;
-        targetPosition[0] = FC_R_FOLD - FRONT_CLAW_RANGE_CLOSE;
-        targetPosition[1] = FC_L_FOLD + FRONT_CLAW_RANGE_CLOSE;
+        targetPosition[0] = lastCloseTarget_front_R;
+        targetPosition[1] = lastCloseTarget_front_L;
+        defaultTargetPositions[0] = FC_R_DEFAULT_CLOSE;
+        defaultTargetPositions[1] = FC_L_DEFAULT_CLOSE;
     }
 
     int errors[2];
     bool success = true;
     for (int i = 0; i < 2; i++)
     {
-        int const  error = std::abs(servos_->getCurrentPosition(servoIds[i]) - targetPosition[i]);
-        success  &= (error < MAX_TH && error > MIN_TH);
+        int error = std::abs(servos_->getCurrentPosition(servoIds[i]) - targetPosition[i]);
+        bool current_claw_is_success = error < MAX_TH && error > MIN_TH;
+
+        int const MAX_ATTEMPT = 2;
+
+        // If last target is not default, then do not attempt to compensate
+        if (targetPosition[i] == defaultTargetPositions[i])
+        {
+            for (uint currentAttempt=0; currentAttempt < MAX_ATTEMPT; currentAttempt++)
+            {
+                if (current_claw_is_success)
+                {
+                    break;
+                }
+
+                std::cout << "[Servo manager] Grab check iter id=" << i << ", " << currentAttempt << std::endl;
+
+                if (i == 0)
+                {
+                    targetPosition[i] += (front ? OFFSET_STEP : -OFFSET_STEP);
+                }
+                else if (i == 1)
+                {
+                    targetPosition[i] += (front ? -OFFSET_STEP : OFFSET_STEP);
+                }
+
+                robot_->logger_  << "[Servo manager] Grab check " << (front ? "front " : "back ") << " servo nb " << i << " grabbing more current target" << targetPosition[i] << std::endl;
+                servos_->setTargetPosition(servoIds[i], targetPosition[i]);
+                robot_->wait(0.100);
+                error = std::abs(servos_->getCurrentPosition(servoIds[i]) - targetPosition[i]);
+                // TODO here we are grabbing even more if error > MAX_TH! we should avoid that
+                current_claw_is_success = error < MAX_TH && error > MIN_TH;
+            }
+        }
+
+        success  &= current_claw_is_success;
         errors[i] = error;
     }
+
+    if (front)
+    {
+        lastCloseTarget_front_R = targetPosition[0];
+        lastCloseTarget_front_L = targetPosition[1];
+    }
+    else
+    {
+        lastCloseTarget_back_R = targetPosition[0];
+        lastCloseTarget_back_L = targetPosition[1];
+    }
+
     robot_->logger_  << "[Servo manager] Grab check " << (front ? "front " : "back ") <<  errors[0] << " " << errors[1] << std::endl;
     return success;
 }
@@ -318,8 +375,10 @@ void ServoManager::frontClawOpen()
 
 void ServoManager::frontClawClose()
 {
-    servos_->setTargetPosition(FRONT_CLAW_R, FC_R_FOLD - FRONT_CLAW_RANGE_CLOSE);
-    servos_->setTargetPosition(FRONT_CLAW_L, FC_L_FOLD + FRONT_CLAW_RANGE_CLOSE);
+    servos_->setTargetPosition(FRONT_CLAW_R, FC_R_DEFAULT_CLOSE);
+    servos_->setTargetPosition(FRONT_CLAW_L, FC_L_DEFAULT_CLOSE);
+    lastCloseTarget_front_R = FC_R_DEFAULT_CLOSE;
+    lastCloseTarget_front_L = FC_L_DEFAULT_CLOSE;
 }
 
 
@@ -331,8 +390,10 @@ void ServoManager::backClawOpen()
 
 void ServoManager::backClawClose()
 {
-    servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD - BACK_CLAW_RANGE_CLOSE);
-    servos_->setTargetPosition(BACK_CLAW_R, BC_R_FOLD + BACK_CLAW_RANGE_CLOSE);
+    servos_->setTargetPosition(BACK_CLAW_L, BC_L_DEFAULT_CLOSE);
+    servos_->setTargetPosition(BACK_CLAW_R, BC_R_DEFAULT_CLOSE);
+    lastCloseTarget_back_L = BC_L_DEFAULT_CLOSE;
+    lastCloseTarget_back_R = BC_R_DEFAULT_CLOSE;
 }
 
 void ServoManager::foldClaws()
