@@ -44,8 +44,12 @@ bool SmallColumnAction::performAction()
     positions.push_back(targetPosition.forward(-MARGIN / 2.0));
     positions.push_back(targetPosition.forward(30));
 
+
+    TrajectoryConfig params = robot_->getMotionController()->getCurrentTrajectoryParameters();
+    params.maxWheelAcceleration = 300;
+
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
-                      robot_->getMotionController()->getCurrentTrajectoryParameters(),
+                      params,
                       positions,
                       70.0,
                       0.15,    // Transition velocity
@@ -74,9 +78,18 @@ bool SmallColumnAction::performAction()
     // Clear zone
     robot_->getGameState()->isCollectZoneFull[ZONE_ID] = false;
 
-    // Abort action
+    // Abort if we didn't grab enough.
     if(!success)
-        return true;
+    {
+        int nGrabbed = servoManager_->countGrab(true);
+        int err;
+        if (servoManager_->frontRightClaw_.isClawFull(err))
+            nGrabbed ++;
+        if (servoManager_->frontLeftClaw_.isClawFull(err))
+            nGrabbed ++;
+        if (nGrabbed < 2)
+            return true;
+    }
 
     // Move forward and build
     targetPosition = robot_->getMotionController()->getCurrentPosition();

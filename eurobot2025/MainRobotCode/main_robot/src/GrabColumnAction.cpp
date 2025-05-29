@@ -142,12 +142,34 @@ bool GrabColumnAction::performAction()
 
     if(!success)
     {
-        // We couldn't grab anything so we assume the zone is empty now.
-        robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
-        // Go back before next action
-        robot_->getMotionController()->goStraight(front? -120:120);
-        servoManager_->clawsToMoveConfiguration(front);
-        return true;
+        // Count what was grabbed to see what we want to do.
+        int nGrabbed = servoManager_->countGrab(front);
+        if (front)
+        {
+            int err;
+            if (servoManager_->frontRightClaw_.isClawFull(err))
+                nGrabbed ++;
+            if (servoManager_->frontLeftClaw_.isClawFull(err))
+                nGrabbed ++;
+        }
+
+        // We couldn't grab enough to do a full tower, so we abort the motion
+        if (nGrabbed < 2)
+        {
+            robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
+            if (front)
+            {
+                servoManager_->frontClawOpen();
+                servoManager_->frontRightClaw_.openClaw();
+                servoManager_->frontLeftClaw_.openClaw();
+            }
+            else
+                servoManager_->backClawOpen();
+            // Go back before next action
+            robot_->getMotionController()->goStraight(front? -120:120);
+            servoManager_->clawsToMoveConfiguration(front);
+            return true;
+        }
     }
 
     // Update the game state

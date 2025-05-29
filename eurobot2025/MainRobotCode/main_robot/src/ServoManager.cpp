@@ -224,7 +224,7 @@ bool ServoManager::grab(bool const& front, bool const& frontFullGrab)
     return true;
 }
 
-bool ServoManager::checkGrab(bool const& front)
+int ServoManager::countGrab(bool const& front)
 {
 #ifdef SIMULATION
     return true;
@@ -246,7 +246,7 @@ bool ServoManager::checkGrab(bool const& front)
     }
 
     int errors[2];
-    bool success = true;
+    int nGrab = 0;
     for (int i = 0; i < 2; i++)
     {
         int error = std::abs(servos_->getCurrentPosition(servoIds[i]) - targetPosition[i]);
@@ -284,7 +284,8 @@ bool ServoManager::checkGrab(bool const& front)
             }
         }
 
-        success  &= current_claw_is_success;
+        if (current_claw_is_success)
+            nGrab ++;
         errors[i] = error;
     }
 
@@ -299,8 +300,13 @@ bool ServoManager::checkGrab(bool const& front)
         lastCloseTarget_back_L = targetPosition[1];
     }
 
-    robot_->logger_  << "[Grab check] " << (front ? "front " : "back ") <<  errors[0] << " " << errors[1] << " success: " << success << std::endl;
-    return success;
+    robot_->logger_  << "[Grab check] " << (front ? "front " : "back ") <<  errors[0] << " " << errors[1] << " number grabbed: " << nGrab << std::endl;
+    return nGrab;
+}
+
+bool ServoManager::checkGrab(bool const& front)
+{
+    return countGrab(front) == 2;
 }
 
 void ServoManager::dropBackCans(bool ground)

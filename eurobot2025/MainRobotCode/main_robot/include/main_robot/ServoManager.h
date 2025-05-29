@@ -30,6 +30,7 @@ public:
 
     bool grab(bool const& front, bool const& frontFullGrab = true);
     bool checkGrab(bool const& front);
+    int countGrab(bool const& front);
     bool areBothFrontSideClawsFull();
 
     void frontClawOpen();

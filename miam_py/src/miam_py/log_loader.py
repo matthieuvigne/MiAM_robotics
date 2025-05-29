@@ -32,10 +32,10 @@ class LogLoader:
 
             # Find start time
             self.start_time = 0.0
-            for s in f["textLog/log"]:
-                s = s.decode()
-                if "Starting match" in s:
-                    self.start_time = float(s.split("[")[1].split("]")[0])
+            # for s in f["textLog/log"]:
+            #     s = s.decode()
+            #     if "Starting match" in s:
+            #         self.start_time = float(s.split("[")[1].split("]")[0])
 
         self.variables = list(self.data.keys())
 
