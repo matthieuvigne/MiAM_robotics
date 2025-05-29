@@ -174,7 +174,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
     RobotPosition currentPosition = getCurrentPosition();
 
     *logger_ << "[MotionController] Trying to plan MPC from " << currentPosition << " to " << targetPosition << std::endl;
-    *logger_ << "Assume obstacle is " << (assumeRoundObstacle ? "ROUND" : "SQUARE") << std::endl;
+    // *logger_ << "Assume obstacle is " << (assumeRoundObstacle ? "ROUND" : "SQUARE") << std::endl;
 
     // Update obstacle map
     double minDistanceToObstacle = 10000;
@@ -221,8 +221,7 @@ TrajectoryVector MotionController::computeMPCTrajectory(
             flags);
     }
 
-
-    *logger_ << "[MotionController] >> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
+    // *logger_ << "[MotionController] >> Nearest obstacle at " << minDistanceToObstacle << " mm" << std::endl;
 
     // Go back from the obtacle if needed - the value to go back is computed
     // to get us out of the avoidance zone:

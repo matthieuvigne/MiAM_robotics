@@ -176,7 +176,7 @@ bool ServoManager::areBothFrontSideClawsFull()
     int rErr, lErr;
     bool const sR= frontRightClaw_.isClawFull(rErr);
     bool const sL= frontLeftClaw_.isClawFull(lErr);
-    robot_->logger_  << "[Servo manager] Claw front side check check" <<  rErr << " " << lErr << std::endl;
+    robot_->logger_  << "[areBothFrontSideClawsFull] Claw front side check" <<  rErr << " " << lErr << " success " << (sR && sL) <<  std::endl;
     return sR && sL;
 }
 
@@ -230,7 +230,7 @@ bool ServoManager::checkGrab(bool const& front)
     return true;
 #endif
     int const MIN_TH = 7;
-    int const MAX_TH = 40;
+    int const MAX_TH = 75;
 
     int servoIds[2] = {BACK_CLAW_R, BACK_CLAW_L};
     int targetPosition[2] = {lastCloseTarget_back_R, lastCloseTarget_back_L};
@@ -275,7 +275,7 @@ bool ServoManager::checkGrab(bool const& front)
                     targetPosition[i] += (front ? -OFFSET_STEP : OFFSET_STEP);
                 }
 
-                robot_->logger_  << "[Servo manager] Grab check " << (front ? "front " : "back ") << " servo nb " << i << " grabbing more current target" << targetPosition[i] << std::endl;
+                robot_->logger_  << "[Grab check] " << (front ? "front " : "back ") << " servo nb " << i << " grabbing more current target" << targetPosition[i] << std::endl;
                 servos_->setTargetPosition(servoIds[i], targetPosition[i]);
                 robot_->wait(0.100);
                 error = std::abs(servos_->getCurrentPosition(servoIds[i]) - targetPosition[i]);
@@ -299,7 +299,7 @@ bool ServoManager::checkGrab(bool const& front)
         lastCloseTarget_back_L = targetPosition[1];
     }
 
-    robot_->logger_  << "[Servo manager] Grab check " << (front ? "front " : "back ") <<  errors[0] << " " << errors[1] << " success: " << success << std::endl;
+    robot_->logger_  << "[Grab check] " << (front ? "front " : "back ") <<  errors[0] << " " << errors[1] << " success: " << success << std::endl;
     return success;
 }
 

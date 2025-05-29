@@ -251,6 +251,7 @@ void Robot::applyMotorTarget(DrivetrainTarget const& target)
 
 void Robot::matchEnd()
 {
+    shutdown();
     if (!testMode_ || !disableLidar_)
         lidar_.stop();
     servos_.disable(0xFE);

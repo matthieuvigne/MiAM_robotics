@@ -82,7 +82,7 @@ bool Strategy::setup(RobotInterface *robot)
 
 void Strategy::shutdown()
 {
-  // TODO
+    servoManager_.railManager_.abort();
 }
 
 void Strategy::match()
@@ -90,28 +90,30 @@ void Strategy::match()
     pthread_setname_np(pthread_self(), "strat_match");
     robot->logger_ << "Strategy thread started." << std::endl;
 
+    match_impl();
 
-    std::thread stratMain(&Strategy::match_impl, this);
-    pthread_t handle = ThreadHandler::addThread(stratMain);
-    createdThreads_.push_back(handle);
 
-    // Disable fallback, action system does it by itself.
-    double const FALLBACK_TIME = 100.0;
-    robot->wait(FALLBACK_TIME);
-    // if (!MATCH_COMPLETED)
-    // {
-    //     pthread_cancel(handle);
-    //     usleep(50000);
-    //     robot->logger_ << "Match almost done, auto-triggering fallback strategy" << std::endl;
-    //     goBackToBase();
-    // }
-    // else
-    // {
-    //     robot->wait(100.0 - FALLBACK_TIME);
-    //     pthread_cancel(handle);
-    // }
-    // robot->wait(100.0 - robot->getMatchTime());
-    servoManager_.railManager_.abort();
+    // std::thread stratMain(&Strategy::match_impl, this);
+    // pthread_t handle = ThreadHandler::addThread(stratMain);
+    // createdThreads_.push_back(handle);
+
+    // // Disable fallback, action system does it by itself.
+    // double const FALLBACK_TIME = 100.0;
+    // robot->wait(FALLBACK_TIME);
+    // // if (!MATCH_COMPLETED)
+    // // {
+    // //     pthread_cancel(handle);
+    // //     usleep(50000);
+    // //     robot->logger_ << "Match almost done, auto-triggering fallback strategy" << std::endl;
+    // //     goBackToBase();
+    // // }
+    // // else
+    // // {
+    // //     robot->wait(100.0 - FALLBACK_TIME);
+    // //     pthread_cancel(handle);
+    // // }
+    // // robot->wait(100.0 - robot->getMatchTime());
+    // pthread_cancel(handle);
 }
 
 
@@ -146,7 +148,6 @@ void Strategy::goBackToBase()
     bool targetReached = false;
     while (!targetReached)
     {
-
         TrajectoryVector traj;
         traj = robot->getMotionController()->computeMPCTrajectory(
             targetPosition,
@@ -157,6 +158,8 @@ void Strategy::goBackToBase()
             robot->getMotionController()->setTrajectoryToFollow(traj);
             targetReached = robot->getMotionController()->waitForTrajectoryFinished();
         }
+        else
+            robot->wait(0.010);
         // No fallback this time
         // else
         //     targetReached = robot->getMotionController()->goToStraightLine(targetPosition);

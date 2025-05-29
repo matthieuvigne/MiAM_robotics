@@ -89,8 +89,8 @@ bool GrabColumnAction::performAction()
     int maxGrabAttempts = 2;
     if (std::fabs(std::fabs(COLLECT_ZONE_COORDS[zoneId_].theta) - M_PI_2) > 0.1)
     {
-        wpt_margin = !isStartMotionBackward_ ? -45 : 45;
-        maxGrabAttempts = 1;
+        wpt_margin = !isStartMotionBackward_ ? -35 : 35;
+        maxGrabAttempts = 0;
     }
     // Don't enter opponent zone
     if (zoneId_ == 7)
@@ -146,6 +146,7 @@ bool GrabColumnAction::performAction()
         robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
         // Go back before next action
         robot_->getMotionController()->goStraight(front? -120:120);
+        servoManager_->clawsToMoveConfiguration(front);
         return true;
     }
 
