@@ -109,5 +109,6 @@
             timespec timeOrigin_;
 
             bool silent_ = false;
+            int nLines_ = 0;
     };
 #endif

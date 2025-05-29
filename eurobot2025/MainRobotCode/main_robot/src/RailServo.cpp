@@ -95,7 +95,7 @@ void RailServo::tick()
     {
         double const KP = 50000.0;
         double const MIN_VEL = 2000;
-        double const MAX_VEL = 5000;
+        double const MAX_VEL = 7000;
 
         double velocityTarget = - KP * (currentPosition_ - targetPosition_);
         if (velocityTarget > 0)

@@ -37,7 +37,7 @@ public:
     void backClawOpen();
     void backClawClose();
 
-    void foldClaws();
+    void foldClaws(bool setup=false);
 
     void grabBackTwoPlanks();
     void grabBackOnePlank();

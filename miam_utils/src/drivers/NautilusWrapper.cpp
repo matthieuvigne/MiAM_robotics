@@ -22,12 +22,14 @@ bool NautilusWrapper::init(bool & isEncoderInit)
 {
     // Note: enabeling nautilus disables the encoder, so we check the
     // status only after having enabled the motor.
+    disable();
+    lastMeasurements_.currentMode = 0;
     stop();
     usleep(15000);
     NautilusReply rep = readRegister(Register::measuredVelocity);
     isEncoderInit = rep.isValid && rep.isEncoderValid;
     isInit_ = rep.isValid & isEncoderInit;
-    return rep.isValid;
+    return rep.isValid && rep.mode == static_cast<uint16_t>(Mode::Position);
 }
 
 
@@ -62,7 +64,15 @@ void NautilusWrapper::setTargetVelocity(double const& targetVelocity)
     {
         nautilus_.stop();
     }
-
+    else if (lastMeasurements_.currentMode != static_cast<uint16_t>(Mode::Velocity))
+    {
+        // Give it some time, then reset.
+        nConsecutiveNoVel_ ++;
+        if (nConsecutiveNoVel_ > 5)
+        {
+            nautilus_.stop();
+        }
+    }
     nautilus_.writeRegister(Register::targetVelocity, static_cast<float>(motorReductionRatio_ * targetVelocity));
 }
 
@@ -78,12 +88,14 @@ void NautilusWrapper::stop()
     }
     if (isStoppedPositionValid_)
         nautilus_.writeRegister(Register::targetPosition, stoppedPosition_);
+    nConsecutiveNoVel_ = 0;
 }
 
 
 void NautilusWrapper::disable()
 {
     nautilus_.stop();
+    nConsecutiveNoVel_ = 0;
 }
 
 

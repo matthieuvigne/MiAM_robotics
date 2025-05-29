@@ -77,6 +77,7 @@ void Logger::loggerThread(std::string const& filename)
     char header[5] = {'m', 'i', 'a', 'm', 1};
     file.write(header, 5);
     file.flush();
+    nLines_ = 0;
 
     for (unsigned int i = 0; i < logger::MAX_VARIABLES; i++)
         variables_[i].init(&file, i);
@@ -120,15 +121,20 @@ void Logger::loggerThread(std::string const& filename)
         }
 
         // Process strings
-        for (auto const& s : newStrings)
+        // Only allow 10000 strings max
+        if (nLines_ < 10000)
         {
-            uint16_t const size = 1 + s.size();
+            for (auto const& s : newStrings)
+            {
+                uint16_t const size = 1 + s.size();
 
-            char chunk[2 + size];
-            memcpy(chunk, &size, sizeof(uint16_t));
-            chunk[2] = 's';
-            memcpy(chunk + 3, s.data(), s.size());
-            file.write(chunk, size + 2);
+                char chunk[2 + size];
+                memcpy(chunk, &size, sizeof(uint16_t));
+                chunk[2] = 's';
+                memcpy(chunk + 3, s.data(), s.size());
+                file.write(chunk, size + 2);
+                nLines_++;
+            }
         }
 
         // Flush everything at least at the specified time interval.

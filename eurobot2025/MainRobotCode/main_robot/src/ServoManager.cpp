@@ -40,7 +40,7 @@
 #define FRONT_CLAW_RANGE_OPEN 230
 #define FRONT_CLAW_RANGE_CLOSE 170
 #define FC_R_FOLD 730
-#define FC_L_FOLD 245
+#define FC_L_FOLD (245 - 5)
 
 #define BACK_CLAW_RANGE_OPEN 240
 #define BACK_CLAW_RANGE_CLOSE 170
@@ -85,7 +85,7 @@ void ServoManager::init(RobotInterface *robot)
     frontLeftClaw_.move(ClawPosition::FORWARD);
     frontLeftClaw_.closeClaw();
 
-    foldClaws();
+    foldClaws(true);
     releasePlank();
     foldBackPlank(true);
     // Disable finger
@@ -299,7 +299,7 @@ bool ServoManager::checkGrab(bool const& front)
         lastCloseTarget_back_L = targetPosition[1];
     }
 
-    robot_->logger_  << "[Servo manager] Grab check " << (front ? "front " : "back ") <<  errors[0] << " " << errors[1] << std::endl;
+    robot_->logger_  << "[Servo manager] Grab check " << (front ? "front " : "back ") <<  errors[0] << " " << errors[1] << " success: " << success << std::endl;
     return success;
 }
 
@@ -396,11 +396,15 @@ void ServoManager::backClawClose()
     lastCloseTarget_back_R = BC_R_DEFAULT_CLOSE;
 }
 
-void ServoManager::foldClaws()
+void ServoManager::foldClaws(bool setup)
 {
     servos_->setTargetPosition(FRONT_CLAW_R, FC_R_FOLD);
     servos_->setTargetPosition(FRONT_CLAW_L, FC_L_FOLD);
-    servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD);
+    // Banner
+    if (setup)
+        servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD - 50);
+    else
+        servos_->setTargetPosition(BACK_CLAW_L, BC_L_FOLD);
     servos_->setTargetPosition(BACK_CLAW_R, BC_R_FOLD);
 }
 

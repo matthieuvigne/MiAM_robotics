@@ -185,8 +185,10 @@ void Strategy::match_impl()
 {
     pthread_setname_np(pthread_self(), "strat_matchImpl");
 
+    // robot->getMotionController()->goStraight(-40);
     servoManager_.dropBanner();
-    robot->wait(0.7);
+    robot->wait(1.5);
+    servoManager_.backClawOpen();
     robot->updateScore(20, "banner");
 
     SmallColumnAction act(robot, &servoManager_);

@@ -60,6 +60,7 @@
             double motorReductionRatio_;
 
             bool isInit_{false};
+            int nConsecutiveNoVel_ = 0;
     };
 #endif
 

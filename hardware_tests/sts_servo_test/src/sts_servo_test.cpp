@@ -61,7 +61,27 @@ int main(int argc, char* argv[])
     while (!servo_manager.isRailCalibDone())
         robot_->wait(0.1);
     std::cout << "Calib done" << std::endl;
+    servo_manager.backRail_.move(0.3);
+    while (servo_manager.backRail_.isMoving())
+        robot_->wait(0.1);
+    servo_manager.foldBackPlank();
+    std::cout << "Calib done" << std::endl;
 
+      std::cout << "Press enter to continue" << std::endl;
+      std::cin >> userInput;
+    while (true)
+    {
+      servo_manager.dropBanner();
+      robot.wait(1.5);
+      servo_manager.backClawOpen();
+      std::cout << "Press enter to continue" << std::endl;
+      std::cin >> userInput;
+      robot.getServos()->setTargetPosition(31, 1750);
+      servo_manager.foldClaws(true);
+      std::cout << "Press enter to continue" << std::endl;
+      std::cin >> userInput;
+
+    }
     // servo_manager.grabPlank();
     // servo_manager.releasePlank();
     // servo_manager.backRail_.move(0.05);
@@ -113,7 +133,7 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////
 
     // bool success = false;
-    // do {
+    // while (true) {
 
     //   // Prepare the grab
     //   servo_manager.releaseBackPlank();
@@ -139,33 +159,36 @@ int main(int argc, char* argv[])
     //     //robot_->getMotionController()->goStraight(50, 0.5);
     //     //robot_->getMotionController()->waitForTrajectoryFinished();
     //   }
-    // } while(!success);
-    // while(true);;
+    // }
 
-    //std::cout << "Press enter to continue" << std::endl;
-    //std::cin >> userInput;
-    //servo_manager.grabBackTwoPlanks();
-    //servo_manager.backClawClose();
+    // // std::cout << "Press enter to continue" << std::endl;
+    // // std::cin >> userInput;
+    // // servo_manager.grabBackTwoPlanks();
+    // // servo_manager.backClawClose();
 
-    //std::cout << "Press enter to continue" << std::endl;
-    //std::cin >> userInput;
-    //servo_manager.backRail_.move(1.0);
+    // // std::cout << "Press enter to continue" << std::endl;
+    // // std::cin >> userInput;
+    // // servo_manager.backRail_.move(1.0);
 
-    //while (true) ;;
+    // // while (true) ;;
     ///////////////////////////////////////
 
 
     ///////////////////////////////////////
     // Front test
     ///////////////////////////////////////
-    servo_manager.prepareGrab(true);
+    while (true)
+    {
+        servo_manager.prepareGrab(true);
     while (servo_manager.railManager_.areAnyMoving())
         robot_->wait(0.050);
     servo_manager.frontClawOpen();
     std::cout << "prepareGrab done" << std::endl;
 
+    std::cout << "hello" << std::endl;
     std::cout << "Press enter to continue" << std::endl;
     std::cin >> userInput;
+    std::cout << "world" << std::endl;
     bool success = servo_manager.grab(true);
     if(success) std::cout << "GRAB SUCCESS!" << std::endl;
     else std::cout << "GRAB FAILURE!" << std::endl;
@@ -173,10 +196,40 @@ int main(int argc, char* argv[])
     while (servo_manager.railManager_.areAnyMoving())
         robot_->wait(0.1);
 
+    // Check grab claws
+    int error_R = 0;
+    servo_manager.frontRightClaw_.isClawFull(error_R);
+    int error_L = 0;
+    servo_manager.frontLeftClaw_.isClawFull(error_L);
+
+    std::cout << "Front right claw error: " << error_R << std::endl;
+    std::cout << "Front left claw error: " << error_L << std::endl;
+
     std::cout << "Press enter to continue" << std::endl;
     std::cin >> userInput;
 
+
+    std::cout << "Second time check grab" << std::endl;
+
+    servo_manager.checkGrab(true);
+    error_R = 0;
+    servo_manager.frontRightClaw_.isClawFull(error_R);
+    error_L = 0;
+    servo_manager.frontLeftClaw_.isClawFull(error_L);
+
+    std::cout << "Front right claw error: " << error_R << std::endl;
+    std::cout << "Front left claw error: " << error_L << std::endl;
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin >> userInput;
+
+    std::cout << "before build tower" << std::endl;
+
     servo_manager.buildFrontTower();
+
+    std::cout << "after build tower" << std::endl;
+    }
+
 
     ///////////////////////////////////////
 

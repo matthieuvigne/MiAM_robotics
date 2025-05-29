@@ -4,7 +4,7 @@
 #include <thread>
 
 #define CLAW_STRAIGHT 2048
-#define CLOSE_RANGE 140
+#define CLOSE_RANGE 110
 
 Claw::Claw(RailServo rail,
            int const& wristServoId,
@@ -38,7 +38,7 @@ void Claw::closeClaw()
 
 void Claw::foldClaw()
 {
-    driver_->setTargetPosition(clawServoId_, clawOpenValue_ + sign_ * 155);
+    driver_->setTargetPosition(clawServoId_, clawOpenValue_ + sign_ * 130);
 }
 
 bool Claw::isClawFull(int &error)
@@ -89,7 +89,7 @@ void Claw::move(ClawPosition const& clawPos)
     switch (clawPos)
     {
         case ClawPosition::FOLDED:
-            driver_->setTargetPosition(wristServoId_, mirror(2850));
+            driver_->setTargetPosition(wristServoId_, mirror(2750));
             break;
         case ClawPosition::SIDE:
             driver_->setTargetPosition(wristServoId_, mirror(1000));
