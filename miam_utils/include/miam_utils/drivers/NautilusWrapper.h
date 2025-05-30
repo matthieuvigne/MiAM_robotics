@@ -19,7 +19,7 @@
     class NautilusWrapper{
         public:
             /// \brief Constructor.
-            NautilusWrapper(std::string const& portName, double const& reductionRatio = 6.0, int const& frequency = 1500000);
+            NautilusWrapper(std::string const& portName, double const& reductionRatio = 6.0, int const& frequency = 800000);
             ~NautilusWrapper();
 
             /// @brief Initialize and check communication with driver.

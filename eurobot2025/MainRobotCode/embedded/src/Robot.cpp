@@ -69,7 +69,7 @@ bool Robot::initSystem()
             guiState_.debugStatus += "Battery monitoring init failed\n";
     }
 
-    if (!isServoInit_)
+    if (isMotorsInit_ && !isServoInit_)
     {
         isServoInit_ = servos_.init("/dev/ttyAMA0", -1);
         if (!isServoInit_)
@@ -193,6 +193,7 @@ void Robot::updateSensorData()
         logger_.log("Robot.battery.voltage", currentTime_, inaReading.voltage);
         logger_.log("Robot.battery.current", currentTime_, inaReading.current);
         logger_.log("Robot.battery.power", currentTime_, inaReading.power);
+        logger_.log("Servos.nFailed", currentTime_, servos_.nPosFailed_);
     }
 
     if (!hasMatchStarted_ && !inBorderDetection_ && gui_->getAskedDetectBorders())

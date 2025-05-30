@@ -301,11 +301,20 @@ bool MotionControllerTestingViewer::redraw(const Cairo::RefPtr<Cairo::Context>& 
         cr->set_source_rgba(1.0, 0.0, 0.0, 0.5);
         for (int i = 0; i < motionController_->map_.rows(); i++)
             for (int j = 0; j < motionController_->map_.cols(); j++)
-                if (motionController_->map_.coeff(i, j))
+            {
+                if (motionController_->map_.coeff(i, j) == 1)
                 {
+                    cr->set_source_rgba(1.0, 0.0, 0.0, 0.5);
                     cr->rectangle(resolution * i, resolution * (motionController_->map_.cols() - j - 1), resolution, resolution);
                     cr->fill();
                 }
+                else if (motionController_->map_.coeff(i, j) == 2)
+                {
+                    cr->set_source_rgba(1.0, 1.0, 0.0, 0.5);
+                    cr->rectangle(resolution * i, resolution * (motionController_->map_.cols() - j - 1), resolution, resolution);
+                    cr->fill();
+                }
+            }
     }
 
     return true;
@@ -388,6 +397,7 @@ void MotionControllerTestingViewer::recompute()
     if (buttonBackward->get_active())
         flags = static_cast<tf>(flags | tf::BACKWARD);
 
+    motionController_->getGameState()->arePAMIMoving_ = true;
     mpcTrajectory_ = motionController_->computeMPCTrajectory(
         endPosition_,
         obstacles_,

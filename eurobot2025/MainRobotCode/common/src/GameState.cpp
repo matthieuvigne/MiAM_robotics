@@ -108,7 +108,7 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
 // Path planning
 #define GRID_RESOLUTION 25
 
-void excludeRectangle(Map & map, int const lowerX, int const lowerY, int const upperX, int const upperY, int const margin = table_dimensions::table_margin)
+void excludeRectangle(Map & map, int const lowerX, int const lowerY, int const upperX, int const upperY, int const margin = table_dimensions::table_margin, int const obstacleValue = 1)
 {
     int const x = std::max(0, (lowerX - margin) / GRID_RESOLUTION);
     int const y = std::max(0, (lowerY - margin) / GRID_RESOLUTION);
@@ -116,7 +116,7 @@ void excludeRectangle(Map & map, int const lowerX, int const lowerY, int const u
     int const width = std::min(static_cast<int>(map.rows()) - x, std::min((lowerX - margin) / GRID_RESOLUTION, 0) + ((upperX - lowerX) + 2 * margin) / GRID_RESOLUTION);
     int const height = std::min(static_cast<int>(map.cols()) - y, std::min((lowerY - margin) / GRID_RESOLUTION, 0) + ((upperY - lowerY) + 2 * margin) / GRID_RESOLUTION);
 
-    map.block(x, y, width, height).setConstant(1);
+    map.block(x, y, width, height).setConstant(obstacleValue);
 }
 
 Map GameState::generateMap()
@@ -130,6 +130,12 @@ Map GameState::generateMap()
 
     Map map(Eigen::MatrixXi::Zero(nRows, nCols), static_cast<double>(GRID_RESOLUTION));
 
+    if (arePAMIMoving_)
+    {
+        // PAMI are optional exclude zone - put it first to be overwritten by other obstacles.
+        excludeRectangle(map, 900, 1400, 3000, 2000, table_dimensions::table_margin, 2);
+    }
+
     // Add obstacles linked to map: border
     map.bottomRows<borderMargin>().setConstant(1);
     map.topRows<borderMargin>().setConstant(1);
@@ -141,10 +147,6 @@ Map GameState::generateMap()
     // Scene
     excludeRectangle(map, 1050, 1550, 3000, 2000);
 
-    if (arePAMIMoving_)
-    {
-        excludeRectangle(map, 900, 1400, 3000, 2000);
-    }
 
     // Other robot start / drop zones
     excludeRectangle(map, 0, 650, 450, 1100);

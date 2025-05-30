@@ -169,15 +169,15 @@ void RobotInterface::lowLevelLoop()
                     false);
                 double const angleError = std::abs(motorEstimatedPosition_.theta - motionController_.getCurrentPosition().theta);
                 logger_.log("Robot.estimatedAngleDifference", currentTime_, angleError);
-                if (angleError > 0.5 * M_PI)
-                {
-                    logger_ << "[ERROR] PANIC! Encoders and motors are inconsistent!" << std::endl;
-                    logger_ << "Stopping everything to avoid further dammage..." << std::endl;
-                    for (auto handle: strategy_->createdThreads_)
-                        pthread_cancel(handle);
-                    pthread_cancel(strategyHandle);
-                    shutdown();
-                }
+                // if (angleError > 0.5 * M_PI)
+                // {
+                //     logger_ << "[ERROR] PANIC! Encoders and motors are inconsistent!" << std::endl;
+                //     logger_ << "Stopping everything to avoid further dammage..." << std::endl;
+                //     for (auto handle: strategy_->createdThreads_)
+                //         pthread_cancel(handle);
+                //     pthread_cancel(strategyHandle);
+                //     shutdown();
+                // }
             }
             // Apply target to the robot
             applyMotorTarget(target);

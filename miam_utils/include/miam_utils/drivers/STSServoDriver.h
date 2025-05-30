@@ -229,6 +229,7 @@
             /// \return Register value, 0 on failure.
             int16_t readTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId);
 
+            int nPosFailed_ = 0;
         private:
 
             /// \brief Clear internal device error.

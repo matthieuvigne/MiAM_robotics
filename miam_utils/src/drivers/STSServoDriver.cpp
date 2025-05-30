@@ -70,32 +70,37 @@ bool STSServoDriver::init(std::string const& portName, int const& dirPin, int co
         {
             servoType_[i] = STS::ServoType::UNKNOWN;
         }
-        // Configure servos
-        writeRegister(0xFE, STS::registers::WRITE_LOCK, 0);
-        usleep(2000);
-        // Set a return delay of 4us.
-        writeRegister(0xFE, STS::registers::RESPONSE_DELAY, 2);
-        usleep(2000);
-        // Set a return status level of 0.
-        writeRegister(0xFE, STS::registers::RESPONSE_STATUS_LEVEL, 0);
-        usleep(2000);
-        // Set voltage limit to  13V
-        writeRegister(0xFE, STS::registers::MAXIMUM_VOLTAGE, 130);
-        usleep(2000);
-        // Set all protections on
-        writeRegister(0xFE, STS::registers::UNLOADING_CONDITION, 44);
-        usleep(2000);
-        // Lock EEPROM
-        writeRegister(0xFE, STS::registers::WRITE_LOCK, 1);
-        usleep(2000);
-        writeRegister(0xFE, STS::registers::MINIMUM_ANGLE, 0);
-        usleep(2000);
-        writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 1, 0);
-        usleep(2000);
-        writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 2, 0);
-        usleep(2000);
-        writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 3, 0);
-        usleep(2000);
+        // Force serveral retries
+        for (int i = 0; i < 5; i++)
+        {
+            // Configure servos
+            writeRegister(0xFE, STS::registers::WRITE_LOCK, 0);
+            usleep(2000);
+            // Set a return delay of 4us.
+            writeRegister(0xFE, STS::registers::RESPONSE_DELAY, 2);
+            usleep(2000);
+            // Set a return status level of 0.
+            writeRegister(0xFE, STS::registers::RESPONSE_STATUS_LEVEL, 0);
+            usleep(2000);
+            // Set voltage limit to  13V
+            writeRegister(0xFE, STS::registers::MAXIMUM_VOLTAGE, 130);
+            usleep(2000);
+            // Set all protections on
+            writeRegister(0xFE, STS::registers::UNLOADING_CONDITION, 44);
+            usleep(2000);
+            // Lock EEPROM
+            writeRegister(0xFE, STS::registers::WRITE_LOCK, 1);
+            usleep(2000);
+            writeRegister(0xFE, STS::registers::MINIMUM_ANGLE, 0);
+            usleep(2000);
+            writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 1, 0);
+            usleep(2000);
+            writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 2, 0);
+            usleep(2000);
+            writeRegister(0xFE, STS::registers::MINIMUM_ANGLE + 3, 0);
+            usleep(2000);
+        }
+
         // Disable all servos
         disable(0xFE);
 
@@ -264,7 +269,26 @@ void STSServoDriver::setTorqueLimit(unsigned char const& servoId, double const& 
 bool STSServoDriver::setTargetPosition(unsigned char const& servoId, int16_t const& position, bool const& asynchronous)
 {
     lastCommands_[servoId] = position;
-    return writeTwoBytesRegister(servoId, STS::registers::TARGET_POSITION, position, asynchronous);
+    int nRetry = 5;
+    bool success = false;
+    writeRegister(servoId, STS::registers::TORQUE_SWITCH, 1);
+    usleep(150);
+
+    while (!success && nRetry > 0)
+    {
+        writeTwoBytesRegister(servoId, STS::registers::TARGET_POSITION, position, asynchronous);
+        usleep(300);
+        int sTarget = readTwoBytesRegister(servoId, STS::registers::TARGET_POSITION);
+        success = sTarget == position;
+        if (!success)
+        {
+            std::cout << "Servo order failed!" << std::endl;
+            nPosFailed_++;
+        }
+
+        nRetry --;
+    }
+    return nRetry > 0;
 }
 
 

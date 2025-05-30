@@ -29,7 +29,7 @@ bool Map::detectCollision(int const& x, int const& y) const
 {
     if (x < 0 || x >= rows() || y < 0 || y >= cols())
         return true;
-    return coeff(x, y) == 1;
+    return coeff(x, y) > 0;
 }
 
 RobotPosition Map::coordToPos(MapCoord const& pos) const
