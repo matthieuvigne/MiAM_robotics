@@ -29,6 +29,7 @@ jobs:
           mkdir miam_utils && cd miam_utils && cmake ../../miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=ON -DUNIT_TESTS=OFF && make -j4 install && cmake . -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=OFF -DUNIT_TESTS=ON && cmake . && make install && cd ../
       - name: build robot code
         run: |
+          source /acado/build/acado_env.sh &&\
           export PATH=/miam_workspace/install/bin:$PATH &&\
           export PKG_CONFIG_PATH=/miam_workspace/install/lib/pkgconfig:$PKG_CONFIG_PATH &&\
           export LD_LIBRARY_PATH=/miam_workspace/install/lib:$LD_LIBRARY_PATH &&\
