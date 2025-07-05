@@ -22,6 +22,7 @@
     #include <miam_utils/drivers/AS5045Driver.h>
     #include <miam_utils/drivers/NautilusWrapper.h>
     #include <miam_utils/drivers/INA226Driver.h>
+    #include <miam_utils/drivers/PCA9546ADriver.h>
     #include <miam_utils/trajectory/PointTurn.h>
     #include <miam_utils/trajectory/Utilities.h>
     #include <miam_utils/trajectory/DrivetrainKinematics.h>
@@ -79,6 +80,14 @@
             NautilusWrapper leftMotor_;
             INA226 ina226_;
             VL53L0X vlxSensor_;
+
+            PCA9546A i2cExpander_;
+            INA226 ina226_7V_;
+            INA226 ina226_12V_;
+            bool isI2CExpanderInit_ = false;
+            bool isINA7Init_ = false;
+            bool isINA12Init_ = false;
+
 
             void updateRangeMeasurement(); // Thread handling VLX acquisition
             void detectBorders(); // Thread to detect borders, for match start.

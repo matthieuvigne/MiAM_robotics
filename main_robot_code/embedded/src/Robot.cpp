@@ -83,7 +83,30 @@ bool Robot::initSystem()
         if (!isLidarInit_)
             guiState_.debugStatus += "Lidar init failed\n";
     }
-
+    // I2C init
+    if (isI2CExpanderInit_)
+    {
+        if (!isINA7Init_)
+        {
+            isINA7Init_ = ina226_7V_.init(&RPI_I2C, 0x45);
+            if (!isINA7Init_)
+                guiState_.debugStatus += "7V monitoring init failed\n";
+        }
+        if (!isINA12Init_)
+        {
+            isINA12Init_ = ina226_12V_.init(&RPI_I2C, 0x44);
+            if (!isINA12Init_)
+                guiState_.debugStatus += "12V monitoring init failed\n";
+        }
+    }
+    else
+    {
+        isI2CExpanderInit_ = i2cExpander_.init(&RPI_I2C);
+        if (!isI2CExpanderInit_)
+            guiState_.debugStatus += "I2CExpander init failed\n";
+        else
+            i2cExpander_.setPorts(0xFF);
+    }
     return isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_) & isINAInit_;
 }
 
@@ -161,7 +184,6 @@ void Robot::updateSensorData()
     measurements_.drivetrainMeasurements.encoderPosition.left = leftMeasurements.encoderPosition;
 
     INA226Reading inaReading = ina226_.read();
-
     measurements_.batteryVoltage = inaReading.voltage;
 
     if (!disableLidar_)
@@ -194,6 +216,16 @@ void Robot::updateSensorData()
         logger_.log("Robot.battery.current", currentTime_, inaReading.current);
         logger_.log("Robot.battery.power", currentTime_, inaReading.power);
         logger_.log("Servos.nFailed", currentTime_, servos_.nPosFailed_);
+
+
+        INA226Reading inaReading = ina226_7V_.read();
+        logger_.log("Robot.7V.voltage", currentTime_, inaReading.voltage);
+        logger_.log("Robot.7V.current", currentTime_, inaReading.current);
+        logger_.log("Robot.7V.power", currentTime_, inaReading.power);
+        inaReading = ina226_12V_.read();
+        logger_.log("Robot.12V.voltage", currentTime_, inaReading.voltage);
+        logger_.log("Robot.12V.current", currentTime_, inaReading.current);
+        logger_.log("Robot.12V.power", currentTime_, inaReading.power);
     }
 
     if (!hasMatchStarted_ && !inBorderDetection_ && gui_->getAskedDetectBorders())
