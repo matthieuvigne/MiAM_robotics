@@ -98,6 +98,12 @@ bool Robot::initSystem()
             if (!isINA12Init_)
                 guiState_.debugStatus += "12V monitoring init failed\n";
         }
+        if (!isIMUInit_)
+        {
+            isIMUInit_ = imu_.init(&RPI_I2C);
+            if (!isINA12Init_)
+                guiState_.debugStatus += "IMU init failed\n";
+        }
     }
     else
     {
@@ -107,7 +113,7 @@ bool Robot::initSystem()
         else
             i2cExpander_.setPorts(0xFF);
     }
-    return isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_) & isINAInit_;
+    return isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_) & isINAInit_ & isIMUInit_ & isINA12Init_ & isINA7Init_;
 }
 
 
@@ -226,6 +232,11 @@ void Robot::updateSensorData()
         logger_.log("Robot.12V.voltage", currentTime_, inaReading.voltage);
         logger_.log("Robot.12V.current", currentTime_, inaReading.current);
         logger_.log("Robot.12V.power", currentTime_, inaReading.power);
+
+        Eigen::Vector3f gyro = imu_.getGyroscopeReadings();
+        logger_.log("IMU.gyroX", currentTime_, gyro(0));
+        logger_.log("IMU.gyroY", currentTime_, gyro(1));
+        logger_.log("IMU.gyroZ", currentTime_, gyro(2));
     }
 
     if (!hasMatchStarted_ && !inBorderDetection_ && gui_->getAskedDetectBorders())

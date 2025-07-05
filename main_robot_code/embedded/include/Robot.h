@@ -20,6 +20,7 @@
     #include <miam_utils/drivers/RMDX.h>
     #include <miam_utils/drivers/RMDXController.h>
     #include <miam_utils/drivers/AS5045Driver.h>
+    #include <miam_utils/drivers/BMI088Driver.h>
     #include <miam_utils/drivers/NautilusWrapper.h>
     #include <miam_utils/drivers/INA226Driver.h>
     #include <miam_utils/drivers/PCA9546ADriver.h>
@@ -84,9 +85,11 @@
             PCA9546A i2cExpander_;
             INA226 ina226_7V_;
             INA226 ina226_12V_;
+            BMI088 imu_;
             bool isI2CExpanderInit_ = false;
             bool isINA7Init_ = false;
             bool isINA12Init_ = false;
+            bool isIMUInit_ = false;
 
 
             void updateRangeMeasurement(); // Thread handling VLX acquisition
