@@ -29,14 +29,12 @@ jobs:
           mkdir miam_utils && cd miam_utils && cmake ../../miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=ON -DUNIT_TESTS=OFF && make -j4 install && cmake . -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=OFF -DUNIT_TESTS=ON && cmake . && make install && cd ../
       - name: build robot code
         run: |
-          source /acado/build/acado_env.sh &&\
           export PATH=/miam_workspace/install/bin:$PATH &&\
           export PKG_CONFIG_PATH=/miam_workspace/install/lib/pkgconfig:$PKG_CONFIG_PATH &&\
           export LD_LIBRARY_PATH=/miam_workspace/install/lib:$LD_LIBRARY_PATH &&\
           cd build &&\
-          mkdir eurobot2025 && cd eurobot2025 &&\
-          mkdir embedded && cd embedded && cmake ../../../eurobot2025/MainRobotCode/embedded && make -j4 && cd .. &&\
-          mkdir simulation && cd simulation && cmake ../../../eurobot2025/MainRobotCode/simulation && make -j4 && cd ..
+          mkdir embedded && cd embedded && cmake ../../main_robot_code/embedded && make -j4 && cd .. &&\
+          mkdir simulation && cd simulation && cmake ../../main_robot_code/simulation && make -j4 && cd ..
         shell: bash
       - name: miam_utils test
         run: |
