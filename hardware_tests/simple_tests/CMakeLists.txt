@@ -50,6 +50,12 @@ target_link_libraries(test_mainPCB ${MIAM_UTILS_LIBRARIES})
 add_executable(test_BMI088 TestBMI088.cpp)
 target_link_libraries(test_BMI088 ${MIAM_UTILS_LIBRARIES})
 
+add_executable(test_SparkfunOdometry TestSparkfunOdometry.cpp)
+target_link_libraries(test_SparkfunOdometry ${MIAM_UTILS_LIBRARIES})
+
+add_executable(test_ServoPerformance TestServoPerformance.cpp)
+target_link_libraries(test_ServoPerformance ${MIAM_UTILS_LIBRARIES})
+
 # Vision test requires opencv
 set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
 pkg_search_module(OpenCV REQUIRED opencv4 >= 4.5)

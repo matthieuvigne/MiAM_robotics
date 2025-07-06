@@ -19,7 +19,7 @@
 
             /// \brief Init and test communication with driver.
             /// \return True if communication was successful.
-            bool init(I2CAdapter *device, unsigned char const& address = 0x40);
+            bool init(I2CAdapter *device, unsigned char const& address = 0x40, double const& Rshunt = 0.005);
 
             /// \brief Reader power statistics.
             INA226Reading read();
@@ -30,6 +30,7 @@
             unsigned char address_;    ///< Led driver address.
 
             bool isInit_;   ///< Status of initialization.
+            double currentLSB_ = 0.001; // Current LSB for conversion
 
             uint16_t readU16Register(uint8_t const& address);
             bool writeU16Register(uint8_t const& address, uint16_t const& value);

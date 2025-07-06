@@ -45,6 +45,7 @@
         WheelSpeed motorSpeed; ///<< Measured motor speed, in rad/s
         std::deque<DetectedRobot> lidarDetection; ///< Robots detected by the lidar.
         double matchTime; ///< Time in the match.
+        double gyroscope;
     };
 
     struct RobotMeasurements{

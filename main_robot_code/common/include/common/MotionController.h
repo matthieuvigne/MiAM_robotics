@@ -319,5 +319,6 @@
             GameState gameState_;
             DrivetrainTarget lastTarget_;
             bool isDetectionEnabled_ = true;
+            double gyroscopeAngle_ = 0.0;
     };
  #endif

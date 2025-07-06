@@ -70,7 +70,10 @@ void MotionController::resetPosition(miam::RobotPosition const &resetPosition, b
     if (resetY)
         position.y = resetPosition.y;
     if (resetTheta)
+    {
         position.theta = resetPosition.theta;
+        gyroscopeAngle_ = position.theta;
+    }
     currentPosition_.set(position);
 }
 
@@ -128,6 +131,12 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderPositionIncrement);
 
+    log("MotionController.gyroscope",measurements. gyroscope);
+    gyroscopeAngle_ += measurements.gyroscope * dt;
+    // currentPosition.theta = gyroscopeAngle_;
+    // currentPosition_.set(currentPosition);
+    log("MotionController.gyroscopeAngle", gyroscopeAngle_);
+    log("MotionController.gyroAngleDiff", currentPosition.theta - gyroscopeAngle_);
 
     // Only log after match start
     if (measurements.matchTime > 0.0)

@@ -59,6 +59,7 @@ bool Strategy::setup(RobotInterface *robot)
     }
     if (setupStep_ == 1 && servoManager_.isRailCalibDone())
     {
+        robot->logger_ << "[Strategy] Rail has reached top, moving to bottom" << std::endl;
         servoManager_.setRailsToInitPosition();
         setupStep_ = 2;
         #ifdef SIMULATION
@@ -67,6 +68,7 @@ bool Strategy::setup(RobotInterface *robot)
     }
     if (setupStep_ == 2 && !servoManager_.railManager_.areAnyMoving())
     {
+        robot->logger_ << "[Strategy] Rail are in bottom position, folding" << std::endl;
         servoManager_.frontRightClaw_.move(ClawPosition::FOLDED);
         servoManager_.frontLeftClaw_.move(ClawPosition::FOLDED);
         servoManager_.foldPlank();

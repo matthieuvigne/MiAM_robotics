@@ -88,20 +88,20 @@ bool Robot::initSystem()
     {
         if (!isINA7Init_)
         {
-            isINA7Init_ = ina226_7V_.init(&RPI_I2C, 0x45);
+            isINA7Init_ = ina226_7V_.init(&RPI_I2C, 0x45, 0.010);
             if (!isINA7Init_)
                 guiState_.debugStatus += "7V monitoring init failed\n";
         }
         if (!isINA12Init_)
         {
-            isINA12Init_ = ina226_12V_.init(&RPI_I2C, 0x44);
+            isINA12Init_ = ina226_12V_.init(&RPI_I2C, 0x44, 0.010);
             if (!isINA12Init_)
                 guiState_.debugStatus += "12V monitoring init failed\n";
         }
         if (!isIMUInit_)
         {
             isIMUInit_ = imu_.init(&RPI_I2C);
-            if (!isINA12Init_)
+            if (!isIMUInit_)
                 guiState_.debugStatus += "IMU init failed\n";
         }
     }
@@ -198,8 +198,11 @@ void Robot::updateSensorData()
         measurements_.drivetrainMeasurements.lidarDetection = lidar_.detectedRobots_;
     }
 
+    measurements_.drivetrainMeasurements.gyroscope = imu_.getGyroscopeReadings()(2);
+
     // Log
-    if (currentTime_ > 0.0)
+    // if (currentTime_ > 0.0)
+    if (true)
     {
         logger_.log("Robot.rightMotor.rawEncoder", currentTime_, rightMeasurements.encoderPosition);
         logger_.log("Robot.rightMotor.motorPosition", currentTime_, rightMeasurements.motorPosition);
@@ -233,10 +236,10 @@ void Robot::updateSensorData()
         logger_.log("Robot.12V.current", currentTime_, inaReading.current);
         logger_.log("Robot.12V.power", currentTime_, inaReading.power);
 
-        Eigen::Vector3f gyro = imu_.getGyroscopeReadings();
-        logger_.log("IMU.gyroX", currentTime_, gyro(0));
-        logger_.log("IMU.gyroY", currentTime_, gyro(1));
-        logger_.log("IMU.gyroZ", currentTime_, gyro(2));
+        // Eigen::Vector3f gyro = imu_.getGyroscopeReadings();
+        // logger_.log("IMU.gyroX", currentTime_, gyro(0));
+        // logger_.log("IMU.gyroY", currentTime_, gyro(1));
+        // logger_.log("IMU.gyroZ", currentTime_, gyro(2));
     }
 
     if (!hasMatchStarted_ && !inBorderDetection_ && gui_->getAskedDetectBorders())

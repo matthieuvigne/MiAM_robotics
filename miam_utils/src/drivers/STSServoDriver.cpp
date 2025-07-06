@@ -282,7 +282,7 @@ bool STSServoDriver::setTargetPosition(unsigned char const& servoId, int16_t con
         success = sTarget == position;
         if (!success)
         {
-            std::cout << "Servo order failed!" << std::endl;
+            std::cout << "Servo order failed: servo" << static_cast<int>(servoId) << std::endl;
             nPosFailed_++;
         }
 
