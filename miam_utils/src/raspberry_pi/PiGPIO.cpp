@@ -76,6 +76,11 @@ bool RPi_enableGPIO()
         RPI_VERSION_NUMBER = 4;
         GPIO_BASE_ADDRESS = 0x7E000000 + 0x200000;
     }
+    else if (exec("cat /proc/cpuinfo | grep 'Model' | awk '{print $5}'") == "Zero\n")
+    {
+        RPI_VERSION_NUMBER = 4;
+        GPIO_BASE_ADDRESS = 0x7E000000 + 0x200000;
+    }
 
 
     gpio_register = (volatile unsigned int *)MAP_FAILED;

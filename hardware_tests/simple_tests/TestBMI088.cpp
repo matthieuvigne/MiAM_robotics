@@ -16,7 +16,7 @@ int main (int argc, char *argv[])
 
     BMI088 imu;
 
-    if (!imu.init(&RPI_I2C))
+    if (!imu.init(&RPI_I2C) && !imu.init(&RPI_I2C, 0x18, 0x68))
     {
         std::cout << "Failed to init BMI088" << std::endl;
         return -1;
