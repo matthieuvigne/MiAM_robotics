@@ -125,7 +125,7 @@ void MainWindow::rescan()
         servoIds_.push_back(i);
         servoNames_.push_back(Gtk::Label(std::to_string(i)));
         servoPositions_.push_back(Gtk::Label(std::to_string(driver_->getCurrentPosition(i))));
-        servoVelocities_.push_back(Gtk::Label(std::to_string(driver_->getCurrentSpeed(i))));
+        servoVelocities_.push_back(Gtk::Label(std::to_string(driver_->getCurrentVelocity(i))));
 
         torqueEnabled_.push_back(Gtk::CheckButton());
         torqueEnabled_.back().set_halign(Gtk::ALIGN_CENTER);
@@ -181,7 +181,7 @@ bool MainWindow::updateReadings()
     for (unsigned int i = 0; i < servoIds_.size(); i++)
     {
         servoPositions_[i].set_text(std::to_string(driver_->getCurrentPosition(servoIds_[i])));
-        servoVelocities_[i].set_text(std::to_string(driver_->getCurrentSpeed(servoIds_[i])));
+        servoVelocities_[i].set_text(std::to_string(driver_->getCurrentVelocity(servoIds_[i])));
     }
     return true;
 }

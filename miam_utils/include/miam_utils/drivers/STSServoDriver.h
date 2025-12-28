@@ -91,7 +91,7 @@
     {
         public:
             /// \brief Default contstructor.
-            STSServoDriver(double const& readTimeout = 0.0020);
+            STSServoDriver(double const& readTimeout = 0.000750);
 
             /// \brief Initialize the servo driver.
             ///
@@ -135,7 +135,7 @@
             /// \brief Get current servo speed.
             /// \param[in] servoId ID of the servo
             /// \return Speed, in ticks/s. 0 on failure.
-            int16_t getCurrentSpeed(unsigned char const& servoId);
+            int16_t getCurrentVelocity(unsigned char const& servoId);
 
             /// \brief Get current servo temperature.
             /// \param[in] servoId ID of the servo
@@ -229,7 +229,8 @@
             /// \return Register value, 0 on failure.
             int16_t readTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId);
 
-            int nPosFailed_ = 0;
+            /// @brief Return the number of messages received with a failed checksum
+            int getNReadFailed() {return nReadFailed_;}
         private:
 
             /// \brief Clear internal device error.
@@ -297,5 +298,6 @@
             std::mutex mutex_;
 
             STS::ServoType servoType_[256];
+            int nReadFailed_ = 0;
     };
 #endif

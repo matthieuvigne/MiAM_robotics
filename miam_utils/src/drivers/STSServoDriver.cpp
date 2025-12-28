@@ -219,7 +219,7 @@ int16_t STSServoDriver::getLastCommand(unsigned char const& servoId)
 }
 
 
-int16_t STSServoDriver::getCurrentSpeed(unsigned char const& servoId)
+int16_t STSServoDriver::getCurrentVelocity(unsigned char const& servoId)
 {
     return readTwoBytesRegister(servoId, STS::registers::CURRENT_SPEED);
 }
@@ -269,26 +269,7 @@ void STSServoDriver::setTorqueLimit(unsigned char const& servoId, double const& 
 bool STSServoDriver::setTargetPosition(unsigned char const& servoId, int16_t const& position, bool const& asynchronous)
 {
     lastCommands_[servoId] = position;
-    int nRetry = 5;
-    bool success = false;
-    writeRegister(servoId, STS::registers::TORQUE_SWITCH, 1);
-    usleep(150);
-
-    while (!success && nRetry > 0)
-    {
-        writeTwoBytesRegister(servoId, STS::registers::TARGET_POSITION, position, asynchronous);
-        usleep(300);
-        int sTarget = readTwoBytesRegister(servoId, STS::registers::TARGET_POSITION);
-        success = sTarget == position;
-        if (!success)
-        {
-            std::cout << "Servo order failed: servo" << static_cast<int>(servoId) << std::endl;
-            nPosFailed_++;
-        }
-
-        nRetry --;
-    }
-    return nRetry > 0;
+    return writeTwoBytesRegister(servoId, STS::registers::TARGET_POSITION, position, asynchronous);
 }
 
 
@@ -367,7 +348,8 @@ int STSServoDriver::sendMessage(unsigned char const& servoId,
     }
     if (!willRead)
     {
-        usleep(50);
+        // Avoid message overlap - for some reason this causes weird motion, despite the checksum...
+        usleep(120);
         mutex_.unlock();
     }
     return ret;
@@ -388,7 +370,6 @@ bool STSServoDriver::writeRegisters(unsigned char const& servoId,
                           asynchronous ? instruction::REGWRITE : instruction::WRITE,
                           writeLength + 1,
                           param);
-    usleep(150); // Give some time to avoid message overlap
     return rc == writeLength + 7;
 }
 
@@ -487,10 +468,12 @@ int STSServoDriver::readRegisters(unsigned char const& servoId,
                                   unsigned char const& readLength,
                                   unsigned char *outputBuffer)
 {
-    #define N_RETRIES 5
+    #define N_RETRIES 2
 
+#ifdef DEBUG
     static int success = 0;
     static int fail = 0;
+#endif
     mutex_.lock();
     for (int i = 0; i < N_RETRIES; i++)
     {
@@ -500,24 +483,26 @@ int STSServoDriver::readRegisters(unsigned char const& servoId,
         // Failed to send
         if (send != 8)
             continue;
-        // Read
         unsigned char result[readLength + 1];
         int rd = recieveMessage(servoId, readLength + 1, result);
         if (rd < 0)
         {
-            usleep(200);
+            nReadFailed_++;
+            usleep(50);
             continue;
         }
 
         for (int i = 0; i < readLength; i++)
             outputBuffer[i] = result[i + 1];
         mutex_.unlock();
+#ifdef DEBUG
         success++;
+#endif
         return 0;
     }
-    fail ++;
 #ifdef DEBUG
-    std::cout << "[STS servo] Failed to read register " << success << " " << fail << std::endl;
+    fail ++;
+    std::cout << "[STS servo] Failed to read register from " << static_cast<int>(servoId) << " " << success << " " << fail << std::endl;
 #endif
     mutex_.unlock();
     return -1;

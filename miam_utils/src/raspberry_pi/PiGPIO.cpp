@@ -19,6 +19,7 @@
 #include <cstring>
 
 #include <memory>
+#include <array>
 
 // Register address / offsets from base address.
 // See BCM2837 manual, p.89 onward, for more information.

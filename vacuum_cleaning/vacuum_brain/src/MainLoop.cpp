@@ -223,7 +223,7 @@ int main(int argc, char **argv)
         //~ std::cout << "Target speed " << targetSpeed.vx_ << " " << targetSpeed.vy_ << " " << targetSpeed.omega_ << std::endl;;
 
         arduino.setTarget(targetSpeed);
-        currentSpeed = arduino.getCurrentSpeed();
+        currentSpeed = arduino.getCurrentVelocity();
 
         // Log
         logger.setData(LOGGER_TIME, currentTime);

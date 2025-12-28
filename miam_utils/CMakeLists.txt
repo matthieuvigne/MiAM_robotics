@@ -28,7 +28,7 @@ else()
 endif()
 
 # Set compiler flags.
-set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -fdiagnostics-color -lpthread -lm")
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -fdiagnostics-color -lpthread -lm -fPIC")
 
 if (ENABLE_TRACY)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRACY_ENABLE")

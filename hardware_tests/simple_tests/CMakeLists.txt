@@ -17,7 +17,7 @@ set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -fdiagnostics-color -pthread")
 
 # Use the package PkgConfig to detect GTK+ headers/library files - cross-compiled
 find_package(PkgConfig REQUIRED)
-
+unset(MIAM_UTILS_FOUND CACHE)
 pkg_search_module(MIAM_UTILS REQUIRED miam_utils_arm >= 2.6.1)
 message(STATUS "Found miam_utils v." ${MIAM_UTILS_VERSION})
 
@@ -55,6 +55,9 @@ target_link_libraries(test_SparkfunOdometry ${MIAM_UTILS_LIBRARIES})
 
 add_executable(test_ServoPerformance TestServoPerformance.cpp)
 target_link_libraries(test_ServoPerformance ${MIAM_UTILS_LIBRARIES})
+
+add_executable(test_ServoManager TestServoManager.cpp)
+target_link_libraries(test_ServoManager ${MIAM_UTILS_LIBRARIES})
 
 # Vision test requires opencv
 set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")

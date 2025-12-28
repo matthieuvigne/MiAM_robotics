@@ -62,7 +62,7 @@ void ArduinoListener::setTarget(omni::BaseSpeed const& targetBaseSpeed)
 }
 
 
-omni::BaseSpeed ArduinoListener::getCurrentSpeed()
+omni::BaseSpeed ArduinoListener::getCurrentVelocity()
 {
     mutex_.lock();
     omni::WheelSpeed currentWheelSpeed = currentWheelSpeed_;

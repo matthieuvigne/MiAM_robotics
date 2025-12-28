@@ -224,7 +224,7 @@ void Robot::updateSensorData()
         logger_.log("Robot.battery.voltage", currentTime_, inaReading.voltage);
         logger_.log("Robot.battery.current", currentTime_, inaReading.current);
         logger_.log("Robot.battery.power", currentTime_, inaReading.power);
-        logger_.log("Servos.nFailed", currentTime_, servos_.nPosFailed_);
+        logger_.log("Servos.nReadFailed", currentTime_, servos_.getNReadFailed());
 
 
         INA226Reading inaReading = ina226_7V_.read();

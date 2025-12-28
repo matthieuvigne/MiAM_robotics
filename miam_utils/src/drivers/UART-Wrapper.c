@@ -4,6 +4,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
 // Open a uart port.
 int uart_open(std::string const& portName, int speed)
 {

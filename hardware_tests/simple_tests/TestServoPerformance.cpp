@@ -49,7 +49,7 @@ class ServoTester{
             driver_->setTargetPosition(servoId_, posToRaw(targetPosition));
             logger_->log("Servos." + motorName_ + ".target", currentTime, targetPosition);
             logger_->log("Servos." + motorName_ + ".currentPosition", currentTime, rawToRad(driver_->getCurrentPosition(servoId_)));
-            logger_->log("Servos." + motorName_ + ".currentVelocity", currentTime, rawToRads(driver_->getCurrentSpeed(servoId_)));
+            logger_->log("Servos." + motorName_ + ".currentVelocity", currentTime, rawToRads(driver_->getCurrentVelocity(servoId_)));
         }
 
     private:
