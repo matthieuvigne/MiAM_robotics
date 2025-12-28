@@ -5792,6 +5792,12 @@
 		(uuid "27c7ef96-76b1-4eb3-b946-e87046ad9b82")
 	)
 	(junction
+		(at 158.75 219.71)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "27cdee66-22a9-465a-831e-9f3b48e2ff5e")
+	)
+	(junction
 		(at 254 246.38)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5904,6 +5910,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "6a2000c5-8707-49b7-b544-af297a89bff8")
+	)
+	(junction
+		(at 162.56 210.82)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6c8dd154-7ab5-428b-96b7-46e46a2a9059")
 	)
 	(junction
 		(at 351.79 45.72)
@@ -6455,7 +6467,7 @@
 	)
 	(wire
 		(pts
-			(xy 142.24 219.71) (xy 160.02 219.71)
+			(xy 142.24 219.71) (xy 158.75 219.71)
 		)
 		(stroke
 			(width 0)
@@ -6785,7 +6797,7 @@
 	)
 	(wire
 		(pts
-			(xy 162.56 208.28) (xy 162.56 217.17)
+			(xy 162.56 208.28) (xy 162.56 210.82)
 		)
 		(stroke
 			(width 0)
@@ -8405,6 +8417,16 @@
 	)
 	(wire
 		(pts
+			(xy 162.56 210.82) (xy 162.56 217.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bae36e5b-6f15-4015-a690-ee5322060675")
+	)
+	(wire
+		(pts
 			(xy 341.63 203.2) (xy 346.71 203.2)
 		)
 		(stroke
@@ -8785,6 +8807,16 @@
 	)
 	(wire
 		(pts
+			(xy 158.75 219.71) (xy 160.02 219.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d8f8b06a-002b-4705-b95e-f1a56aaed0b6")
+	)
+	(wire
+		(pts
 			(xy 294.64 95.25) (xy 297.18 95.25)
 		)
 		(stroke
@@ -8802,6 +8834,16 @@
 			(type default)
 		)
 		(uuid "da40c03c-91e5-4567-a8e4-28115eb89326")
+	)
+	(wire
+		(pts
+			(xy 158.75 218.44) (xy 158.75 219.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "da542d33-02e4-40dc-9bb3-66dc6f613507")
 	)
 	(wire
 		(pts
@@ -8872,6 +8914,16 @@
 			(type default)
 		)
 		(uuid "e4ef4aef-0edc-44b9-8056-7f0dddf4ae15")
+	)
+	(wire
+		(pts
+			(xy 158.75 210.82) (xy 162.56 210.82)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e6c2bb58-16ec-496b-a066-fb98598709cb")
 	)
 	(wire
 		(pts
@@ -17688,6 +17740,104 @@
 	)
 	(symbol
 		(lib_id "Device:C")
+		(at 158.75 214.63 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp yes)
+		(uuid "8f8a4e60-bcae-43bd-9fcb-499286a30359")
+		(property "Reference" "C30"
+			(at 153.67 213.36 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left top)
+			)
+		)
+		(property "Value" "0.1uF 50V"
+			(at 153.67 218.44 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
+			(at 159.7152 218.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 158.75 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 158.75 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MF" "TDK"
+			(at 158.75 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(property "MPN" "CGA2B3X7R1H104K050BB"
+			(at 158.75 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(property "RS" "    247-7824"
+			(at 158.75 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "42eb530d-d698-4939-aa72-8304949dad1d")
+		)
+		(pin "2"
+			(uuid "9c7cdb50-91c6-4843-a5ae-023038ef3b0f")
+		)
+		(instances
+			(project "power_supply"
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "C30")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
 		(at 288.29 53.34 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -20779,7 +20929,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "BC857"
+		(property "Value" "MMBT5401"
 			(at 251.46 255.2701 0)
 			(effects
 				(font
@@ -20818,7 +20968,7 @@
 				(hide yes)
 			)
 		)
-		(property "Mouser" " 583-C857 "
+		(property "Mouser" "    165-8634"
 			(at 246.38 256.54 0)
 			(effects
 				(font
