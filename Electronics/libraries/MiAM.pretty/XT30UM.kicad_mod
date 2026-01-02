@@ -1,7 +1,7 @@
 (footprint "XT30UM"
-	(version 20240108)
+	(version 20241229)
 	(generator "pcbnew")
-	(generator_version "8.0")
+	(generator_version "9.0")
 	(layer "F.Cu")
 	(descr "XT30U-M-2")
 	(tags "Integrated Circuit")
@@ -25,18 +25,6 @@
 			(font
 				(size 1.27 1.27)
 				(thickness 0.254)
-			)
-		)
-	)
-	(property "Footprint" ""
-		(at 0 0 0)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "03ebcad8-f88e-4736-9381-ff907a87f533")
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.15)
 			)
 		)
 	)
@@ -65,26 +53,6 @@
 		)
 	)
 	(attr through_hole)
-	(fp_line
-		(start -3.3 0)
-		(end -3.3 0)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "c43fece7-3426-4741-bee7-2f9597f5376c")
-	)
-	(fp_line
-		(start -3.2 0)
-		(end -3.2 0)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "7a7dde3b-56cc-4398-be05-cdadaede73ce")
-	)
 	(fp_line
 		(start -2.6 -2.6)
 		(end 6.2 -2.6)
@@ -144,28 +112,6 @@
 		)
 		(layer "F.SilkS")
 		(uuid "b9d50913-9691-4360-ab43-c14ab0ea7a0c")
-	)
-	(fp_arc
-		(start -3.3 0)
-		(mid -3.25 -0.05)
-		(end -3.2 0)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "03993628-6a8b-46e9-b05c-887205a15877")
-	)
-	(fp_arc
-		(start -3.2 0)
-		(mid -3.25 0.05)
-		(end -3.3 0)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "d64608fb-06ea-4c66-a94a-ace71355d377")
 	)
 	(fp_line
 		(start -3.6 -3.6)
@@ -264,6 +210,7 @@
 		(remove_unused_layers no)
 		(uuid "17e16ae6-03e3-4979-a60a-a4a102876031")
 	)
+	(embedded_fonts no)
 	(model "${KICAD_USER}/MiAM.pretty/XT30U-M.stp"
 		(offset
 			(xyz 2.5 0 5.5)

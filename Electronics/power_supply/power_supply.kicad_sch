@@ -1995,196 +1995,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "MiAM:7813J-1-051E"
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "S"
-				(at 19.05 7.62 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-				)
-			)
-			(property "Value" "7813J-1-051E"
-				(at 19.05 5.08 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-				)
-			)
-			(property "Footprint" "MiAM:7813J1051E"
-				(at 19.05 -94.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://www.bourns.com/pdfs/7813.pdf"
-				(at 19.05 -194.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Description" "Rotary Switches 16volt SPDT 3mm 50 cycle"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Height" "2.4"
-				(at 19.05 -394.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer_Name" "Bourns"
-				(at 19.05 -494.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer_Part_Number" "7813J-1-051E"
-				(at 19.05 -594.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Mouser Part Number" "652-7813J-1-051E"
-				(at 19.05 -694.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Bourns/7813J-1-051E?qs=RlRj25DlwaBJsVBTxGqN%2FA%3D%3D"
-				(at 19.05 -794.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Arrow Part Number" "7813J-1-051E"
-				(at 19.05 -894.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Arrow Price/Stock" "https://www.arrow.com/en/products/7813j-1-051e/bourns?region=nac"
-				(at 19.05 -994.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(symbol "7813J-1-051E_1_1"
-				(rectangle
-					(start 5.08 2.54)
-					(end 17.78 -5.08)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type background)
-					)
-				)
-				(pin passive line
-					(at 0 0 0)
-					(length 5.08)
-					(name "CW"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -2.54 0)
-					(length 5.08)
-					(name "CCW"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 22.86 0 180)
-					(length 5.08)
-					(name "C"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "MiAM:821-22-002-10-000101"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -5822,7 +5632,7 @@
 		(uuid "2eec5ffc-83d2-47c6-b634-f98bebf8bbd7")
 	)
 	(junction
-		(at 66.04 201.93)
+		(at 71.12 201.93)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "2fd505ca-4e2f-4876-87ab-2471e06cbce0")
@@ -5876,12 +5686,6 @@
 		(uuid "523a832c-003c-4dff-8225-02351f31e857")
 	)
 	(junction
-		(at 203.2 254)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "53c8837c-6272-42df-ad22-e46f5dc630de")
-	)
-	(junction
 		(at 74.93 100.33)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5922,12 +5726,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "6fa7890c-e516-490e-9220-48b710a88a1f")
-	)
-	(junction
-		(at 173.99 205.74)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "776cb4a0-21cc-4f1b-9f31-f357bcf2d6b2")
 	)
 	(junction
 		(at 281.94 48.26)
@@ -6008,13 +5806,13 @@
 		(uuid "9cd50e3f-5446-4a26-9b5b-f7c79b622853")
 	)
 	(junction
-		(at 60.96 189.23)
+		(at 66.04 189.23)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "9df2a8e9-7135-4b32-b7b0-58ebce2d3fd3")
 	)
 	(junction
-		(at 57.15 204.47)
+		(at 62.23 204.47)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "a46ceee0-8d5b-49fc-ac82-40951608b6ff")
@@ -6317,16 +6115,6 @@
 	)
 	(wire
 		(pts
-			(xy 193.04 205.74) (xy 193.04 203.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0d1947d7-b2f1-404f-b83a-f89449230751")
-	)
-	(wire
-		(pts
 			(xy 372.11 198.12) (xy 372.11 210.82)
 		)
 		(stroke
@@ -6417,16 +6205,6 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 247.65) (xy 207.01 247.65)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "137f8297-b682-4294-b143-ac34db158166")
-	)
-	(wire
-		(pts
 			(xy 288.29 48.26) (xy 304.8 48.26)
 		)
 		(stroke
@@ -6477,7 +6255,7 @@
 	)
 	(wire
 		(pts
-			(xy 66.04 201.93) (xy 68.58 201.93)
+			(xy 71.12 201.93) (xy 73.66 201.93)
 		)
 		(stroke
 			(width 0)
@@ -6637,7 +6415,17 @@
 	)
 	(wire
 		(pts
-			(xy 57.15 189.23) (xy 60.96 189.23)
+			(xy 50.8 201.93) (xy 71.12 201.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2481fd40-afe8-4531-ba4e-a2cdc7b28aa9")
+	)
+	(wire
+		(pts
+			(xy 62.23 189.23) (xy 66.04 189.23)
 		)
 		(stroke
 			(width 0)
@@ -6654,6 +6442,16 @@
 			(type default)
 		)
 		(uuid "259fb522-accc-44cb-b08e-212da89b21fa")
+	)
+	(wire
+		(pts
+			(xy 53.34 200.66) (xy 53.34 207.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "25c456ce-f26d-4cb9-b127-e8462224ca59")
 	)
 	(wire
 		(pts
@@ -6684,6 +6482,16 @@
 			(type default)
 		)
 		(uuid "28817437-0960-43e3-af27-e4666e2cef7d")
+	)
+	(wire
+		(pts
+			(xy 195.58 203.2) (xy 195.58 217.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "28aa738c-4a9b-466d-ac92-71c60c3aa67b")
 	)
 	(wire
 		(pts
@@ -6757,16 +6565,6 @@
 	)
 	(wire
 		(pts
-			(xy 195.58 203.2) (xy 195.58 217.17)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "33cbd0f0-4f8f-4068-b706-c19b200e940c")
-	)
-	(wire
-		(pts
 			(xy 127 261.62) (xy 127 264.16)
 		)
 		(stroke
@@ -6814,16 +6612,6 @@
 			(type default)
 		)
 		(uuid "357143d2-d322-41d9-89e7-be56e49e01c2")
-	)
-	(wire
-		(pts
-			(xy 173.99 205.74) (xy 193.04 205.74)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "358b9713-eebd-4f5b-bb29-2240172dc97d")
 	)
 	(wire
 		(pts
@@ -7107,7 +6895,7 @@
 	)
 	(wire
 		(pts
-			(xy 66.04 198.12) (xy 66.04 201.93)
+			(xy 71.12 198.12) (xy 71.12 201.93)
 		)
 		(stroke
 			(width 0)
@@ -7417,7 +7205,7 @@
 	)
 	(wire
 		(pts
-			(xy 60.96 186.69) (xy 60.96 189.23)
+			(xy 66.04 186.69) (xy 66.04 189.23)
 		)
 		(stroke
 			(width 0)
@@ -7457,7 +7245,7 @@
 	)
 	(wire
 		(pts
-			(xy 173.99 170.18) (xy 182.88 170.18)
+			(xy 173.99 195.58) (xy 185.42 195.58)
 		)
 		(stroke
 			(width 0)
@@ -7527,6 +7315,16 @@
 	)
 	(wire
 		(pts
+			(xy 50.8 204.47) (xy 62.23 204.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "755dd2e0-c936-41da-bce3-484992b905ab")
+	)
+	(wire
+		(pts
 			(xy 388.62 153.67) (xy 388.62 151.13)
 		)
 		(stroke
@@ -7577,7 +7375,7 @@
 	)
 	(wire
 		(pts
-			(xy 60.96 189.23) (xy 66.04 189.23)
+			(xy 66.04 189.23) (xy 71.12 189.23)
 		)
 		(stroke
 			(width 0)
@@ -7887,16 +7685,6 @@
 	)
 	(wire
 		(pts
-			(xy 50.8 201.93) (xy 66.04 201.93)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "92578269-05a5-4af6-9bd1-289f872992fb")
-	)
-	(wire
-		(pts
 			(xy 238.76 238.76) (xy 241.3 238.76)
 		)
 		(stroke
@@ -8027,7 +7815,7 @@
 	)
 	(wire
 		(pts
-			(xy 173.99 170.18) (xy 173.99 205.74)
+			(xy 173.99 195.58) (xy 173.99 205.74)
 		)
 		(stroke
 			(width 0)
@@ -8044,26 +7832,6 @@
 			(type default)
 		)
 		(uuid "9a9f3407-47ec-4350-b086-10d2b3306a3c")
-	)
-	(wire
-		(pts
-			(xy 209.55 254) (xy 203.2 254)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9ae1160b-5e37-4bc1-ae66-da9760125a60")
-	)
-	(wire
-		(pts
-			(xy 50.8 204.47) (xy 57.15 204.47)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9ba977a1-ce77-4120-98e5-0a1e62dacdad")
 	)
 	(wire
 		(pts
@@ -8237,16 +8005,6 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 243.84) (xy 203.2 234.95)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ae1ea891-520f-4b30-bfbd-2fa9f0a6863c")
-	)
-	(wire
-		(pts
 			(xy 346.71 210.82) (xy 372.11 210.82)
 		)
 		(stroke
@@ -8337,16 +8095,6 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 247.65) (xy 209.55 254)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b5a204ac-eaf2-476f-b6b5-14effa30f470")
-	)
-	(wire
-		(pts
 			(xy 384.81 50.8) (xy 389.89 50.8)
 		)
 		(stroke
@@ -8387,7 +8135,7 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 254) (xy 203.2 251.46)
+			(xy 203.2 234.95) (xy 203.2 243.84)
 		)
 		(stroke
 			(width 0)
@@ -8457,7 +8205,7 @@
 	)
 	(wire
 		(pts
-			(xy 195.58 237.49) (xy 195.58 236.22)
+			(xy 195.58 243.84) (xy 195.58 236.22)
 		)
 		(stroke
 			(width 0)
@@ -8667,16 +8415,6 @@
 	)
 	(wire
 		(pts
-			(xy 193.04 177.8) (xy 193.04 180.34)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "cc2a0cd7-57a0-4956-8b97-531d15bce849")
-	)
-	(wire
-		(pts
 			(xy 370.84 45.72) (xy 373.38 45.72)
 		)
 		(stroke
@@ -8687,7 +8425,7 @@
 	)
 	(wire
 		(pts
-			(xy 53.34 191.77) (xy 53.34 207.01)
+			(xy 53.34 191.77) (xy 53.34 193.04)
 		)
 		(stroke
 			(width 0)
@@ -8747,7 +8485,7 @@
 	)
 	(wire
 		(pts
-			(xy 57.15 204.47) (xy 68.58 204.47)
+			(xy 62.23 204.47) (xy 73.66 204.47)
 		)
 		(stroke
 			(width 0)
@@ -8947,7 +8685,7 @@
 	)
 	(wire
 		(pts
-			(xy 201.93 170.18) (xy 201.93 205.74)
+			(xy 201.93 195.58) (xy 201.93 205.74)
 		)
 		(stroke
 			(width 0)
@@ -8997,7 +8735,7 @@
 	)
 	(wire
 		(pts
-			(xy 66.04 189.23) (xy 66.04 190.5)
+			(xy 71.12 189.23) (xy 71.12 190.5)
 		)
 		(stroke
 			(width 0)
@@ -9007,7 +8745,7 @@
 	)
 	(wire
 		(pts
-			(xy 57.15 198.12) (xy 57.15 204.47)
+			(xy 62.23 198.12) (xy 62.23 204.47)
 		)
 		(stroke
 			(width 0)
@@ -9057,7 +8795,7 @@
 	)
 	(wire
 		(pts
-			(xy 198.12 170.18) (xy 201.93 170.18)
+			(xy 200.66 195.58) (xy 201.93 195.58)
 		)
 		(stroke
 			(width 0)
@@ -9207,23 +8945,13 @@
 	)
 	(wire
 		(pts
-			(xy 57.15 189.23) (xy 57.15 190.5)
+			(xy 62.23 189.23) (xy 62.23 190.5)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "fda6d34b-8774-409c-b6f1-f20e17b46e00")
-	)
-	(wire
-		(pts
-			(xy 203.2 257.81) (xy 203.2 254)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fe129851-9529-4211-8696-e3dd858352e1")
 	)
 	(wire
 		(pts
@@ -9316,7 +9044,7 @@
 		(uuid "7b2ee413-5099-44a4-b492-f67c198c8333")
 	)
 	(label "SCL"
-		(at 68.58 201.93 0)
+		(at 73.66 201.93 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -9386,7 +9114,7 @@
 		(uuid "d4aa4dfe-adb0-4b9f-b617-4124541765df")
 	)
 	(label "SDA"
-		(at 68.58 204.47 0)
+		(at 73.66 204.47 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -9816,6 +9544,76 @@
 			(project "power_supply"
 				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
 					(reference "#PWR01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:SolderJumper_2_Open")
+		(at 53.34 196.85 90)
+		(unit 1)
+		(exclude_from_sim yes)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "07f78dcb-0e20-434e-8a46-bf8027e8d602")
+		(property "Reference" "JP3"
+			(at 55.372 196.85 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "SolderJumper_2_Open"
+			(at 55.88 198.1199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
+			(at 53.34 196.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 53.34 196.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Solder Jumper, 2-pole, open"
+			(at 53.34 196.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b3da2e72-d88d-4283-9738-af3251bb8841")
+		)
+		(pin "2"
+			(uuid "e5929e21-7fae-4c76-8d8b-008a6a3a435a")
+		)
+		(instances
+			(project "power_supply"
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "JP3")
 					(unit 1)
 				)
 			)
@@ -11053,97 +10851,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R_Potentiometer")
-		(at 203.2 247.65 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "23a1fefa-e092-4434-830e-1149bf6e3cba")
-		(property "Reference" "RV3"
-			(at 200.66 246.38 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "3314J-2-104E"
-			(at 200.66 248.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Potentiometer_SMD:Potentiometer_Bourns_3314J_Vertical"
-			(at 203.2 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 203.2 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 203.2 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Mouser" ""
-			(at 203.2 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Field7" " 652-3314J-2-104E "
-			(at 203.2 247.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "122317e9-e9f2-485b-bcd2-6b036aa1a63b")
-		)
-		(pin "2"
-			(uuid "1c639c30-1ea5-4b7f-9c1d-56d90b9ea152")
-		)
-		(pin "1"
-			(uuid "d77645da-87b2-43be-b695-cfc0decf7149")
-		)
-		(instances
-			(project "power_supply"
-				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
-					(reference "RV3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 307.34 214.63 0)
 		(mirror y)
@@ -12123,153 +11830,8 @@
 		)
 	)
 	(symbol
-		(lib_id "MiAM:7813J-1-051E")
-		(at 193.04 203.2 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "30ac2a67-e0b6-44d6-b9bc-32e69f7faec8")
-		(property "Reference" "S1"
-			(at 199.39 190.4999 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "7813J-1-051E"
-			(at 199.39 193.0399 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "MiAM:7813J1051E"
-			(at 287.96 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.bourns.com/pdfs/7813.pdf"
-			(at 387.96 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Description" "Rotary Switches 16volt SPDT 3mm 50 cycle"
-			(at 193.04 203.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Height" "2.4"
-			(at 587.96 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Name" "Bourns"
-			(at 687.96 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Part_Number" "7813J-1-051E"
-			(at 787.96 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Mouser Part Number" "652-7813J-1-051E"
-			(at 887.96 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Bourns/7813J-1-051E?qs=RlRj25DlwaBJsVBTxGqN%2FA%3D%3D"
-			(at 987.96 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Arrow Part Number" "7813J-1-051E"
-			(at 1087.96 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Arrow Price/Stock" "https://www.arrow.com/en/products/7813j-1-051e/bourns?region=nac"
-			(at 1187.96 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "f91b2d68-834b-4e22-9e33-a2eab9d58b06")
-		)
-		(pin "1"
-			(uuid "639c55cf-0418-436e-8f56-2ef94291df43")
-		)
-		(pin "3"
-			(uuid "5ab03926-fce8-4762-ab03-2b687c3bf1fb")
-		)
-		(instances
-			(project ""
-				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
-					(reference "S1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GNDS")
-		(at 195.58 237.49 0)
+		(at 195.58 243.84 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12278,7 +11840,7 @@
 		(fields_autoplaced yes)
 		(uuid "310f1289-b547-419a-8efa-96b90d8d40d9")
 		(property "Reference" "#PWR046"
-			(at 195.58 243.84 0)
+			(at 195.58 250.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12287,7 +11849,7 @@
 			)
 		)
 		(property "Value" "GNDS"
-			(at 195.58 242.57 0)
+			(at 195.58 248.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12295,7 +11857,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 195.58 237.49 0)
+			(at 195.58 243.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12304,7 +11866,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 195.58 237.49 0)
+			(at 195.58 243.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12313,7 +11875,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 195.58 237.49 0)
+			(at 195.58 243.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12635,7 +12197,7 @@
 	)
 	(symbol
 		(lib_id "power:GNDS")
-		(at 203.2 257.81 0)
+		(at 203.2 243.84 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12644,7 +12206,7 @@
 		(fields_autoplaced yes)
 		(uuid "39b371a0-f922-4f16-adfa-710f68abbd9f")
 		(property "Reference" "#PWR055"
-			(at 203.2 264.16 0)
+			(at 203.2 250.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12653,7 +12215,7 @@
 			)
 		)
 		(property "Value" "GNDS"
-			(at 203.2 262.89 0)
+			(at 203.2 248.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12661,7 +12223,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 203.2 257.81 0)
+			(at 203.2 243.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12670,7 +12232,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 203.2 257.81 0)
+			(at 203.2 243.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12679,7 +12241,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 203.2 257.81 0)
+			(at 203.2 243.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14697,7 +14259,7 @@
 	)
 	(symbol
 		(lib_id "MiAM:IPD90N04S4L04ATMA1")
-		(at 193.04 177.8 90)
+		(at 195.58 203.2 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -14706,7 +14268,7 @@
 		(fields_autoplaced yes)
 		(uuid "5f3151e9-8ee8-4b8c-892b-df5f45a492ec")
 		(property "Reference" "Q1"
-			(at 190.5 162.56 90)
+			(at 193.04 187.96 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14714,7 +14276,7 @@
 			)
 		)
 		(property "Value" "IPD90N04S4L04ATMA1"
-			(at 190.5 165.1 90)
+			(at 193.04 190.5 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14722,7 +14284,7 @@
 			)
 		)
 		(property "Footprint" "MiAM:IPD90N04S4L04ATMA1"
-			(at 291.77 166.37 0)
+			(at 294.31 191.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14732,7 +14294,7 @@
 			)
 		)
 		(property "Datasheet" "https://componentsearchengine.com/Datasheets/2/IPD90N04S4L04ATMA1.pdf"
-			(at 391.77 166.37 0)
+			(at 394.31 191.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14742,7 +14304,7 @@
 			)
 		)
 		(property "Description" "MOSFET N-Ch 40V 90A DPAK-2 OptiMOS-T2"
-			(at 193.04 177.8 0)
+			(at 195.58 203.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14751,7 +14313,7 @@
 			)
 		)
 		(property "Height" "2.375"
-			(at 591.77 166.37 0)
+			(at 594.31 191.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14761,7 +14323,7 @@
 			)
 		)
 		(property "Manufacturer_Name" "Infineon"
-			(at 691.77 166.37 0)
+			(at 694.31 191.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14771,7 +14333,7 @@
 			)
 		)
 		(property "Manufacturer_Part_Number" "IPD90N04S4L04ATMA1"
-			(at 791.77 166.37 0)
+			(at 794.31 191.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14781,7 +14343,7 @@
 			)
 		)
 		(property "Mouser Part Number" "726-IPD90N04S4L04ATM"
-			(at 891.77 166.37 0)
+			(at 894.31 191.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14791,7 +14353,7 @@
 			)
 		)
 		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Infineon-Technologies/IPD90N04S4L04ATMA1?qs=OwbwYO03UsKui0dHOZaV9Q%3D%3D"
-			(at 991.77 166.37 0)
+			(at 994.31 191.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14801,7 +14363,7 @@
 			)
 		)
 		(property "Arrow Part Number" "IPD90N04S4L04ATMA1"
-			(at 1091.77 166.37 0)
+			(at 1094.31 191.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14811,7 +14373,7 @@
 			)
 		)
 		(property "Arrow Price/Stock" "https://www.arrow.com/en/products/ipd90n04s4l04atma1/infineon-technologies-ag?region=nac"
-			(at 1191.77 166.37 0)
+			(at 1194.31 191.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15202,103 +14764,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C")
-		(at 195.58 232.41 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "694332bb-2cca-4b3d-b2be-0b787ec93a2f")
-		(property "Reference" "C25"
-			(at 196.088 234.188 0)
-			(effects
-				(font
-					(size 1.016 1.016)
-				)
-				(justify left top)
-			)
-		)
-		(property "Value" "47nF"
-			(at 196.088 237.998 0)
-			(effects
-				(font
-					(size 1.016 1.016)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
-			(at 196.5452 236.22 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 195.58 232.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 195.58 232.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MF" "TDK"
-			(at 195.58 232.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-				(hide yes)
-			)
-		)
-		(property "MPN" "0805YC473KAT2A "
-			(at 195.58 232.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Mouser Part Number" " 581-0805YC473K "
-			(at 195.58 232.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "b380caa6-9552-4ad4-ba7d-0b14a392a6a0")
-		)
-		(pin "2"
-			(uuid "9e635bce-d84f-4030-ab4a-b6fc2eabd2d6")
-		)
-		(instances
-			(project "power_supply"
-				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
-					(reference "C25")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R")
 		(at 346.71 207.01 0)
 		(mirror x)
@@ -15406,7 +14871,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "5k"
+		(property "Value" "30k"
 			(at 77.47 109.2199 0)
 			(effects
 				(font
@@ -17041,7 +16506,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "5k"
+		(property "Value" "30k"
 			(at 24.13 137.1599 0)
 			(effects
 				(font
@@ -17094,7 +16559,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 66.04 194.31 0)
+		(at 71.12 194.31 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -17103,7 +16568,7 @@
 		(fields_autoplaced yes)
 		(uuid "82eac48b-5f66-49e6-8e2b-0294a825adbb")
 		(property "Reference" "R6"
-			(at 68.58 193.0399 0)
+			(at 73.66 193.0399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17112,7 +16577,7 @@
 			)
 		)
 		(property "Value" "4.7k"
-			(at 68.58 195.5799 0)
+			(at 73.66 195.5799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17121,7 +16586,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
-			(at 64.262 194.31 90)
+			(at 69.342 194.31 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17130,7 +16595,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 66.04 194.31 0)
+			(at 71.12 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17139,7 +16604,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 66.04 194.31 0)
+			(at 71.12 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17148,7 +16613,7 @@
 			)
 		)
 		(property "RS" ""
-			(at 66.04 194.31 0)
+			(at 71.12 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20538,7 +20003,7 @@
 				(justify left top)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "20k"
 			(at 205.74 232.664 0)
 			(effects
 				(font
@@ -22075,7 +21540,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 60.96 186.69 0)
+		(at 66.04 186.69 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -22084,7 +21549,7 @@
 		(fields_autoplaced yes)
 		(uuid "ec537d03-80c3-4faa-aa08-6d0a14104080")
 		(property "Reference" "#PWR033"
-			(at 60.96 190.5 0)
+			(at 66.04 190.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22093,7 +21558,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 60.96 180.975 0)
+			(at 66.04 180.975 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22101,7 +21566,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 60.96 186.69 0)
+			(at 66.04 186.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22110,7 +21575,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 60.96 186.69 0)
+			(at 66.04 186.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22119,7 +21584,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 60.96 186.69 0)
+			(at 66.04 186.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22580,7 +22045,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 57.15 194.31 0)
+		(at 62.23 194.31 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -22589,7 +22054,7 @@
 		(fields_autoplaced yes)
 		(uuid "f6653842-d42c-4fe8-876a-158dbe6d64b5")
 		(property "Reference" "R5"
-			(at 59.69 193.0399 0)
+			(at 64.77 193.0399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22598,7 +22063,7 @@
 			)
 		)
 		(property "Value" "4.7k"
-			(at 59.69 195.5799 0)
+			(at 64.77 195.5799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22607,7 +22072,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
-			(at 55.372 194.31 90)
+			(at 60.452 194.31 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22616,7 +22081,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 57.15 194.31 0)
+			(at 62.23 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22625,7 +22090,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 57.15 194.31 0)
+			(at 62.23 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22634,7 +22099,7 @@
 			)
 		)
 		(property "RS" ""
-			(at 57.15 194.31 0)
+			(at 62.23 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22857,6 +22322,76 @@
 			(project ""
 				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
 					(reference "H5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 195.58 232.41 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "fde47a39-36ec-4960-9185-21e4200ebcf4")
+		(property "Reference" "C25"
+			(at 193.04 230.886 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left top)
+			)
+		)
+		(property "Value" "0.1uF"
+			(at 193.04 233.934 0)
+			(effects
+				(font
+					(size 1.016 1.016)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 194.6148 236.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 195.58 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 195.58 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "afcb1b1a-abd0-44cc-aa75-970d64092d96")
+		)
+		(pin "2"
+			(uuid "80df1d45-2f30-4386-a76a-e1bd0d5b4850")
+		)
+		(instances
+			(project "power_supply"
+				(path "/700fe2ea-26be-4d6c-908e-561c97acbca5"
+					(reference "C25")
 					(unit 1)
 				)
 			)
