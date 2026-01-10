@@ -16,28 +16,13 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: build miam_utils
+      - name: build
         run: |
-          # Build everything, for both PC and robot
-          mkdir -p /miam_workspace/install/ &&\
-          export PATH=/miam_workspace/install/bin:$PATH &&\
-          export PKG_CONFIG_PATH=/miam_workspace/install/lib/pkgconfig:$PKG_CONFIG_PATH &&\
-          export LD_LIBRARY_PATH=/miam_workspace/install/lib:$LD_LIBRARY_PATH &&\
           mkdir build &&\
           cd build &&\
-          mkdir rplidar && cd rplidar && cmake ../../rplidar_sdk -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=ON && make -j4 install && cmake . -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=OFF && make -j4 install && cd ../ &&\
-          mkdir miam_utils && cd miam_utils && cmake ../../miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=ON -DUNIT_TESTS=OFF && make -j4 install && cmake . -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Debug -DCROSS_COMPILE=OFF -DUNIT_TESTS=ON && cmake . && make install && cd ../
-      - name: build robot code
-        run: |
-          source /acado/build/acado_env.sh &&\
-          export PATH=/miam_workspace/install/bin:$PATH &&\
-          export PKG_CONFIG_PATH=/miam_workspace/install/lib/pkgconfig:$PKG_CONFIG_PATH &&\
-          export LD_LIBRARY_PATH=/miam_workspace/install/lib:$LD_LIBRARY_PATH &&\
-          cd build &&\
-          mkdir embedded && cd embedded && cmake ../../main_robot_code/embedded && make -j4 && cd .. &&\
-          mkdir simulation && cd simulation && cmake ../../main_robot_code/simulation && make -j4 && cd ..
-        shell: bash
+          mkdir cross_compile && cd cross_compile && cmake ../../ -DCROSS_COMPILE=ON && cd.. &&\
+          mkdir local && cd local && cmake ../ -DCROSS_COMPILE=OFF
       - name: miam_utils test
         run: |
-          cd build/miam_utils &&\
+          cd build/local/miam_utils &&\
           ./unit/unit

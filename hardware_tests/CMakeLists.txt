@@ -1,0 +1,5 @@
+if (CROSS_COMPILE)
+    add_subdirectory(simple_tests)
+else()
+endif()
+add_subdirectory(sts_servo_gui)

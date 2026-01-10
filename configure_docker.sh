@@ -8,39 +8,19 @@ if ! [ -f /.dockerenv ]; then
 fi
 
 # Create directory structure
-cd /miam_workspace
+mkdir -p /miam_workspace/install
+mkdir -p /miam_workspace/build/cross_compile
+mkdir -p /miam_workspace/build/native_compile
 
-mkdir -p build/rplidar
-mkdir -p build/miam_utils
-mkdir -p build/vision
-mkdir -p build/embedded
-mkdir -p build/simulation
-mkdir -p build/simulation/logs
-mkdir install
-
-# Compile and install rplidar
-cd build/rplidar
-
-cmake /miam_workspace/src/MiAM_robotics/rplidar_sdk -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
+# Build code
+cd /miam_workspace/build/cross_compile
+cmake /miam_workspace/src/MiAM_robotics -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
 make -j8 install
 
-cmake /miam_workspace/src/MiAM_robotics/rplidar_sdk -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
+cd /miam_workspace/build/native_compile
+cmake /miam_workspace/src/MiAM_robotics -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
 make -j8 install
 
-# Compile and install miam_utils
-cd /miam_workspace/build/miam_utils
-
-cmake /miam_workspace/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=ON
-make -j8 install
-
-cmake /miam_workspace/src/MiAM_robotics/miam_utils -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
-make -j8 install
-
-# Compile and install miam_vision_arm
-cd /miam_workspace/build/vision
-
-cmake /miam_workspace/src/MiAM_robotics/vision -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release
-make -j8 install
 
 # Setup python environment
 cd /miam_workspace/install
@@ -51,19 +31,4 @@ source /miam_workspace/install/miam_venv/bin/activate
 cd /miam_workspace/src/MiAM_robotics/miam_py
 pip install -U pip
 pip install -e .
-
-# Compile vision code
-cd /miam_workspace/build/vision
-cmake /miam_workspace/src/MiAM_robotics/vision -DCMAKE_BUILD_TYPE=Release
-make -j8
-
-# Compile robot code
-cd /miam_workspace/build/embedded
-cmake /miam_workspace/src/MiAM_robotics/main_robot_code/embedded/ -DCMAKE_BUILD_TYPE=Release
-make -j8
-
-# Compile simulation code
-cd /miam_workspace/build/simulation
-cmake /miam_workspace/src/MiAM_robotics/main_robot_code/simulation/ -DCMAKE_BUILD_TYPE=Release
-make -j8
 
