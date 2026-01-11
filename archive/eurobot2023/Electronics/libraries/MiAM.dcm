@@ -1,0 +1,13 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP USB_A_Double
+D USB Type A connector
+K connector USB
+$ENDCMP
+$CMP STP3NK60ZFP
+D STMicroelectronics STP3NK60ZFP N-channel MOSFET Transistor, 2.4 A, 600 V, 3-Pin TO-220FP
+K
+F https://componentsearchengine.com/Datasheets/1/STP3NK60ZFP.pdf
+$ENDCMP
+#
+#End Doc Library

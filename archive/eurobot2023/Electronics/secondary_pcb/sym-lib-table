@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name "MiAM")(type "KiCad")(uri "${KIPRJMOD}/../libraries/MiAM.kicad_sym")(options "")(descr ""))
+  (lib (name "Molex_UltraFit")(type "KiCad")(uri "${KIPRJMOD}/../libraries/Molex_UltraFit.kicad_sym")(options "")(descr ""))
+)
