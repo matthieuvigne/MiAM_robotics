@@ -18,11 +18,13 @@ jobs:
           submodules: recursive
       - name: build
         run: |
+          source /acado/build/acado_env.sh &&\
           mkdir build &&\
           cd build &&\
-          mkdir cross_compile && cd cross_compile && cmake ../../ -DCROSS_COMPILE=ON && cd.. &&\
-          mkdir local && cd local && cmake ../ -DCROSS_COMPILE=OFF
+          mkdir cross_compile && cd cross_compile && cmake ../../ -DCROSS_COMPILE=ON && make -j8 && cd .. &&\
+          mkdir native_compile && cd native_compile && cmake ../../ -DCROSS_COMPILE=OFF && make -j8
+        shell: bash
       - name: miam_utils test
         run: |
-          cd build/local/miam_utils &&\
+          cd build/native_compile/miam_utils &&\
           ./unit/unit

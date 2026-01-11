@@ -6,8 +6,6 @@ find_package(PkgConfig REQUIRED)
 unset(GTK_FOUND CACHE)
 if(CROSS_COMPILE)
     set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
-else()
-    pkg_search_module(MIAM_UTILS REQUIRED miam_utils >= 2.5.4)
 endif()
 pkg_search_module(GTK REQUIRED gtkmm-3.0)
 
