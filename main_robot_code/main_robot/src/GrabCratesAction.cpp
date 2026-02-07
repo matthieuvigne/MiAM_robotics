@@ -120,7 +120,7 @@ bool GrabCratesAction::performAction()
     // Grab, check and retry if required
     bool success = false;
     int num_attempts = 1;
-    success = servoManager_->grab(front);
+    // success = servoManager_->grab(front);
     while(!success && num_attempts<=maxGrabAttempts)
     {
         robot_->logger_ << "[GrabCratesAction] Grab failure, retrying." << std::endl;
@@ -141,7 +141,7 @@ bool GrabCratesAction::performAction()
     }
 
     // if robot is not full
-    // TODO and match time remaining is still large, 
+    // TODO and match time remaining is still large,
     // TODO then store the crates
     if (!robot_->getGameState()->isRobotFull)
     {

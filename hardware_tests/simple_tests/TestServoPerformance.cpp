@@ -108,15 +108,15 @@ int main (int argc, char *argv[])
     logger.start("ServoTest.data");
 
     std::vector<ServoTester> tester;
-    tester.push_back(ServoTester(&driver, &logger, "STS3215", 99));
-    driver.writeRegister(99, STS::registers::POS_PROPORTIONAL_GAIN, 50);
-    driver.writeRegister(99, STS::registers::POS_INTEGRAL_GAIN, 50);
-    driver.writeRegister(99, STS::registers::SPEED_PROPORTIONAL_GAIN, 50);
-    driver.writeRegister(99, STS::registers::SPEED_INTEGRAL_GAIN, 50);
-    tester.push_back(ServoTester(&driver, &logger, "SCS0009", 100, true));
-    tester.push_back(ServoTester(&driver, &logger, "Waveshare", 13));
-    tester.push_back(ServoTester(&driver, &logger, "STS3045", 101));
-    tester.push_back(ServoTester(&driver, &logger, "STS3032", 102));
+    tester.push_back(ServoTester(&driver, &logger, "STS3215", 21));
+    // driver.writeRegister(99, STS::registers::POS_PROPORTIONAL_GAIN, 50);
+    // driver.writeRegister(99, STS::registers::POS_INTEGRAL_GAIN, 50);
+    // driver.writeRegister(99, STS::registers::SPEED_PROPORTIONAL_GAIN, 50);
+    // driver.writeRegister(99, STS::registers::SPEED_INTEGRAL_GAIN, 50);
+    // tester.push_back(ServoTester(&driver, &logger, "SCS0009", 100, true));
+    // tester.push_back(ServoTester(&driver, &logger, "Waveshare", 13));
+    // tester.push_back(ServoTester(&driver, &logger, "STS3045", 101));
+    // tester.push_back(ServoTester(&driver, &logger, "STS3032", 102));
 
     for (int i = 0; i < static_cast<int>(tester.size()); i++)
         tester.at(i).setServoPosition(i, static_cast<int>(tester.size()));

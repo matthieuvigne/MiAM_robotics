@@ -330,7 +330,7 @@ void Robot::shutdown()
     if (isLidarInit_)
         lidar_.stop();
     strategy_->shutdown();
-    servos_.disable(0xFE);
+    servos_.shutdown();
     logger_.close();
 }
 

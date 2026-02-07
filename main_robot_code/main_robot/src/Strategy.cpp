@@ -4,7 +4,6 @@
 
 #include "main_robot/GrabCratesAction.h"
 #include "main_robot/DropCratesAction.h"
-#include "main_robot/SmallColumnAction.h"
 
 #include "common/GameState.h"
 
@@ -61,24 +60,18 @@ bool Strategy::setup(RobotInterface *robot)
         //actions_.push_back(std::make_shared<SmallColumnAction>(robot, &servoManager_));
 
     }
-    if (setupStep_ == 1 && robot_->getServos().areAllRailsCalibrated())
+    if (setupStep_ == 1 && robot->getServos()->areAllRailsCalibrated())
     {
-        robot->logger_ << "[Strategy] Rail has reached top, moving to bottom" << std::endl;
-        servoManager_.setRailsToInitPosition();
+        robot->logger_ << "[Strategy] Rail calibration completed." << std::endl;
+        // servoManager_.setRailsToInitPosition();
         setupStep_ = 2;
         #ifdef SIMULATION
         return true;
         #endif
     }
-    if (setupStep_ == 2 && !servoManager_.railManager_.areAnyMoving())
+    if (setupStep_ == 2/* && !servoManager_.railManager_.areAnyMoving()*/)
     {
-        robot->logger_ << "[Strategy] Rail are in bottom position, folding" << std::endl;
-        servoManager_.frontRightClaw_.move(ClawPosition::FOLDED);
-        servoManager_.frontLeftClaw_.move(ClawPosition::FOLDED);
-        servoManager_.foldPlank();
-        servoManager_.frontRightClaw_.foldClaw();
-        servoManager_.frontLeftClaw_.foldClaw();
-        servoManager_.foldBackPlank();
+        robot->logger_ << "[Strategy] Setup done" << std::endl;
         return true;
     }
     return false;
@@ -88,7 +81,6 @@ bool Strategy::setup(RobotInterface *robot)
 
 void Strategy::shutdown()
 {
-    servoManager_.railManager_.abort();
 }
 
 void Strategy::match()
@@ -133,20 +125,6 @@ void Strategy::goBackToBase()
     robot->getMotionController()->stopCurrentTrajectoryTracking();
 
     // Release everything
-    servoManager_.backClawOpen();
-    servoManager_.frontClawOpen();
-    servoManager_.releasePlank();
-    servoManager_.releaseBackPlank();
-
-    servoManager_.frontLeftClaw_.rail_.move(0.95);
-    servoManager_.frontRightClaw_.rail_.move(0.95);
-    servoManager_.frontRightClaw_.move(ClawPosition::FORWARD);
-    servoManager_.frontLeftClaw_.move(ClawPosition::FORWARD);
-    servoManager_.frontRightClaw_.openClaw();
-    servoManager_.frontLeftClaw_.openClaw();
-
-    // TODO
-    robot->getGameState()->isClawFull = false;
 
     // Target depends on start position
     RobotPosition targetPosition(300, 1400, M_PI);
@@ -172,18 +150,7 @@ void Strategy::goBackToBase()
     }
     if (targetReached)
     {
-        servoManager_.foldClaws();
         robot->updateScore(10, "back to base");
-        if (robot->isPlayingRightSide())
-        {
-            servoManager_.frontLeftClaw_.move(ClawPosition::SIDE);
-            servoManager_.frontLeftClaw_.foldClaw();
-        }
-        else
-        {
-            servoManager_.frontRightClaw_.move(ClawPosition::SIDE);
-            servoManager_.frontRightClaw_.foldClaw();
-        }
     }
 }
 

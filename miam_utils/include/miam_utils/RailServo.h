@@ -75,6 +75,6 @@
             double targetPosition_ = 0.0;
             int lastReadPosition_ = 0;
 
-            RailState currentState_ = RailState::TARGET_REACHED;
+            RailState currentState_ = RailState::INIT;
     };
 #endif

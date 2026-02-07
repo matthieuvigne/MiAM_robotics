@@ -1,22 +1,9 @@
 #include "Robot.h"
-#include "common/RobotGUI.h"
 #include "main_robot/Parameters.h"
 #include "main_robot/Strategy.h"
-#include "main_robot/ServoManager.h"
-
 
 #include <iostream>
-#include <thread>
-#include <filesystem>
-#include <fstream>
-#include <stdlib.h>
-#include <unistd.h>
 #include <signal.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-
-#include <filesystem>
-#include <fstream>
 
 STSScheduler *servos;
 
@@ -28,9 +15,7 @@ void kill(int)
 
 int main(int argc, char* argv[])
 {
-
     std::string userInput;
-    // Try to communicate with servo.
     RPi_enablePorts();
 
     // Create objects

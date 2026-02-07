@@ -41,13 +41,14 @@ RailServo* STSScheduler::createRail(int const& servoId, int const& gpioId, int c
 
 void STSScheduler::startRailCalibration()
 {
-
+    for (auto &r : rails_)
+        r.startCalibration();
 }
 
 bool STSScheduler::areAllRailsCalibrated() const
 {
     bool allCalib = true;
-    for (auto const r : rails_)
+    for (auto const& r : rails_)
         allCalib &= r.isCalibrated();
     return allCalib;
 }
@@ -117,6 +118,8 @@ void STSScheduler::backgroundThread()
                 {
                     i++;
                 }
+                if (i == 0xFE)
+                    continue;
                 command = commands_[i];
 
                 // Update state machine - do this in the lock to avoid race conditions
@@ -170,8 +173,11 @@ void STSScheduler::backgroundThread()
         }
 
         // Now handle the rails
-        for (auto r : rails_)
+        for (auto& r : rails_)
+        {
             r.tick();
+            usleep(5);
+        }
     }
     driver_.disable(0xFE);
 }
