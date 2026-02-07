@@ -8,7 +8,7 @@
 #ifndef ROBOT_INTERFACE_H
      #define ROBOT_INTERFACE_H
 
-    #include <miam_utils/drivers/STSServoDriver.h>
+    #include <miam_utils/STSScheduler.h>
     #include <miam_utils/drivers/MCP23008Driver.h>
     #include <unistd.h>
     #include <mutex>
@@ -105,7 +105,7 @@
 
 
             MotionController* getMotionController() { return &motionController_;}
-            STSServoDriver* getServos() { return &servos_;}
+            STSScheduler* getServos() { return &servos_;}
             RobotPosition getStartPosition() { return gui_->getStartPosition();}
 
             /// \brief Get time in current match.
@@ -142,7 +142,7 @@
             Metronome metronome_;
 #endif
             MotionController motionController_;
-            STSServoDriver servos_;
+            STSScheduler servos_;
 
             RobotGUI *gui_;
             AbstractStrategy *strategy_;

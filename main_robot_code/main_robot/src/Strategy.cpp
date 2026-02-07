@@ -61,7 +61,7 @@ bool Strategy::setup(RobotInterface *robot)
         //actions_.push_back(std::make_shared<SmallColumnAction>(robot, &servoManager_));
 
     }
-    if (setupStep_ == 1 && servoManager_.isRailCalibDone())
+    if (setupStep_ == 1 && robot_->getServos().areAllRailsCalibrated())
     {
         robot->logger_ << "[Strategy] Rail has reached top, moving to bottom" << std::endl;
         servoManager_.setRailsToInitPosition();

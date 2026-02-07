@@ -1,8 +1,6 @@
-/// A simple test for the AS5045 encoder
-
 #include <miam_utils/Metronome.h>
 #include <miam_utils/Logger.h>
-#include <miam_utils/STSServoManager.h>
+#include <miam_utils/STSScheduler.h>
 #include <miam_utils/drivers/STSServoDriver.h>
 
 #include <iostream>
@@ -12,7 +10,7 @@
 
 int main (int argc, char *argv[])
 {
-    STSServoManager driver;
+    STSScheduler driver;
 
     if (!driver.init("/dev/ttyAMA0", -1))
     {

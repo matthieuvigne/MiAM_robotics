@@ -3,16 +3,12 @@
 
 #include "common/RobotInterface.h"
 
-#include "Claw.h"
-#include "RailServo.h"
-
 class ServoManager
 {
 public:
     ServoManager();
     void init(RobotInterface *robot);
 
-    bool isRailCalibDone() {return railManager_.areCalibrated();}
     void setRailsToInitPosition();
 
     bool buildFrontTower();
@@ -49,15 +45,11 @@ public:
 
 // private:
     RobotInterface *robot_;
-    STSServoDriver *servos_;
-    RailManager railManager_;
+    STSScheduler *servos_;
 
-    Claw frontRightClaw_;
-    Claw frontLeftClaw_;
-
-    RailServo backRail_;
-    RailServo frontPlankRail_;
-    RailServo frontCanRail_;
+    RailServo *backRail_;
+    RailServo *frontPlankRail_;
+    RailServo *frontCanRail_;
 
     int lastCloseTarget_back_R;
     int lastCloseTarget_back_L;

@@ -1,4 +1,4 @@
-/// \file drivers/STSServoManager.h
+/// \file drivers/STSScheduler.h
 /// \brief Thread-based handling of sts servos
 ///
 /// \author MiAM Robotique, Matthieu Vigne
@@ -7,16 +7,18 @@
     #define STSSERVO_MANAGER
 
     #include <thread>
+    #include <vector>
     #include "miam_utils/drivers/STSServoDriver.h"
+    #include "miam_utils/RailServo.h"
 
-    /// \brief Driver for STS servos, using UART
-    class STSServoManager
+    /// \brief Thread managing the sts servos
+    class STSScheduler
     {
         public:
             /// \brief Default contstructor.
-            STSServoManager(double const& readTimeout = 0.000750);
+            STSScheduler(double const& readTimeout = 0.000750);
 
-            ~STSServoManager();
+            ~STSScheduler();
 
             /// @brief Shutdown all servos and exit background thread.
             void shutdown();
@@ -28,6 +30,20 @@
             /// \param baudRate Baud rate
             /// \returns  True on success (at least one servo responds to ping)
             bool init(std::string const& portName, int const& dirPort, int const& baudRate = B1000000);
+
+            /// @brief Create a rail servo
+            /// @param servoId
+            /// @param gpioId
+            /// @param distance
+            /// @param inverted
+            /// @param calibrateBottom
+            /// @return Pointer to created RailServo object
+            RailServo *createRail(int const& servoId, int const& gpioId, int const& distance, bool inverted=false, bool calibrateBottom=false);
+
+            /// @brief Start calibration of the rails
+            void startRailCalibration();
+
+            bool areAllRailsCalibrated() const;
 
             /// \brief Set servo working mode: position, velocity or step.
             /// \param[in] servoId ID of the servo
@@ -89,6 +105,7 @@
             };
 
             ServoCommand commands_[256];
+            std::vector<RailServo> rails_;
             std::mutex mutex_;
 
 

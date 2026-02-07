@@ -1,84 +1,105 @@
 #include <unistd.h>
-#include "miam_utils/STSServoManager.h"
+#include "miam_utils/STSScheduler.h"
 
 
-STSServoManager::STSServoManager(double const& readTimeout):
+STSScheduler::STSScheduler(double const& readTimeout):
     driver_(readTimeout)
 {
 }
 
-STSServoManager::~STSServoManager()
+STSScheduler::~STSScheduler()
 {
     shutdown();
 }
 
-void STSServoManager::shutdown()
+void STSScheduler::shutdown()
 {
     askedForShutdown_ = true;
     if (bgThread_.joinable())
         bgThread_.join();
 }
 
-bool STSServoManager::init(std::string const& portName, int const& dirPin, int const& baudRate)
+bool STSScheduler::init(std::string const& portName, int const& dirPin, int const& baudRate)
 {
     bool success = driver_.init(portName, dirPin, baudRate);
 
     if (success)
     {
         askedForShutdown_ = false;
-        bgThread_ = std::thread(&STSServoManager::backgroundThread, this);
+        bgThread_ = std::thread(&STSScheduler::backgroundThread, this);
     }
     return success;
 }
 
-void STSServoManager::setMode(unsigned char const& servoId, STS::Mode const& mode)
+RailServo* STSScheduler::createRail(int const& servoId, int const& gpioId, int const& distance, bool inverted, bool calibrateBottom)
+{
+    RailServo rail(&driver_, servoId, gpioId, distance, inverted, calibrateBottom);
+    rails_.push_back(rail);
+    return &rail;
+}
+
+
+void STSScheduler::startRailCalibration()
+{
+
+}
+
+bool STSScheduler::areAllRailsCalibrated() const
+{
+    bool allCalib = true;
+    for (auto const r : rails_)
+        allCalib &= r.isCalibrated();
+    return allCalib;
+}
+
+void STSScheduler::setMode(unsigned char const& servoId, STS::Mode const& mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     commands_[servoId].state = State::ENABLING;
     commands_[servoId].mode = mode;
 }
 
-int16_t STSServoManager::getCurrentPosition(unsigned char const& servoId)
+int16_t STSScheduler::getCurrentPosition(unsigned char const& servoId)
 {
     return driver_.getCurrentPosition(servoId);
 }
 
-int16_t STSServoManager::getCurrentVelocity(unsigned char const& servoId)
+int16_t STSScheduler::getCurrentVelocity(unsigned char const& servoId)
 {
     return driver_.getCurrentVelocity(servoId);
 }
 
-bool STSServoManager::isMoving(unsigned char const& servoId)
+bool STSScheduler::isMoving(unsigned char const& servoId)
 {
     return driver_.isMoving(servoId);
 }
 
-void STSServoManager::setTargetPosition(unsigned char const& servoId, int16_t const& position)
+void STSScheduler::setTargetPosition(unsigned char const& servoId, int16_t const& position)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     commands_[servoId].value = position;
 }
 
-void STSServoManager::setTargetVelocity(unsigned char const& servoId, int16_t const& velocity)
+void STSScheduler::setTargetVelocity(unsigned char const& servoId, int16_t const& velocity)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     commands_[servoId].value = velocity;
 }
 
-void STSServoManager::disable(unsigned char const& servoId)
+void STSScheduler::disable(unsigned char const& servoId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     commands_[servoId].state = State::DISABLING;
 }
 
-void STSServoManager::enable(unsigned char const& servoId)
+void STSScheduler::enable(unsigned char const& servoId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     commands_[servoId].state = State::ENABLING;
 }
 
 
-void STSServoManager::backgroundThread()
+void STSScheduler::backgroundThread()
 {
     pthread_setname_np(pthread_self(), "STSServoMangaer");
 
@@ -147,6 +168,10 @@ void STSServoManager::backgroundThread()
             usleep(10);
             i++;
         }
+
+        // Now handle the rails
+        for (auto r : rails_)
+            r.tick();
     }
     driver_.disable(0xFE);
 }
