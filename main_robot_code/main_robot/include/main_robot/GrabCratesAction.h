@@ -5,11 +5,11 @@
 #include "main_robot/AbstractAction.h"
 #include "main_robot/ServoManager.h"
 
-class GrabColumnAction: public AbstractAction
+class GrabCratesAction: public AbstractAction
 {
 public:
-    GrabColumnAction(RobotInterface *robot, ServoManager *servoManager, int const& zoneId):
-        AbstractAction("Grab columns " + std::to_string(zoneId), robot),
+    GrabCratesAction(RobotInterface *robot, ServoManager *servoManager, int const& zoneId):
+        AbstractAction("Grab crates " + std::to_string(zoneId), robot),
         servoManager_(servoManager),
         zoneId_(zoneId)
     {}

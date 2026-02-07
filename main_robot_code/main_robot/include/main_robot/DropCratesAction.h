@@ -5,16 +5,15 @@
 #include "main_robot/AbstractAction.h"
 #include "main_robot/ServoManager.h"
 
-class BuildAction: public AbstractAction
+class DropCratesAction: public AbstractAction
 {
 public:
-    BuildAction(RobotInterface *robot, ServoManager *servoManager, int const& zoneId):
-        AbstractAction("Building " + std::to_string(zoneId), robot),
+    DropCratesAction(RobotInterface *robot, ServoManager *servoManager, int const& zoneId):
+        AbstractAction("Drop crates " + std::to_string(zoneId), robot),
         servoManager_(servoManager),
         zoneId_(zoneId)
     {
-        largeZone_ = zoneId < 2;
-        nDrop_ = 0;
+
     }
 
     /// @brief This function is called before choosing the action in the list,
@@ -28,11 +27,6 @@ public:
 private:
     ServoManager *servoManager_;
     int zoneId_;
-
-    bool largeZone_;
-    int nDrop_;
-
-    bool specialReverse_ = false;
 };
 
 

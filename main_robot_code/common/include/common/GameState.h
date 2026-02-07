@@ -10,11 +10,11 @@
     #include "miam_utils/Map.h"
 
     #define NUMBER_OF_COLLECT_ZONES 8
-    #define NUMBER_OF_CONSTRUCTION_ZONES 10
+    #define NUMBER_OF_PANTRY_ZONES 10
 
     // Center of the zones where the columns are on the table.
     extern const miam::RobotPosition COLLECT_ZONE_COORDS[NUMBER_OF_COLLECT_ZONES];
-    extern const miam::RobotPosition CONSTRUCTION_ZONE_COORDS[NUMBER_OF_CONSTRUCTION_ZONES];
+    extern const miam::RobotPosition PANTRY_ZONE_COORDS[NUMBER_OF_PANTRY_ZONES];
 
     /// Zones are numbered from top to bottom, left to right.
     class GameState
@@ -22,10 +22,10 @@
         public:
             GameState();
             bool isCollectZoneFull[NUMBER_OF_COLLECT_ZONES];
-            bool isConstructionZoneUsed[NUMBER_OF_CONSTRUCTION_ZONES];
+            bool isPantryZoneUsed[NUMBER_OF_PANTRY_ZONES];
 
-            bool isFrontClawFull = false;
-            bool isBackClawFull = false;
+            bool isRobotFull = false;
+            bool isClawFull = false;
 
             bool arePAMIMoving_ = false;
 

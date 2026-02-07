@@ -13,7 +13,7 @@ const miam::RobotPosition COLLECT_ZONE_COORDS[NUMBER_OF_COLLECT_ZONES] =
     miam::RobotPosition(2820, 400, 0)
 };
 
-const miam::RobotPosition CONSTRUCTION_ZONE_COORDS[NUMBER_OF_CONSTRUCTION_ZONES] =
+const miam::RobotPosition PANTRY_ZONE_COORDS[NUMBER_OF_PANTRY_ZONES] =
 {
     miam::RobotPosition(100, 800, 0),
     miam::RobotPosition(800, 800, 0),
@@ -33,9 +33,9 @@ GameState::GameState()
     {
         isCollectZoneFull[i] = true;
     }
-    for (int i=0; i<NUMBER_OF_CONSTRUCTION_ZONES; i++)
+    for (int i=0; i<NUMBER_OF_PANTRY_ZONES; i++)
     {
-        isConstructionZoneUsed[i] = false;
+        isPantryZoneUsed[i] = false;
     }
 }
 
@@ -78,34 +78,35 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
     // drawZone(cr, COLLECT_ZONE_COORDS[0], !isPlayingRightSide);
 
     cr->set_source_rgb(0.2, 1.0, 0.2);
-    for (int i = 0; i < NUMBER_OF_CONSTRUCTION_ZONES; i++)
+    for (int i = 0; i < NUMBER_OF_PANTRY_ZONES; i++)
     {
-        if (isConstructionZoneUsed[i])
-            drawZone(cr, CONSTRUCTION_ZONE_COORDS[i], isPlayingRightSide);
+        if (isPantryZoneUsed[i])
+            drawZone(cr, PANTRY_ZONE_COORDS[i], isPlayingRightSide);
     }
 
-    // cr->set_source_rgb(1.0, 0.5, 0.0);
-    // cr->save();
-    // cr->translate(robotPosition.x, 2000. - robotPosition.y);
-    // cr->rotate(-robotPosition.theta);
+    cr->set_source_rgb(1.0, 0.5, 0.0);
+    cr->save();
+    cr->translate(robotPosition.x, 2000. - robotPosition.y);
+    cr->rotate(-robotPosition.theta);
 
-    // if (isFrontClawFull)
-    // {
-    //     for (int j = 0; j < 4; j++)
-    //     {
-    //         cr->rectangle(-100, -75, 200, 150);
-    //         cr->fill();
-    //     }
-    // }
-    // if (isBackClawFull)
-    // {
-    //     for (int j = 0; j < 4; j++)
-    //     {
-    //         cr->rectangle(-100, -75, 200, 150);
-    //         cr->fill();
-    //     }
-    // }
-    // cr->restore();
+    if (isClawFull)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            cr->rectangle(-100, -75+50, 200, 150);
+            cr->fill();
+        }
+    }
+    if (isRobotFull)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            cr->rectangle(-100, -75, 200, 150);
+            cr->fill();
+        }
+    }
+
+    cr->restore();
 }
 
 // Path planning
@@ -147,8 +148,9 @@ Map GameState::generateMap()
 
     // // PAMI
     // excludeRectangle(map, 0, 1800, 3000, 2000);
-    // // Scene
-    // excludeRectangle(map, 1050, 1550, 3000, 2000);
+
+    // Attic
+    excludeRectangle(map, 600, 1580, 3000, 2000);
 
 
     // // Other robot start / drop zones
@@ -169,35 +171,35 @@ Map GameState::generateMap()
 
     // for (int i = 0; i < NUMBER_OF_CONSTRUCTION_ZONES; i++)
     // {
-    //     if (isConstructionZoneUsed[i])
+    //     if (isPantryZoneUsed[i])
     //     {
     //         switch(i)
     //         {
     //             case 0: // (1200, 70, -M_PI_2)
     //             {
-    //                 RobotPosition bl = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(-150,-50);
-    //                 RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(100, -100);
+    //                 RobotPosition bl = PANTRY_ZONE_COORDS[i] + RobotPosition(-150,-50);
+    //                 RobotPosition tr = PANTRY_ZONE_COORDS[i] + RobotPosition(100, -100);
     //                 excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
     //                 break;
     //             }
     //             case 1: // (2900, 850, M_PI)
     //             {
-    //                 RobotPosition bl = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(-250,-150);
-    //                 RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(100,150);
+    //                 RobotPosition bl = PANTRY_ZONE_COORDS[i] + RobotPosition(-250,-150);
+    //                 RobotPosition tr = PANTRY_ZONE_COORDS[i] + RobotPosition(100,150);
     //                 excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
     //                 break;
     //             }
     //             case 2: // (750, 70, -M_PI_2)
     //             {
-    //                 RobotPosition bl = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(-150,-50);
-    //                 RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(150, 150);
+    //                 RobotPosition bl = PANTRY_ZONE_COORDS[i] + RobotPosition(-150,-50);
+    //                 RobotPosition tr = PANTRY_ZONE_COORDS[i] + RobotPosition(150, 150);
     //                 excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
     //                 break;
     //             }
     //             case 3: // (2800, 70, -M_PI_2)
     //             {
-    //                 RobotPosition bl = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(-150,-50);
-    //                 RobotPosition tr = CONSTRUCTION_ZONE_COORDS[i] + RobotPosition(150,50);
+    //                 RobotPosition bl = PANTRY_ZONE_COORDS[i] + RobotPosition(-150,-50);
+    //                 RobotPosition tr = PANTRY_ZONE_COORDS[i] + RobotPosition(150,50);
     //                 excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 100);
     //                 break;
     //             }

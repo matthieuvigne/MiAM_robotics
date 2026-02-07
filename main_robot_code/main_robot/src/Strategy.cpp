@@ -2,8 +2,8 @@
 #include "common/MotionPlanner.h"
 #include "common/ThreadHandler.h"
 
-#include "main_robot/GrabColumnAction.h"
-#include "main_robot/BuildAction.h"
+#include "main_robot/GrabCratesAction.h"
+#include "main_robot/DropCratesAction.h"
 #include "main_robot/SmallColumnAction.h"
 
 #include "common/GameState.h"
@@ -47,12 +47,12 @@ bool Strategy::setup(RobotInterface *robot)
 
         for (int i=0; i<NUMBER_OF_COLLECT_ZONES; i++)
         {
-            actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, i));
+            actions_.push_back(std::make_shared<GrabCratesAction>(robot, &servoManager_, i));
         }
 
-        for (int i=0; i<NUMBER_OF_CONSTRUCTION_ZONES; i++)
+        for (int i=0; i<NUMBER_OF_PANTRY_ZONES; i++)
         {
-            actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
+            actions_.push_back(std::make_shared<DropCratesAction>(robot, &servoManager_, i));
         }
         // actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 0));
         // actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 1));
@@ -145,8 +145,8 @@ void Strategy::goBackToBase()
     servoManager_.frontRightClaw_.openClaw();
     servoManager_.frontLeftClaw_.openClaw();
 
-    robot->getGameState()->isFrontClawFull = false;
-    robot->getGameState()->isBackClawFull = false;
+    // TODO
+    robot->getGameState()->isClawFull = false;
 
     // Target depends on start position
     RobotPosition targetPosition(300, 1400, M_PI);

@@ -1,10 +1,10 @@
-#include "main_robot/GrabColumnAction.h"
+#include "main_robot/GrabCratesAction.h"
 
 #define MARGIN 160
 
-void GrabColumnAction::updateStartCondition()
+void GrabCratesAction::updateStartCondition()
 {
-    if (!robot_->getGameState()->isCollectZoneFull[zoneId_] || (robot_->getGameState()->isFrontClawFull && robot_->getGameState()->isBackClawFull))
+    if (!robot_->getGameState()->isCollectZoneFull[zoneId_] || (robot_->getGameState()->isRobotFull && robot_->getGameState()->isClawFull))
     {
         priority_ = -1;
     }
@@ -23,7 +23,7 @@ void GrabColumnAction::updateStartCondition()
     ignoreFinalRotation_ = true;
 
     // Always grab front first
-    isStartMotionBackward_ = robot_->getGameState()->isFrontClawFull;
+    isStartMotionBackward_ = false;
 
     double const xoffset = (isStartMotionBackward_ ? BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET) + MARGIN;
 
@@ -53,31 +53,31 @@ void GrabColumnAction::updateStartCondition()
 }
 
 
-void GrabColumnAction::actionStartTrigger()
+void GrabCratesAction::actionStartTrigger()
 {
 }
 
-bool GrabColumnAction::performAction()
+bool GrabCratesAction::performAction()
 {
-    robot_->logger_ << "[GrabColumnAction] Starting action " << zoneId_ << " " << isStartMotionBackward_ << std::endl;
+    robot_->logger_ << "[GrabCratesAction] Starting action " << zoneId_ << " " << isStartMotionBackward_ << std::endl;
     bool const front = !isStartMotionBackward_;
 
-    servoManager_->prepareGrab(!isStartMotionBackward_);
+    // servoManager_->prepareGrab(!isStartMotionBackward_);
 
     double forwardAmount = (isStartMotionBackward_ ? -BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET);
-    if (front)
-    {
-        servoManager_->frontClawOpen();
-        servoManager_->frontRightClaw_.rail_.move(0.05);
-        servoManager_->frontLeftClaw_.rail_.move(0.05);
-        while (servoManager_->frontRightClaw_.rail_.isMoving()
-            || servoManager_->frontLeftClaw_.rail_.isMoving())
-                robot_->wait(0.050);
-    }
-    else
-    {
-        servoManager_->backClawOpen();
-    }
+    // if (front)
+    // {
+    //     servoManager_->frontClawOpen();
+    //     servoManager_->frontRightClaw_.rail_.move(0.05);
+    //     servoManager_->frontLeftClaw_.rail_.move(0.05);
+    //     while (servoManager_->frontRightClaw_.rail_.isMoving()
+    //         || servoManager_->frontLeftClaw_.rail_.isMoving())
+    //             robot_->wait(0.050);
+    // }
+    // else
+    // {
+    //     servoManager_->backClawOpen();
+    // }
 
     // Reach the grab position
     RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
@@ -123,65 +123,36 @@ bool GrabColumnAction::performAction()
     success = servoManager_->grab(front);
     while(!success && num_attempts<=maxGrabAttempts)
     {
-        robot_->logger_ << "[GrabColumnAction] Grab failure, retrying." << std::endl;
-        if(front)
-        {
-            servoManager_->frontClawOpen();
-            servoManager_->frontRightClaw_.openClaw();
-            servoManager_->frontLeftClaw_.openClaw();
-        }
-        else
-            servoManager_->backClawOpen();
+        robot_->logger_ << "[GrabCratesAction] Grab failure, retrying." << std::endl;
+        // if(front)
+        // {
+        //     servoManager_->frontClawOpen();
+        //     servoManager_->frontRightClaw_.openClaw();
+        //     servoManager_->frontLeftClaw_.openClaw();
+        // }
+        // else
+        //     servoManager_->backClawOpen();
         robot_->wait(0.3);
         robot_->getMotionController()->goStraight(front? 60:-60);
         robot_->getMotionController()->waitForTrajectoryFinished();
 
-        success = servoManager_->grab(front, !(num_attempts == maxGrabAttempts - 1));
+        success = true; //servoManager_->grab(front, !(num_attempts == maxGrabAttempts - 1));
         num_attempts += 1;
     }
 
-    if(!success)
+    // if robot is not full
+    // TODO and match time remaining is still large, 
+    // TODO then store the crates
+    if (!robot_->getGameState()->isRobotFull)
     {
-        // Count what was grabbed to see what we want to do.
-        int nGrabbed = servoManager_->countGrab(front);
-        if (front)
-        {
-            int err;
-            if (servoManager_->frontRightClaw_.isClawFull(err))
-                nGrabbed ++;
-            if (servoManager_->frontLeftClaw_.isClawFull(err))
-                nGrabbed ++;
-        }
-
-        // We couldn't grab enough to do a full tower, so we abort the motion
-        if (nGrabbed < 2)
-        {
-            robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
-            if (front)
-            {
-                servoManager_->frontClawOpen();
-                servoManager_->frontRightClaw_.openClaw();
-                servoManager_->frontLeftClaw_.openClaw();
-            }
-            else
-                servoManager_->backClawOpen();
-            // Go back before next action
-            robot_->getMotionController()->goStraight(front? -120:120);
-            servoManager_->clawsToMoveConfiguration(front);
-            return true;
-        }
-    }
-
-    // Update the game state
-    robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
-    if (isStartMotionBackward_)
-    {
-        robot_->getGameState()->isBackClawFull = true;
+        robot_->getGameState()->isRobotFull = true;
     }
     else
     {
-        robot_->getGameState()->isFrontClawFull = true;
+        robot_->getGameState()->isClawFull = true;
     }
+
+    robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
 
     // Go back from the collect zone ; move further to avoid oponnent zone
     if (zoneId_ == 1)
