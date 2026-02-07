@@ -40,7 +40,7 @@ int main (int argc, char *argv[])
 
     // Create handler.
     Viewer *viewer = nullptr;
-    refBuilder->get_widget_derived("mainWindow", viewer, "./config/playmat_2025_FINAL.png");
+    refBuilder->get_widget_derived("mainWindow", viewer, "./config/playmat_2026_FINAL.png");
     main_robot::Strategy mainStrategy;
     ViewerRobot mainRobot(main_robot::generateParams(), "./config/mainRobot.png", &mainStrategy, 1.0, 0.0, 0.0, "mainRobot.");
     viewer->addRobot(mainRobot);

@@ -6,6 +6,8 @@
 #include "main_robot/BuildAction.h"
 #include "main_robot/SmallColumnAction.h"
 
+#include "common/GameState.h"
+
 using namespace miam::trajectory;
 using miam::RobotPosition;
 
@@ -43,18 +45,20 @@ bool Strategy::setup(RobotInterface *robot)
         // Load actions into action vector.
         actions_.clear();
 
-        // Zone 0 disabled to protect PAMI
-        for (int i = 1; i < 8; i++)
+        for (int i=0; i<NUMBER_OF_COLLECT_ZONES; i++)
         {
             actions_.push_back(std::make_shared<GrabColumnAction>(robot, &servoManager_, i));
         }
 
-        // Build action - no zone 2, this is handled by the SmallColumn action
-        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 0));
-        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 1));
-        actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 3));
+        for (int i=0; i<NUMBER_OF_CONSTRUCTION_ZONES; i++)
+        {
+            actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, i));
+        }
+        // actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 0));
+        // actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 1));
+        // actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 3));
 
-        actions_.push_back(std::make_shared<SmallColumnAction>(robot, &servoManager_));
+        //actions_.push_back(std::make_shared<SmallColumnAction>(robot, &servoManager_));
 
     }
     if (setupStep_ == 1 && servoManager_.isRailCalibDone())
@@ -190,24 +194,24 @@ void Strategy::match_impl()
 {
     pthread_setname_np(pthread_self(), "strat_matchImpl");
 
-    // robot->getMotionController()->goStraight(-40);
-    servoManager_.dropBanner();
-    robot->wait(1.5);
-    servoManager_.backClawOpen();
-    robot->updateScore(20, "banner");
+    // // robot->getMotionController()->goStraight(-40);
+    // servoManager_.dropBanner();
+    // robot->wait(1.5);
+    // servoManager_.backClawOpen();
+    // robot->updateScore(20, "banner");
 
-    SmallColumnAction act(robot, &servoManager_);
-    act.updateStartCondition();
-    RobotPosition current = robot->getMotionController()->getCurrentPosition();
-    RobotPosition final = act.startPosition_;
+    // SmallColumnAction act(robot, &servoManager_);
+    // act.updateStartCondition();
+    // RobotPosition current = robot->getMotionController()->getCurrentPosition();
+    // RobotPosition final = act.startPosition_;
 
-    std::vector<RobotPosition> positions;
-    current.y = final.y;
-    positions.push_back(current);
-    positions.push_back(final);
-    robot->getMotionController()->goToRoundedCorners(positions, 200, 0.3);
-    servoManager_.foldBanner();
-    servoManager_.releasePlank();
+    // std::vector<RobotPosition> positions;
+    // current.y = final.y;
+    // positions.push_back(current);
+    // positions.push_back(final);
+    // robot->getMotionController()->goToRoundedCorners(positions, 200, 0.3);
+    // servoManager_.foldBanner();
+    // servoManager_.releasePlank();
 
 
     while (!actions_.empty())

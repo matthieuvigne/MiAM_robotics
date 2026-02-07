@@ -21,6 +21,8 @@ cd /miam_workspace/build/native_compile
 cmake /miam_workspace/src/MiAM_robotics -DCMAKE_INSTALL_PREFIX=/miam_workspace/install/ -DCMAKE_BUILD_TYPE=Release -DCROSS_COMPILE=OFF
 make -j8 install
 
+# Add log file for simulation
+mkdir -p /miam_workspace/build/native_compile/main_robot_code/simulation/logs
 
 # Setup python environment
 cd /miam_workspace/install
