@@ -49,6 +49,13 @@ int main(int argc, char* argv[])
         robot_->wait(0.1);
     std::cout << "Init done" << std::endl;
 
+    while (true)
+    {
+        servoManager_->translateSuction(Side::RIGHT, 1.0);
+        robot_->wait(1.0);
+        servoManager_->translateSuction(Side::RIGHT, 0.0);
+        robot_->wait(1.0);
+    }
     // while (true)
     // {
     //     servo_manager.prepareGrab(true);

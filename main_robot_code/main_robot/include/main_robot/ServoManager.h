@@ -11,6 +11,11 @@ enum RailPosition {
     STARTUP
 };
 
+enum class Side : int {
+    RIGHT = 0,
+    LEFT = 1
+};
+
 class ServoManager
 {
 public:
@@ -28,6 +33,11 @@ public:
 
     void moveArm(ArmPosition const& position);
 
+    /// Transate suction, 0=close, 1=full open
+    void translateSuction(Side const side, double const ratio =0.0);
+
+    void pumpOn(Side const side);
+    void pumpOff(Side const side);
 private:
     RobotInterface *robot_;
     STSScheduler *servos_;

@@ -45,6 +45,12 @@ void ServoManager::init(RobotInterface *robot)
     cursorFold();
     bedFold();
     moveArm(ArmPosition::CALIBRATE);
+    translateSuction(Side::RIGHT, 0);
+    translateSuction(Side::LEFT, 0);
+    RPi_setupGPIO(12, PI_GPIO_OUTPUT);
+    RPi_setupGPIO(13, PI_GPIO_OUTPUT);
+    pumpOff(Side::RIGHT);
+    pumpOff(Side::LEFT);
     // Start calib
     servos_->startRailCalibration();
 }
@@ -93,7 +99,34 @@ void ServoManager::moveArm(ArmPosition const& position)
             servos_->setTargetPosition(ID_ARM_1, 2048);
             servos_->setTargetPosition(ID_ARM_2, 1600);
             servos_->setTargetPosition(ID_ARM_3, 2400);
+            servos_->setTargetPosition(ID_HAND_ROT, 2048);
             break;
         default: break;
     }
+}
+
+#define SUCTION_RANGE 150
+
+
+void ServoManager::translateSuction(Side const side, double const ratio)
+{
+    int const servoIds[2] = {ID_HAND_TRIGHT, ID_HAND_TLEFT};
+    int const sign[2] = {1, 1};
+    int const closePosition[2] = {620, 1};
+
+    int const idx = static_cast<int>(side);
+    servos_->setTargetPosition(servoIds[idx], closePosition[idx] + sign[idx] * ratio * SUCTION_RANGE);
+}
+
+
+void ServoManager::pumpOn(Side const side)
+{
+    int const idx = static_cast<int>(side);
+    RPi_writeGPIO(12 + idx, LOW);
+}
+
+void ServoManager::pumpOff(Side const side)
+{
+    int const idx = static_cast<int>(side);
+    RPi_writeGPIO(12 + idx, HIGH);
 }
