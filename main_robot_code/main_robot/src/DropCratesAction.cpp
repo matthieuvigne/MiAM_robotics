@@ -1,7 +1,6 @@
 #include "main_robot/DropCratesAction.h"
 
-#define MARGIN 130
-#define BUILD_DISTANCE 170
+#define DROP_DISTANCE 170
 
 
 void DropCratesAction::updateStartCondition()
@@ -29,6 +28,63 @@ void DropCratesAction::updateStartCondition()
     }
 
     startPosition_ = PANTRY_ZONE_COORDS[zoneId_];
+
+    // Select the most suitable dropping zones
+    // TODO maybe write this better
+    switch (zoneId_)
+    {
+        case 0:
+            startPosition_.x += DROP_DISTANCE;
+            startPosition_.theta = M_PI;
+            break;
+        case 2:
+            startPosition_.y += DROP_DISTANCE;
+            startPosition_.theta = -M_PI_2;
+            break;
+        case 3:
+            startPosition_.y -= DROP_DISTANCE;
+            startPosition_.theta = M_PI_2;
+            break;
+        case 5:
+            startPosition_.y += DROP_DISTANCE;
+            startPosition_.theta = -M_PI_2;
+            break;
+        case 6:
+            startPosition_.y -= DROP_DISTANCE;
+            startPosition_.theta = M_PI_2;
+            break;
+        case 8:
+            startPosition_.y += DROP_DISTANCE;
+            startPosition_.theta = -M_PI_2;
+            break;
+        case 9:
+            startPosition_.x -= DROP_DISTANCE;
+            startPosition_.theta = 0;
+            break;
+        default:
+            // For the other pantries, choose a closest point around it
+            bool feasible = false;
+            double currentNorm = 0;
+            RobotPosition currentPosition(robot_->getMotionController()->getCurrentPosition());
+            for (int xindex=-1; xindex<2; xindex=xindex+2)
+            {
+                for (int yindex=-1; yindex<2; yindex=yindex+2)
+                {
+                    robot_->logger_ << "[DropCratesAction] xindex " << xindex << " yindex " << yindex << std::endl;
+                    RobotPosition newPosition(startPosition_);
+                    newPosition.x += xindex * DROP_DISTANCE;
+                    newPosition.y += yindex * DROP_DISTANCE;
+                    if (!feasible || ((currentPosition - newPosition).norm() < currentNorm))
+                    {
+                        startPosition_.x = newPosition.x;
+                        startPosition_.y = newPosition.y;
+                        feasible=true;
+                    }
+                }
+            }
+            break;
+    }
+
 }
 
 
@@ -40,10 +96,6 @@ void DropCratesAction::actionStartTrigger()
 bool DropCratesAction::performAction()
 {
     robot_->logger_ << "[DropCratesAction] Starting action " << zoneId_ << std::endl;
-    int const sign = (isStartMotionBackward_ ? -1 : 1);
-
-    // Move the cans in the planned spot.
-    robot_->getMotionController()->goStraight(sign * MARGIN);
 
     bool dropped_something = false;
     if (robot_->getGameState()->isClawFull)

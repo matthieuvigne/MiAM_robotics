@@ -59,6 +59,9 @@ bool Strategy::setup(RobotInterface *robot)
 
         //actions_.push_back(std::make_shared<SmallColumnAction>(robot, &servoManager_));
 
+        #ifdef SIMULATION
+        return true;
+        #endif
     }
     if (setupStep_ == 1 && robot->getServos()->areAllRailsCalibrated())
     {

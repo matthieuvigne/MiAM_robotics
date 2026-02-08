@@ -9,7 +9,7 @@
 #include <signal.h>
 
 std::vector<miam::RobotPosition> START_POSITIONS({
-    miam::RobotPosition(1225, 178, M_PI_2)
+    miam::RobotPosition(400, 1800, -M_PI_2)
 });
 
 RobotGUI::RobotGUI()

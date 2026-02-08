@@ -583,10 +583,10 @@ bool MotionController::pointTurn(double const& angle, double const& speedFactor,
 TrajectoryConfig MotionController::getCurrentTrajectoryParameters()
 {
     TrajectoryConfig conf = robotParams_.getTrajConf();
-    if (gameState_.isClawFull)
-    {
-        conf.maxWheelVelocity *= 0.6;
-        conf.maxWheelAcceleration *= 0.7;
-    }
+    // if (gameState_.isClawFull)
+    // {
+    //     conf.maxWheelVelocity *= 0.6;
+    //     conf.maxWheelAcceleration *= 0.7;
+    // }
     return conf;
 }

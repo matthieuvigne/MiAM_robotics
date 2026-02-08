@@ -93,7 +93,7 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
     {
         for (int j = 0; j < 4; j++)
         {
-            cr->rectangle(-100, -75+50, 200, 150);
+            cr->rectangle(-100+75, -75, 200, 150);
             cr->fill();
         }
     }
@@ -159,15 +159,26 @@ Map GameState::generateMap()
     // excludeRectangle(map, 1500, 0, 2050, 550);
     // excludeRectangle(map, 2000, 0, 2450, 150);
 
-    // for (int i = 0; i < NUMBER_OF_COLLECT_ZONES; i++)
-    // {
-    //     if (isCollectZoneFull[i])
-    //     {
-    //         RobotPosition bl = COLLECT_ZONE_COORDS[i] + RobotPosition(-200, -50).rotate(COLLECT_ZONE_COORDS[i].theta - M_PI_2);
-    //         RobotPosition tr = COLLECT_ZONE_COORDS[i] + RobotPosition(200, 50).rotate(COLLECT_ZONE_COORDS[i].theta - M_PI_2);
-    //         excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 150);
-    //     }
-    // }
+    for (int i = 0; i < NUMBER_OF_COLLECT_ZONES; i++)
+    {
+        // TODO account for a different radius
+        if (isCollectZoneFull[i])
+        {
+            RobotPosition bl = COLLECT_ZONE_COORDS[i];// + RobotPosition(-75, -100).rotate(COLLECT_ZONE_COORDS[i].theta);
+            RobotPosition tr = COLLECT_ZONE_COORDS[i];// + RobotPosition(150, 200).rotate(COLLECT_ZONE_COORDS[i].theta);
+            excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 150);
+        }
+    }
+
+    for (int i = 0; i < NUMBER_OF_PANTRY_ZONES; i++)
+    {
+        if (isPantryZoneUsed[i])
+        {
+            RobotPosition bl = PANTRY_ZONE_COORDS[i];// + RobotPosition(-100, -100);
+            RobotPosition tr = PANTRY_ZONE_COORDS[i];// + RobotPosition(200, 200);
+            excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 150);
+        }
+    }
 
     // for (int i = 0; i < NUMBER_OF_CONSTRUCTION_ZONES; i++)
     // {
