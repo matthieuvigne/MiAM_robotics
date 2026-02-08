@@ -8,6 +8,7 @@
 
     #include <thread>
     #include <vector>
+    #include <memory>
     #include "miam_utils/drivers/STSServoDriver.h"
     #include "miam_utils/RailServo.h"
 
@@ -38,7 +39,7 @@
             /// @param inverted
             /// @param calibrateBottom
             /// @return Pointer to created RailServo object
-            RailServo *createRail(int const& servoId, int const& gpioId, int const& distance, bool inverted=false, bool calibrateBottom=false);
+            std::shared_ptr<RailServo> createRail(int const& servoId, int const& gpioId, int const& distance, bool inverted=false, bool calibrateBottom=false);
 
             /// @brief Start calibration of the rails
             void startRailCalibration();
@@ -105,7 +106,7 @@
             };
 
             ServoCommand commands_[256];
-            std::vector<RailServo> rails_;
+            std::vector<std::shared_ptr<RailServo>> rails_;
             std::mutex mutex_;
 
 

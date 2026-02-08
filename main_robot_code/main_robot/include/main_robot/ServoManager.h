@@ -3,6 +3,14 @@
 
 #include "common/RobotInterface.h"
 
+enum ArmPosition {
+    CALIBRATE
+};
+
+enum RailPosition {
+    STARTUP
+};
+
 class ServoManager
 {
 public:
@@ -12,12 +20,20 @@ public:
     void cursorFold();
     void cursorUnfold();
 
+    void bedFold();
+    void bedUnfold();
+
+    void moveRails(RailPosition const& position);
+    bool areRailsMoving();
+
+    void moveArm(ArmPosition const& position);
+
 private:
     RobotInterface *robot_;
     STSScheduler *servos_;
 
-    RailServo *railX_;
-    RailServo *railY_;
+    std::shared_ptr<RailServo> railX_;
+    std::shared_ptr<RailServo> railY_;
 
     int lastCloseTarget_back_R;
     int lastCloseTarget_back_L;

@@ -44,6 +44,10 @@ int main(int argc, char* argv[])
     while (!servos->areAllRailsCalibrated())
         robot_->wait(0.1);
     std::cout << "Calib done" << std::endl;
+    servoManager_->moveRails(RailPosition::STARTUP);
+    while (servoManager_->areRailsMoving())
+        robot_->wait(0.1);
+    std::cout << "Init done" << std::endl;
 
     // while (true)
     // {

@@ -108,7 +108,10 @@ int main (int argc, char *argv[])
     logger.start("ServoTest.data");
 
     std::vector<ServoTester> tester;
-    tester.push_back(ServoTester(&driver, &logger, "STS3215", 21));
+    tester.push_back(ServoTester(&driver, &logger, "33", 33));
+    tester.push_back(ServoTester(&driver, &logger, "7", 7));
+    tester.push_back(ServoTester(&driver, &logger, "12", 12));
+    tester.push_back(ServoTester(&driver, &logger, "21", 21));
     // driver.writeRegister(99, STS::registers::POS_PROPORTIONAL_GAIN, 50);
     // driver.writeRegister(99, STS::registers::POS_INTEGRAL_GAIN, 50);
     // driver.writeRegister(99, STS::registers::SPEED_PROPORTIONAL_GAIN, 50);

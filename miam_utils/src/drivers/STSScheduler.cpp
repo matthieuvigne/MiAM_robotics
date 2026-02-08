@@ -31,25 +31,25 @@ bool STSScheduler::init(std::string const& portName, int const& dirPin, int cons
     return success;
 }
 
-RailServo* STSScheduler::createRail(int const& servoId, int const& gpioId, int const& distance, bool inverted, bool calibrateBottom)
+std::shared_ptr<RailServo> STSScheduler::createRail(int const& servoId, int const& gpioId, int const& distance, bool inverted, bool calibrateBottom)
 {
-    RailServo rail(&driver_, servoId, gpioId, distance, inverted, calibrateBottom);
+    std::shared_ptr<RailServo> rail = std::make_shared<RailServo>(&driver_, servoId, gpioId, distance, inverted, calibrateBottom);
     rails_.push_back(rail);
-    return &rail;
+    return rail;
 }
 
 
 void STSScheduler::startRailCalibration()
 {
     for (auto &r : rails_)
-        r.startCalibration();
+        r->startCalibration();
 }
 
 bool STSScheduler::areAllRailsCalibrated() const
 {
     bool allCalib = true;
     for (auto const& r : rails_)
-        allCalib &= r.isCalibrated();
+        allCalib &= r->isCalibrated();
     return allCalib;
 }
 
@@ -175,7 +175,7 @@ void STSScheduler::backgroundThread()
         // Now handle the rails
         for (auto& r : rails_)
         {
-            r.tick();
+            r->tick();
             usleep(5);
         }
     }
