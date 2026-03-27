@@ -5,7 +5,7 @@ set(PROJECT_DESCRIPTION "Detect aruco tags in images")
 
 # Building options
 set(CMAKE_CXX_COMPILER "g++")
-add_compile_options(-std=c++17)
+add_compile_options(-std=c++23)
 
 # Set build-type specific flags
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -25,7 +25,8 @@ pkg_search_module(Camera REQUIRED libcamera)
 include_directories("${OpenCV_INCLUDE_DIRS}" "${Camera_INCLUDE_DIRS}" ".")
 link_directories("${OpenCV_DIRS} ${Camera_DIRS}")
 
-add_executable(tag_detector src/run_tag_detection.cpp src/LibCamera.cpp)
+add_executable(tag_detector src/run_tag_detection.cpp src/LibCameraWrapper.cpp src/TagDetector.cpp)
+# add_executable(tag_detector src/run_tag_detection.cpp src/LibCamera.cpp)
 target_link_libraries(tag_detector camera ${OpenCV_LIBRARIES} ${Eigen_LIBRARIES} ${Camera_LIBRARIES})
 
 
