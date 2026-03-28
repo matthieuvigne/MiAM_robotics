@@ -6,6 +6,14 @@
 
 typedef std::vector<Marker> MarkerList;
 
+
+struct Tag
+{
+    int markerId;
+    Eigen::Affine3d TRM;
+};
+
+
 /// @brief Detect Aruco tags in image
 class TagDetector
 {
@@ -44,7 +52,7 @@ class TagDetector
       double timeout = 1.0);
     int detect_markers(
       cv::Mat const& img,
-      std::vector<Eigen::Affine3d>* TRM_ptr) const;
+      std::vector<Tag>* TRM_ptr) const;
 
   protected:
 

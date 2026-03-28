@@ -13,9 +13,10 @@
 
 struct Marker
 {
-  double radius;
-  double theta_rad;
-  double height;
+    int markerId;
+    double radius;
+    double theta_rad;
+    double height;
 }  __attribute__((__packed__));
 
 struct VisionBuffer

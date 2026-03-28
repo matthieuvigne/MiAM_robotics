@@ -32,14 +32,21 @@ int main(int argc, char **argv)
 
     int const width = 640;
     int const height = 480;
-    int const fx = 330.;
-    int const fy = 330.;
-    int const cx = fx/2.;
-    int const cy = fy/2.;
+    int const fx = (31.2000/22.9894)*330.;
+    int const fy = (31.2000/22.9894)*330.;
+    int const cx = width/2.;
+    int const cy = height/2.;
 
     LibCameraWrapper camera;
     camera.start(width, height);
     TagDetector detector(width, height, fx, fy, cx, cy);
+    double constexpr RAD = M_PI/180.;
+    detector.TRC() =
+            Eigen::Translation3d(-7e-3*Eigen::Vector3d::UnitX())
+         *  Eigen::Translation3d(308e-3*Eigen::Vector3d::UnitZ())
+         *  Eigen::AngleAxisd(M_PI_2+60.*RAD,Eigen::Vector3d::UnitY())
+         *  Eigen::AngleAxisd(M_PI_2,Eigen::Vector3d::UnitZ());
+    std::cout << "Transformation matrix:\n" << detector.TRC().matrix() << std::endl;
 
     for (int i = 0; i < 10; i++)
     {
@@ -67,8 +74,8 @@ int main(int argc, char **argv)
                 for(Marker const& marker : detected_markers)
                 {
                     std::stringstream msg;
-                    msg << "- marker detected at " << marker.radius << " m" << std::endl;
-                    std::cout << msg.str();
+                    //msg << "- marker " << marker.markerId << "detected at " << marker.radius << " m" << std::endl;
+                    //std::cout << msg.str();
                 }
             }
             else

@@ -37,7 +37,7 @@ cv::Mat TagDetector::get_camera_matrix() const
 
 int TagDetector::detect_markers(
   cv::Mat const& img,
-  std::vector<Eigen::Affine3d>* TRM_ptr) const
+  std::vector<Tag>* TRM_ptr) const
 {
   // Detect the markers
   std::vector<int> marker_ids;
@@ -52,7 +52,7 @@ int TagDetector::detect_markers(
   std::vector<std::vector<cv::Point2f>>::iterator corner_it = marker_corners.begin();
   while( marker_it != marker_ids.end() )
   {
-    if(*marker_it != 47u)
+    if(*marker_it != 47u && *marker_it != 36u)
     {
       marker_it = marker_ids.erase(marker_it);
       corner_it = marker_corners.erase(corner_it);
@@ -68,15 +68,19 @@ int TagDetector::detect_markers(
 
   // Estimate the pose of each marker
   std::vector<cv::Vec3d> rvecs, tvecs;
-  double constexpr marker_length = 5e-2;
+  double constexpr marker_length = 40e-3;
   cv::Mat const K = this->get_camera_matrix();
   cv::Mat dist_coeffs = cv::Mat(4,1,CV_64FC1, cv::Scalar::all(0));
   cv::aruco::estimatePoseSingleMarkers(marker_corners, marker_length, K, dist_coeffs, rvecs, tvecs);
   assert( (rvecs.size()==num_markers) && (tvecs.size()==num_markers) );
+  Eigen::Affine3d TMM =
+        Eigen::Translation3d(0.5*marker_length*Eigen::Vector3d::UnitX())
+      * Eigen::Translation3d(0.5*marker_length*Eigen::Vector3d::UnitY())
+      * Eigen::AngleAxisd::Identity();
 
   // Return the pose of each marker in the robot's reference frame
   assert( TRM_ptr != NULL );
-  std::vector<Eigen::Affine3d>& TRM = *TRM_ptr;
+  std::vector<Tag>& TRM = *TRM_ptr;
   TRM.clear();
   TRM.resize(num_markers);
   for(int marker_idx=0; marker_idx<num_markers; marker_idx+=1)
@@ -86,8 +90,10 @@ int TagDetector::detect_markers(
     Eigen::Vector3d const axis = Eigen::Vector3d(rvec[0],rvec[1],rvec[2]).normalized();
     Eigen::AngleAxisd const rCM(angle_rad,axis);
     Eigen::Map<Eigen::Vector3d const> tCM(tvecs[marker_idx].val);
-    Eigen::Affine3d TCM(Eigen::Translation3d(tCM)*rCM);
-    TRM[marker_idx] = TRC_ * TCM;
+    Eigen::Affine3d TCM = Eigen::Affine3d(Eigen::Translation3d(tCM)*rCM)*TMM;
+    std::cout << "Marker with id " << marker_ids[marker_idx] << " ";
+    std::cout << "at distance: " << TCM.translation().norm()*1e2 << "cm" << std::endl;
+    TRM[marker_idx] = Tag(marker_ids[marker_idx], TRC_ * TCM);
   }
   return num_markers;
 }
@@ -96,18 +102,19 @@ MarkerList TagDetector::find_markers(cv::Mat const& img)
 {
   assert( img.cols == width_ );
   assert( img.rows == height_ );
-  std::vector<Eigen::Affine3d> TRMs;
-  int const num_markers = detect_markers(img, &TRMs);
+  std::vector<Tag> tags;
+  int const num_markers = detect_markers(img, &tags);
 
   // Convert into marker polar coordinates
   MarkerList markers;
   markers.resize(num_markers);
   for(int marker_idx=0; marker_idx<num_markers; marker_idx+=1)
   {
-    Eigen::Vector3d const pRM = TRMs[marker_idx].translation();
+    Eigen::Vector3d const pRM = tags[marker_idx].TRM.translation();
     double const radius = pRM.norm();
     double const theta_rad = std::atan2(pRM.y(),pRM.x());
-    markers[marker_idx] = Marker{radius,theta_rad,pRM.z()};
+    markers[marker_idx] = Marker{tags[marker_idx].markerId, radius,theta_rad,pRM.z()};
+    std::cout << tags[marker_idx].TRM.matrix() << std::endl;
   }
 
   return markers;
