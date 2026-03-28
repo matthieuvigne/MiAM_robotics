@@ -72,6 +72,15 @@
             /// \param[in] position Target position, in ticks.
             /// \return True on success, false otherwise.
             void setTargetPosition(unsigned char const& servoId, int16_t const& position);
+            // Set velocity to be used for position mode. Set 0 to remove clamp.
+            void setMaxVelocity(unsigned char const& servoId, int16_t const& maxVelocity);
+
+            /// \brief Set position loop PID gains
+            /// \param[in] servoId ID of the servo
+            /// \param[in] Kp Proportional gain
+            /// \param[in] Kd Derivative gain
+            /// \param[in] Ki Integral gain
+            void setPIDGains(unsigned char const& servoId, unsigned char const& Kp, unsigned char const& Kd, unsigned char const& Ki);
 
             /// \brief Set target servo velocity.
             /// \note This function assumes that the amplification factor ANGULAR_RESOLUTION is set to 1.
@@ -102,6 +111,7 @@
                 State state = State::UNMANAGED;
                 STS::Mode mode = STS::Mode::POSITION;
                 int16_t value = 0;
+                int16_t maxVelocity = 0;
                 int16_t resetCounter_ = 10;
             };
 

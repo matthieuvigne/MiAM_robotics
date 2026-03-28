@@ -239,7 +239,7 @@ void MainWindow::dumpMemory()
         {
             int value;
             if (reg.twoBytes)
-                value = static_cast<int>(driver_->readTwoBytesRegister(i, reg.addr));
+                value = static_cast<int>(driver_->readTwoBytesRegister(i, reg.addr).value);
             else
                 value = static_cast<int>(driver_->readRegister(i, reg.addr));
             std::cout << std::setw(7) << value;

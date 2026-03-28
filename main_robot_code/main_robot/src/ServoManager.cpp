@@ -37,10 +37,18 @@ void ServoManager::init(RobotInterface *robot)
     servos_->setMode(ID_FINGER_L,   STS::Mode::POSITION);
     servos_->setMode(ID_CURSOR,     STS::Mode::POSITION);
 
+    // Configure servos
+    servos_->setMaxVelocity(ID_ARM_1, 1300);
+    servos_->setMaxVelocity(ID_ARM_2, 1500);
+    servos_->setMaxVelocity(ID_ARM_3, 3000);
+    servos_->setPIDGains(ID_HAND_ROT, 20, 15, 0);
+
     // Setup rails
     railX_ = servos_->createRail(ID_RAIL_X, 6, 5500, true);
     railY_ = servos_->createRail(ID_RAIL_Y, 25, 4400, false);
 
+    servos_->setTargetPosition(ID_ARM_1, 1648);
+    robot_->wait(0.5);
 
     cursorFold();
     bedFold();
@@ -59,9 +67,13 @@ void ServoManager::moveRails(RailPosition const& position)
 {
     switch(position)
     {
-        case RailPosition::STARTUP:
+        case RailPosition::FORWARD:
             railX_->move(0.0);
-            railY_->move(0.0);
+            railY_->move(0.5);
+            break;
+        case RailPosition::INTERNAL:
+            railX_->move(1.0);
+            railY_->move(0.5);
             break;
         default: break;
     }
@@ -97,9 +109,24 @@ void ServoManager::moveArm(ArmPosition const& position)
     {
         case ArmPosition::CALIBRATE:
             servos_->setTargetPosition(ID_ARM_1, 2048);
-            servos_->setTargetPosition(ID_ARM_2, 1600);
-            servos_->setTargetPosition(ID_ARM_3, 2400);
+            servos_->setTargetPosition(ID_ARM_2, 1500);
+            servos_->setTargetPosition(ID_ARM_3, 2048);
             servos_->setTargetPosition(ID_HAND_ROT, 2048);
+            break;
+        case ArmPosition::GRAB:
+            servos_->setTargetPosition(ID_ARM_1, 2148);
+            servos_->setTargetPosition(ID_ARM_2, 1700);
+            servos_->setTargetPosition(ID_ARM_3, 2300);
+            break;
+        case ArmPosition::RAISE:
+            servos_->setTargetPosition(ID_ARM_1, 1648);
+            servos_->setTargetPosition(ID_ARM_2, 2200);
+            servos_->setTargetPosition(ID_ARM_3, 2300);
+            break;
+        case ArmPosition::FOLD:
+            servos_->setTargetPosition(ID_ARM_1, 2000);
+            servos_->setTargetPosition(ID_ARM_2, 2680);
+            servos_->setTargetPosition(ID_ARM_3, 1550);
             break;
         default: break;
     }
@@ -122,11 +149,11 @@ void ServoManager::translateSuction(Side const side, double const ratio)
 void ServoManager::pumpOn(Side const side)
 {
     int const idx = static_cast<int>(side);
-    RPi_writeGPIO(12 + idx, LOW);
+    RPi_writeGPIO(12 + idx, HIGH);
 }
 
 void ServoManager::pumpOff(Side const side)
 {
     int const idx = static_cast<int>(side);
-    RPi_writeGPIO(12 + idx, HIGH);
+    RPi_writeGPIO(12 + idx, LOW);
 }

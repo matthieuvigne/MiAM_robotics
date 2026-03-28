@@ -85,6 +85,11 @@
         double servoToRadValue(int16_t const& ticks);
     };
 
+    struct ReadResult
+    {
+        int error_code = 0;
+        int16_t value;
+    };
 
     /// \brief Driver for STS servos, using UART
     class STSServoDriver
@@ -124,7 +129,8 @@
 
             /// \brief Get current servo position.
             /// \param[in] servoId ID of the servo
-            /// \return Position, in deg. 0 on failure.
+            /// \return Position, in raw units. 0 on failure.
+            int16_t getCurrentPosition(unsigned char const& servoId, bool &readSucceeded);
             int16_t getCurrentPosition(unsigned char const& servoId);
 
             /// \brief Get last command sent to servo
@@ -227,7 +233,7 @@
             /// \param[in] servoId ID of the servo
             /// \param[in] registerId LSB register id.
             /// \return Register value, 0 on failure.
-            int16_t readTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId);
+            ReadResult readTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId);
 
             /// @brief Return the number of messages received with a failed checksum
             int getNReadFailed() {return nReadFailed_;}

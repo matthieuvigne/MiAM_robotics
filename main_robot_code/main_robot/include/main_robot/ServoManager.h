@@ -4,11 +4,15 @@
 #include "common/RobotInterface.h"
 
 enum ArmPosition {
-    CALIBRATE
+    CALIBRATE,
+    GRAB,
+    RAISE,
+    FOLD
 };
 
 enum RailPosition {
-    STARTUP
+    FORWARD,
+    INTERNAL
 };
 
 enum class Side : int {

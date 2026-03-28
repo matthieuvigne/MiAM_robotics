@@ -44,17 +44,35 @@ int main(int argc, char* argv[])
     while (!servos->areAllRailsCalibrated())
         robot_->wait(0.1);
     std::cout << "Calib done" << std::endl;
-    servoManager_->moveRails(RailPosition::STARTUP);
+    servoManager_->moveRails(RailPosition::FORWARD);
     while (servoManager_->areRailsMoving())
         robot_->wait(0.1);
     std::cout << "Init done" << std::endl;
-
+    std::string input;
     while (true)
     {
-        servoManager_->translateSuction(Side::RIGHT, 1.0);
-        robot_->wait(1.0);
-        servoManager_->translateSuction(Side::RIGHT, 0.0);
-        robot_->wait(1.0);
+        servoManager_->moveArm(ArmPosition::GRAB);
+        servoManager_->pumpOn(Side::RIGHT);
+        servoManager_->pumpOn(Side::LEFT);
+        std::getline(std::cin, input);
+        servoManager_->moveArm(ArmPosition::RAISE);
+        std::getline(std::cin, input);
+        servoManager_->moveArm(ArmPosition::FOLD);
+        robot_->wait(0.75);
+        servoManager_->moveRails(RailPosition::INTERNAL);
+        while (servoManager_->areRailsMoving())
+            robot_->wait(0.1);
+        servoManager_->pumpOff(Side::RIGHT);
+        servoManager_->pumpOff(Side::LEFT);
+
+
+        std::getline(std::cin, input);
+        servoManager_->moveRails(RailPosition::FORWARD);
+        while (servoManager_->areRailsMoving())
+            robot_->wait(0.1);
+        servoManager_->moveArm(ArmPosition::RAISE);
+
+        std::getline(std::cin, input);
     }
     // while (true)
     // {

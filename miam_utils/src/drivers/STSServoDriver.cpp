@@ -207,10 +207,17 @@ bool STSServoDriver::setId(unsigned char const& oldServoId, unsigned char const&
     return ping(newServoId);
 }
 
+int16_t STSServoDriver::getCurrentPosition(unsigned char const& servoId, bool &readSucceeded)
+{
+    ReadResult res = readTwoBytesRegister(servoId, STS::registers::CURRENT_POSITION);
+    readSucceeded = res.error_code == 0;
+    return res.value;
+}
 
 int16_t STSServoDriver::getCurrentPosition(unsigned char const& servoId)
 {
-    return readTwoBytesRegister(servoId, STS::registers::CURRENT_POSITION);
+    bool readResult;
+    return getCurrentPosition(servoId, readResult);
 }
 
 int16_t STSServoDriver::getLastCommand(unsigned char const& servoId)
@@ -221,19 +228,19 @@ int16_t STSServoDriver::getLastCommand(unsigned char const& servoId)
 
 int16_t STSServoDriver::getCurrentVelocity(unsigned char const& servoId)
 {
-    return readTwoBytesRegister(servoId, STS::registers::CURRENT_SPEED);
+    return readTwoBytesRegister(servoId, STS::registers::CURRENT_SPEED).value;
 }
 
 
 double STSServoDriver::getCurrentTemperature(unsigned char const& servoId)
 {
-    return readTwoBytesRegister(servoId, STS::registers::CURRENT_TEMPERATURE);
+    return readTwoBytesRegister(servoId, STS::registers::CURRENT_TEMPERATURE).value;
 }
 
 
 double STSServoDriver::getCurrentCurrent(unsigned char const& servoId)
 {
-    int16_t current = readTwoBytesRegister(servoId, STS::registers::CURRENT_CURRENT);
+    int16_t current = readTwoBytesRegister(servoId, STS::registers::CURRENT_CURRENT).value;
     return current * 0.0065;
 }
 
@@ -427,39 +434,45 @@ unsigned char STSServoDriver::readRegister(unsigned char const& servoId, unsigne
 }
 
 
-int16_t STSServoDriver::readTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId)
+ReadResult STSServoDriver::readTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId)
 {
+    ReadResult result;
 
     if (servoType_[servoId] == STS::ServoType::UNKNOWN)
     {
         determineServoType(servoId);
     }
 
-    unsigned char result[2] = {0, 0};
+    unsigned char buffer[2] = {0, 0};
     int16_t value = 0;
     int16_t signedValue = 0;
-    returnCode_ = readRegisters(servoId, registerId, 2, result);
-    if (returnCode_ < 0)
-        return 0;
+    result.error_code = readRegisters(servoId, registerId, 2, buffer);
+    if (result.error_code < 0)
+    {
+        return result;
+    }
     switch(servoType_[servoId])
     {
         case STS::ServoType::SCS:
-            value = static_cast<int16_t>(result[1] +  (result[0] << 8));
+            value = static_cast<int16_t>(buffer[1] +  (buffer[0] << 8));
             // Bit 15 is sign
             signedValue = value & ~0x8000;
             if (value & 0x8000)
                 signedValue = -signedValue;
-            return signedValue;
+            result.value = signedValue;
+            break;
         case STS::ServoType::STS:
-            value = static_cast<int16_t>(result[0] +  (result[1] << 8));
+            value = static_cast<int16_t>(buffer[0] +  (buffer[1] << 8));
             // Bit 15 is sign
             signedValue = value & ~0x8000;
             if (value & 0x8000)
                 signedValue = -signedValue;
-            return signedValue;
+            result.value = signedValue;
+            break;
         default:
-            return 0;
+            break;
     }
+    return result;
 }
 
 

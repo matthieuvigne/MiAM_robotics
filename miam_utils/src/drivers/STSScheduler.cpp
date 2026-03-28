@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <iostream>
 #include "miam_utils/STSScheduler.h"
 
 
@@ -53,6 +54,11 @@ bool STSScheduler::areAllRailsCalibrated() const
     return allCalib;
 }
 
+void STSScheduler::setPIDGains(unsigned char const& servoId, unsigned char const& Kp, unsigned char const& Kd, unsigned char const& Ki)
+{
+    driver_.setPIDGains(servoId, Kp, Kd, Ki);
+}
+
 void STSScheduler::setMode(unsigned char const& servoId, STS::Mode const& mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -79,6 +85,12 @@ void STSScheduler::setTargetPosition(unsigned char const& servoId, int16_t const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     commands_[servoId].value = position;
+}
+
+void STSScheduler::setMaxVelocity(unsigned char const& servoId, int16_t const& maxVelocity)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    commands_[servoId].maxVelocity = maxVelocity;
 }
 
 void STSScheduler::setTargetVelocity(unsigned char const& servoId, int16_t const& velocity)
@@ -141,14 +153,31 @@ void STSScheduler::backgroundThread()
                         commands_[i].resetCounter_ = 10;
                     }
                 }
-
             }
             // Process command
             if (command.state == State::ENABLING)
             {
                 if (command.mode == STS::Mode::POSITION)
-                    driver_.setTargetPosition(i, driver_.getCurrentPosition(i));
-                driver_.setMode(i, command.mode);
+                {
+                    bool success = false;
+                    int16_t pos = driver_.getCurrentPosition(i, success);
+                    if (success)
+                    {
+                        driver_.setTargetPosition(i, pos);
+                        driver_.setMode(i, command.mode);
+                        command.value = pos;
+                        {
+                            std::lock_guard<std::mutex> lock(mutex_);
+                            commands_[i].value = pos;
+                        }
+                    }
+                    else
+                    {
+                        std::lock_guard<std::mutex> lock(mutex_);
+                        // Retry enabling
+                        commands_[i].state = State::ENABLING;
+                    }
+                }
             }
             else if (command.state == State::DISABLING)
             {
@@ -166,6 +195,10 @@ void STSScheduler::backgroundThread()
                 else if (command.mode == STS::Mode::POSITION)
                 {
                     driver_.setTargetPosition(i, command.value);
+                    if (command.maxVelocity > 0)
+                    {
+                        driver_.setTargetVelocity(i, command.maxVelocity);
+                    }
                 }
             }
             usleep(10);
