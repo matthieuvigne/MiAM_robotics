@@ -64,6 +64,7 @@ void STSScheduler::setMode(unsigned char const& servoId, STS::Mode const& mode)
     std::lock_guard<std::mutex> lock(mutex_);
     commands_[servoId].state = State::ENABLING;
     commands_[servoId].mode = mode;
+    commands_[servoId].isInit_ = true;
 }
 
 int16_t STSScheduler::getCurrentPosition(unsigned char const& servoId)
@@ -85,6 +86,7 @@ void STSScheduler::setTargetPosition(unsigned char const& servoId, int16_t const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     commands_[servoId].value = position;
+    commands_[servoId].isInit_ = false;
 }
 
 void STSScheduler::setMaxVelocity(unsigned char const& servoId, int16_t const& maxVelocity)
@@ -168,7 +170,11 @@ void STSScheduler::backgroundThread()
                         command.value = pos;
                         {
                             std::lock_guard<std::mutex> lock(mutex_);
-                            commands_[i].value = pos;
+                            if (commands_[i].isInit_)
+                            {
+                                commands_[i].isInit_ = false;
+                                commands_[i].value = pos;
+                            }
                         }
                     }
                     else

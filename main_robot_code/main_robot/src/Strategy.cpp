@@ -63,18 +63,20 @@ bool Strategy::setup(RobotInterface *robot)
         return true;
         #endif
     }
+    // if (setupStep_ == 1)
     if (setupStep_ == 1 && robot->getServos()->areAllRailsCalibrated())
     {
         robot->logger_ << "[Strategy] Rail calibration completed." << std::endl;
-        // servoManager_.setRailsToInitPosition();
+        servoManager_.moveRails(RailPosition::FORWARD);
         setupStep_ = 2;
         #ifdef SIMULATION
         return true;
         #endif
     }
-    if (setupStep_ == 2/* && !servoManager_.railManager_.areAnyMoving()*/)
+    if (setupStep_ == 2 && !servoManager_.areRailsMoving())
     {
         robot->logger_ << "[Strategy] Setup done" << std::endl;
+        servoManager_.moveArm(ArmPosition::RAISE);
         return true;
     }
     return false;
@@ -91,6 +93,8 @@ void Strategy::match()
     pthread_setname_np(pthread_self(), "strat_match");
     robot->logger_ << "Strategy thread started." << std::endl;
 
+    // motionController->goStraight(500);
+    // testSquare(false, 500);
     match_impl();
 
 

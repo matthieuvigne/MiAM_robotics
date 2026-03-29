@@ -57,8 +57,10 @@ int main(int argc, char* argv[])
         std::getline(std::cin, input);
         servoManager_->moveArm(ArmPosition::RAISE);
         std::getline(std::cin, input);
+        servoManager_->moveArm(ArmPosition::FOLD_MID);
+        robot_->wait(0.5);
         servoManager_->moveArm(ArmPosition::FOLD);
-        robot_->wait(0.75);
+        robot_->wait(0.5);
         servoManager_->moveRails(RailPosition::INTERNAL);
         while (servoManager_->areRailsMoving())
             robot_->wait(0.1);

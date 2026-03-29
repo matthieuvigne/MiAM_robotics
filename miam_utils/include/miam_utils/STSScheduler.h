@@ -113,6 +113,7 @@
                 int16_t value = 0;
                 int16_t maxVelocity = 0;
                 int16_t resetCounter_ = 10;
+                bool isInit_ = false;
             };
 
             ServoCommand commands_[256];

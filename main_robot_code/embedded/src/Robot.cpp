@@ -100,9 +100,10 @@ bool Robot::initSystem()
         }
         if (!isIMUInit_)
         {
-            isIMUInit_ = imu_.init(&RPI_I2C);
-            if (!isIMUInit_)
-                guiState_.debugStatus += "IMU init failed\n";
+            isIMUInit_ = true;
+        //     isIMUInit_ = imu_.init(&RPI_I2C);
+        //     if (!isIMUInit_)
+        //         guiState_.debugStatus += "IMU init failed\n";
         }
     }
     else
@@ -198,7 +199,7 @@ void Robot::updateSensorData()
         measurements_.drivetrainMeasurements.lidarDetection = lidar_.detectedRobots_;
     }
 
-    measurements_.drivetrainMeasurements.gyroscope = imu_.getGyroscopeReadings()(2);
+    // measurements_.drivetrainMeasurements.gyroscope = imu_.getGyroscopeReadings()(2);
 
     // Log
     // if (currentTime_ > 0.0)

@@ -7,6 +7,7 @@ enum ArmPosition {
     CALIBRATE,
     GRAB,
     RAISE,
+    FOLD_MID,
     FOLD
 };
 
@@ -42,6 +43,11 @@ public:
 
     void pumpOn(Side const side);
     void pumpOff(Side const side);
+
+
+    // Complexe actions
+    void grabCrates();
+    void dropCrates();
 private:
     RobotInterface *robot_;
     STSScheduler *servos_;

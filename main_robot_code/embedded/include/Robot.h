@@ -85,7 +85,7 @@
             PCA9546A i2cExpander_;
             INA226 ina226_7V_;
             INA226 ina226_12V_;
-            BMI088 imu_;
+            // BMI088 imu_;
             bool isI2CExpanderInit_ = false;
             bool isINA7Init_ = false;
             bool isINA12Init_ = false;

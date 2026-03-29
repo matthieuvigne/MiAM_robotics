@@ -47,9 +47,6 @@ void ServoManager::init(RobotInterface *robot)
     railX_ = servos_->createRail(ID_RAIL_X, 6, 5500, true);
     railY_ = servos_->createRail(ID_RAIL_Y, 25, 4400, false);
 
-    servos_->setTargetPosition(ID_ARM_1, 1648);
-    robot_->wait(0.5);
-
     cursorFold();
     bedFold();
     moveArm(ArmPosition::CALIBRATE);
@@ -114,19 +111,27 @@ void ServoManager::moveArm(ArmPosition const& position)
             servos_->setTargetPosition(ID_HAND_ROT, 2048);
             break;
         case ArmPosition::GRAB:
-            servos_->setTargetPosition(ID_ARM_1, 2148);
-            servos_->setTargetPosition(ID_ARM_2, 1700);
+            servos_->setTargetPosition(ID_ARM_1, 2200);
+            servos_->setTargetPosition(ID_ARM_2, 1650);
             servos_->setTargetPosition(ID_ARM_3, 2300);
             break;
         case ArmPosition::RAISE:
-            servos_->setTargetPosition(ID_ARM_1, 1648);
-            servos_->setTargetPosition(ID_ARM_2, 2200);
+            servos_->setTargetPosition(ID_ARM_1, 1848);
+            servos_->setTargetPosition(ID_ARM_2, 2000);
             servos_->setTargetPosition(ID_ARM_3, 2300);
+            // servos_->setTargetPosition(ID_ARM_1, 1648);
+            // servos_->setTargetPosition(ID_ARM_2, 2200);
+            // servos_->setTargetPosition(ID_ARM_3, 2300);
+            break;
+        case ArmPosition::FOLD_MID:
+            servos_->setTargetPosition(ID_ARM_1, 1600);
+            servos_->setTargetPosition(ID_ARM_2, 2780);
+            servos_->setTargetPosition(ID_ARM_3, 1450);
             break;
         case ArmPosition::FOLD:
             servos_->setTargetPosition(ID_ARM_1, 2000);
-            servos_->setTargetPosition(ID_ARM_2, 2680);
-            servos_->setTargetPosition(ID_ARM_3, 1550);
+            servos_->setTargetPosition(ID_ARM_2, 2780);
+            servos_->setTargetPosition(ID_ARM_3, 1450);
             break;
         default: break;
     }
@@ -139,7 +144,7 @@ void ServoManager::translateSuction(Side const side, double const ratio)
 {
     int const servoIds[2] = {ID_HAND_TRIGHT, ID_HAND_TLEFT};
     int const sign[2] = {1, 1};
-    int const closePosition[2] = {620, 1};
+    int const closePosition[2] = {610, 500};
 
     int const idx = static_cast<int>(side);
     servos_->setTargetPosition(servoIds[idx], closePosition[idx] + sign[idx] * ratio * SUCTION_RANGE);
@@ -156,4 +161,22 @@ void ServoManager::pumpOff(Side const side)
 {
     int const idx = static_cast<int>(side);
     RPi_writeGPIO(12 + idx, LOW);
+}
+
+
+void ServoManager::grabCrates()
+{
+    moveArm(ArmPosition::GRAB);
+    pumpOn(Side::RIGHT);
+    pumpOn(Side::LEFT);
+    robot_->wait(0.5);
+    moveArm(ArmPosition::RAISE);
+    robot_->wait(0.3);
+}
+
+void ServoManager::dropCrates()
+{
+    pumpOff(Side::RIGHT);
+    pumpOff(Side::LEFT);
+    robot_->wait(1.0);
 }

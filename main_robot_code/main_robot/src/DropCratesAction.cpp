@@ -97,6 +97,8 @@ bool DropCratesAction::performAction()
 {
     robot_->logger_ << "[DropCratesAction] Starting action " << zoneId_ << std::endl;
 
+    servoManager_->dropCrates();
+
     bool dropped_something = false;
     if (robot_->getGameState()->isClawFull)
     {
@@ -104,7 +106,7 @@ bool DropCratesAction::performAction()
         robot_->getGameState()->isClawFull = false;
         dropped_something = true;
     }
-    else if (robot_->getGameState()->isRobotFull)
+    if (robot_->getGameState()->isRobotFull)
     {
         // TODO drop inside
         robot_->getGameState()->isRobotFull = false;

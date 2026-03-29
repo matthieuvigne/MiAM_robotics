@@ -10,22 +10,18 @@ void GrabCratesAction::updateStartCondition()
     }
     else
     {
-        switch(zoneId_)
-        {
-            case 0: priority_ = 3; break;
-            case 1: priority_ = 3; break;
-            case 3: priority_ = 5; break;
-            case 5: priority_ = 4; break;
-            case 7: priority_ = 1; break;
-            default: priority_ = 2; break;
-        }
+        // Grab our side of the field first
+        if (zoneId_ < 4)
+            priority_ = 5;
+        else
+            priority_ = 2;
     }
     ignoreFinalRotation_ = true;
 
     // Always grab front first
     isStartMotionBackward_ = false;
 
-    double const xoffset = (isStartMotionBackward_ ? BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET) + MARGIN;
+    double const xoffset = FRONT_CLAW_XOFFSET + MARGIN;
 
     RobotPosition const frontApproach =  COLLECT_ZONE_COORDS[zoneId_].forward(-xoffset);
     RobotPosition backApproach =  COLLECT_ZONE_COORDS[zoneId_].forward(xoffset);
@@ -64,7 +60,7 @@ bool GrabCratesAction::performAction()
 
     // servoManager_->prepareGrab(!isStartMotionBackward_);
 
-    double forwardAmount = (isStartMotionBackward_ ? -BACK_CLAW_XOFFSET : FRONT_CLAW_XOFFSET);
+    double forwardAmount = FRONT_CLAW_XOFFSET;
     // if (front)
     // {
     //     servoManager_->frontClawOpen();
@@ -143,14 +139,11 @@ bool GrabCratesAction::performAction()
     // if robot is not full
     // TODO and match time remaining is still large,
     // TODO then store the crates
-    if (!robot_->getGameState()->isRobotFull)
-    {
-        robot_->getGameState()->isRobotFull = true;
-    }
-    else
-    {
-        robot_->getGameState()->isClawFull = true;
-    }
+
+    servoManager_->grabCrates();
+
+    robot_->getGameState()->isRobotFull = true;
+    robot_->getGameState()->isClawFull = true;
 
     robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
 
