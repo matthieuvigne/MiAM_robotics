@@ -35,6 +35,7 @@ void RobotInterface::initLogger()
         count++;
     std::string filename = "logs/log" + std::to_string(count) + "_" + std::string(timestamp) + "_" + motionController_.robotParams_.name + ".miam";
     logger_.start(filename, teleplotPrefix_, silent_);
+    servos_.setLogger(&logger_);
 }
 
 std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();

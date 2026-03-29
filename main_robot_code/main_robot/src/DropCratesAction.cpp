@@ -1,7 +1,6 @@
 #include "main_robot/DropCratesAction.h"
 
-#define DROP_DISTANCE 170
-
+#define MARGIN 100
 
 void DropCratesAction::updateStartCondition()
 {
@@ -34,31 +33,31 @@ void DropCratesAction::updateStartCondition()
     switch (zoneId_)
     {
         case 0:
-            startPosition_.x += DROP_DISTANCE;
+            startPosition_.x += FRONT_CLAW_XOFFSET;
             startPosition_.theta = M_PI;
             break;
         case 2:
-            startPosition_.y += DROP_DISTANCE;
+            startPosition_.y += FRONT_CLAW_XOFFSET;
             startPosition_.theta = -M_PI_2;
             break;
         case 3:
-            startPosition_.y -= DROP_DISTANCE;
+            startPosition_.y -= FRONT_CLAW_XOFFSET;
             startPosition_.theta = M_PI_2;
             break;
         case 5:
-            startPosition_.y += DROP_DISTANCE;
+            startPosition_.y += FRONT_CLAW_XOFFSET;
             startPosition_.theta = -M_PI_2;
             break;
         case 6:
-            startPosition_.y -= DROP_DISTANCE;
+            startPosition_.y -= FRONT_CLAW_XOFFSET;
             startPosition_.theta = M_PI_2;
             break;
         case 8:
-            startPosition_.y += DROP_DISTANCE;
+            startPosition_.y += FRONT_CLAW_XOFFSET;
             startPosition_.theta = -M_PI_2;
             break;
         case 9:
-            startPosition_.x -= DROP_DISTANCE;
+            startPosition_.x -= FRONT_CLAW_XOFFSET;
             startPosition_.theta = 0;
             break;
         default:
@@ -72,8 +71,8 @@ void DropCratesAction::updateStartCondition()
                 {
                     robot_->logger_ << "[DropCratesAction] xindex " << xindex << " yindex " << yindex << std::endl;
                     RobotPosition newPosition(startPosition_);
-                    newPosition.x += xindex * DROP_DISTANCE;
-                    newPosition.y += yindex * DROP_DISTANCE;
+                    newPosition.x += xindex * FRONT_CLAW_XOFFSET;
+                    newPosition.y += yindex * FRONT_CLAW_XOFFSET;
                     if (!feasible || ((currentPosition - newPosition).norm() < currentNorm))
                     {
                         startPosition_.x = newPosition.x;
@@ -116,9 +115,11 @@ bool DropCratesAction::performAction()
     {
         robot_->getGameState()->isPantryZoneUsed[zoneId_] = true;
         robot_->updateScore(4, "dropped something");
-
     }
 
+
+    // Go back from the drop zone.
+    robot_->getMotionController()->goStraight(-MARGIN);
     return true;
 }
 

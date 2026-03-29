@@ -2,13 +2,15 @@
 #define MAIN_ROBOT_SERVO_MANAGER_H
 
 #include "common/RobotInterface.h"
+#include "main_robot/VisionHandler.h"
 
 enum ArmPosition {
     CALIBRATE,
     GRAB,
     RAISE,
     FOLD_MID,
-    FOLD
+    FOLD,
+    CAMERA_POSE
 };
 
 enum RailPosition {
@@ -48,6 +50,12 @@ public:
     // Complexe actions
     void grabCrates();
     void dropCrates();
+
+    // Hide arm inside robot to take picture
+    void hideArm();
+    void unhideArm();
+    VisionHandler visionHandler_;
+
 private:
     RobotInterface *robot_;
     STSScheduler *servos_;
@@ -59,6 +67,8 @@ private:
     int lastCloseTarget_back_L;
     int lastCloseTarget_front_R;
     int lastCloseTarget_front_L;
+
+    ArmPosition currentArmPosition;
 };
 
 #endif

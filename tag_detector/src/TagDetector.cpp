@@ -91,8 +91,8 @@ int TagDetector::detect_markers(
     Eigen::AngleAxisd const rCM(angle_rad,axis);
     Eigen::Map<Eigen::Vector3d const> tCM(tvecs[marker_idx].val);
     Eigen::Affine3d TCM = Eigen::Affine3d(Eigen::Translation3d(tCM)*rCM)*TMM;
-    std::cout << "Marker with id " << marker_ids[marker_idx] << " ";
-    std::cout << "at distance: " << TCM.translation().norm()*1e2 << "cm" << std::endl;
+    // std::cout << "Marker with id " << marker_ids[marker_idx] << " ";
+    // std::cout << "at distance: " << TCM.translation().norm()*1e2 << "cm" << std::endl;
     TRM[marker_idx] = Tag(marker_ids[marker_idx], TRC_ * TCM);
   }
   return num_markers;
@@ -113,8 +113,12 @@ MarkerList TagDetector::find_markers(cv::Mat const& img)
     Eigen::Vector3d const pRM = tags[marker_idx].TRM.translation();
     double const radius = pRM.norm();
     double const theta_rad = std::atan2(pRM.y(),pRM.x());
-    markers[marker_idx] = Marker{tags[marker_idx].markerId, radius,theta_rad,pRM.z()};
-    std::cout << tags[marker_idx].TRM.matrix() << std::endl;
+    markers[marker_idx] = Marker{tags[marker_idx].markerId,
+      pRM.x(),
+      pRM.y(),
+      pRM.z(),
+      0.0};
+    // std::cout << tags[marker_idx].TRM.matrix() << std::endl;
   }
 
   return markers;

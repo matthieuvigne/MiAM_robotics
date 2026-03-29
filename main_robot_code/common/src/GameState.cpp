@@ -174,8 +174,8 @@ Map GameState::generateMap()
     {
         if (isPantryZoneUsed[i])
         {
-            RobotPosition bl = PANTRY_ZONE_COORDS[i];// + RobotPosition(-100, -100);
-            RobotPosition tr = PANTRY_ZONE_COORDS[i];// + RobotPosition(200, 200);
+            RobotPosition bl = PANTRY_ZONE_COORDS[i] + RobotPosition(-100, -100);
+            RobotPosition tr = PANTRY_ZONE_COORDS[i] + RobotPosition(100, 100);
             excludeRectangle(map, bl.x, bl.y, tr.x, tr.y, 150);
         }
     }

@@ -5,6 +5,7 @@ include_directories(
   ../main_robot/include
   ../embedded/include
   ../../../vision/include)
+include_directories(../../tag_detector)
 
 # Add all source files.
 file(GLOB_RECURSE SOURCES ../common/src/*.cpp

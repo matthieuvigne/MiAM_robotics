@@ -13,6 +13,14 @@ STSScheduler::~STSScheduler()
     shutdown();
 }
 
+
+void STSScheduler::setLogger(Logger *logger)
+{
+    logger_ = logger;
+    for (int i = 0; i < 256; i++)
+        missingServoWarningSent_[i] = false;
+}
+
 void STSScheduler::shutdown()
 {
     askedForShutdown_ = true;
@@ -182,6 +190,15 @@ void STSScheduler::backgroundThread()
                         std::lock_guard<std::mutex> lock(mutex_);
                         // Retry enabling
                         commands_[i].state = State::ENABLING;
+                        // Warn user
+                        if (logger_ != nullptr)
+                        {
+                            if (!missingServoWarningSent_[i])
+                            {
+                                missingServoWarningSent_[i] = true;
+                                *logger_ << "[STSScheduler] Warning: servo " << static_cast<int>(i) << " failed to respond." << std::endl;
+                            }
+                        }
                     }
                 }
             }

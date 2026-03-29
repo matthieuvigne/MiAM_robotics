@@ -11,6 +11,7 @@
     #include <memory>
     #include "miam_utils/drivers/STSServoDriver.h"
     #include "miam_utils/RailServo.h"
+    #include "miam_utils/Logger.h"
 
     /// \brief Thread managing the sts servos
     class STSScheduler
@@ -23,6 +24,8 @@
 
             /// @brief Shutdown all servos and exit background thread.
             void shutdown();
+
+            void setLogger(Logger *logger);
 
             /// \brief Initialize the servo driver.
             ///
@@ -125,5 +128,8 @@
             bool askedForShutdown_ = false;
             std::thread bgThread_;
             STSServoDriver driver_;
+
+            Logger *logger_ = nullptr;
+            bool missingServoWarningSent_[256];
     };
 #endif

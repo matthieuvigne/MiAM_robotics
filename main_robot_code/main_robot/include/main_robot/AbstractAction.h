@@ -3,7 +3,7 @@
 
 #include "common/RobotInterface.h"
 
-#define FRONT_CLAW_XOFFSET 250.0
+#define FRONT_CLAW_XOFFSET 220.0
 
 
 class AbstractAction

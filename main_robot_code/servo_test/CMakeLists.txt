@@ -21,6 +21,7 @@ set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX )
 # Add directory containing the headers.
 include_directories(../common/include)
 include_directories(../../../tracy/public)
+include_directories(../../tag_detector)
 include_directories(../main_robot/include)
 include_directories(../embedded/include)
 

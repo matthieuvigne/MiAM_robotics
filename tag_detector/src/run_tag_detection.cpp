@@ -46,10 +46,12 @@ int main(int argc, char **argv)
          *  Eigen::Translation3d(308e-3*Eigen::Vector3d::UnitZ())
          *  Eigen::AngleAxisd(M_PI_2+60.*RAD,Eigen::Vector3d::UnitY())
          *  Eigen::AngleAxisd(M_PI_2,Eigen::Vector3d::UnitZ());
-    std::cout << "Transformation matrix:\n" << detector.TRC().matrix() << std::endl;
 
-    for (int i = 0; i < 10; i++)
+    // for (int i = 0; i < 10; i++)
+    int i = 0;
+    while (true)
     {
+        i++;
         cv::Mat img = camera.waitForNextFrame();
 
         if (saveImages)

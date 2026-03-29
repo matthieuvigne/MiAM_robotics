@@ -10,8 +10,8 @@
 #define ID_ARM_2 13
 #define ID_ARM_3 14
 #define ID_HAND_ROT 15
-#define ID_HAND_TRIGHT 16
-#define ID_HAND_TLEFT 17
+#define ID_HAND_TRIGHT 17
+#define ID_HAND_TLEFT 16
 #define ID_BED 18
 #define ID_FINGER_R 19
 #define ID_FINGER_L 20
@@ -33,9 +33,9 @@ void ServoManager::init(RobotInterface *robot)
     servos_->setMode(ID_HAND_TRIGHT,STS::Mode::POSITION);
     servos_->setMode(ID_HAND_TLEFT, STS::Mode::POSITION);
     servos_->setMode(ID_BED,        STS::Mode::POSITION);
-    servos_->setMode(ID_FINGER_R,   STS::Mode::POSITION);
-    servos_->setMode(ID_FINGER_L,   STS::Mode::POSITION);
-    servos_->setMode(ID_CURSOR,     STS::Mode::POSITION);
+    // servos_->setMode(ID_FINGER_R,   STS::Mode::POSITION);
+    // servos_->setMode(ID_FINGER_L,   STS::Mode::POSITION);
+    // servos_->setMode(ID_CURSOR,     STS::Mode::POSITION);
 
     // Configure servos
     servos_->setMaxVelocity(ID_ARM_1, 1300);
@@ -57,7 +57,7 @@ void ServoManager::init(RobotInterface *robot)
     pumpOff(Side::RIGHT);
     pumpOff(Side::LEFT);
     // Start calib
-    servos_->startRailCalibration();
+    // servos_->startRailCalibration();
 }
 
 void ServoManager::moveRails(RailPosition const& position)
@@ -102,6 +102,7 @@ void ServoManager::bedUnfold()
 
 void ServoManager::moveArm(ArmPosition const& position)
 {
+    currentArmPosition = position;
     switch(position)
     {
         case ArmPosition::CALIBRATE:
@@ -116,25 +117,51 @@ void ServoManager::moveArm(ArmPosition const& position)
             servos_->setTargetPosition(ID_ARM_3, 2300);
             break;
         case ArmPosition::RAISE:
-            servos_->setTargetPosition(ID_ARM_1, 1848);
+            servos_->setTargetPosition(ID_ARM_1, 1948);
             servos_->setTargetPosition(ID_ARM_2, 2000);
-            servos_->setTargetPosition(ID_ARM_3, 2300);
+            servos_->setTargetPosition(ID_ARM_3, 2200);
             // servos_->setTargetPosition(ID_ARM_1, 1648);
             // servos_->setTargetPosition(ID_ARM_2, 2200);
             // servos_->setTargetPosition(ID_ARM_3, 2300);
             break;
         case ArmPosition::FOLD_MID:
-            servos_->setTargetPosition(ID_ARM_1, 1600);
-            servos_->setTargetPosition(ID_ARM_2, 2780);
-            servos_->setTargetPosition(ID_ARM_3, 1450);
+            servos_->setTargetPosition(ID_ARM_1, 1750);
+            servos_->setTargetPosition(ID_ARM_2, 2580);
+            servos_->setTargetPosition(ID_ARM_3, 1550);
             break;
         case ArmPosition::FOLD:
             servos_->setTargetPosition(ID_ARM_1, 2000);
             servos_->setTargetPosition(ID_ARM_2, 2780);
             servos_->setTargetPosition(ID_ARM_3, 1450);
             break;
+        case ArmPosition::CAMERA_POSE:
+            servos_->setTargetPosition(ID_ARM_1, 2900);
+            servos_->setTargetPosition(ID_ARM_2, 2700);
+            servos_->setTargetPosition(ID_ARM_3, 1450);
+            break;
         default: break;
     }
+}
+
+void ServoManager::hideArm()
+{
+    translateSuction(Side::RIGHT, 0.0);
+    translateSuction(Side::LEFT, 0.0);
+    if (currentArmPosition != ArmPosition::CAMERA_POSE)
+    {
+        moveArm(ArmPosition::FOLD_MID);
+        robot_->wait(0.5);
+        moveArm(ArmPosition::CAMERA_POSE);
+    }
+}
+
+void ServoManager::unhideArm()
+{
+    moveArm(ArmPosition::FOLD);
+    robot_->wait(0.5);
+    moveArm(ArmPosition::FOLD_MID);
+    robot_->wait(0.5);
+    moveArm(ArmPosition::RAISE);
 }
 
 #define SUCTION_RANGE 150
@@ -144,7 +171,7 @@ void ServoManager::translateSuction(Side const side, double const ratio)
 {
     int const servoIds[2] = {ID_HAND_TRIGHT, ID_HAND_TLEFT};
     int const sign[2] = {1, 1};
-    int const closePosition[2] = {610, 500};
+    int const closePosition[2] = {500, 610};
 
     int const idx = static_cast<int>(side);
     servos_->setTargetPosition(servoIds[idx], closePosition[idx] + sign[idx] * ratio * SUCTION_RANGE);
@@ -163,13 +190,32 @@ void ServoManager::pumpOff(Side const side)
     RPi_writeGPIO(12 + idx, LOW);
 }
 
-
 void ServoManager::grabCrates()
 {
+    std::vector<Tag> tags = visionHandler_.getTags();
+    std::cout << "Tags: ";
+    for (auto const& t : tags)
+    {
+        if (t.markerId == BLUE)
+            std::cout << "blue ";
+        if (t.markerId == YELLOW)
+            std::cout << "yellow ";
+    }
+    std::cout << std::endl;
+
+    unhideArm();
+    if (tags.size() == 4)
+    {
+        double translation = tags[0].markerId == YELLOW ? 1.0 : 0.0;
+        translateSuction(Side::LEFT, translation);
+        translation = tags[3].markerId == YELLOW ? 1.0 : 0.0;
+        translateSuction(Side::RIGHT, translation);
+    }
+    robot_->wait(0.8);
     moveArm(ArmPosition::GRAB);
     pumpOn(Side::RIGHT);
     pumpOn(Side::LEFT);
-    robot_->wait(0.5);
+    robot_->wait(1.0);
     moveArm(ArmPosition::RAISE);
     robot_->wait(0.3);
 }
