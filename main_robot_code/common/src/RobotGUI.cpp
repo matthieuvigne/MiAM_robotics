@@ -142,7 +142,7 @@ bool RobotGUI::doUpdate()
             // Remove, we never change zone.
             // box_.pack_start(startPositionButton_);
             box_.pack_start(blockMotorsButton_);
-            // box_.pack_start(detectBordersButton_); // Disabled for now
+            box_.pack_start(detectBordersButton_);
             box_.pack_start(drawingArea_);
         }
         if (robotData.state == robotstate::MATCH)

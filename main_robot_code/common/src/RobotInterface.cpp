@@ -9,10 +9,11 @@ RobotInterface::RobotInterface(RobotParameters const& robotParameters,
                                AbstractStrategy *strategy,
                                bool const& testMode,
                                std::string const& teleplotPrefix,
-                               bool const& silent):
+                               bool const& silent,
+                               bool const& disableServos):
     metronome_(ROBOT_UPDATE_PERIOD),
     motionController_(robotParameters, &logger_),
-    servos_(),
+    servos_(disableServos),
     gui_(gui),
     strategy_(strategy),
     testMode_(testMode),

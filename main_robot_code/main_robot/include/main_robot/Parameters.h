@@ -36,6 +36,11 @@
                 param.rotationKd = 0.005;
                 param.rotationKi = 0.0;
 
+                param.chassisBack = 145.0;
+                param.chassisFront = 145.0;
+                param.chassisHalfWidth = 155.0;
+
+
                 param.rightMotorDirection = 1;
                 param.leftMotorDirection = -1;
 

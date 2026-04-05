@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     bool testMode = true;
     bool noLidar = true;
     main_robot::Strategy strategy;
-    Robot robot(main_robot::generateParams(), &strategy, &gui, testMode, noLidar, false);
+    Robot robot(main_robot::generateParams(), &strategy, &gui, testMode, noLidar, false, false);
 
     servos = robot.getServos();
     if (!servos->init("/dev/ttyAMA0", -1))

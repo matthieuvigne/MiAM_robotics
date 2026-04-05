@@ -14,8 +14,8 @@
 /// @brief GPIO with the start switch.
 int const START_SWITCH = 17;
 
-Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar, bool const& silent):
-    RobotInterface(parameters, gui, strategy, testMode, "", silent),
+Robot::Robot(RobotParameters const& parameters, AbstractStrategy *strategy, RobotGUI *gui, bool const& testMode, bool const& disableLidar, bool const& silent, bool const& disableServos):
+    RobotInterface(parameters, gui, strategy, testMode, "", silent, disableServos),
     lidar_(parameters.lidarOffset),
     disableLidar_(disableLidar),
     rightMotor_(RPI_SPI_00),
@@ -100,10 +100,9 @@ bool Robot::initSystem()
         }
         if (!isIMUInit_)
         {
-            isIMUInit_ = true;
-        //     isIMUInit_ = imu_.init(&RPI_I2C);
-        //     if (!isIMUInit_)
-        //         guiState_.debugStatus += "IMU init failed\n";
+            isIMUInit_ = imu_.init(&RPI_I2C);
+            if (!isIMUInit_)
+                guiState_.debugStatus += "IMU init failed\n";
         }
     }
     else
@@ -199,7 +198,7 @@ void Robot::updateSensorData()
         measurements_.drivetrainMeasurements.lidarDetection = lidar_.detectedRobots_;
     }
 
-    // measurements_.drivetrainMeasurements.gyroscope = imu_.getGyroscopeReadings()(2);
+    measurements_.drivetrainMeasurements.gyroscope = imu_.getGyroscopeReadings()(2);
 
     // Log
     // if (currentTime_ > 0.0)
@@ -338,8 +337,8 @@ void Robot::shutdown()
 
 bool Robot::touchBorder()
 {
-    motionController_.goStraight(500, 0.1, tf::NO_WAIT_FOR_END);
-    wait(1.0);
+    motionController_.goStraight(-500, 0.1, tf::NO_WAIT_FOR_END);
+    wait(0.5);
     bool still = false;
     while (!motionController_.isTrajectoryFinished())
     {
@@ -350,7 +349,8 @@ bool Robot::touchBorder()
                 motionController_.stopCurrentTrajectoryTracking();
                 still = true;
             }
-        }
+        wait(0.010);
+    }
     return still;
 }
 
@@ -360,12 +360,6 @@ void Robot::detectBorders()
     pthread_setname_np(pthread_self(), "robot_detectBorders");
     inBorderDetection_ = true;
 
-    // motionController_.goStraight(-1000);
-    // strategy_->testSquare(side, 500);
-    // side = !side;
-    // inBorderDetection_ = false;
-    // return;
-
     if (!touchBorder())
     {
         logger_ << "[Robot] Failed to reach border, aborting!" << std::endl;
@@ -373,13 +367,14 @@ void Robot::detectBorders()
         return;
     }
     wait(0.5);
-    double const CHASSIS = 140;
-    RobotPosition pos(0, CHASSIS, -M_PI_2);
+    double const CHASSIS = getParameters().chassisBack;
+    RobotPosition pos(0, 2000 - CHASSIS, -M_PI_2);
     motionController_.resetPosition(pos, false, true, true);
 
     // Touch other border
-    motionController_.goStraight(-CHASSIS);
-    motionController_.pointTurn(-M_PI_2);
+    double const MARGIN = 80;
+    motionController_.goStraight(MARGIN);
+    motionController_.turnToAbsoluteAngle(0.0);
 
     // Touch border
     if (!touchBorder())
@@ -389,16 +384,15 @@ void Robot::detectBorders()
         return;
     }
     wait(0.5);
-    pos = RobotPosition(CHASSIS, 0, M_PI);
+    pos = RobotPosition(CHASSIS, 0, 0);
     motionController_.resetPosition(pos, true, false, true);
-    motionController_.goStraight(-CHASSIS);
+    motionController_.goStraight(MARGIN);
 
     // Go to start position
     RobotPosition target = gui_->getStartPosition();
-    target.y += CHASSIS;
-    motionController_.goToStraightLine(target, 1.0, tf::IGNORE_END_ANGLE);
+    motionController_.goToStraightLine(target, 0.5, tf::IGNORE_END_ANGLE);
 
-    motionController_.pointTurn(-M_PI_2);
+    motionController_.turnToAbsoluteAngle(-M_PI_2);
     if (!touchBorder())
     {
         logger_ << "[Robot] Failed to reach border, aborting!" << std::endl;
@@ -406,18 +400,18 @@ void Robot::detectBorders()
         return;
     }
     RobotPosition currentPos = motionController_.getCurrentPosition();
-    logger_ << "[Robot] Border position " << currentPos << std::endl;
-    if (std::abs(currentPos.y - CHASSIS) < 30)
+    double const expectedPosition = 2000.0 - CHASSIS;
+    logger_ << "[Robot] Border position " << currentPos << ", expected " << expectedPosition << std::endl;
+    if (std::abs(currentPos.y - expectedPosition) < 30)
     {
-        pos = RobotPosition(0, CHASSIS, -M_PI_2);
+        pos = RobotPosition(0, expectedPosition, -M_PI_2);
         motionController_.resetPosition(pos, false, true, true);
-        motionController_.goStraight(-CHASSIS * 1.5);
+        motionController_.goStraight(MARGIN, 0.5);
 
-        motionController_.goToStraightLine(gui_->getStartPosition(), 1.0, tf::BACKWARD);
+        motionController_.goToStraightLine(gui_->getStartPosition(), 0.5);
         logger_ << "[Robot] Border setup successful!" << std::endl;
     }
     else
         logger_ << "[Robot] Border position mismatch!" << std::endl;
     inBorderDetection_ = false;
-
 }

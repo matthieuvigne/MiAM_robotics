@@ -28,7 +28,8 @@
             /// @param distance Total travel distance
             /// @param inverted Invert servo rotation
             /// @param calibrateBottom If set, initial calibration is done at the bottom (0) instead of top (1)
-            RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted=false, bool calibrateBottom=false);
+            /// @param keepServosDisabled If set, servo remains disabled
+            RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted=false, bool calibrateBottom=false, bool disable=false);
 
             void move(double const& targetPosition);
 
@@ -36,11 +37,15 @@
 
             bool isMoving() const
             {
+                if (keepServosDisabled_)
+                    return false;
                 return currentState_ == RailState::MOVING;
             }
 
             bool isTargetReached() const
             {
+                if (keepServosDisabled_)
+                    return true;
                 return currentState_ == RailState::TARGET_REACHED;
             }
 
@@ -55,6 +60,8 @@
             }
             bool isCalibrated() const
             {
+                if (keepServosDisabled_)
+                    return true;
                 return currentState_ != RailState::CALIBRATING && currentState_ != RailState::INIT;
             }
 
@@ -74,6 +81,7 @@
             double currentPosition_ = 0.0;
             double targetPosition_ = 0.0;
             int lastReadPosition_ = 0;
+            bool keepServosDisabled_;
 
             RailState currentState_ = RailState::INIT;
     };

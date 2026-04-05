@@ -580,6 +580,12 @@ bool MotionController::pointTurn(double const& angle, double const& speedFactor,
     return true;
 }
 
+bool MotionController::turnToAbsoluteAngle(double const& angle, double const& speedFactor, tf const& flags)
+{
+    RobotPosition const pos = getCurrentPosition();
+    return pointTurn(angle - pos.theta, speedFactor, flags);
+}
+
 TrajectoryConfig MotionController::getCurrentTrajectoryParameters()
 {
     TrajectoryConfig conf = robotParams_.getTrajConf();

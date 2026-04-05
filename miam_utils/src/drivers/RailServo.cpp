@@ -7,13 +7,14 @@
 
 double const POS_TOLERANCE = 0.02;
 
-RailServo::RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted, bool calibrateBottom):
+RailServo::RailServo(STSServoDriver *driver, int const& servoId, int const& gpioId, int const& distance, bool inverted, bool calibrateBottom, bool disable):
     driver_(driver),
     servoId_(servoId),
     gpio_(gpioId),
     travelDistance_(distance),
     sign_(inverted ? -1 : 1),
-    calibrateBottom_(calibrateBottom)
+    calibrateBottom_(calibrateBottom),
+    keepServosDisabled_(disable)
 {
 
 }

@@ -40,12 +40,14 @@
             /// @param testMode Enable test mode (i.e. robot does not wait for start jack)
             /// @param teleplotPrefix Optional prefix for teleplot variables (used in simulation)
             /// @param silent If set, telemetry is silent: no std::out, no teleplot, only logfile
+            /// @param disableServos If set, servos remain disabled
             RobotInterface(RobotParameters const& robotParameters,
                            RobotGUI *gui,
                            AbstractStrategy *strategy,
                            bool const& testMode,
                            std::string const& teleplotPrefix = "",
-                           bool const& silent = false);
+                           bool const& silent = false,
+                           bool const& disableServos = false);
 
             /// @brief The low-level loop.
             ///

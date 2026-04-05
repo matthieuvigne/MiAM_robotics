@@ -141,6 +141,16 @@
                            double const& speedRatio = 1.0,
                            tf const& flags = tf::DEFAULT);
 
+            /// @brief  Turn to align the robot to a specified angle a certain angle.
+            /// @details This function can be set to blocking (default) or not, depending on the flag value
+            /// @param angle Distance - negative to go backward
+            /// @param speedRatio Ratio of maximum speed
+            /// @param flags Trajectory flags.
+            /// @return True is move is successful, false otherwise
+            bool turnToAbsoluteAngle(double const& angle,
+                           double const& speedRatio = 1.0,
+                           tf const& flags = tf::DEFAULT);
+
             /// \brief Compute next motor target.
             ///
             /// \param[in] measurements Latest robot measurements

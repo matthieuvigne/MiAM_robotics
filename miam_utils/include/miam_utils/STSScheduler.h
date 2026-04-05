@@ -17,8 +17,7 @@
     class STSScheduler
     {
         public:
-            /// \brief Default contstructor.
-            STSScheduler(double const& readTimeout = 0.000750);
+            STSScheduler(bool const disableServos = false, double const& readTimeout = 0.000750);
 
             ~STSScheduler();
 
@@ -131,5 +130,7 @@
 
             Logger *logger_ = nullptr;
             bool missingServoWarningSent_[256];
+
+            bool keepServosDisabled_;
     };
 #endif

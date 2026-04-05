@@ -1,10 +1,12 @@
 #include <unistd.h>
 #include <iostream>
+#include <chrono>
 #include "miam_utils/STSScheduler.h"
 
 
-STSScheduler::STSScheduler(double const& readTimeout):
-    driver_(readTimeout)
+STSScheduler::STSScheduler(bool const disableServos, double const& readTimeout):
+    driver_(readTimeout),
+    keepServosDisabled_(disableServos)
 {
 }
 
@@ -30,6 +32,9 @@ void STSScheduler::shutdown()
 
 bool STSScheduler::init(std::string const& portName, int const& dirPin, int const& baudRate)
 {
+    if (keepServosDisabled_)
+        return true;
+
     bool success = driver_.init(portName, dirPin, baudRate);
 
     if (success)
@@ -42,7 +47,7 @@ bool STSScheduler::init(std::string const& portName, int const& dirPin, int cons
 
 std::shared_ptr<RailServo> STSScheduler::createRail(int const& servoId, int const& gpioId, int const& distance, bool inverted, bool calibrateBottom)
 {
-    std::shared_ptr<RailServo> rail = std::make_shared<RailServo>(&driver_, servoId, gpioId, distance, inverted, calibrateBottom);
+    std::shared_ptr<RailServo> rail = std::make_shared<RailServo>(&driver_, servoId, gpioId, distance, inverted, calibrateBottom, keepServosDisabled_);
     rails_.push_back(rail);
     return rail;
 }
@@ -56,6 +61,8 @@ void STSScheduler::startRailCalibration()
 
 bool STSScheduler::areAllRailsCalibrated() const
 {
+    if (keepServosDisabled_)
+        return true;
     bool allCalib = true;
     for (auto const& r : rails_)
         allCalib &= r->isCalibrated();
@@ -64,7 +71,8 @@ bool STSScheduler::areAllRailsCalibrated() const
 
 void STSScheduler::setPIDGains(unsigned char const& servoId, unsigned char const& Kp, unsigned char const& Kd, unsigned char const& Ki)
 {
-    driver_.setPIDGains(servoId, Kp, Kd, Ki);
+    if (!keepServosDisabled_)
+        driver_.setPIDGains(servoId, Kp, Kd, Ki);
 }
 
 void STSScheduler::setMode(unsigned char const& servoId, STS::Mode const& mode)
@@ -77,16 +85,22 @@ void STSScheduler::setMode(unsigned char const& servoId, STS::Mode const& mode)
 
 int16_t STSScheduler::getCurrentPosition(unsigned char const& servoId)
 {
+    if (keepServosDisabled_)
+        return 0;
     return driver_.getCurrentPosition(servoId);
 }
 
 int16_t STSScheduler::getCurrentVelocity(unsigned char const& servoId)
 {
+    if (keepServosDisabled_)
+        return 0;
     return driver_.getCurrentVelocity(servoId);
 }
 
 bool STSScheduler::isMoving(unsigned char const& servoId)
 {
+    if (keepServosDisabled_)
+        return false;
     return driver_.isMoving(servoId);
 }
 
@@ -128,6 +142,7 @@ void STSScheduler::backgroundThread()
 
     while (!askedForShutdown_)
     {
+        auto const startTime = std::chrono::steady_clock::now();
         ServoCommand command;
 
         unsigned char i = 0;
@@ -234,6 +249,8 @@ void STSScheduler::backgroundThread()
             r->tick();
             usleep(5);
         }
+        double const dt = (std::chrono::steady_clock::now() - startTime).count();
+        // logger_->log("STSSchedulerElapsedTime", 0.0, dt);
     }
     driver_.disable(0xFE);
 }

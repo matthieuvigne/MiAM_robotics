@@ -16,7 +16,6 @@
         // and is typically used as low voltage warning on drones.
         #define UNDERVOLTAGE_LEVEL 17.5
 
-
         // Parameters defining a robot
         struct RobotParameters {
             std::string name;
@@ -37,6 +36,11 @@
             double rotationKp;  // Servoing gains: rotation PID
             double rotationKd;
             double rotationKi;
+
+            ///< Chassis dimensions
+            double chassisBack;
+            double chassisFront;
+            double chassisHalfWidth;
 
             // Number of lidar ponts per turn ; 800 is the default for RPLIDAR V2
             unsigned int lidarNPointsPerTurn = 800;

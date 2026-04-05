@@ -59,6 +59,7 @@ int main(int argc, char **argv)
     bool noLidar = false;
     bool interactive = false;
     bool silent = false;
+    bool disableServos = false;
     std::vector <std::string> sources;
     std::string destination;
     for (int i = 1; i < argc; i++)
@@ -68,9 +69,9 @@ int main(int argc, char **argv)
         else if (std::string(argv[i]) == "--silent")
             silent = true;
         else if (std::string(argv[i]) == "--nolidar")
-        {
             noLidar = true;
-        }
+        else if (std::string(argv[i]) == "--noservos")
+            disableServos = true;
         else if (std::string(argv[i]) == "--interactive")
             interactive = true;
         else
@@ -96,7 +97,7 @@ int main(int argc, char **argv)
     RobotGUI gui;
 
     main_robot::Strategy strategy(interactive);
-    Robot robot(main_robot::generateParams(), &strategy, &gui, testMode, noLidar, silent);
+    Robot robot(main_robot::generateParams(), &strategy, &gui, testMode, noLidar, silent, disableServos);
     robotPtr = &robot;
 
     // Start low-level loop
