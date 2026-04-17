@@ -27,6 +27,8 @@ class ServoManager
 {
 public:
     ServoManager();
+    ~ServoManager();
+
     void init(RobotInterface *robot);
 
     void cursorFold();
@@ -42,6 +44,9 @@ public:
 
     /// Transate suction, 0=close, 1=full open
     void translateSuction(Side const side, double const ratio =0.0);
+
+
+    void shutdown();
 
     void pumpOn(Side const side);
     void pumpOff(Side const side);

@@ -87,6 +87,7 @@ bool Strategy::setup(RobotInterface *robot)
 
 void Strategy::shutdown()
 {
+    servoManager_.shutdown();
 }
 
 void Strategy::match()

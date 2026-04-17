@@ -17,8 +17,21 @@
 #define ID_FINGER_L 20
 #define ID_CURSOR 21
 
-ServoManager::ServoManager()
+ServoManager::ServoManager(bool noVision)
 {
+}
+
+ServoManager::~ServoManager()
+{
+    shutdown();
+}
+
+void ServoManager::shutdown()
+{
+    pumpOff(Side::RIGHT);
+    pumpOff(Side::LEFT);
+    RPi_writeGPIO(23, LOW);
+    RPi_writeGPIO(24, LOW);
 }
 
 void ServoManager::init(RobotInterface *robot)
@@ -54,6 +67,8 @@ void ServoManager::init(RobotInterface *robot)
     translateSuction(Side::LEFT, 0);
     RPi_setupGPIO(12, PI_GPIO_OUTPUT);
     RPi_setupGPIO(13, PI_GPIO_OUTPUT);
+    RPi_setupGPIO(23, PI_GPIO_OUTPUT);
+    RPi_setupGPIO(24, PI_GPIO_OUTPUT);
     pumpOff(Side::RIGHT);
     pumpOff(Side::LEFT);
     // Start calib
@@ -182,12 +197,14 @@ void ServoManager::pumpOn(Side const side)
 {
     int const idx = static_cast<int>(side);
     RPi_writeGPIO(12 + idx, HIGH);
+    RPi_writeGPIO(23 + idx, LOW);
 }
 
 void ServoManager::pumpOff(Side const side)
 {
     int const idx = static_cast<int>(side);
     RPi_writeGPIO(12 + idx, LOW);
+    RPi_writeGPIO(23 + idx, HIGH);
 }
 
 void ServoManager::grabCrates()
