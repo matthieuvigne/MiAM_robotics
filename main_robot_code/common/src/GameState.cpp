@@ -59,6 +59,16 @@ void drawZone(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPosition const
 
     cr->rectangle(-75, -100, 150, 200);
     cr->fill();
+    cr->restore();
+}
+
+void drawZoneId(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPosition const& pos, bool const& isPlayingRightSide, int zoneId, double const& r = 0.0, double const& g = 0.0, double const& b=0.0)
+{
+    cr->save();
+    cr->translate((isPlayingRightSide ? 3000 - pos.x : pos.x), 2000. - pos.y);
+
+    cr->translate(0, 50);
+    drawText(cr, std::to_string(zoneId), r, g, b);
 
     cr->restore();
 }
@@ -71,6 +81,7 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
     {
         if (isCollectZoneFull[i])
             drawZone(cr, COLLECT_ZONE_COORDS[i], isPlayingRightSide);
+        drawZoneId(cr, COLLECT_ZONE_COORDS[i], isPlayingRightSide, i);
     }
 
     // // Add forbidden items
@@ -82,6 +93,7 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
     {
         if (isPantryZoneUsed[i])
             drawZone(cr, PANTRY_ZONE_COORDS[i], isPlayingRightSide);
+        drawZoneId(cr, PANTRY_ZONE_COORDS[i], isPlayingRightSide, i, 1.0, 0.0, 0.0);
     }
 
     cr->set_source_rgb(1.0, 0.5, 0.0);
@@ -93,11 +105,11 @@ void GameState::draw(Cairo::RefPtr<Cairo::Context> const& cr, miam::RobotPositio
     {
         for (int j = 0; j < 4; j++)
         {
-            cr->rectangle(-100+75, -75, 200, 150);
+            cr->rectangle(100, -75, 200, 150);
             cr->fill();
         }
     }
-    if (isRobotFull)
+    if (isBedFull)
     {
         for (int j = 0; j < 4; j++)
         {

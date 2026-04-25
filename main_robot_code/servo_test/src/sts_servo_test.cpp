@@ -41,6 +41,16 @@ int main(int argc, char* argv[])
     Robot *robot_ = &robot;
     servo_manager.init(&robot);
 
+    // while (true)
+    // {
+    //     servo_manager.pumpOn(Side::RIGHT);
+    //     servo_manager.pumpOn(Side::LEFT);
+    //     robot.wait(0.5);
+    //     servo_manager.pumpOff(Side::RIGHT);
+    //     servo_manager.pumpOff(Side::LEFT);
+    //     robot.wait(0.5);
+    // }
+
     // while (!servos->areAllRailsCalibrated())
     //     robot_->wait(0.1);
     // std::cout << "Calib done" << std::endl;
@@ -51,7 +61,7 @@ int main(int argc, char* argv[])
 
 
     std::string input;
-    servoManager_->moveArm(ArmPosition::RAISE);
+    // servoManager_->moveArm(ArmPosition::RAISE);
 
     // while (true)
     // {
@@ -79,20 +89,13 @@ int main(int argc, char* argv[])
     while (true)
     {
         std::getline(std::cin, input);
+        std::cout << "hiding arm" << std::endl;
         servoManager_->hideArm();
         robot_->wait(1.0);
         std::getline(std::cin, input);
+        std::cout << "grabbing crates" << std::endl;
         servoManager_->grabCrates();
         std::getline(std::cin, input);
-
-        servoManager_->moveArm(ArmPosition::FOLD_MID);
-        std::getline(std::cin, input);
-        // servoManager_->translateSuction(Side::RIGHT, 0.0);
-        // servoManager_->translateSuction(Side::LEFT, 0.0);
-        // servoManager_->moveArm(ArmPosition::FOLD);
-        // robot_->wait(1.0);
-        servoManager_->pumpOff(Side::RIGHT);
-        servoManager_->pumpOff(Side::LEFT);
     }
 
     // std::string input;

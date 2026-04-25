@@ -3,6 +3,9 @@
 
 VisionHandler::VisionHandler()
 {
+    #ifdef SIMULATION
+        return;
+    #endif
     if (!reader_.init())
     {
         throw std::runtime_error("Failed to init vision SHM");
@@ -11,10 +14,22 @@ VisionHandler::VisionHandler()
 
 std::vector<Tag> VisionHandler::getTags()
 {
+    std::vector<Tag> tags;
+
+    #ifdef SIMULATION
+        for (int i = 0; i < 4; i++)
+        {
+            Eigen::Vector3d v;
+            v.x() = 0.05;
+            v.y() = 0.05 * i;
+            v.z() = -0.200;
+            tags.push_back(Tag{YELLOW, v});
+        }
+        return tags;
+    #endif
+
     VisionBuffer buffer;
     reader_.update(buffer);
-
-    std::vector<Tag> tags;
     for (int i = 0; i < buffer.nMarkers; i++)
     {
         Eigen::Vector3d v;

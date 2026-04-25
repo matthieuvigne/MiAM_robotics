@@ -4,6 +4,7 @@
 import numpy as np
 import csv
 from pathlib import Path
+from subprocess import call
 
 import h5py
 
@@ -17,6 +18,9 @@ class LogLoader:
         self.filename = p.stem
         if p.suffix == ".csv":
             self._from_csv(p)
+        elif p.suffix == ".miam":
+            call(f"miam_log_converter {p}", shell=True)
+            self._from_hdf5(p.with_suffix(".hdf5"))
         else:
             self._from_hdf5(p)
 

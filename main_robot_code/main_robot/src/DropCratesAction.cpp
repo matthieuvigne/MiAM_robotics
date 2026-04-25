@@ -9,21 +9,17 @@ void DropCratesAction::updateStartCondition()
     {
         priority_ = -1;
     }
-    else if (robot_->getGameState()->isRobotFull && robot_->getGameState()->isClawFull)
+    else if (!robot_->getGameState()->isBedFull && !robot_->getGameState()->isClawFull)
+    {
+        priority_ = -1;
+    }
+    else
     {
         priority_ = 10;
         if (zoneId_ == 1)
             priority_ += 2;
         if (zoneId_ == 0)
             priority_ += 5;
-    }
-    else if (!robot_->getGameState()->isRobotFull && !robot_->getGameState()->isClawFull)
-    {
-        priority_ = -1;
-    }
-    else if (robot_->getMatchTime() > 60.0)
-    {
-        priority_ = 6;
     }
 
     startPosition_ = PANTRY_ZONE_COORDS[zoneId_];
@@ -62,25 +58,27 @@ void DropCratesAction::updateStartCondition()
             break;
         default:
             // For the other pantries, choose a closest point around it
-            bool feasible = false;
-            double currentNorm = 0;
-            RobotPosition currentPosition(robot_->getMotionController()->getCurrentPosition());
-            for (int xindex=-1; xindex<2; xindex=xindex+2)
+            double currentNorm = 100000;
+            RobotPosition const currentPosition = robot_->getMotionController()->getCurrentPosition();
+            RobotPosition newStart = startPosition_;
+
+            int constexpr xindex[4] = {-1, 0, 1, 0};
+            int constexpr yindex[4] = {0, -1, 0, 1};
+            double constexpr thetaindex[4] = {0, M_PI_2, M_PI, -M_PI_2};
+            for (int j = 0; j < 4; j++)
             {
-                for (int yindex=-1; yindex<2; yindex=yindex+2)
+                RobotPosition newPosition(startPosition_);
+                newPosition.x += xindex[j] * FRONT_CLAW_XOFFSET;
+                newPosition.y += yindex[j] * FRONT_CLAW_XOFFSET;
+                newPosition.theta = thetaindex[j];
+                double dist = (currentPosition - newPosition).norm();
+                if (dist < currentNorm)
                 {
-                    robot_->logger_ << "[DropCratesAction] xindex " << xindex << " yindex " << yindex << std::endl;
-                    RobotPosition newPosition(startPosition_);
-                    newPosition.x += xindex * FRONT_CLAW_XOFFSET;
-                    newPosition.y += yindex * FRONT_CLAW_XOFFSET;
-                    if (!feasible || ((currentPosition - newPosition).norm() < currentNorm))
-                    {
-                        startPosition_.x = newPosition.x;
-                        startPosition_.y = newPosition.y;
-                        feasible=true;
-                    }
+                    currentNorm = dist;
+                    newStart = newPosition;
                 }
             }
+            startPosition_ = newStart;
             break;
     }
 
@@ -97,26 +95,7 @@ bool DropCratesAction::performAction()
     robot_->logger_ << "[DropCratesAction] Starting action " << zoneId_ << std::endl;
 
     servoManager_->dropCrates();
-
-    bool dropped_something = false;
-    if (robot_->getGameState()->isClawFull)
-    {
-        // TODO drop claw
-        robot_->getGameState()->isClawFull = false;
-        dropped_something = true;
-    }
-    if (robot_->getGameState()->isRobotFull)
-    {
-        // TODO drop inside
-        robot_->getGameState()->isRobotFull = false;
-        dropped_something = true;
-    }
-    if (dropped_something)
-    {
-        robot_->getGameState()->isPantryZoneUsed[zoneId_] = true;
-        robot_->updateScore(4, "dropped something");
-    }
-
+    robot_->getGameState()->isPantryZoneUsed[zoneId_] = true;
 
     // Go back from the drop zone.
     robot_->getMotionController()->goStraight(-MARGIN);

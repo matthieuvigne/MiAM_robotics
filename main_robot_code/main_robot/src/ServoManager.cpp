@@ -17,7 +17,7 @@
 #define ID_FINGER_L 20
 #define ID_CURSOR 21
 
-ServoManager::ServoManager(bool noVision)
+ServoManager::ServoManager()
 {
 }
 
@@ -52,7 +52,7 @@ void ServoManager::init(RobotInterface *robot)
 
     // Configure servos
     servos_->setMaxVelocity(ID_ARM_1, 1300);
-    servos_->setMaxVelocity(ID_ARM_2, 1500);
+    servos_->setMaxVelocity(ID_ARM_2, 2000);
     servos_->setMaxVelocity(ID_ARM_3, 3000);
     servos_->setPIDGains(ID_HAND_ROT, 20, 15, 0);
 
@@ -209,37 +209,167 @@ void ServoManager::pumpOff(Side const side)
 
 void ServoManager::grabCrates()
 {
-    std::vector<Tag> tags = visionHandler_.getTags();
-    std::cout << "Tags: ";
+    // Look for tags in the image
+    std::vector<Tag> tags;
+    for (int i = 0; i < 5; i++)
+    {
+        tags = visionHandler_.getTags();
+        if (tags.size() == 4)
+            break;
+        robot_->wait(0.050); // Wait, with enough time for the camera to get a new frame.
+    }
+    // Analyze: what did we see
+    if (tags.size() == 0)
+    {
+        robot_->logger_ << "[ServoManager] Grab crates: no tag seen, exiting." << std::endl;
+        return;
+    }
+    robot_->logger_ << "[ServoManager] Tags:";
     for (auto const& t : tags)
     {
         if (t.markerId == BLUE)
-            std::cout << "blue ";
+            robot_->logger_ << "blue ";
         if (t.markerId == YELLOW)
-            std::cout << "yellow ";
+            robot_->logger_<< "yellow ";
     }
-    std::cout << std::endl;
-
+    robot_->logger_ << std::endl;
     unhideArm();
-    if (tags.size() == 4)
+
+    int const myColor = (robot_->isPlayingRightSide() ? BLUE : YELLOW);
+    int const opponentColor = (robot_->isPlayingRightSide() ? YELLOW : BLUE);
+
+    std::vector<int> myTags;
+    std::vector<int> opponentTags;
+    for (unsigned int i = 0; i < tags.size(); i++)
     {
-        double translation = tags[0].markerId == YELLOW ? 1.0 : 0.0;
-        translateSuction(Side::LEFT, translation);
-        translation = tags[3].markerId == YELLOW ? 1.0 : 0.0;
-        translateSuction(Side::RIGHT, translation);
+        if (tags.at(i).markerId == myColor)
+            myTags.push_back(i);
+        if (tags.at(i).markerId == opponentColor)
+            opponentTags.push_back(i);
     }
-    robot_->wait(0.8);
-    moveArm(ArmPosition::GRAB);
-    pumpOn(Side::RIGHT);
-    pumpOn(Side::LEFT);
-    robot_->wait(1.0);
+
+    // Do we need to put something in the bed?
+    if (opponentTags.size() > 0)
+    {
+        grabTags(tags, opponentTags);
+        // moveCratesInBed();
+        // robot_->getGameState()->isBedFull = true;
+    }
+    // if (myTags.size() > 0)
+    // {
+    //     grabTags(tags, myTags);
+    //     robot_->getGameState()->isClawFull = true;
+    // }
+}
+
+void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab)
+{
+    if (tagsToGrab.size() == 0)
+        return;
+    // Fow now, we don't care about angles, but want to get spacing right.
+
+    // Enforce a 2-elemnt grab.
+    bool rightActive = true, leftActive = true;
+    // Drop elements if we have too many
+    int leftTag = 1, rightTag = 2;
+
+    if (tagsToGrab.size() > 2)
+    {
+        robot_->logger_ << "[ServoManager::grabTags] Too many tags, keeping only 2" << std::endl;
+        if (tagsToGrab.at(0) == 0)
+            tagsToGrab.erase(tagsToGrab.begin());
+    }
+    if (tagsToGrab.size() == 2)
+    {
+        leftTag = tagsToGrab.at(0);
+        rightTag = tagsToGrab.at(1);
+    }
+    else
+    {
+        int singleTag = tagsToGrab.at(0);
+        if (singleTag < 2)
+        {
+            leftTag = singleTag;
+            rightActive = false;
+        }
+        else
+        {
+            rightTag = singleTag;
+            leftActive = false;
+        }
+    }
+    robot_->logger_ << "[ServoManager::grabTags] Grabbing tags " << leftTag << (leftActive ? " " : "[no] ");
+    robot_->logger_  << rightTag << (rightActive ? " " : "[no] ") << std::endl;
+
+    // Position suction according to grabbing pattern.
+    int leftPos = (leftTag == 0 ? 1.0: 0.0);
+    int rightPos = (rightTag == 3 ? 1.0: 0.0);
+
+    translateSuction(Side::LEFT, leftPos);
+    translateSuction(Side::RIGHT, rightPos);
+    std::cout << "left pos" << leftPos << std::endl;
+    std::cout << "right pos" << rightPos << std::endl;
+
+    // Move rail to barycenter
+
+    // Figure out spacing.
+    // double const baricenterBias = 0;
+    // int const blockDist = abs(tagsToGrab[1] - tagsToGrab[0]);
+
+    // // Grab
+    // if (rightActive)
+    //     pumpOn(Side::RIGHT);
+    // if (leftActive)
+    //     pumpOn(Side::LEFT);
+
+
+    // moveArm(ArmPosition::GRAB);
+    // robot_->wait(1.0);
+    // moveArm(ArmPosition::RAISE);
+    // robot_->wait(0.3);
+}
+
+void ServoManager::moveCratesInBed()
+{
+    translateSuction(Side::LEFT, 0.0);
+    translateSuction(Side::RIGHT, 0.0);
+
+    moveArm(ArmPosition::FOLD_MID);
+    robot_->wait(0.5);
+    moveArm(ArmPosition::FOLD);
+    robot_->wait(0.5);
+    moveRails(RailPosition::INTERNAL);
+    while (areRailsMoving())
+        robot_->wait(0.1);
+    pumpOff(Side::RIGHT);
+    pumpOff(Side::LEFT);
+
+    moveRails(RailPosition::FORWARD);
+    while (areRailsMoving())
+        robot_->wait(0.1);
     moveArm(ArmPosition::RAISE);
-    robot_->wait(0.3);
 }
 
 void ServoManager::dropCrates()
 {
-    pumpOff(Side::RIGHT);
-    pumpOff(Side::LEFT);
-    robot_->wait(1.0);
+    if (robot_->getGameState()->isBedFull)
+    {
+        moveArm(ArmPosition::CALIBRATE);
+        bedUnfold();
+        translateSuction(Side::LEFT, 1.0);
+        translateSuction(Side::RIGHT, 1.0);
+        robot_->wait(0.5);
+        bedFold();
+        robot_->getGameState()->isBedFull = false;
+    }
+
+    if (robot_->getGameState()->isClawFull)
+    {
+        moveArm(ArmPosition::GRAB);
+        pumpOff(Side::RIGHT);
+        pumpOff(Side::LEFT);
+        robot_->wait(0.5);
+        moveArm(ArmPosition::RAISE);
+        robot_->getGameState()->isClawFull = false;
+    }
 }

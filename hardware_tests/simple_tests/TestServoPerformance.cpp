@@ -37,6 +37,11 @@ class ServoTester{
             nServos_ = nServos;
         }
 
+        void setTargetVelocity(int targetVelocity)
+        {
+            driver_->setTargetVelocity(servoId_, targetVelocity);
+        }
+
         void update(double const& currentTime)
         {
             usleep(1000);
@@ -108,10 +113,9 @@ int main (int argc, char *argv[])
     logger.start("ServoTest.data");
 
     std::vector<ServoTester> tester;
-    tester.push_back(ServoTester(&driver, &logger, "33", 33));
-    tester.push_back(ServoTester(&driver, &logger, "7", 7));
+    tester.push_back(ServoTester(&driver, &logger, "10", 10));
     tester.push_back(ServoTester(&driver, &logger, "12", 12));
-    tester.push_back(ServoTester(&driver, &logger, "21", 21));
+    tester.push_back(ServoTester(&driver, &logger, "13", 13));
     // driver.writeRegister(99, STS::registers::POS_PROPORTIONAL_GAIN, 50);
     // driver.writeRegister(99, STS::registers::POS_INTEGRAL_GAIN, 50);
     // driver.writeRegister(99, STS::registers::SPEED_PROPORTIONAL_GAIN, 50);
@@ -122,7 +126,10 @@ int main (int argc, char *argv[])
     // tester.push_back(ServoTester(&driver, &logger, "STS3032", 102));
 
     for (int i = 0; i < static_cast<int>(tester.size()); i++)
+    {
         tester.at(i).setServoPosition(i, static_cast<int>(tester.size()));
+        tester.at(i).setTargetVelocity(5000);
+    }
 
     Metronome metronome(0.005 * 1e9);
 

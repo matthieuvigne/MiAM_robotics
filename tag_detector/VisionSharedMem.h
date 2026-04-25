@@ -22,6 +22,7 @@ struct Marker
 
 struct VisionBuffer
 {
+    int writeIdx = 0;
     int nMarkers;
     Marker markers[MAX_MARKERS];
 }  __attribute__((__packed__));
@@ -56,8 +57,11 @@ class SHMWriter
 
         void update(VisionBuffer const& buffer)
         {
+            VisionBuffer b = buffer;
+            b.writeIdx = writeIdx_;
+            writeIdx_++;
             if (addr_ != MAP_FAILED)
-                memcpy(addr_, (void*)&buffer, sizeof(VisionBuffer));
+                memcpy(addr_, (void*)&b, sizeof(VisionBuffer));
         }
 
         ~SHMWriter()
@@ -71,6 +75,7 @@ class SHMWriter
 
     private:
         void *addr_; ///< SHM address
+        int writeIdx_ = 0;
 };
 
 
@@ -95,7 +100,15 @@ class SHMReader
         void update(VisionBuffer &buffer)
         {
             if (addr_ != MAP_FAILED)
+            {
                 memcpy((void*)&buffer, addr_, sizeof(VisionBuffer));
+                VisionBuffer checkNoWrite;
+                while (checkNoWrite.writeIdx != buffer.writeIdx)
+                {
+                    buffer = checkNoWrite;
+                    memcpy((void*)&checkNoWrite, addr_, sizeof(VisionBuffer));
+                }
+            }
         }
     private:
         void *addr_; ///< SHM address

@@ -53,6 +53,7 @@ public:
 
 
     // Complexe actions
+    // Gab all crates visible by the robot, handle color logic etc...
     void grabCrates();
     void dropCrates();
 
@@ -62,6 +63,10 @@ public:
     VisionHandler visionHandler_;
 
 private:
+    void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab);
+
+    void moveCratesInBed();
+
     RobotInterface *robot_;
     STSScheduler *servos_;
 

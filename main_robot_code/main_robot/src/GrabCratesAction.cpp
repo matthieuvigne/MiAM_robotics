@@ -4,7 +4,7 @@
 
 void GrabCratesAction::updateStartCondition()
 {
-    if (!robot_->getGameState()->isCollectZoneFull[zoneId_] || (robot_->getGameState()->isRobotFull && robot_->getGameState()->isClawFull))
+    if (!robot_->getGameState()->isCollectZoneFull[zoneId_] || robot_->getGameState()->isBedFull || robot_->getGameState()->isClawFull)
     {
         priority_ = -1;
     }
@@ -71,9 +71,6 @@ bool GrabCratesAction::performAction()
     robot_->getMotionController()->waitForTrajectoryFinished();
 
     servoManager_->grabCrates();
-
-    robot_->getGameState()->isRobotFull = true;
-    robot_->getGameState()->isClawFull = true;
     robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
 
     // Go back from the collect zone.

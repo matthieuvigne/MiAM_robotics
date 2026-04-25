@@ -24,7 +24,7 @@
             bool isCollectZoneFull[NUMBER_OF_COLLECT_ZONES];
             bool isPantryZoneUsed[NUMBER_OF_PANTRY_ZONES];
 
-            bool isRobotFull = false;
+            bool isBedFull = false;
             bool isClawFull = false;
 
             bool arePAMIMoving_ = false;
