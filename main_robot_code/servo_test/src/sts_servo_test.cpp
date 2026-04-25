@@ -43,6 +43,8 @@ int main(int argc, char* argv[])
 
     std::string input;
 
+    servoManager_->testArm();
+
     // while (true)
     // {
     //     servoManager_->moveArm(ArmPosition::GRAB);

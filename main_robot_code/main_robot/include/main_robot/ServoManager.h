@@ -62,6 +62,8 @@ public:
     void unhideArm();
     VisionHandler visionHandler_;
 
+    void testArm();
+
 private:
     void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab);
 

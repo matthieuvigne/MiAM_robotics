@@ -1,5 +1,6 @@
 #include "main_robot/ServoManager.h"
 #include "common/ThreadHandler.h"
+#include "arm_code.cpp"
 
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
 
@@ -78,7 +79,54 @@ void ServoManager::init(RobotInterface *robot)
     RPi_writeGPIO(23, LOW);
     RPi_writeGPIO(24, LOW);
     // Start calib
-    servos_->startRailCalibration();
+    // servos_->startRailCalibration();
+}
+
+int fromRad(double rad)
+{
+    return 2048 + 2048 / M_PI * rad;
+}
+void moveArmServos(STSScheduler *servos_, Eigen::Vector3d x)
+{
+    std::cout << "Moving to " << x.transpose() <<  std::endl;
+    servos_->setTargetPosition(ID_ARM_1, fromRad(-x[0]));
+    servos_->setTargetPosition(ID_ARM_2, fromRad(-x[1] - M_PI_2));
+    servos_->setTargetPosition(ID_ARM_3, fromRad(-x[2]));
+
+}
+void ServoManager::testArm()
+{
+    std::string input;
+    while (true)
+    {
+        std::getline(std::cin, input);
+        Eigen::Vector3d x = Eigen::Vector3d::Zero();
+        x[1] = -M_PI_2;
+        moveArmServos(servos_, x);
+        std::getline(std::cin, input);
+
+        Eigen::Vector3d const r0{l1, -(l2 + l3 - 0.02),-M_PI_2};
+        Eigen::Vector3d const rf{l1, -(l2 + l3 + 0.02),-M_PI_2};
+
+        for(double c=0.; c<=1.0; c+=1e-1)
+        {
+            Eigen::Vector3d const rt = (1.0-c)*r0 + c*rf;
+            Eigen::Affine2d const Tt = exp(rt);
+            if(solve_inverse_kinematics(Tt,x.data()))
+            {
+                moveArmServos(servos_, x);
+                std::getline(std::cin, input);
+                printf("xf_opt[%.2f] = %.3f,%.3f,%.3f\n",
+                    c,x(0),x(1),x(2));
+            } else {
+            printf("xf_opt[%.2f] = FAILED!\n",c);
+            }
+            continue;
+        }
+        std::cout << "Moving to " << x <<  std::endl;
+        // moveArmServos(servos_, x);
+    }
+
 }
 
 void ServoManager::moveRails(RailPosition const& position)
