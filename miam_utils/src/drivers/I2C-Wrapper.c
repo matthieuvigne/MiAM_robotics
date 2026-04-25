@@ -5,11 +5,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <linux/i2c-dev.h>
+#include <linux/i2c.h>
 #include <sys/ioctl.h>
 #include <errno.h>
 
 #include <iostream>
 #include <cstring>
+#include <vector>
 
 bool i2c_open(I2CAdapter *adapter, std::string const& portName)
 {
@@ -57,19 +59,27 @@ bool i2c_writeRegisters(I2CAdapter *adapter, unsigned char const& address, unsig
         #endif
         return false;
     }
-    int messageLength = 1 + length;
-    unsigned char txbuf[messageLength];
-    txbuf[0] = registerAddress;
-    for(int i = 0; i < length; i++)
-    {
-        txbuf[i + 1] = values[i];
-    }
+
+    std::vector<uint8_t> buffer(1 + length);
+    buffer[0] = registerAddress;
+    for (int i = 0; i < length; i++)
+        buffer[i + 1] = values[i];
+
+    struct i2c_msg msg;
+    msg.addr  = address;
+    msg.flags = 0; // write
+    msg.len   = buffer.size();
+    msg.buf   = buffer.data();
+
+    struct i2c_rdwr_ioctl_data ioctl_data;
+    ioctl_data.msgs  = &msg;
+    ioctl_data.nmsgs = 1;
 
     adapter->portMutex.lock();
-    changeSlave(adapter->file, address);
-    int result = write(adapter->file, txbuf, messageLength);
+    int result = ioctl(adapter->file, I2C_RDWR, &ioctl_data);
     adapter->portMutex.unlock();
-    if(result != messageLength)
+
+    if(result < 0)
     {
         #ifdef DEBUG
             std::cout << "Error writing to slave " << address << ": " << std::strerror(errno) << std::endl;
@@ -96,28 +106,35 @@ bool i2c_readRegisters(I2CAdapter *adapter, unsigned char const& address, unsign
         #endif
         return false;
     }
-    bool returnValue = true;
+
+    struct i2c_msg msgs[2];
+    msgs[0].addr  = address;
+    msgs[0].flags = 0;
+    msgs[0].len   = 1;
+    unsigned char regAdd = registerAddress;
+    msgs[0].buf   = &regAdd;
+
+    msgs[1].addr  = address;
+    msgs[1].flags = I2C_M_RD;
+    msgs[1].len   = length;
+    msgs[1].buf   = output;
+
+    struct i2c_rdwr_ioctl_data ioctl_data;
+    ioctl_data.msgs  = msgs;
+    ioctl_data.nmsgs = 2;
+
     adapter->portMutex.lock();
-    changeSlave(adapter->file, address);
-    int result = write(adapter->file, &registerAddress, 1);
+    int result = ioctl(adapter->file, I2C_RDWR, &ioctl_data);
+    adapter->portMutex.unlock();
+
     if(result < 0)
     {
         #ifdef DEBUG
             std::cout << "Error writing to slave " << address << ": " << std::strerror(errno) << std::endl;
         #endif
-        returnValue = false;
+        return false;
     }
-    result = read(adapter->file, output, length);
-    if(result < 0)
-    {
-        #ifdef DEBUG
-            std::cout << "Error reading from slave " << address << ": " << std::strerror(errno) << std::endl;
-        #endif
-        returnValue = false;
-    }
-    adapter->portMutex.unlock();
-
-    return returnValue;
+    return true;
 }
 
 void i2c_close(int device)

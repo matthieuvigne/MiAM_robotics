@@ -365,7 +365,7 @@ void Robot::detectBorders()
     for (int i = 0; i <1000; i++)
     {
         gyroSum += imu_.getGyroscopeReadings()[2];
-        robot_->wait(0.002);
+        wait(0.002);
     }
     gyroBias_ = gyroSum / 1000.0;
     logger_ << "[Robot] Computed gyro bias: " << gyroBias_ << std::endl;

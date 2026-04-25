@@ -250,7 +250,7 @@ void STSScheduler::backgroundThread()
             usleep(5);
         }
         double const dt = (std::chrono::steady_clock::now() - startTime).count();
-        logger_->log("STSSchedulerElapsedTime", logger_->getElapsedTime(), dt);
+        logger_->log("STSSchedulerElapsedTime", logger_->getElapsedTime(), dt / 1e9);
     }
     driver_.disable(0xFE);
 }

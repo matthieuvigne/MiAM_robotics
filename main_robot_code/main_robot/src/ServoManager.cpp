@@ -78,7 +78,7 @@ void ServoManager::init(RobotInterface *robot)
     RPi_writeGPIO(23, LOW);
     RPi_writeGPIO(24, LOW);
     // Start calib
-    // servos_->startRailCalibration();
+    servos_->startRailCalibration();
 }
 
 void ServoManager::moveRails(RailPosition const& position)

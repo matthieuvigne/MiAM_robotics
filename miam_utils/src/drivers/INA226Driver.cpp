@@ -40,9 +40,9 @@ INA226Reading INA226::read()
     if (isInit_)
     {
         readings.voltage = readU16Register(0x02) * 0.00125;
-
         readings.current = static_cast<int16_t>(readU16Register(0x04)) * currentLSB_;
-        readings.power = readU16Register(0x03) * currentLSB_ * 25;
+        readings.power = readings.current * readings.voltage;
+        // readings.power = readU16Register(0x03) * currentLSB_ * 25;
     }
 
     return readings;
