@@ -104,6 +104,17 @@ bool Robot::initSystem()
             if (!isIMUInit_)
                 guiState_.debugStatus += "IMU init failed\n";
         }
+        if (!isVlxInit_)
+        {
+            isVlxInit_ = vlxSensor_.init(&RPI_I2C);
+            if (!isVlxInit_)
+                guiState_.debugStatus += "VLX init failed\n";
+            else
+            {
+                std::thread measureThread = std::thread(&Robot::updateRangeMeasurement, this);
+                measureThread.detach();
+            }
+        }
     }
     else
     {
@@ -240,6 +251,7 @@ void Robot::updateSensorData()
         logger_.log("IMU.gyroX", currentTime_, gyro(0));
         logger_.log("IMU.gyroY", currentTime_, gyro(1));
         logger_.log("IMU.gyroZ", currentTime_, gyro(2));
+        logger_.log("Robot.vlxDistance", currentTime_, measurements_.vlxDistance);
     }
 
     if (!hasMatchStarted_ && !inBorderDetection_ && gui_->getAskedDetectBorders())
@@ -425,4 +437,32 @@ void Robot::detectBorders()
     else
         logger_ << "[Robot] Border position mismatch!" << std::endl;
     inBorderDetection_ = false;
+}
+
+void Robot::updateRangeMeasurement()
+{
+    pthread_setname_np(pthread_self(), "robot_vlx");
+
+    // Offset from measurement to position of center of robot.
+    // To update this: place the robot a fixed distance (e.g. 10cm) from
+    // a flat surface, and look at the measurement value.
+    // Don't forget to add robot width.
+    // This offset thus integrates sensor position, sensor offset...
+    int const OFFSET = 121;
+
+    // Perform average of last N values.
+    #define N_AVG 3
+    int oldValues[N_AVG];
+    for (int j = 0; j < N_AVG; j++)
+        oldValues[j] = 0;
+    while (true)
+    {
+        for (int j = 1; j < N_AVG; j++)
+            oldValues[j - 1] = oldValues[j];
+        oldValues[N_AVG - 1] = vlxSensor_.getMeasurement() + OFFSET;
+        int average = 0;
+        for (int j = 0; j < N_AVG; j++)
+            average += oldValues[j];
+        measurements_.vlxDistance = static_cast<double>(average) / N_AVG;
+    }
 }

@@ -2,6 +2,7 @@
 #include "common/MotionPlanner.h"
 #include "common/ThreadHandler.h"
 
+#include "main_robot/CursorAction.h"
 #include "main_robot/GrabCratesAction.h"
 #include "main_robot/DropCratesAction.h"
 
@@ -53,11 +54,7 @@ bool Strategy::setup(RobotInterface *robot)
         {
             actions_.push_back(std::make_shared<DropCratesAction>(robot, &servoManager_, i));
         }
-        // actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 0));
-        // actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 1));
-        // actions_.push_back(std::make_shared<BuildAction>(robot, &servoManager_, 3));
-
-        //actions_.push_back(std::make_shared<SmallColumnAction>(robot, &servoManager_));
+        actions_.push_back(std::make_shared<CursorAction>(robot, &servoManager_));
 
         #ifdef SIMULATION
         return true;

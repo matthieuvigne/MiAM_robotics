@@ -92,6 +92,7 @@
             bool isINA7Init_ = false;
             bool isINA12Init_ = false;
             bool isIMUInit_ = false;
+            bool isVlxInit_ = false;
 
 
             void updateRangeMeasurement(); // Thread handling VLX acquisition
