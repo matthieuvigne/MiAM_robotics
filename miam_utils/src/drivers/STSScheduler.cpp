@@ -104,11 +104,13 @@ bool STSScheduler::isMoving(unsigned char const& servoId)
     return driver_.isMoving(servoId);
 }
 
-void STSScheduler::setTargetPosition(unsigned char const& servoId, int16_t const& position)
+void STSScheduler::setTargetPosition(unsigned char const& servoId, int16_t const& position, bool forceNow)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     commands_[servoId].value = position;
     commands_[servoId].isInit_ = false;
+    if (forceNow)
+        driver_.setTargetPosition(servoId, position);
 }
 
 void STSScheduler::setMaxVelocity(unsigned char const& servoId, int16_t const& maxVelocity)

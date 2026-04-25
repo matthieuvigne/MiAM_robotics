@@ -1,6 +1,6 @@
 #include "main_robot/ServoManager.h"
 #include "common/ThreadHandler.h"
-#include "arm_code.cpp"
+#include "arm_code.h"
 
 #include <miam_utils/raspberry_pi/RaspberryPi.h>
 
@@ -17,6 +17,51 @@
 #define ID_FINGER_R 19
 #define ID_FINGER_L 20
 #define ID_CURSOR 21
+
+////////////////////////////////////////////////////////////////////////////
+// Arm-related functions
+///////////////////////////////////////////////////////////////////////////
+
+
+int fromRad(double rad)
+{
+    return 2048 + 2048 / M_PI * rad;
+}
+void moveArmServos(STSScheduler *servos_, Eigen::Vector3d q)
+{
+    servos_->setTargetPosition(ID_ARM_1, fromRad(-q[0]), true);
+    servos_->setTargetPosition(ID_ARM_2, fromRad(-q[1] - M_PI_2), true);
+    servos_->setTargetPosition(ID_ARM_3, fromRad(-q[2]), true);
+}
+
+// Precomputed arm poses
+Eigen::Vector3d qRaised, qGrab, qCalib;
+
+Eigen::Vector3d qFold, qFoldMid;
+
+void precomputeArmIK()
+{
+    Eigen::Vector3d const xRaised{l1, -(l2 + l3 - 0.03),-M_PI_2};
+    Eigen::Vector3d const xGrab{l1, -(l2 + l3 + 0.015),-M_PI_2};
+    Eigen::Vector3d const xCalib{l1 + 0.05, -(l2 + l3 - 0.02),-M_PI_2};
+
+    Eigen::Vector3d qRef = Eigen::Vector3d::Zero();
+    qRef[1] = -M_PI_2;
+
+    qRaised = solveArmPosition(xRaised, qRef);
+    qGrab = solveArmPosition(xGrab, qRaised);
+
+    qCalib = solveArmPosition(xCalib, qRaised);
+
+    Eigen::Vector3d const xFold{l1 - 0.08, -(l2 + l3 - 0.035),-M_PI_2};
+    qFoldMid = solveArmPosition((xFold + xRaised) / 2.0, qRaised);
+    qFold = solveArmPosition(xFold, qFoldMid);
+
+}
+////////////////////////////////////////////////////////////////////////////
+// End arm-related functions
+///////////////////////////////////////////////////////////////////////////
+
 
 ServoManager::ServoManager()
 {
@@ -39,11 +84,12 @@ void ServoManager::init(RobotInterface *robot)
 {
     robot_ = robot;
     servos_ = robot->getServos();
+    precomputeArmIK();
 
     // Configure servos
-    servos_->setMaxVelocity(ID_ARM_1, 1700);
-    servos_->setMaxVelocity(ID_ARM_2, 2000);
-    servos_->setMaxVelocity(ID_ARM_3, 2000);
+    servos_->setMaxVelocity(ID_ARM_1, 2000);
+    servos_->setMaxVelocity(ID_ARM_2, 2500);
+    servos_->setMaxVelocity(ID_ARM_3, 2500);
     servos_->setPIDGains(ID_HAND_ROT, 20, 15, 0);
 
 
@@ -82,51 +128,59 @@ void ServoManager::init(RobotInterface *robot)
     // servos_->startRailCalibration();
 }
 
-int fromRad(double rad)
-{
-    return 2048 + 2048 / M_PI * rad;
-}
-void moveArmServos(STSScheduler *servos_, Eigen::Vector3d x)
-{
-    std::cout << "Moving to " << x.transpose() <<  std::endl;
-    servos_->setTargetPosition(ID_ARM_1, fromRad(-x[0]));
-    servos_->setTargetPosition(ID_ARM_2, fromRad(-x[1] - M_PI_2));
-    servos_->setTargetPosition(ID_ARM_3, fromRad(-x[2]));
-
-}
 void ServoManager::testArm()
 {
     std::string input;
     while (true)
     {
         std::getline(std::cin, input);
-        Eigen::Vector3d x = Eigen::Vector3d::Zero();
-        x[1] = -M_PI_2;
-        moveArmServos(servos_, x);
+        moveArm(ArmPosition::RAISE);
         std::getline(std::cin, input);
+        moveArmServos(servos_, qFoldMid);
+        std::getline(std::cin, input);
+        moveArmServos(servos_, qFold);
+        std::getline(std::cin, input);
+        moveArmServos(servos_, qFoldMid);
 
-        Eigen::Vector3d const r0{l1, -(l2 + l3 - 0.02),-M_PI_2};
-        Eigen::Vector3d const rf{l1, -(l2 + l3 + 0.02),-M_PI_2};
+        // // pumpOn(Side::RIGHT);
+        // // pumpOn(Side::LEFT);
+        // doGrab();
+        // std::getline(std::cin, input);
+        // moveArm(ArmPosition::RAISE);
+        // std::getline(std::cin, input);
+        // moveArm(ArmPosition::FOLD);
+        // std::getline(std::cin, input);
+        // // pumpOff(Side::RIGHT);
+        // // pumpOff(Side::LEFT);
+        // std::getline(std::cin, input);
+        // moveArm(ArmPosition::RAISE);
+        // std::getline(std::cin, input);
+        // hideArm();
+        // std::getline(std::cin, input);
+        // unhideArm();
 
-        for(double c=0.; c<=1.0; c+=1e-1)
-        {
-            Eigen::Vector3d const rt = (1.0-c)*r0 + c*rf;
-            Eigen::Affine2d const Tt = exp(rt);
-            if(solve_inverse_kinematics(Tt,x.data()))
-            {
-                moveArmServos(servos_, x);
-                std::getline(std::cin, input);
-                printf("xf_opt[%.2f] = %.3f,%.3f,%.3f\n",
-                    c,x(0),x(1),x(2));
-            } else {
-            printf("xf_opt[%.2f] = FAILED!\n",c);
-            }
-            continue;
-        }
-        std::cout << "Moving to " << x <<  std::endl;
-        // moveArmServos(servos_, x);
+        // moveArmServos(servos_, qGrab);
+        // robot_->wait(0.40);
+        // servos_->disable(ID_ARM_1);
+        // servos_->disable(ID_ARM_2);
+        // servos_->disable(ID_ARM_3);
+        // std::getline(std::cin, input);
+        // servos_->enable(ID_ARM_1);
+        // servos_->enable(ID_ARM_2);
+        // servos_->enable(ID_ARM_3);
+        // std::getline(std::cin, input);
+        // moveArmServos(servos_, qRaised);
+        // std::getline(std::cin, input);
+        // moveArm(ArmPosition::FOLD);
+        // std::getline(std::cin, input);
+
+        // hideArm();
+        // std::getline(std::cin, input);
+        // unhideArm();
+        // std::getline(std::cin, input);
+
+
     }
-
 }
 
 void ServoManager::moveRails(RailPosition const& position)
@@ -174,41 +228,41 @@ void ServoManager::moveArm(ArmPosition const& position)
     switch(position)
     {
         case ArmPosition::CALIBRATE:
-            servos_->setTargetPosition(ID_ARM_1, 2048);
-            servos_->setTargetPosition(ID_ARM_2, 1600);
-            servos_->setTargetPosition(ID_ARM_3, 2500);
+            moveArmServos(servos_, qCalib);
             servos_->setTargetPosition(ID_HAND_ROT, 2048);
             break;
         case ArmPosition::GRAB:
-            servos_->setTargetPosition(ID_ARM_1, 2225);
-            servos_->setTargetPosition(ID_ARM_2, 1825);
-            servos_->setTargetPosition(ID_ARM_3, 2100);
+            moveArmServos(servos_, qGrab);
             break;
         case ArmPosition::RAISE:
-            servos_->setTargetPosition(ID_ARM_1, 1948);
-            servos_->setTargetPosition(ID_ARM_2, 2000);
-            servos_->setTargetPosition(ID_ARM_3, 2200);
-            // servos_->setTargetPosition(ID_ARM_1, 1648);
-            // servos_->setTargetPosition(ID_ARM_2, 2200);
-            // servos_->setTargetPosition(ID_ARM_3, 2300);
+            moveArmServos(servos_, qRaised);
             break;
         case ArmPosition::FOLD_MID:
-            servos_->setTargetPosition(ID_ARM_1, 1750);
-            servos_->setTargetPosition(ID_ARM_2, 2580);
-            servos_->setTargetPosition(ID_ARM_3, 1550);
+            moveArmServos(servos_, qFoldMid);
             break;
         case ArmPosition::FOLD:
-            servos_->setTargetPosition(ID_ARM_1, 2000);
-            servos_->setTargetPosition(ID_ARM_2, 2780);
-            servos_->setTargetPosition(ID_ARM_3, 1450);
+            moveArmServos(servos_, qFold);
             break;
         case ArmPosition::CAMERA_POSE:
-            servos_->setTargetPosition(ID_ARM_1, 2900);
-            servos_->setTargetPosition(ID_ARM_2, 2600);
-            servos_->setTargetPosition(ID_ARM_3, 1450);
+            servos_->setTargetPosition(ID_ARM_1, 2900, true);
+            servos_->setTargetPosition(ID_ARM_2, 2600, true);
+            servos_->setTargetPosition(ID_ARM_3, 1450, true);
             break;
         default: break;
     }
+}
+
+void ServoManager::doGrab()
+{
+    moveArmServos(servos_, qGrab);
+    robot_->wait(0.40);
+    servos_->disable(ID_ARM_1);
+    servos_->disable(ID_ARM_2);
+    servos_->disable(ID_ARM_3);
+    robot_->wait(0.5);
+    servos_->enable(ID_ARM_1);
+    servos_->enable(ID_ARM_2);
+    servos_->enable(ID_ARM_3);
 }
 
 void ServoManager::hideArm()
@@ -218,7 +272,7 @@ void ServoManager::hideArm()
     if (currentArmPosition != ArmPosition::CAMERA_POSE)
     {
         moveArm(ArmPosition::FOLD_MID);
-        robot_->wait(0.5);
+        robot_->wait(0.2);
         moveArm(ArmPosition::CAMERA_POSE);
     }
 }
@@ -227,8 +281,8 @@ void ServoManager::unhideArm()
 {
     moveArm(ArmPosition::FOLD);
     robot_->wait(0.5);
-    moveArm(ArmPosition::FOLD_MID);
-    robot_->wait(0.5);
+    // moveArm(ArmPosition::FOLD_MID);
+    // robot_->wait(0.2);
     moveArm(ArmPosition::RAISE);
 }
 
@@ -399,16 +453,14 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     // if (yRailPosition)
 
     // Grab
-    moveArm(ArmPosition::GRAB);
     if (rightActive)
         pumpOn(Side::RIGHT);
     if (leftActive)
         pumpOn(Side::LEFT);
-    robot_->wait(1.0);
+    doGrab();
 
     // Lift and fold suctions
     moveArm(ArmPosition::RAISE);
-
 }
 
 void ServoManager::moveCratesInBed()

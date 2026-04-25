@@ -7,11 +7,6 @@
 
 //--------------------------------------------------------------------------------------------------
 
-  // ************************************************************************************************
-
-  double constexpr l1 = 85.5e-3;   // [m]
-  double constexpr l2 = 95.5e-3;   // [m]
-  double constexpr l3 = 61.0e-3;   // [m]
 
   // ************************************************************************************************
 
@@ -192,6 +187,19 @@ inline bool solve_inverse_kinematics(
   }
 
   return false;
+}
+
+
+Eigen::Vector3d solveArmPosition(Eigen::Vector3d const pos, Eigen::Vector3d const initialAngle)
+{
+  Eigen::Vector3d xSol = initialAngle;
+  Eigen::Affine2d const T = exp(pos);
+  if(!solve_inverse_kinematics(T, xSol.data()))
+  {
+    std::cout << "Failed to solve arm IK!" << std::endl;
+    xSol = Eigen::Vector3d::Zero();
+  }
+  return xSol;
 }
 
 // // ************************************************************************************************

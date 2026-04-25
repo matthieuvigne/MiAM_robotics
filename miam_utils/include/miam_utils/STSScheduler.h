@@ -72,8 +72,9 @@
             /// \note This function assumes that the amplification factor ANGULAR_RESOLUTION is set to 1.
             /// \param[in] servoId ID of the servo
             /// \param[in] position Target position, in ticks.
+            /// \param[in] forceNow If set, target is also sent now
             /// \return True on success, false otherwise.
-            void setTargetPosition(unsigned char const& servoId, int16_t const& position);
+            void setTargetPosition(unsigned char const& servoId, int16_t const& position, bool forceNow = false);
             // Set velocity to be used for position mode. Set 0 to remove clamp.
             void setMaxVelocity(unsigned char const& servoId, int16_t const& maxVelocity);
 
