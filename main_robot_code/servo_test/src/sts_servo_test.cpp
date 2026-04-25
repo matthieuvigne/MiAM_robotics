@@ -41,14 +41,34 @@ int main(int argc, char* argv[])
     Robot *robot_ = &robot;
     servo_manager.init(&robot);
 
+    std::string input;
+
+    // while (true)
+    // {
+    //     servoManager_->moveArm(ArmPosition::GRAB);
+    //     std::getline(std::cin, input);
+    //     servoManager_->moveArm(ArmPosition::RAISE);
+    //     std::getline(std::cin, input);
+
+    // }
+
     // while (true)
     // {
     //     servo_manager.pumpOn(Side::RIGHT);
-    //     servo_manager.pumpOn(Side::LEFT);
-    //     robot.wait(0.5);
+    //     std::cout << "Right pump on" << std::endl;
+    //     std::getline(std::cin, input);
+
     //     servo_manager.pumpOff(Side::RIGHT);
+    //     std::cout << "Right pump off" << std::endl;
+    //     std::getline(std::cin, input);
+
+    //     servo_manager.pumpOn(Side::LEFT);
+    //     std::cout << "Left pump on" << std::endl;
+    //     std::getline(std::cin, input);
+
     //     servo_manager.pumpOff(Side::LEFT);
-    //     robot.wait(0.5);
+    //     std::cout << "Left pump off" << std::endl;
+    //     std::getline(std::cin, input);
     // }
 
     // while (!servos->areAllRailsCalibrated())
@@ -60,7 +80,6 @@ int main(int argc, char* argv[])
     // std::cout << "Init done" << std::endl;
 
 
-    std::string input;
     // servoManager_->moveArm(ArmPosition::RAISE);
 
     // while (true)
@@ -95,7 +114,6 @@ int main(int argc, char* argv[])
         std::getline(std::cin, input);
         std::cout << "grabbing crates" << std::endl;
         servoManager_->grabCrates();
-        std::getline(std::cin, input);
     }
 
     // std::string input;

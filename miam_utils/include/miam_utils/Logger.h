@@ -42,6 +42,7 @@
             /// @brief Set the origin of time, used on text log line.
             /// @param origin Time origin.
             void setTimeOrigin(timespec const& origin);
+            double getElapsedTime();
 
             /// @brief Register a variable, obtaining an id that can be used for futur logging.
             /// @details Note that this function may be called several times safely, the same
@@ -86,7 +87,6 @@
 
         private:
             void loggerThread(std::string const& filename);
-            double getElapsedTime();
 
             uint16_t getVariableId(std::string const& varName);
 

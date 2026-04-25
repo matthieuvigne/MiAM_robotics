@@ -198,7 +198,8 @@ void Robot::updateSensorData()
         measurements_.drivetrainMeasurements.lidarDetection = lidar_.detectedRobots_;
     }
 
-    measurements_.drivetrainMeasurements.gyroscope = imu_.getGyroscopeReadings()(2);
+    Eigen::Vector3f gyro = imu_.getGyroscopeReadings();
+    measurements_.drivetrainMeasurements.gyroscope = gyro(2) - gyroBias_;
 
     // Log
     // if (currentTime_ > 0.0)
@@ -236,10 +237,9 @@ void Robot::updateSensorData()
         logger_.log("Robot.12V.current", currentTime_, inaReading.current);
         logger_.log("Robot.12V.power", currentTime_, inaReading.power);
 
-        // Eigen::Vector3f gyro = imu_.getGyroscopeReadings();
-        // logger_.log("IMU.gyroX", currentTime_, gyro(0));
-        // logger_.log("IMU.gyroY", currentTime_, gyro(1));
-        // logger_.log("IMU.gyroZ", currentTime_, gyro(2));
+        logger_.log("IMU.gyroX", currentTime_, gyro(0));
+        logger_.log("IMU.gyroY", currentTime_, gyro(1));
+        logger_.log("IMU.gyroZ", currentTime_, gyro(2));
     }
 
     if (!hasMatchStarted_ && !inBorderDetection_ && gui_->getAskedDetectBorders())
@@ -359,6 +359,17 @@ void Robot::detectBorders()
 {
     pthread_setname_np(pthread_self(), "robot_detectBorders");
     inBorderDetection_ = true;
+
+    // Compute gyro bias.
+    double gyroSum = 0.0;
+    for (int i = 0; i <1000; i++)
+    {
+        gyroSum += imu_.getGyroscopeReadings()[2];
+        robot_->wait(0.002);
+    }
+    gyroBias_ = gyroSum / 1000.0;
+    logger_ << "[Robot] Computed gyro bias: " << gyroBias_ << std::endl;
+
 
     if (!touchBorder())
     {

@@ -39,6 +39,13 @@ void ServoManager::init(RobotInterface *robot)
     robot_ = robot;
     servos_ = robot->getServos();
 
+    // Configure servos
+    servos_->setMaxVelocity(ID_ARM_1, 1700);
+    servos_->setMaxVelocity(ID_ARM_2, 2000);
+    servos_->setMaxVelocity(ID_ARM_3, 2000);
+    servos_->setPIDGains(ID_HAND_ROT, 20, 15, 0);
+
+
     servos_->setMode(ID_ARM_1,      STS::Mode::POSITION);
     servos_->setMode(ID_ARM_2,      STS::Mode::POSITION);
     servos_->setMode(ID_ARM_3,      STS::Mode::POSITION);
@@ -48,13 +55,8 @@ void ServoManager::init(RobotInterface *robot)
     servos_->setMode(ID_BED,        STS::Mode::POSITION);
     // servos_->setMode(ID_FINGER_R,   STS::Mode::POSITION);
     // servos_->setMode(ID_FINGER_L,   STS::Mode::POSITION);
-    // servos_->setMode(ID_CURSOR,     STS::Mode::POSITION);
+    servos_->setMode(ID_CURSOR,     STS::Mode::POSITION);
 
-    // Configure servos
-    servos_->setMaxVelocity(ID_ARM_1, 1300);
-    servos_->setMaxVelocity(ID_ARM_2, 2000);
-    servos_->setMaxVelocity(ID_ARM_3, 3000);
-    servos_->setPIDGains(ID_HAND_ROT, 20, 15, 0);
 
     // Setup rails
     railX_ = servos_->createRail(ID_RAIL_X, 6, 5500, true);
@@ -62,6 +64,8 @@ void ServoManager::init(RobotInterface *robot)
 
     cursorFold();
     bedFold();
+    servos_->setTargetPosition(ID_ARM_1, 2048);
+    robot_->wait(0.5);
     moveArm(ArmPosition::CALIBRATE);
     translateSuction(Side::RIGHT, 0);
     translateSuction(Side::LEFT, 0);
@@ -71,6 +75,8 @@ void ServoManager::init(RobotInterface *robot)
     RPi_setupGPIO(24, PI_GPIO_OUTPUT);
     pumpOff(Side::RIGHT);
     pumpOff(Side::LEFT);
+    RPi_writeGPIO(23, LOW);
+    RPi_writeGPIO(24, LOW);
     // Start calib
     // servos_->startRailCalibration();
 }
@@ -105,7 +111,6 @@ void ServoManager::cursorUnfold()
     servos_->setTargetPosition(ID_CURSOR, 3200);
 }
 
-
 void ServoManager::bedFold()
 {
     servos_->setTargetPosition(ID_BED, 2048);
@@ -122,14 +127,14 @@ void ServoManager::moveArm(ArmPosition const& position)
     {
         case ArmPosition::CALIBRATE:
             servos_->setTargetPosition(ID_ARM_1, 2048);
-            servos_->setTargetPosition(ID_ARM_2, 1500);
-            servos_->setTargetPosition(ID_ARM_3, 2048);
+            servos_->setTargetPosition(ID_ARM_2, 1600);
+            servos_->setTargetPosition(ID_ARM_3, 2500);
             servos_->setTargetPosition(ID_HAND_ROT, 2048);
             break;
         case ArmPosition::GRAB:
-            servos_->setTargetPosition(ID_ARM_1, 2200);
-            servos_->setTargetPosition(ID_ARM_2, 1650);
-            servos_->setTargetPosition(ID_ARM_3, 2300);
+            servos_->setTargetPosition(ID_ARM_1, 2225);
+            servos_->setTargetPosition(ID_ARM_2, 1825);
+            servos_->setTargetPosition(ID_ARM_3, 2100);
             break;
         case ArmPosition::RAISE:
             servos_->setTargetPosition(ID_ARM_1, 1948);
@@ -151,7 +156,7 @@ void ServoManager::moveArm(ArmPosition const& position)
             break;
         case ArmPosition::CAMERA_POSE:
             servos_->setTargetPosition(ID_ARM_1, 2900);
-            servos_->setTargetPosition(ID_ARM_2, 2700);
+            servos_->setTargetPosition(ID_ARM_2, 2600);
             servos_->setTargetPosition(ID_ARM_3, 1450);
             break;
         default: break;
@@ -233,7 +238,14 @@ void ServoManager::grabCrates()
             robot_->logger_<< "yellow ";
     }
     robot_->logger_ << std::endl;
+    robot_->logger_ << "[ServoManager] Tags Y pos:";
+    for (auto const& t : tags)
+    {
+        robot_->logger_ << t.position.y() << " ";
+    }
+    robot_->logger_ << std::endl;
     unhideArm();
+    robot_->wait(1.0);
 
     int const myColor = (robot_->isPlayingRightSide() ? BLUE : YELLOW);
     int const opponentColor = (robot_->isPlayingRightSide() ? YELLOW : BLUE);
@@ -251,15 +263,15 @@ void ServoManager::grabCrates()
     // Do we need to put something in the bed?
     if (opponentTags.size() > 0)
     {
-        grabTags(tags, opponentTags);
+        // grabTags(tags, opponentTags);
         // moveCratesInBed();
         // robot_->getGameState()->isBedFull = true;
     }
-    // if (myTags.size() > 0)
-    // {
-    //     grabTags(tags, myTags);
-    //     robot_->getGameState()->isClawFull = true;
-    // }
+    if (myTags.size() > 0)
+    {
+        grabTags(tags, myTags);
+        robot_->getGameState()->isClawFull = true;
+    }
 }
 
 void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab)
@@ -271,7 +283,7 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     // Enforce a 2-elemnt grab.
     bool rightActive = true, leftActive = true;
     // Drop elements if we have too many
-    int leftTag = 1, rightTag = 2;
+    int leftTag = 0, rightTag = 0;
 
     if (tagsToGrab.size() > 2)
     {
@@ -298,35 +310,57 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
             leftActive = false;
         }
     }
-    robot_->logger_ << "[ServoManager::grabTags] Grabbing tags " << leftTag << (leftActive ? " " : "[no] ");
-    robot_->logger_  << rightTag << (rightActive ? " " : "[no] ") << std::endl;
+    robot_->logger_ << "[ServoManager::grabTags] Grabbing tags indexed " << (leftActive ? std::to_string(leftTag) + " " : "[no left] ");
+    robot_->logger_ << (rightActive ? std::to_string(rightTag) + " " : "[no right] ") << std::endl;
 
     // Position suction according to grabbing pattern.
-    int leftPos = (leftTag == 0 ? 1.0: 0.0);
-    int rightPos = (rightTag == 3 ? 1.0: 0.0);
+    double leftPos = (leftTag == 0 ? 1.0: 0.0);
+    double rightPos = (rightTag == 3 ? 1.0: 0.0);
+    if (!leftActive)
+        leftPos = 0.0;
+    if (!rightActive)
+        rightPos = 0.0;
 
     translateSuction(Side::LEFT, leftPos);
     translateSuction(Side::RIGHT, rightPos);
-    std::cout << "left pos" << leftPos << std::endl;
-    std::cout << "right pos" << rightPos << std::endl;
+    double const BLOCK_WIDTH = 0.050;
 
-    // Move rail to barycenter
-
-    // Figure out spacing.
-    // double const baricenterBias = 0;
-    // int const blockDist = abs(tagsToGrab[1] - tagsToGrab[0]);
-
-    // // Grab
-    // if (rightActive)
-    //     pumpOn(Side::RIGHT);
-    // if (leftActive)
-    //     pumpOn(Side::LEFT);
+    double leftY = tags[leftTag].position.y();
+    double rightY = tags[rightTag].position.y();
+    if (!leftActive)
+        leftY = rightY + BLOCK_WIDTH * (1 + rightPos);
+    if (!rightActive)
+        rightY = leftY - BLOCK_WIDTH * (1 + leftPos);
 
 
-    // moveArm(ArmPosition::GRAB);
-    // robot_->wait(1.0);
-    // moveArm(ArmPosition::RAISE);
-    // robot_->wait(0.3);
+    robot_->logger_ << "[ServoManager::grabTags] Suction position: " << leftPos << " " << rightPos << std::endl;
+    robot_->logger_ << "[ServoManager::grabTags] Marker positions: " << leftY << " " << rightY << std::endl;
+
+    double yOffset = (rightY + leftY) / 2.0;
+    robot_->logger_ << "[ServoManager::grabTags] Y offset" << yOffset << std::endl;
+    // Offset this based on how wide the claw is.
+    yOffset += BLOCK_WIDTH / 2 * (-leftPos + rightPos);
+    robot_->logger_ << "[ServoManager::grabTags] Y offset with claw comp" << yOffset << std::endl;
+
+    double const yRailScaling = (0.5 / 0.04);
+    // Rail is backward: 0 = going to left
+    double const yRailPosition = 0.5 - std::clamp(yRailScaling * yOffset, -0.5, 0.5);
+    robot_->logger_ << "[ServoManager::grabTags] Y rail position" << yRailPosition << std::endl;
+
+    // Move rail accordingly.
+    // if (yRailPosition)
+
+    // Grab
+    moveArm(ArmPosition::GRAB);
+    if (rightActive)
+        pumpOn(Side::RIGHT);
+    if (leftActive)
+        pumpOn(Side::LEFT);
+    robot_->wait(1.0);
+
+    // Lift and fold suctions
+    moveArm(ArmPosition::RAISE);
+
 }
 
 void ServoManager::moveCratesInBed()

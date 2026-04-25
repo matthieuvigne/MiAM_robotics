@@ -87,6 +87,7 @@
             INA226 ina226_7V_;
             INA226 ina226_12V_;
             BMI088 imu_;
+            double gyroBias_ = 0.0;
             bool isI2CExpanderInit_ = false;
             bool isINA7Init_ = false;
             bool isINA12Init_ = false;
