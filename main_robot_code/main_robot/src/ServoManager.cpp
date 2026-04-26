@@ -76,8 +76,8 @@ void ServoManager::shutdown()
 {
     pumpOff(Side::RIGHT);
     pumpOff(Side::LEFT);
-    RPi_writeGPIO(23, LOW);
-    RPi_writeGPIO(24, LOW);
+    valveOff(Side::RIGHT);
+    valveOff(Side::LEFT);
 }
 
 void ServoManager::init(RobotInterface *robot)
@@ -122,10 +122,10 @@ void ServoManager::init(RobotInterface *robot)
     RPi_setupGPIO(24, PI_GPIO_OUTPUT);
     pumpOff(Side::RIGHT);
     pumpOff(Side::LEFT);
-    RPi_writeGPIO(23, LOW);
-    RPi_writeGPIO(24, LOW);
+    valveOff(Side::RIGHT);
+    valveOff(Side::LEFT);
     // Start calib
-    // servos_->startRailCalibration();
+    servos_->startRailCalibration();
 }
 
 void ServoManager::testArm()
@@ -210,7 +210,7 @@ void ServoManager::cursorFold()
 }
 void ServoManager::cursorUnfold()
 {
-    servos_->setTargetPosition(ID_CURSOR, 3200);
+    servos_->setTargetPosition(ID_CURSOR, 3350);
 }
 
 void ServoManager::bedFold()
@@ -255,11 +255,11 @@ void ServoManager::moveArm(ArmPosition const& position)
 void ServoManager::doGrab()
 {
     moveArmServos(servos_, qGrab);
-    robot_->wait(0.40);
+    robot_->wait(0.5);
     servos_->disable(ID_ARM_1);
     servos_->disable(ID_ARM_2);
     servos_->disable(ID_ARM_3);
-    robot_->wait(0.5);
+    robot_->wait(0.8);
     servos_->enable(ID_ARM_1);
     servos_->enable(ID_ARM_2);
     servos_->enable(ID_ARM_3);
@@ -269,6 +269,8 @@ void ServoManager::hideArm()
 {
     translateSuction(Side::RIGHT, 0.0);
     translateSuction(Side::LEFT, 0.0);
+    pumpOff(Side::RIGHT);
+    pumpOff(Side::LEFT);
     if (currentArmPosition != ArmPosition::CAMERA_POSE)
     {
         moveArm(ArmPosition::FOLD_MID);
@@ -304,14 +306,24 @@ void ServoManager::pumpOn(Side const side)
 {
     int const idx = static_cast<int>(side);
     RPi_writeGPIO(12 + idx, HIGH);
-    RPi_writeGPIO(23 + idx, LOW);
+    valveOff(side);
 }
 
 void ServoManager::pumpOff(Side const side)
 {
     int const idx = static_cast<int>(side);
     RPi_writeGPIO(12 + idx, LOW);
+}
+void ServoManager::valveOn(Side const side)
+{
+    int const idx = static_cast<int>(side);
     RPi_writeGPIO(23 + idx, HIGH);
+}
+
+void ServoManager::valveOff(Side const side)
+{
+    int const idx = static_cast<int>(side);
+    RPi_writeGPIO(23 + idx, LOW);
 }
 
 void ServoManager::grabCrates()
@@ -500,10 +512,21 @@ void ServoManager::dropCrates()
     if (robot_->getGameState()->isClawFull)
     {
         moveArm(ArmPosition::GRAB);
-        pumpOff(Side::RIGHT);
-        pumpOff(Side::LEFT);
-        robot_->wait(0.5);
+        releaseSuction();
+        robot_->wait(0.25);
         moveArm(ArmPosition::RAISE);
+        robot_->wait(0.25);
         robot_->getGameState()->isClawFull = false;
     }
+}
+
+void ServoManager::releaseSuction()
+{
+    pumpOff(Side::RIGHT);
+    pumpOff(Side::LEFT);
+    valveOn(Side::RIGHT);
+    valveOn(Side::LEFT);
+    robot_->wait(0.5);
+    valveOff(Side::RIGHT);
+    valveOff(Side::LEFT);
 }

@@ -23,6 +23,8 @@ public:
 
 private:
     ServoManager *servoManager_;
+
+    void vlx_reset();
 };
 
 

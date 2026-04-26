@@ -354,7 +354,7 @@ bool Robot::touchBorder()
     bool still = false;
     while (!motionController_.isTrajectoryFinished())
     {
-        if (std::abs(measurements_.drivetrainMeasurements.motorSpeed.right) > 1 && std::abs(measurements_.drivetrainMeasurements.motorSpeed.left) > 1)
+        if (std::abs(measurements_.drivetrainMeasurements.motorSpeed.right) > 0.2 && std::abs(measurements_.drivetrainMeasurements.motorSpeed.left) > 0.2)
             if (std::abs(measurements_.drivetrainMeasurements.encoderPositionIncrement.right / (1e-9 * ROBOT_UPDATE_PERIOD)) < 0.05 &&
                 std::abs(measurements_.drivetrainMeasurements.encoderPositionIncrement.left / (1e-9 * ROBOT_UPDATE_PERIOD)) < 0.05)
             {
@@ -374,10 +374,10 @@ void Robot::detectBorders()
 
     // Compute gyro bias.
     double gyroSum = 0.0;
-    for (int i = 0; i <1000; i++)
+    for (int i = 0; i < 500; i++)
     {
         gyroSum += imu_.getGyroscopeReadings()[2];
-        wait(0.002);
+        wait(0.001);
     }
     gyroBias_ = gyroSum / 1000.0;
     logger_ << "[Robot] Computed gyro bias: " << gyroBias_ << std::endl;
@@ -448,7 +448,7 @@ void Robot::updateRangeMeasurement()
     // a flat surface, and look at the measurement value.
     // Don't forget to add robot width.
     // This offset thus integrates sensor position, sensor offset...
-    int const OFFSET = 121;
+    int const OFFSET = 110;
 
     // Perform average of last N values.
     #define N_AVG 3

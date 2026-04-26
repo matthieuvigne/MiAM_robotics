@@ -65,7 +65,6 @@ bool Strategy::setup(RobotInterface *robot)
     {
         robot->logger_ << "[Strategy] Rail calibration completed." << std::endl;
         servoManager_.moveRails(RailPosition::FORWARD);
-        servoManager_.moveArm(ArmPosition::FOLD_MID);
         setupStep_ = 2;
         #ifdef SIMULATION
         return true;
@@ -74,7 +73,7 @@ bool Strategy::setup(RobotInterface *robot)
     if (setupStep_ == 2 && !servoManager_.areRailsMoving())
     {
         robot->logger_ << "[Strategy] Setup done" << std::endl;
-        servoManager_.moveArm(ArmPosition::CAMERA_POSE);
+        servoManager_.hideArm();
         return true;
     }
     return false;
