@@ -40,10 +40,28 @@ int main(int argc, char* argv[])
     ServoManager *servoManager_ = &servo_manager;
     Robot *robot_ = &robot;
     servo_manager.init(&robot);
+    while (!robot.getServos()->areAllRailsCalibrated())
+        robot_->wait(0.1);
+    servo_manager.moveRails(RailPosition::FORWARD);
 
     std::string input;
 
-    servoManager_->testArm();
+    // servoManager_->testArm();
+
+    ////////////////////////////////
+    // Camera-based test
+    while (true)
+    {
+        std::getline(std::cin, input);
+        std::cout << "hiding arm" << std::endl;
+        servoManager_->hideArm();
+        robot_->wait(1.0);
+        std::getline(std::cin, input);
+        std::cout << "grabbing crates" << std::endl;
+        servoManager_->grabCrates();
+        std::cout << "grab crates done" << std::endl;
+    }
+    ////////////////////////////////
 
     // while (true)
     // {
@@ -107,16 +125,6 @@ int main(int argc, char* argv[])
     //     servoManager_->pumpOff(Side::RIGHT);
     //     std::getline(std::cin, input);
     // }
-    while (true)
-    {
-        std::getline(std::cin, input);
-        std::cout << "hiding arm" << std::endl;
-        servoManager_->hideArm();
-        robot_->wait(1.0);
-        std::getline(std::cin, input);
-        std::cout << "grabbing crates" << std::endl;
-        servoManager_->grabCrates();
-    }
 
     // std::string input;
     // while (true)
