@@ -62,6 +62,8 @@ public:
     void grabCrates();
     void dropCrates();
 
+    void emptyBed();
+
     void doGrab();
 
     // Hide arm inside robot to take picture

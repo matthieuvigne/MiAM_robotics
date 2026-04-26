@@ -40,13 +40,13 @@ int main(int argc, char* argv[])
     ServoManager *servoManager_ = &servo_manager;
     Robot *robot_ = &robot;
     servo_manager.init(&robot);
-    while (!robot.getServos()->areAllRailsCalibrated())
-        robot_->wait(0.1);
-    servo_manager.moveRails(RailPosition::FORWARD);
+    // while (!robot.getServos()->areAllRailsCalibrated())
+    //     robot_->wait(0.1);
+    // servo_manager.moveRails(RailPosition::FORWARD);
 
     std::string input;
 
-    // servoManager_->testArm();
+    servoManager_->testArm();
 
     ////////////////////////////////
     // Camera-based test

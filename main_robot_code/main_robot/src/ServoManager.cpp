@@ -40,6 +40,8 @@ Eigen::Vector3d qCalib;
 
 Eigen::Vector3d qFold, qFoldMid;
 
+Eigen::Vector3d qBedUnfold;
+
 void precomputeArmIK()
 {
     Eigen::Vector3d const xRaised{l1 + 0.030, -(l2 + l3 - 0.04),-M_PI_2};
@@ -63,6 +65,10 @@ void precomputeArmIK()
     qFoldMid = solveArmPosition(xFoldMid, qRaised);
     qFold = solveArmPosition(xFold, qFoldMid);
 
+    Eigen::Vector3d const xBed{l1 + 0.14, -(l2 + l3 - 0.14),-0.5};
+
+    Eigen::Vector3d const qInt = solveArmPosition((xBed + xRaised) / 2.0, qRaised);
+    qBedUnfold = solveArmPosition(xBed, qInt);
 }
 ////////////////////////////////////////////////////////////////////////////
 // End arm-related functions
@@ -143,65 +149,36 @@ void ServoManager::testArm()
         std::cout << "raise" << std::endl;
         moveArm(ArmPosition::RAISE);
         std::getline(std::cin, input);
-        std::cout << "doGrab" << std::endl;
-        pumpOn(Side::RIGHT);
-        pumpOn(Side::LEFT);
-        doGrab();
-        std::getline(std::cin, input);
-        std::cout << "raise" << std::endl;
+        // Bed unfold
+        moveArmServos(servos_, qBedUnfold);
+        robot_->wait(0.5);
+        bedUnfold();
+        robot_->wait(0.5);
+        bedFold();
         moveArm(ArmPosition::RAISE);
-        std::getline(std::cin, input);
-        std::cout << "folding" << std::endl;
-        moveArmServos(servos_, qFoldMid);
-        robot_->wait(1.0);
-        moveArmServos(servos_, qFold);
-        robot_->wait(1.0);
-        std::getline(std::cin, input);
-        releaseSuction();
-
-
-        // moveArmServos(servos_, qFoldMid);
+        robot_->wait(0.5);
+        // bedFold();
         // std::getline(std::cin, input);
-        // moveArmServos(servos_, qFold);
-        // std::getline(std::cin, input);
-        // moveArmServos(servos_, qFoldMid);
 
-        // // pumpOn(Side::RIGHT);
-        // // pumpOn(Side::LEFT);
+        // std::getline(std::cin, input);
+        // std::cout << "raise" << std::endl;
+        // moveArm(ArmPosition::RAISE);
+        // std::getline(std::cin, input);
+        // std::cout << "doGrab" << std::endl;
+        // pumpOn(Side::RIGHT);
+        // pumpOn(Side::LEFT);
         // doGrab();
         // std::getline(std::cin, input);
+        // std::cout << "raise" << std::endl;
         // moveArm(ArmPosition::RAISE);
         // std::getline(std::cin, input);
-        // moveArm(ArmPosition::FOLD);
+        // std::cout << "folding" << std::endl;
+        // moveArmServos(servos_, qFoldMid);
+        // robot_->wait(1.0);
+        // moveArmServos(servos_, qFold);
+        // robot_->wait(1.0);
         // std::getline(std::cin, input);
-        // // pumpOff(Side::RIGHT);
-        // // pumpOff(Side::LEFT);
-        // std::getline(std::cin, input);
-        // moveArm(ArmPosition::RAISE);
-        // std::getline(std::cin, input);
-        // hideArm();
-        // std::getline(std::cin, input);
-        // unhideArm();
-
-        // moveArmServos(servos_, qGrab);
-        // robot_->wait(0.40);
-        // servos_->disable(ID_ARM_1);
-        // servos_->disable(ID_ARM_2);
-        // servos_->disable(ID_ARM_3);
-        // std::getline(std::cin, input);
-        // servos_->enable(ID_ARM_1);
-        // servos_->enable(ID_ARM_2);
-        // servos_->enable(ID_ARM_3);
-        // std::getline(std::cin, input);
-        // moveArmServos(servos_, qRaised);
-        // std::getline(std::cin, input);
-        // moveArm(ArmPosition::FOLD);
-        // std::getline(std::cin, input);
-
-        // hideArm();
-        // std::getline(std::cin, input);
-        // unhideArm();
-        // std::getline(std::cin, input);
+        // releaseSuction();
 
 
     }
@@ -409,12 +386,12 @@ void ServoManager::grabCrates()
     }
 
     // Do we need to put something in the bed?
-    if (opponentTags.size() > 0)
-    {
-        grabTags(tags, opponentTags);
-        moveCratesInBed();
-        robot_->getGameState()->isBedFull = true;
-    }
+    // if (opponentTags.size() > 0)
+    // {
+    //     grabTags(tags, opponentTags);
+    //     moveCratesInBed();
+    //     robot_->getGameState()->isBedFull = true;
+    // }
     if (myTags.size() > 0)
     {
         grabTags(tags, myTags);
@@ -442,7 +419,7 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     {
         suctionLeft = 0.0;
         suctionRight = 0.0;
-        rail = 0.0;
+        rail = 1.0;
     }
     else if (leftTagIdx == 0 && rightTagIdx == 2)
     {
@@ -472,7 +449,7 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     {
         suctionLeft = 0.0;
         suctionRight = 0.0;
-        rail = 1.0;
+        rail = 0.0;
     }
 
     // Perform motion
@@ -600,12 +577,7 @@ void ServoManager::dropCrates()
 {
     if (robot_->getGameState()->isBedFull)
     {
-        moveArm(ArmPosition::CALIBRATE);
-        bedUnfold();
-        translateSuction(Side::LEFT, 1.0);
-        translateSuction(Side::RIGHT, 1.0);
-        robot_->wait(0.5);
-        bedFold();
+        emptyBed();
         robot_->getGameState()->isBedFull = false;
     }
 
@@ -618,6 +590,17 @@ void ServoManager::dropCrates()
         robot_->wait(0.25);
         robot_->getGameState()->isClawFull = false;
     }
+}
+
+void ServoManager::emptyBed()
+{
+    moveArmServos(servos_, qBedUnfold);
+    robot_->wait(0.5);
+    bedUnfold();
+    robot_->wait(0.5);
+    bedFold();
+    moveArm(ArmPosition::RAISE);
+    robot_->wait(0.5);
 }
 
 void ServoManager::releaseSuction()
