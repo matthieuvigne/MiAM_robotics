@@ -112,6 +112,7 @@
 
                 // Update the position by the given motion, return the updated position.
                 RobotPosition update(DrivetrainKinematics const & kinematics, WheelSpeed const& encoderIncrement);
+                RobotPosition updateGyro(DrivetrainKinematics const & kinematics, WheelSpeed const& encoderIncrement, double const gyro);
 
             private:
                 RobotPosition position_;

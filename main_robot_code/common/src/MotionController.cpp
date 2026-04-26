@@ -66,13 +66,22 @@ void MotionController::resetPosition(miam::RobotPosition const &resetPosition, b
 {
     miam::RobotPosition position = currentPosition_.get();
     if (resetX)
+    {
         position.x = resetPosition.x;
+        odometryBasedPosition_.x = position.x;
+        gyroBasedPosition_.x = position.x;
+    }
     if (resetY)
+    {
         position.y = resetPosition.y;
+        odometryBasedPosition_.y = position.y;
+        gyroBasedPosition_.y = position.y;
+    }
     if (resetTheta)
     {
         position.theta = resetPosition.theta;
-        gyroscopeAngle_ = position.theta;
+        odometryBasedPosition_.theta = position.theta;
+        gyroBasedPosition_.theta = position.theta;
     }
     currentPosition_.set(position);
 }
@@ -127,16 +136,25 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     currentTime_ += dt;
     log("timeIncrement",dt);
 
+    log("MotionController.rawGyroscope", measurements.gyroscope);
+    double gyro = measurements.gyroscope;
+    if (isPlayingRightSide_)
+        gyro *= -1;
 
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderPositionIncrement);
-
-    log("MotionController.gyroscope",measurements. gyroscope);
-    gyroscopeAngle_ += measurements.gyroscope * dt;
-    // currentPosition.theta = gyroscopeAngle_;
-    // currentPosition_.set(currentPosition);
-    log("MotionController.gyroscopeAngle", gyroscopeAngle_);
-    log("MotionController.gyroAngleDiff", currentPosition.theta - gyroscopeAngle_);
+    kinematics_.integratePosition(measurements.encoderPositionIncrement, odometryBasedPosition_);
+    kinematics_.integrateGyroKinematics(measurements.encoderPositionIncrement, gyroBasedPosition_, gyro * dt);
+    gyroscopeAngle_ += gyro * dt;
+    log("MotionController.gyroscopeX", gyroBasedPosition_.x);
+    log("MotionController.gyroscopeY", gyroBasedPosition_.y);
+    log("MotionController.gyroscopeAngle", gyroBasedPosition_.theta);
+    log("MotionController.odometryX", odometryBasedPosition_.x);
+    log("MotionController.odometryY", odometryBasedPosition_.y);
+    log("MotionController.odometryAngle", odometryBasedPosition_.theta);
+    log("MotionController.gyroOdoDiffX", odometryBasedPosition_.x - gyroBasedPosition_.x);
+    log("MotionController.gyroOdoDiffY", odometryBasedPosition_.y - gyroBasedPosition_.y);
+    log("MotionController.gyroOdoDiffAngle", odometryBasedPosition_.theta - gyroBasedPosition_.theta);
 
     // Only log after match start
     if (measurements.matchTime > 0.0)

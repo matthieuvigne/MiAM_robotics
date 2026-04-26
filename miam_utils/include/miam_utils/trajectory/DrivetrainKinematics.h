@@ -121,6 +121,8 @@
             ///                        Otherwise, use the motor parameters. Default: true
             void integratePosition(WheelSpeed const& wheelSpeedIn, miam::RobotPosition & positionInOut, bool const& useEncoders = true) const;
 
+            void integrateGyroKinematics(WheelSpeed const& wheelSpeedIn, miam::RobotPosition & positionInOut, double const& gyroMeasurement) const;
+
         private:
             double rightMotorWheelRadius_; ///< Radius of the right motor wheel, in mm.
             double leftMotorWheelRadius_; ///< Radius of the left motor wheel, in mm.

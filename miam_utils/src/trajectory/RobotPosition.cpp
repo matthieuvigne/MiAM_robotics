@@ -154,4 +154,14 @@ namespace miam{
         mutex_.unlock();
         return output;
     }
+
+    RobotPosition ProtectedPosition::updateGyro(DrivetrainKinematics const & kinematics, WheelSpeed const& encoderIncrement, double const gyro)
+    {
+        RobotPosition output;
+        mutex_.lock();
+        kinematics.integrateGyroKinematics(encoderIncrement, position_, gyro);
+        output = position_;
+        mutex_.unlock();
+        return output;
+    }
 }

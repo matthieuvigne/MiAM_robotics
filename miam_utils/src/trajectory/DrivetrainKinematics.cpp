@@ -67,3 +67,14 @@ void DrivetrainKinematics::integratePosition(WheelSpeed const& wheelSpeedIn, mia
     positionInOut.x += std::cos(positionInOut.theta) * speed.linear;
     positionInOut.y += std::sin(positionInOut.theta) * speed.linear;
 }
+
+void DrivetrainKinematics::integrateGyroKinematics(WheelSpeed const& wheelSpeedIn, miam::RobotPosition & positionInOut, double const& gyroMeasurement) const
+{
+    // Compute base velocity.
+    BaseSpeed speed = forwardKinematics(wheelSpeedIn, true);
+    speed.angular = gyroMeasurement;
+    // Integrate into position.
+    positionInOut.theta += speed.angular;
+    positionInOut.x += std::cos(positionInOut.theta) * speed.linear;
+    positionInOut.y += std::sin(positionInOut.theta) * speed.linear;
+}

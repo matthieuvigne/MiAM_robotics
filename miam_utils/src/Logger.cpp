@@ -46,6 +46,7 @@ Logger::~Logger()
 
 void Logger::start(std::string const& filename, std::string const& teleplotPrefix, bool const& silent)
 {
+    std::cout << "Starting logger" << filename << std::endl;
     teleplotPrefix_ = teleplotPrefix;
     silent_ = silent;
     cliPrefix_ = "";
