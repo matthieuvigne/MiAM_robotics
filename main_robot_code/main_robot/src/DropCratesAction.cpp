@@ -1,6 +1,6 @@
 #include "main_robot/DropCratesAction.h"
 
-#define MARGIN 100
+#define MARGIN 80
 
 void DropCratesAction::updateStartCondition()
 {

@@ -75,6 +75,20 @@ void STSScheduler::setPIDGains(unsigned char const& servoId, unsigned char const
         driver_.setPIDGains(servoId, Kp, Kd, Ki);
 }
 
+bool STSScheduler::writeRegister(unsigned char const& servoId, unsigned char const& registerId, unsigned char const& value, bool const& asynchronous)
+{
+    if (!keepServosDisabled_)
+        return driver_.writeRegister(servoId, registerId, value, asynchronous);
+    return true;
+}
+
+bool STSScheduler::writeTwoBytesRegister(unsigned char const& servoId, unsigned char const& registerId, int16_t const& value, bool const& asynchronous)
+{
+    if (!keepServosDisabled_)
+        return driver_.writeTwoBytesRegister(servoId, registerId, value, asynchronous);
+    return true;
+}
+
 void STSScheduler::setMode(unsigned char const& servoId, STS::Mode const& mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);

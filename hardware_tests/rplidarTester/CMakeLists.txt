@@ -15,5 +15,5 @@ target_link_libraries(rplidarTester miam_utils ${GTK3_LIBRARIES})
 add_custom_command(
         TARGET rplidarTester POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/config/GRPLidar.glade
+                ${CMAKE_CURRENT_SOURCE_DIR}/config/GRPLidar.glade
                 ${CMAKE_CURRENT_BINARY_DIR}/GRPLidar.glade)

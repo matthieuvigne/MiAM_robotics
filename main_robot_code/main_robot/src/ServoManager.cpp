@@ -10,7 +10,7 @@
 #define ID_ARM_1 12
 #define ID_ARM_2 13
 #define ID_ARM_3 14
-#define ID_HAND_ROT 15
+// #define ID_HAND_ROT 15
 #define ID_HAND_TRIGHT 17
 #define ID_HAND_TLEFT 16
 #define ID_BED 18
@@ -44,8 +44,8 @@ Eigen::Vector3d qBedUnfold;
 
 void precomputeArmIK()
 {
-    Eigen::Vector3d const xRaised{l1 + 0.030, -(l2 + l3 - 0.04),-M_PI_2};
-    Eigen::Vector3d const xGrab{l1 + 0.020, -(l2 + l3 + 0.005),-M_PI_2};
+    Eigen::Vector3d const xRaised{l1 + 0.040, -(l2 + l3 - 0.04),-M_PI_2};
+    Eigen::Vector3d const xGrab{l1 + 0.030, -(l2 + l3 + 0.005),-M_PI_2};
     // Eigen::Vector3d const xGrab{l1 + 0.020, -(l2 + l3 + 0.01),-M_PI_2};
     Eigen::Vector3d const xCalib{l1 + 0.05, -(l2 + l3 - 0.02),-M_PI_2};
 
@@ -54,7 +54,7 @@ void precomputeArmIK()
 
     qRaised = solveArmPosition(xRaised, qRef);
     qGrab = solveArmPosition(xGrab, qRaised);
-    double ratio = 0.5;
+    double ratio = 0.7;
     qGrabMid = solveArmPosition((1 - ratio) * xRaised + ratio * xGrab, qRaised);
 
     qCalib = solveArmPosition(xCalib, qRaised);
@@ -102,13 +102,15 @@ void ServoManager::init(RobotInterface *robot)
     servos_->setMaxVelocity(ID_ARM_1, 2000);
     servos_->setMaxVelocity(ID_ARM_2, 2500);
     servos_->setMaxVelocity(ID_ARM_3, 2500);
-    servos_->setPIDGains(ID_HAND_ROT, 20, 15, 0);
+    // servos_->setPIDGains(ID_HAND_ROT, 20, 15, 0);
+    servos_->writeTwoBytesRegister(ID_ARM_1, STS::registers::CURRENT_PROTECTION_TH, 350);
+    servos_->writeRegister(ID_ARM_1, STS::registers::TORQUE_PROTECTION_TH, 40);
 
 
     servos_->setMode(ID_ARM_1,      STS::Mode::POSITION);
     servos_->setMode(ID_ARM_2,      STS::Mode::POSITION);
     servos_->setMode(ID_ARM_3,      STS::Mode::POSITION);
-    servos_->setMode(ID_HAND_ROT,   STS::Mode::POSITION);
+    // servos_->setMode(ID_HAND_ROT,   STS::Mode::POSITION);
     servos_->setMode(ID_HAND_TRIGHT,STS::Mode::POSITION);
     servos_->setMode(ID_HAND_TLEFT, STS::Mode::POSITION);
     servos_->setMode(ID_BED,        STS::Mode::POSITION);
@@ -119,7 +121,7 @@ void ServoManager::init(RobotInterface *robot)
 
     // Setup rails
     railX_ = servos_->createRail(ID_RAIL_X, 6, 5500, true);
-    railY_ = servos_->createRail(ID_RAIL_Y, 25, 4400, false);
+    railY_ = servos_->createRail(ID_RAIL_Y, 25, 4550, false);
 
     cursorFold();
     bedFold();
@@ -179,8 +181,6 @@ void ServoManager::testArm()
         // robot_->wait(1.0);
         // std::getline(std::cin, input);
         // releaseSuction();
-
-
     }
 }
 
@@ -230,7 +230,7 @@ void ServoManager::moveArm(ArmPosition const& position)
     {
         case ArmPosition::CALIBRATE:
             moveArmServos(servos_, qCalib);
-            servos_->setTargetPosition(ID_HAND_ROT, 2048);
+            // servos_->setTargetPosition(ID_HAND_ROT, 2048);
             break;
         case ArmPosition::GRAB:
             moveArmServos(servos_, qGrab);
@@ -258,7 +258,7 @@ void ServoManager::doGrab()
     // moveArmServos(servos_, qGrabMid);
     // robot_->wait(0.5);
     moveArmServos(servos_, qGrab);
-    robot_->wait(1.0);
+    robot_->wait(0.7);
     servos_->disable(ID_ARM_1);
     servos_->disable(ID_ARM_2);
     servos_->disable(ID_ARM_3);
@@ -266,6 +266,10 @@ void ServoManager::doGrab()
     servos_->enable(ID_ARM_1);
     servos_->enable(ID_ARM_2);
     servos_->enable(ID_ARM_3);
+    moveArmServos(servos_, qGrab);
+    robot_->wait(0.2);
+    moveArmServos(servos_, qGrabMid);
+    robot_->wait(0.5);
 }
 
 void ServoManager::hideArm()
@@ -297,7 +301,7 @@ void ServoManager::translateSuction(Side const side, double const ratio)
 {
     int const servoIds[2] = {ID_HAND_TRIGHT, ID_HAND_TLEFT};
     int const sign[2] = {1, 1};
-    int const closePosition[2] = {500, 610};
+    int const closePosition[2] = {480, 590};
 
     int const idx = static_cast<int>(side);
     servos_->setTargetPosition(servoIds[idx], closePosition[idx] + sign[idx] * ratio * SUCTION_RANGE);
@@ -337,7 +341,7 @@ void ServoManager::grabCrates()
         tags = visionHandler_.getTags();
         if (tags.size() == 4)
             break;
-        robot_->wait(0.050); // Wait, with enough time for the camera to get a new frame.
+        robot_->wait(0.120); // Wait, with enough time for the camera to get a new frame.
     }
     // Analyze: what did we see
     if (tags.size() == 0)
@@ -370,7 +374,7 @@ void ServoManager::grabCrates()
     }
 
     unhideArm();
-    robot_->wait(1.0);
+    robot_->wait(0.25);
 
     int const myColor = (robot_->isPlayingRightSide() ? BLUE : YELLOW);
     int const opponentColor = (robot_->isPlayingRightSide() ? YELLOW : BLUE);

@@ -40,13 +40,33 @@ int main(int argc, char* argv[])
     ServoManager *servoManager_ = &servo_manager;
     Robot *robot_ = &robot;
     servo_manager.init(&robot);
-    // while (!robot.getServos()->areAllRailsCalibrated())
-    //     robot_->wait(0.1);
-    // servo_manager.moveRails(RailPosition::FORWARD);
+    while (!robot.getServos()->areAllRailsCalibrated())
+        robot_->wait(0.1);
+    servo_manager.moveRails(RailPosition::FORWARD);
 
     std::string input;
 
-    servoManager_->testArm();
+    // servoManager_->testArm();
+
+
+    ////////////////////////////////
+    // Blind grabbing test
+    // while (true)
+    // {
+    //     std::getline(std::cin, input);
+    //     std::cout << "grabbing" << std::endl;
+
+    //     servoManager_->pumpOn(Side::RIGHT);
+    //     servoManager_->pumpOn(Side::LEFT);
+    //     servoManager_->doGrab();
+    //     std::cout << "grabbing done" << std::endl;
+    //     std::getline(std::cin, input);
+    //     servoManager_->moveArm(ArmPosition::RAISE);
+    //     std::cout << "raise" << std::endl;
+    //     std::getline(std::cin, input);
+    //     servoManager_->releaseSuction();
+    //     std::cout << "release" << std::endl;
+    // }
 
     ////////////////////////////////
     // Camera-based test

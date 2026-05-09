@@ -75,6 +75,7 @@
             /// \param[in] forceNow If set, target is also sent now
             /// \return True on success, false otherwise.
             void setTargetPosition(unsigned char const& servoId, int16_t const& position, bool forceNow = false);
+
             // Set velocity to be used for position mode. Set 0 to remove clamp.
             void setMaxVelocity(unsigned char const& servoId, int16_t const& maxVelocity);
 
@@ -84,6 +85,28 @@
             /// \param[in] Kd Derivative gain
             /// \param[in] Ki Integral gain
             void setPIDGains(unsigned char const& servoId, unsigned char const& Kp, unsigned char const& Kd, unsigned char const& Ki);
+
+            /// \brief Write to a single byte register.
+            /// \param[in] servoId ID of the servo
+            /// \param[in] registerId Register id.
+            /// \param[in] value Register value.
+            /// \param[in] asynchronous If set, write is asynchronous (ACTION must be send to activate)
+            /// \return True if write was successful
+            bool writeRegister(unsigned char const& servoId,
+                               unsigned char const& registerId,
+                               unsigned char const& value,
+                               bool const& asynchronous = false);
+
+            /// \brief Write a two-bytes register.
+            /// \param[in] servoId ID of the servo
+            /// \param[in] registerId Register id (LSB).
+            /// \param[in] value Register value.
+            /// \param[in] asynchronous If set, write is asynchronous (ACTION must be send to activate)
+            /// \return True if write was successful
+            bool writeTwoBytesRegister(unsigned char const& servoId,
+                                       unsigned char const& registerId,
+                                       int16_t const& value,
+                                       bool const& asynchronous = false);
 
             /// \brief Set target servo velocity.
             /// \note This function assumes that the amplification factor ANGULAR_RESOLUTION is set to 1.

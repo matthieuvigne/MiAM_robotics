@@ -1,6 +1,6 @@
 #include "main_robot/GrabCratesAction.h"
 
-#define MARGIN 160
+#define MARGIN 80
 
 void GrabCratesAction::updateStartCondition()
 {

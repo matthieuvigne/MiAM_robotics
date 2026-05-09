@@ -30,7 +30,10 @@ void LibCameraWrapper::start(int image_width, int image_height)
     }
 
     camera_ = cameraManager_->get(cameraManager_->cameras()[0]->id());
-    camera_->acquire();
+    if (camera_->acquire() < 0)
+    {
+        throw std::runtime_error("Could not acquire camera, process already running?");
+    }
 
     // Configure camera
     std::unique_ptr<libcamera::CameraConfiguration> config = camera_->generateConfiguration({ libcamera::StreamRole::Viewfinder });
@@ -53,7 +56,7 @@ void LibCameraWrapper::start(int image_width, int image_height)
         auto request = camera_->createRequest();
         request->addBuffer(streamConfig.stream(), buffer.get());
 
-        int64_t frame_time = 33333;
+        int64_t frame_time = 100000;
         request->controls().set(
             libcamera::controls::FrameDurationLimits,
             libcamera::Span<const int64_t, 2>({frame_time, frame_time}));

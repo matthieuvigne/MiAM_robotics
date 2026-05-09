@@ -75,9 +75,7 @@ int main(int argc, char **argv)
                 std::cout << "Detected " << detected_markers.size() << " markers." << std::endl;
                 for(Marker const& marker : detected_markers)
                 {
-                    std::stringstream msg;
-                    //msg << "- marker " << marker.markerId << "detected at " << marker.radius << " m" << std::endl;
-                    //std::cout << msg.str();
+                    std::cout << " - Id:" << marker.markerId << " x " << marker.posX << " y " << marker.posY << " z " << marker.posZ << " yaw " << marker.yaw << std::endl;
                 }
             }
             else
