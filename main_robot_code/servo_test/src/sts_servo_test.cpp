@@ -44,6 +44,7 @@ int main(int argc, char* argv[])
         robot_->wait(0.1);
     servo_manager.moveRails(RailPosition::FORWARD);
 
+
     std::string input;
 
     // servoManager_->testArm();
@@ -81,8 +82,10 @@ int main(int argc, char* argv[])
         servoManager_->grabCrates();
         std::cout << "grab crates done" << std::endl;
         std::getline(std::cin, input);
-        servoManager_->moveCratesInBed();
-        std::cout << "grab crates done" << std::endl;
+        servoManager_->emptyBed();
+        std::cout << "emptyBed done" << std::endl;
+        servoManager_->dropCrates();
+        std::cout << "dropCrates done" << std::endl;
     }
     ////////////////////////////////
 

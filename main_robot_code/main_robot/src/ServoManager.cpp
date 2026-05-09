@@ -65,7 +65,7 @@ void precomputeArmIK()
     qFoldMid = solveArmPosition(xFoldMid, qRaised);
     qFold = solveArmPosition(xFold, qFoldMid);
 
-    Eigen::Vector3d const xBed{l1 + 0.14, -(l2 + l3 - 0.14),-0.5};
+    Eigen::Vector3d const xBed{l1 + 0.13, -(l2 + l3 - 0.13),-0.1};
 
     Eigen::Vector3d const qInt = solveArmPosition((xBed + xRaised) / 2.0, qRaised);
     qBedUnfold = solveArmPosition(xBed, qInt);
@@ -121,7 +121,7 @@ void ServoManager::init(RobotInterface *robot)
 
     // Setup rails
     railX_ = servos_->createRail(ID_RAIL_X, 6, 5500, true);
-    railY_ = servos_->createRail(ID_RAIL_Y, 25, 4550, false);
+    railY_ = servos_->createRail(ID_RAIL_Y, 25, 4575, false);
 
     cursorFold();
     bedFold();
@@ -151,14 +151,19 @@ void ServoManager::testArm()
         std::cout << "raise" << std::endl;
         moveArm(ArmPosition::RAISE);
         std::getline(std::cin, input);
-        // Bed unfold
-        moveArmServos(servos_, qBedUnfold);
-        robot_->wait(0.5);
-        bedUnfold();
-        robot_->wait(0.5);
-        bedFold();
-        moveArm(ArmPosition::RAISE);
-        robot_->wait(0.5);
+        emptyBed();
+
+        // // Bed unfold
+        // moveArmServos(servos_, qBedUnfold);
+        // std::getline(std::cin, input);
+        // bedUnfold();
+        // robot_->wait(0.5);
+        // std::getline(std::cin, input);
+        // bedFold();
+        // robot_->wait(0.5);
+        // std::getline(std::cin, input);
+        // moveArm(ArmPosition::RAISE);
+        // robot_->wait(0.5);
         // bedFold();
         // std::getline(std::cin, input);
 
@@ -220,7 +225,7 @@ void ServoManager::bedFold()
 }
 void ServoManager::bedUnfold()
 {
-    servos_->setTargetPosition(ID_BED, 4080);
+    servos_->setTargetPosition(ID_BED, 3500);
 }
 
 void ServoManager::moveArm(ArmPosition const& position)
@@ -294,14 +299,14 @@ void ServoManager::unhideArm()
     moveArm(ArmPosition::RAISE);
 }
 
-#define SUCTION_RANGE 150
+#define SUCTION_RANGE 220
 
 
 void ServoManager::translateSuction(Side const side, double const ratio)
 {
     int const servoIds[2] = {ID_HAND_TRIGHT, ID_HAND_TLEFT};
     int const sign[2] = {1, 1};
-    int const closePosition[2] = {480, 590};
+    int const closePosition[2] = {460, 600};
 
     int const idx = static_cast<int>(side);
     servos_->setTargetPosition(servoIds[idx], closePosition[idx] + sign[idx] * ratio * SUCTION_RANGE);
@@ -569,17 +574,18 @@ void ServoManager::moveCratesInBed()
     translateSuction(Side::RIGHT, 0.0);
 
     moveArm(ArmPosition::FOLD_MID);
-    robot_->wait(0.5);
+    robot_->wait(0.4);
     moveArm(ArmPosition::FOLD);
     robot_->wait(0.2);
     moveRails(RailPosition::INTERNAL);
     while (areRailsMoving())
-        robot_->wait(0.1);
+        robot_->wait(0.050);
     releaseSuction();
     moveRails(RailPosition::FORWARD);
     while (areRailsMoving())
-        robot_->wait(0.1);
+        robot_->wait(0.050);
     moveArm(ArmPosition::RAISE);
+    robot_->wait(0.5);
 }
 
 void ServoManager::dropCrates()
@@ -594,12 +600,12 @@ void ServoManager::dropCrates()
 void ServoManager::emptyBed()
 {
     moveArmServos(servos_, qBedUnfold);
-    robot_->wait(0.5);
     bedUnfold();
-    robot_->wait(1.0);
+    robot_->wait(1.25);
     bedFold();
-    robot_->wait(1.0);
+    robot_->wait(0.5);
     moveArm(ArmPosition::RAISE);
+    robot_->wait(0.5);
     robot_->getGameState()->isBedFull = false;
 }
 
