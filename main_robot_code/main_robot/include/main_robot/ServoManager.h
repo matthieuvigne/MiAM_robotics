@@ -73,10 +73,10 @@ public:
 
     void testArm();
 
+    void moveCratesInBed();
 private:
     void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab);
 
-    void moveCratesInBed();
 
     RobotInterface *robot_;
     STSScheduler *servos_;

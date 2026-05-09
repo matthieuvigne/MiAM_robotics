@@ -390,12 +390,12 @@ void ServoManager::grabCrates()
     }
 
     // Do we need to put something in the bed?
-    // if (opponentTags.size() > 0)
-    // {
-    //     grabTags(tags, opponentTags);
-    //     moveCratesInBed();
-    //     robot_->getGameState()->isBedFull = true;
-    // }
+    if (opponentTags.size() > 0)
+    {
+        grabTags(tags, opponentTags);
+        moveCratesInBed();
+        robot_->getGameState()->isBedFull = true;
+    }
     if (myTags.size() > 0)
     {
         grabTags(tags, myTags);
@@ -459,9 +459,13 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     // Perform motion
     translateSuction(Side::LEFT, suctionLeft);
     translateSuction(Side::RIGHT, suctionRight);
+    std::cout << "here" << std::endl;
     railY_->move(rail);
     while (areRailsMoving())
+    {
         robot_->wait(0.050);
+    std::cout << "here2" << std::endl;
+    }
 
     pumpOn(Side::RIGHT);
     pumpOn(Side::LEFT);
@@ -471,6 +475,7 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     translateSuction(Side::LEFT, 0.0);
     translateSuction(Side::RIGHT, 0.0);
     railY_->move(0.5);
+    std::cout << "here 3" << std::endl;
     while (areRailsMoving())
         robot_->wait(0.050);
 
@@ -579,21 +584,11 @@ void ServoManager::moveCratesInBed()
 
 void ServoManager::dropCrates()
 {
-    if (robot_->getGameState()->isBedFull)
-    {
-        emptyBed();
-        robot_->getGameState()->isBedFull = false;
-    }
-
-    if (robot_->getGameState()->isClawFull)
-    {
-        moveArm(ArmPosition::GRAB);
-        releaseSuction();
-        robot_->wait(0.25);
-        moveArm(ArmPosition::RAISE);
-        robot_->wait(0.25);
-        robot_->getGameState()->isClawFull = false;
-    }
+    moveArm(ArmPosition::GRAB);
+    releaseSuction();
+    robot_->wait(0.25);
+    moveArm(ArmPosition::RAISE);
+    robot_->getGameState()->isClawFull = false;
 }
 
 void ServoManager::emptyBed()
@@ -601,10 +596,11 @@ void ServoManager::emptyBed()
     moveArmServos(servos_, qBedUnfold);
     robot_->wait(0.5);
     bedUnfold();
-    robot_->wait(0.5);
+    robot_->wait(1.0);
     bedFold();
+    robot_->wait(1.0);
     moveArm(ArmPosition::RAISE);
-    robot_->wait(0.5);
+    robot_->getGameState()->isBedFull = false;
 }
 
 void ServoManager::releaseSuction()

@@ -1,6 +1,6 @@
 /// \author MiAM Robotique, Matthieu Vigne
 /// \copyright GNU GPLv3
-#include "FakeMetronome.h"
+#include "miam_utils/FakeMetronome.h"
 
 #include <math.h>
 #include <termios.h>

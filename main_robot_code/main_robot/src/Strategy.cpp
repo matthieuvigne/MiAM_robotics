@@ -91,8 +91,9 @@ void Strategy::match()
     pthread_setname_np(pthread_self(), "strat_match");
     robot->logger_ << "Strategy thread started." << std::endl;
 
-    // motionController->goStraight(500);
-    // testSquare(false, 500);
+    // motionController->goStraight(950);
+    // testSquare(true, 500);
+    // while (true) ;;
     match_impl();
 
 

@@ -16,7 +16,9 @@ RailServo::RailServo(STSServoDriver *driver, int const& servoId, int const& gpio
     calibrateBottom_(calibrateBottom),
     keepServosDisabled_(disable)
 {
-
+    #ifdef SIMULATION
+        currentState_ = RailState::TARGET_REACHED;
+    #endif
 }
 
 void RailServo::move(double const& targetPosition)
@@ -36,6 +38,10 @@ double RailServo::getCurrentPosition() const
 
 void RailServo::tick()
 {
+    #ifdef SIMULATION
+        return;
+    #endif
+
     // Handle calibration
     if (currentState_ == RailState::INIT)
         return;

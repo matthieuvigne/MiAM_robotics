@@ -80,6 +80,9 @@ int main(int argc, char* argv[])
         std::cout << "grabbing crates" << std::endl;
         servoManager_->grabCrates();
         std::cout << "grab crates done" << std::endl;
+        std::getline(std::cin, input);
+        servoManager_->moveCratesInBed();
+        std::cout << "grab crates done" << std::endl;
     }
     ////////////////////////////////
 

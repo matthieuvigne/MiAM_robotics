@@ -15,6 +15,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_FLAGS "-Wall -fdiagnostics-color -lpthread -lm -fPIC")
+if(NOT CROSS_COMPILE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSIMULATION")
+endif()
 
 if (ENABLE_TRACY)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRACY_ENABLE")
@@ -41,6 +44,8 @@ message("\t- Cross-compiling: " ${CROSS_COMPILE})
 message("\t- Build mode: " ${CMAKE_BUILD_TYPE})
 message("\t- Enable teleplot: " ${ENABLE_TELEPLOT})
 message("\t- Enable tracy: " ${ENABLE_TRACY})
+
+message("\t- CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 
 # Add sources
 add_subdirectory(rplidar_sdk EXCLUDE_FROM_ALL)

@@ -18,7 +18,7 @@
     #include "common/GameState.h"
     #include "common/RobotGUI.h"
 #ifdef SIMULATION
-    #include "FakeMetronome.h"
+    #include <miam_utils/FakeMetronome.h>
 #endif
 
     class AbstractStrategy;

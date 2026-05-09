@@ -23,7 +23,7 @@ std::vector<Tag> VisionHandler::getTags()
             v.x() = 0.05;
             v.y() = 0.05 * i;
             v.z() = -0.200;
-            tags.push_back(Tag{YELLOW, v});
+            tags.push_back(Tag{i < 2 ? YELLOW : BLUE, v});
         }
         return tags;
     #endif
