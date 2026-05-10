@@ -44,7 +44,8 @@ void GrabCratesAction::updateStartCondition()
 
 void GrabCratesAction::actionStartTrigger()
 {
-    servoManager_->hideArm();
+    std::thread hide(&ServoManager::hideArm, servoManager_);
+    hide.detach();
 }
 
 bool GrabCratesAction::performAction()
@@ -64,8 +65,8 @@ bool GrabCratesAction::performAction()
     TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
         robot_->getMotionController()->getCurrentTrajectoryParameters(),
         positions,
-        MARGIN / 4.0,
-        0.3
+        MARGIN / 8.0,
+        0.15
     );
     robot_->getMotionController()->setTrajectoryToFollow(traj);
     robot_->getMotionController()->waitForTrajectoryFinished();

@@ -4,7 +4,7 @@
 
 void DropCratesAction::updateStartCondition()
 {
-    double const OFFSET = FRONT_CLAW_XOFFSET + 50.0;
+    double const OFFSET = FRONT_CLAW_XOFFSET + 30.0;
     // TODO do not drop if zone is full
     if (robot_->getGameState()->isPantryZoneUsed[zoneId_])
     {
@@ -100,14 +100,19 @@ bool DropCratesAction::performAction()
     if (robot_->getGameState()->isBedFull && robot_->getGameState()->isClawFull)
     {
         double MOVE_DIST = 70;
-        double ANGLE = 0.4;
+        servoManager_->moveRails(RailPosition::DROP);
+        robot_->getMotionController()->goStraight(-MOVE_DIST);
+        double ANGLE = 0.2;
         // Move forward in arc circle.
         RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
         currentPosition.theta += ANGLE;
         RobotPosition targetPosition = currentPosition.forward(MOVE_DIST);
         robot_->getMotionController()->goToStraightLine(targetPosition);
+        robot_->getMotionController()->pointTurn(-ANGLE);
 
-        servoManager_->emptyBed();
+        servoManager_->dropCrates();
+        servoManager_->moveRails(RailPosition::FORWARD);
+        robot_->getMotionController()->pointTurn(ANGLE);
 
         robot_->getMotionController()->goStraight(-MOVE_DIST);
 
@@ -115,17 +120,14 @@ bool DropCratesAction::performAction()
         currentPosition.theta -= 2.0 * ANGLE;
         targetPosition = currentPosition.forward(MOVE_DIST);
         robot_->getMotionController()->goToStraightLine(targetPosition);
-        servoManager_->moveArm(ArmPosition::GRAB);
-        servoManager_->releaseSuction();
-        robot_->wait(0.25);
-        servoManager_->moveArm(ArmPosition::RAISE);
-        robot_->getGameState()->isClawFull = false;
+        robot_->getMotionController()->pointTurn(-ANGLE);
+
+        servoManager_->emptyBed();
 
         robot_->getMotionController()->goStraight(-MARGIN);
     }
     else
     {
-        robot_->getMotionController()->goStraight(50);
         if (robot_->getGameState()->isBedFull)
             servoManager_->emptyBed();
         else

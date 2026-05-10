@@ -73,7 +73,8 @@ bool Strategy::setup(RobotInterface *robot)
     if (setupStep_ == 2 && !servoManager_.areRailsMoving())
     {
         robot->logger_ << "[Strategy] Setup done" << std::endl;
-        servoManager_.hideArm();
+        std::thread hide(&ServoManager::hideArm, &servoManager_);
+        hide.detach();
         return true;
     }
     return false;
@@ -124,6 +125,9 @@ void Strategy::match()
 void Strategy::goBackToBase()
 {
     MATCH_COMPLETED = true;
+    std::thread hide(&ServoManager::hideArm, servoManager_);
+    hide.detach();
+
     robot->getMotionController()->enableDetection(true);
     robot->getGameState()->arePAMIMoving_ = true;
     robot->setGUIActionName("[Match End] Back to base");

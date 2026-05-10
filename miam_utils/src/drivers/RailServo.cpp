@@ -23,6 +23,7 @@ RailServo::RailServo(STSServoDriver *driver, int const& servoId, int const& gpio
 
 void RailServo::move(double const& targetPosition)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     targetPosition_ = targetPosition;
 #ifndef SIMULATION
     currentState_ = RailState::MOVING;
@@ -38,6 +39,7 @@ double RailServo::getCurrentPosition() const
 
 void RailServo::tick()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     #ifdef SIMULATION
         return;
     #endif

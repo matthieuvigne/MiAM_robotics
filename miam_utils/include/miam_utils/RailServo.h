@@ -84,5 +84,6 @@
             bool keepServosDisabled_;
 
             RailState currentState_ = RailState::INIT;
+            std::mutex mutex_;
     };
 #endif

@@ -114,8 +114,8 @@ void ServoManager::init(RobotInterface *robot)
     servos_->setMode(ID_HAND_TRIGHT,STS::Mode::POSITION);
     servos_->setMode(ID_HAND_TLEFT, STS::Mode::POSITION);
     servos_->setMode(ID_BED,        STS::Mode::POSITION);
-    // servos_->setMode(ID_FINGER_R,   STS::Mode::POSITION);
-    // servos_->setMode(ID_FINGER_L,   STS::Mode::POSITION);
+    servos_->setMode(ID_FINGER_R,   STS::Mode::POSITION);
+    servos_->setMode(ID_FINGER_L,   STS::Mode::POSITION);
     servos_->setMode(ID_CURSOR,     STS::Mode::POSITION);
 
 
@@ -138,6 +138,7 @@ void ServoManager::init(RobotInterface *robot)
     pumpOff(Side::LEFT);
     valveOff(Side::RIGHT);
     valveOff(Side::LEFT);
+    fingerOpen();
     // Start calib
     servos_->startRailCalibration();
 }
@@ -200,6 +201,10 @@ void ServoManager::moveRails(RailPosition const& position)
         case RailPosition::INTERNAL:
             railX_->move(1.0);
             railY_->move(0.5);
+            break;
+        case RailPosition::DROP:
+            railX_->move(0.0);
+            railY_->move(1.0);
             break;
         default: break;
     }
@@ -279,6 +284,7 @@ void ServoManager::doGrab()
 
 void ServoManager::hideArm()
 {
+    bedFold();
     translateSuction(Side::RIGHT, 0.0);
     translateSuction(Side::LEFT, 0.0);
     releaseSuction();
@@ -293,9 +299,7 @@ void ServoManager::hideArm()
 void ServoManager::unhideArm()
 {
     moveArm(ArmPosition::FOLD);
-    robot_->wait(0.5);
-    // moveArm(ArmPosition::FOLD_MID);
-    // robot_->wait(0.2);
+    robot_->wait(0.4);
     moveArm(ArmPosition::RAISE);
 }
 
@@ -379,7 +383,6 @@ void ServoManager::grabCrates()
     }
 
     unhideArm();
-    robot_->wait(0.25);
 
     int const myColor = (robot_->isPlayingRightSide() ? BLUE : YELLOW);
     int const opponentColor = (robot_->isPlayingRightSide() ? YELLOW : BLUE);
@@ -406,6 +409,12 @@ void ServoManager::grabCrates()
         grabTags(tags, myTags);
         robot_->getGameState()->isClawFull = true;
     }
+    if (robot_->getGameState()->isBedFull)
+    {
+        servos_->setTargetPosition(ID_BED, 2500);
+        robot_->wait(0.6);
+        fingerClose();
+    }
 }
 
 void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab)
@@ -426,7 +435,7 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     // Do all 5 cases
     if (leftTagIdx == 0 && rightTagIdx == 1)
     {
-        suctionLeft = 0.0;
+        suctionLeft = 0.3;
         suctionRight = 0.0;
         rail = 1.0;
     }
@@ -457,30 +466,27 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     else if (leftTagIdx == 2 && rightTagIdx == 3)
     {
         suctionLeft = 0.0;
-        suctionRight = 0.0;
+        suctionRight = 0.3;
         rail = 0.0;
     }
 
     // Perform motion
     translateSuction(Side::LEFT, suctionLeft);
     translateSuction(Side::RIGHT, suctionRight);
-    std::cout << "here" << std::endl;
     railY_->move(rail);
     while (areRailsMoving())
     {
         robot_->wait(0.050);
-    std::cout << "here2" << std::endl;
     }
 
     pumpOn(Side::RIGHT);
     pumpOn(Side::LEFT);
     doGrab();
     moveArm(ArmPosition::RAISE);
-    robot_->wait(0.5);
+    robot_->wait(0.3);
     translateSuction(Side::LEFT, 0.0);
     translateSuction(Side::RIGHT, 0.0);
     railY_->move(0.5);
-    std::cout << "here 3" << std::endl;
     while (areRailsMoving())
         robot_->wait(0.050);
 
@@ -578,6 +584,7 @@ void ServoManager::moveCratesInBed()
     moveArm(ArmPosition::FOLD);
     robot_->wait(0.2);
     moveRails(RailPosition::INTERNAL);
+    robot_->wait(0.100);
     while (areRailsMoving())
         robot_->wait(0.050);
     releaseSuction();
@@ -585,14 +592,14 @@ void ServoManager::moveCratesInBed()
     while (areRailsMoving())
         robot_->wait(0.050);
     moveArm(ArmPosition::RAISE);
-    robot_->wait(0.5);
+    robot_->wait(0.2);
 }
 
 void ServoManager::dropCrates()
 {
     moveArm(ArmPosition::GRAB);
-    releaseSuction();
     robot_->wait(0.25);
+    releaseSuction();
     moveArm(ArmPosition::RAISE);
     robot_->getGameState()->isClawFull = false;
 }
@@ -601,7 +608,9 @@ void ServoManager::emptyBed()
 {
     moveArmServos(servos_, qBedUnfold);
     bedUnfold();
-    robot_->wait(1.25);
+    robot_->wait(0.75);
+    fingerOpen();
+    robot_->wait(0.25);
     bedFold();
     robot_->wait(0.5);
     moveArm(ArmPosition::RAISE);
@@ -618,4 +627,20 @@ void ServoManager::releaseSuction()
     robot_->wait(0.3);
     valveOff(Side::RIGHT);
     valveOff(Side::LEFT);
+}
+
+#define FINGER_RIGHT_OPEN 480
+#define FINGER_LEFT_OPEN 500
+
+void ServoManager::fingerOpen()
+{
+    servos_->setTargetPosition(ID_FINGER_R, FINGER_RIGHT_OPEN);
+    servos_->setTargetPosition(ID_FINGER_L, FINGER_LEFT_OPEN);
+}
+
+void ServoManager::fingerClose()
+{
+    int closeAmount = 250;
+    servos_->setTargetPosition(ID_FINGER_R, FINGER_RIGHT_OPEN + closeAmount);
+    servos_->setTargetPosition(ID_FINGER_L, FINGER_LEFT_OPEN - closeAmount);
 }

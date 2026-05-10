@@ -15,7 +15,8 @@ enum ArmPosition {
 
 enum RailPosition {
     FORWARD,
-    INTERNAL
+    INTERNAL,
+    DROP
 };
 
 enum class Side : int {
@@ -74,6 +75,9 @@ public:
     void testArm();
 
     void moveCratesInBed();
+
+    void fingerOpen();
+    void fingerClose();
 private:
     void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab);
 
