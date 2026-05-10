@@ -154,39 +154,6 @@ void ServoManager::testArm()
         std::getline(std::cin, input);
         emptyBed();
 
-        // // Bed unfold
-        // moveArmServos(servos_, qBedUnfold);
-        // std::getline(std::cin, input);
-        // bedUnfold();
-        // robot_->wait(0.5);
-        // std::getline(std::cin, input);
-        // bedFold();
-        // robot_->wait(0.5);
-        // std::getline(std::cin, input);
-        // moveArm(ArmPosition::RAISE);
-        // robot_->wait(0.5);
-        // bedFold();
-        // std::getline(std::cin, input);
-
-        // std::getline(std::cin, input);
-        // std::cout << "raise" << std::endl;
-        // moveArm(ArmPosition::RAISE);
-        // std::getline(std::cin, input);
-        // std::cout << "doGrab" << std::endl;
-        // pumpOn(Side::RIGHT);
-        // pumpOn(Side::LEFT);
-        // doGrab();
-        // std::getline(std::cin, input);
-        // std::cout << "raise" << std::endl;
-        // moveArm(ArmPosition::RAISE);
-        // std::getline(std::cin, input);
-        // std::cout << "folding" << std::endl;
-        // moveArmServos(servos_, qFoldMid);
-        // robot_->wait(1.0);
-        // moveArmServos(servos_, qFold);
-        // robot_->wait(1.0);
-        // std::getline(std::cin, input);
-        // releaseSuction();
     }
 }
 
@@ -233,7 +200,7 @@ void ServoManager::bedFold()
 }
 void ServoManager::bedUnfold()
 {
-    servos_->setTargetPosition(ID_BED, 3500);
+    servos_->setTargetPosition(ID_BED, 3800);
 }
 
 void ServoManager::moveArm(ArmPosition const& position)
@@ -271,11 +238,11 @@ void ServoManager::doGrab()
     // moveArmServos(servos_, qGrabMid);
     // robot_->wait(0.5);
     moveArmServos(servos_, qGrab);
-    robot_->wait(0.7);
+    robot_->wait(0.5);
     servos_->disable(ID_ARM_1);
     servos_->disable(ID_ARM_2);
     servos_->disable(ID_ARM_3);
-    robot_->wait(0.8);
+    robot_->wait(0.7);
     servos_->enable(ID_ARM_1);
     servos_->enable(ID_ARM_2);
     servos_->enable(ID_ARM_3);
@@ -344,26 +311,27 @@ void ServoManager::valveOff(Side const side)
     RPi_writeGPIO(23 + idx, LOW);
 }
 
-void ServoManager::grabCrates()
+CameraResult ServoManager::cameraDetectCrates()
 {
     // Look for tags in the image
-    std::vector<Tag> tags;
+    CameraResult result;
+    result.cratesPresent = false;
     for (int i = 0; i < 5; i++)
     {
-        tags = visionHandler_.getTags();
-        if (tags.size() == 4)
+        result.tags = visionHandler_.getTags();
+        if (result.tags.size() == 4)
             break;
         robot_->wait(0.120); // Wait, with enough time for the camera to get a new frame.
     }
     // Analyze: what did we see
-    if (tags.size() == 0)
+    if (result.tags.size() == 0)
     {
-        robot_->logger_ << "[ServoManager] Grab crates: no tag seen, exiting." << std::endl;
-        return;
+        robot_->logger_ << "[ServoManager] cameraDetectCrates: no tag seen, exiting." << std::endl;
+        return result;
     }
 
     robot_->logger_ << "[ServoManager] Tags:";
-    for (auto const& t : tags)
+    for (auto const& t : result.tags)
     {
         if (t.markerId == BLUE)
             robot_->logger_ << "blue ";
@@ -371,19 +339,36 @@ void ServoManager::grabCrates()
             robot_->logger_<< "yellow ";
     }
     robot_->logger_ << std::endl;
+    result.lateralOffset = 0.0;
     robot_->logger_ << "[ServoManager] Tags Y pos:";
-    for (auto const& t : tags)
+    for (auto const& t : result.tags)
     {
         robot_->logger_ << t.position.y() << " ";
+        result.lateralOffset += t.position.y();
     }
     robot_->logger_ << std::endl;
+    robot_->logger_ << "[ServoManager] Tags X pos:";
+    for (auto const& t : result.tags)
+    {
+        robot_->logger_ << t.position.x() << " ";
+    }
+    robot_->logger_ << std::endl;
+    result.lateralOffset /= result.tags.size();
+    result.lateralOffset *= 1000.0; // Motion planning is done in mm.
 
-
-    if (tags.size() != 4)
+    if (result.tags.size() != 4)
     {
         robot_->logger_ << "[ServoManager::grabCrates] Incorrect number of crates, exiting." << std::endl;
-        return;
+        return result;
     }
+    result.cratesPresent = true;
+    return result;
+}
+
+void ServoManager::grabCrates(CameraResult const& cameraResult)
+{
+    if (!cameraResult.cratesPresent)
+        return;
 
     unhideArm();
 
@@ -392,24 +377,24 @@ void ServoManager::grabCrates()
 
     std::vector<int> myTags;
     std::vector<int> opponentTags;
-    for (unsigned int i = 0; i < tags.size(); i++)
+    for (unsigned int i = 0; i < cameraResult.tags.size(); i++)
     {
-        if (tags.at(i).markerId == myColor)
+        if (cameraResult.tags.at(i).markerId == myColor)
             myTags.push_back(i);
-        if (tags.at(i).markerId == opponentColor)
+        if (cameraResult.tags.at(i).markerId == opponentColor)
             opponentTags.push_back(i);
     }
 
     // Do we need to put something in the bed?
     if (opponentTags.size() > 0)
     {
-        grabTags(tags, opponentTags);
+        grabTags(cameraResult.tags, opponentTags);
         moveCratesInBed();
         robot_->getGameState()->isBedFull = true;
     }
     if (myTags.size() > 0)
     {
-        grabTags(tags, myTags);
+        grabTags(cameraResult.tags, myTags);
         robot_->getGameState()->isClawFull = true;
     }
     if (robot_->getGameState()->isBedFull)
@@ -435,11 +420,13 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     robot_->logger_ << "[ServoManager::grabTags] Grabbing tags indexed " << leftTagIdx << " " << rightTagIdx << std::endl;
 
     double suctionRight = 0.0, suctionLeft = 0.0, rail = 0.0;
+    double suctionOffset = 0.0;
     // Do all 5 cases
     if (leftTagIdx == 0 && rightTagIdx == 1)
     {
-        suctionLeft = 0.3;
+        suctionLeft = 0.2;
         suctionRight = 0.0;
+        suctionOffset = 0.1;
         rail = 1.0;
     }
     else if (leftTagIdx == 0 && rightTagIdx == 2)
@@ -469,7 +456,8 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     else if (leftTagIdx == 2 && rightTagIdx == 3)
     {
         suctionLeft = 0.0;
-        suctionRight = 0.3;
+        suctionRight = 0.2;
+        suctionOffset = 0.1;
         rail = 0.0;
     }
 
@@ -486,9 +474,9 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     pumpOn(Side::LEFT);
     doGrab();
     moveArm(ArmPosition::RAISE);
-    robot_->wait(0.3);
-    translateSuction(Side::LEFT, 0.0);
-    translateSuction(Side::RIGHT, 0.0);
+    robot_->wait(0.7);
+    translateSuction(Side::LEFT, suctionOffset);
+    translateSuction(Side::RIGHT, suctionOffset);
     railY_->move(0.5);
     while (areRailsMoving())
         robot_->wait(0.050);
@@ -593,9 +581,12 @@ void ServoManager::moveCratesInBed()
     releaseSuction();
     moveRails(RailPosition::FORWARD);
     while (areRailsMoving())
+    {
+        if (railX_->getCurrentPosition() < 0.2)
+            moveArm(ArmPosition::RAISE);
         robot_->wait(0.050);
+    }
     moveArm(ArmPosition::RAISE);
-    robot_->wait(0.2);
 }
 
 void ServoManager::dropCrates()
@@ -611,9 +602,9 @@ void ServoManager::emptyBed()
 {
     moveArmServos(servos_, qBedUnfold);
     bedUnfold();
-    robot_->wait(0.75);
+    robot_->wait(0.80);
     fingerOpen();
-    robot_->wait(0.25);
+    robot_->wait(0.2);
     bedFold();
     robot_->wait(0.5);
     moveArm(ArmPosition::RAISE);

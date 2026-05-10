@@ -24,6 +24,13 @@ enum class Side : int {
     LEFT = 1
 };
 
+struct CameraResult
+{
+    bool cratesPresent = false;
+    std::vector<Tag> tags;
+    double lateralOffset = 0.0;
+};
+
 class ServoManager
 {
 public:
@@ -60,7 +67,7 @@ public:
 
     // Complexe actions
     // Gab all crates visible by the robot, handle color logic etc...
-    void grabCrates();
+    void grabCrates(CameraResult const& cameraResult);
     void dropCrates();
 
     void emptyBed();
@@ -78,6 +85,9 @@ public:
 
     void fingerOpen();
     void fingerClose();
+
+    CameraResult cameraDetectCrates();
+
 private:
     void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab);
 
