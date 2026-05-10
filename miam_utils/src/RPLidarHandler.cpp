@@ -251,10 +251,10 @@ bool RPLidarHandler::detectBeaconInCurrentBlob()
     //double const max_radius_error = 5; // [mm]
     Blob const& blob = pointsInBlob_;
     int const num_points = static_cast<int>(blob.size());
-    printf("---------------------------------------------------------\n");
-    printf("NEW BEACON -> RANSAC LOOP (%d points):\n", num_points);
-    for(LidarPoint const& point : blob)
-        printf("(r=%.0f,theta=%.0f)\n",point.r,point.theta*180./M_PI);
+    //printf("---------------------------------------------------------\n");
+    //printf("NEW BEACON -> RANSAC LOOP (%d points):\n", num_points);
+    //for(LidarPoint const& point : blob)
+    //    printf("(r=%.0f,theta=%.0f)\n",point.r,point.theta*180./M_PI);
     int const min_num_inliers = std::max(10.,std::floor(0.70*num_points));
     if(num_points < 20) return false; // TODO reduce
 
@@ -335,16 +335,16 @@ bool RPLidarHandler::detectBeaconInCurrentBlob()
             best_xc = xc2;
             best_yc = yc2;
         }
-        printf("[iter %d] xc=%.0f, yc=%.0f\n", iter_idx, best_xc, best_yc);
+        //printf("[iter %d] xc=%.0f, yc=%.0f\n", iter_idx, best_xc, best_yc);
 
         // Check stop conditions
         if(iter_idx >= max_iters){
-            printf("Max iterations reached -> break!\n");
+            //printf("Max iterations reached -> break!\n");
             break;
         }
         if(best_num_inliers > min_num_inliers){
-            printf("Sufficient number of inliers reached (%d/%d)-> break!\n",
-                best_num_inliers, min_num_inliers);
+            //printf("Sufficient number of inliers reached (%d/%d)-> break!\n",
+            //    best_num_inliers, min_num_inliers);
             break;
         }
         iter_idx += 1;
@@ -352,14 +352,14 @@ bool RPLidarHandler::detectBeaconInCurrentBlob()
     }
 
     // Check if the best result is sufficient
-    printf("Found beacon at x=%d and y=%d\n", int(best_xc), int(best_yc));
+    //printf("Found beacon at x=%d and y=%d\n", int(best_xc), int(best_yc));
     if(std::isnan(best_xc)) return false;
     if(std::isnan(best_yc)) return false;
     if(best_num_inliers < min_num_inliers){
-        printf("Not enough inliers -> abort!\n");
+        //printf("Not enough inliers -> abort!\n");
         return false;
     }
-    printf("Passed the tests successfully!\n");
+    //printf("Passed the tests successfully!\n");
 
     // Refine the position of the center of the beacon
     // [Note] Least-square update of the best estimate
@@ -386,7 +386,7 @@ bool RPLidarHandler::detectBeaconInCurrentBlob()
         iter_idx += 1;
         continue;
     }
-    printf("Refined at x=%d and y=%d\n", int(best_xc), int(best_yc));
+    //printf("Refined at x=%d and y=%d\n", int(best_xc), int(best_yc));
 
     // Add the beacon to the list
     double const r = sqrt( best_xc*best_xc + best_yc*best_yc );
@@ -510,8 +510,8 @@ void estimate_robot_position_from_beacons(
 
         // Solve the current iteration
         Eigen::Vector3d const s = (A.transpose()*A).ldlt().solve(A.transpose()*b);
-        bool ok1 = (std::fabs(s(0) - x)     < 50); // [mm]
-        bool ok2 = (std::fabs(s(1) - y)     < 50); // [mm]
+        bool ok1 = (std::fabs(s(0) - x)     < 5); // [mm]
+        bool ok2 = (std::fabs(s(1) - y)     < 5); // [mm]
         bool ok3 = (std::fabs(s(2) - theta) < 0.5*M_PI/180.);
         x = s(0);
         y = s(1);
