@@ -113,6 +113,14 @@ namespace miam{
         return p;
     }
 
+    RobotPosition RobotPosition::relativeTranslate(double const& x, double const& y) const
+    {
+        RobotPosition p = RobotPosition(x, y, 0).rotate(this->theta);
+        p.x += this->x;
+        p.y += this->y;
+        return p;
+    }
+
 
     std::ostream& operator<<(std::ostream& os, const RobotPosition& p)
     {

@@ -95,6 +95,12 @@
                 /// \return Translated position
                 RobotPosition forward(double const& distance) const;
 
+                /// \brief Return the position corresponding to a (x, y) translation, in current position frame.
+                ///
+                /// \param[in] distance Distance (negative will give backward motion)
+                /// \return Translated position
+                RobotPosition relativeTranslate(double const& x, double const& y) const;
+
                 double x;    ///< X coordinate of the robot, in mm.
                 double y;    ///< Y coordinate of the robot, in mm. Notice that y axis is taken positive when pointing downward.
                 double theta;    ///< Angle of the robot, in rad.

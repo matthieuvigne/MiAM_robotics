@@ -39,7 +39,7 @@ bool CursorAction::performAction()
     // Go in front of cursor
     {
         tf const flags = (robot_->isPlayingRightSide() ? tf::BACKWARD : tf::DEFAULT);
-        RobotPosition const targetPosition(220, LATERAL_DISTANCE, angle);
+        RobotPosition const targetPosition(210, LATERAL_DISTANCE, angle);
         robot_->getMotionController()->goToStraightLine(targetPosition, 1, flags);
     }
 

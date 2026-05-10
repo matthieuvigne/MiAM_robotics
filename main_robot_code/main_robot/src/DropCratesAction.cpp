@@ -2,6 +2,8 @@
 
 #define MARGIN 80
 
+#define LATERAL_OFFSET 45.0
+
 void DropCratesAction::updateStartCondition()
 {
     double const OFFSET = FRONT_CLAW_XOFFSET + 30.0;
@@ -85,12 +87,30 @@ void DropCratesAction::updateStartCondition()
             break;
     }
 
+    if (std::abs(startPosition_.theta - 0) < 1e-6)
+    {
+        startPosition_.y += LATERAL_OFFSET;
+    }
+    else if (std::abs(startPosition_.theta - M_PI) < 1e-6)
+    {
+        startPosition_.y -= LATERAL_OFFSET;
+    }
+    else if (std::abs(startPosition_.theta - M_PI_2) < 1e-6)
+    {
+        startPosition_.x -= LATERAL_OFFSET;
+    }
+    else if (std::abs(startPosition_.theta + M_PI_2) < 1e-6)
+    {
+        startPosition_.x += LATERAL_OFFSET;
+    }
+
 }
 
 
 void DropCratesAction::actionStartTrigger()
 {
-    // Empty on purpose
+    if (robot_->getGameState()->isBedFull && robot_->getGameState()->isClawFull)
+        servoManager_->moveRails(RailPosition::DROP);
 }
 
 bool DropCratesAction::performAction()
@@ -99,31 +119,25 @@ bool DropCratesAction::performAction()
 
     if (robot_->getGameState()->isBedFull && robot_->getGameState()->isClawFull)
     {
-        double MOVE_DIST = 70;
-        servoManager_->moveRails(RailPosition::DROP);
-        robot_->getMotionController()->goStraight(-MOVE_DIST);
-        double ANGLE = 0.2;
-        // Move forward in arc circle.
-        RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
-        currentPosition.theta += ANGLE;
-        RobotPosition targetPosition = currentPosition.forward(MOVE_DIST);
-        robot_->getMotionController()->goToStraightLine(targetPosition);
-        robot_->getMotionController()->pointTurn(-ANGLE);
-
         servoManager_->dropCrates();
         servoManager_->moveRails(RailPosition::FORWARD);
-        robot_->getMotionController()->pointTurn(ANGLE);
+        robot_->getMotionController()->goStraight(-MARGIN);
 
-        robot_->getMotionController()->goStraight(-MOVE_DIST);
-
-        currentPosition = robot_->getMotionController()->getCurrentPosition();
-        currentPosition.theta -= 2.0 * ANGLE;
-        targetPosition = currentPosition.forward(MOVE_DIST);
-        robot_->getMotionController()->goToStraightLine(targetPosition);
-        robot_->getMotionController()->pointTurn(-ANGLE);
+        RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
+        std::vector<RobotPosition> positions;
+        positions.push_back(currentPosition);
+        positions.push_back(currentPosition.relativeTranslate(MARGIN / 2.0, -2 * LATERAL_OFFSET));
+        positions.push_back(currentPosition.relativeTranslate(MARGIN, -2 * LATERAL_OFFSET));
+        TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
+            robot_->getMotionController()->getCurrentTrajectoryParameters(),
+            positions,
+            MARGIN / 8.0,
+            0.15
+        );
+        robot_->getMotionController()->setTrajectoryToFollow(traj);
+        robot_->getMotionController()->waitForTrajectoryFinished();
 
         servoManager_->emptyBed();
-
         robot_->getMotionController()->goStraight(-MARGIN);
     }
     else
