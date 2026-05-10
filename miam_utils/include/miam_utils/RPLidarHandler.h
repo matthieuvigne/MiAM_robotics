@@ -20,7 +20,6 @@
     #include <deque>
     #include "miam_utils/lidar_point.hpp"
     #include "miam_utils/Metronome.h"
-    // #include "miam_utils/beacon_detector.hpp"
 
     // Constant parameters.
     #define DEBUGGING_BUFFER_LENGTH 2000
@@ -66,7 +65,11 @@
         LidarPoint point;
         double addedTime = 0.0;
         int nPoints = 0;
-        int ref_idx = -1;
+    };
+
+    struct ReferenceBeacon {
+        double x;   // x absolute position of the beacon
+        double y;   // y absolute position of the beacon
     };
 
     class RPLidarHandler
@@ -135,4 +138,12 @@
 
             float fastestModeTime_ = 100000.0;
     };
+
+    // Estimate the position of the robot with regard to beacons
+    void estimate_robot_position_from_beacons(
+        double& x,      double const sigma_x, 
+        double& y,      double const sigma_y, 
+        double& theta,  double const sigma_theta,
+        std::vector<DetectedBeacon> const& detected_beacons,
+        std::vector<ReferenceBeacon> const& reference_beacons);
 #endif

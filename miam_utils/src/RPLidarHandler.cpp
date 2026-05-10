@@ -388,26 +388,6 @@ bool RPLidarHandler::detectBeaconInCurrentBlob()
     }
     printf("Refined at x=%d and y=%d\n", int(best_xc), int(best_yc));
 
-    // Associate the detected beacon to a reference detected beacon
-    // [Note] We assume we should not be too far from a reference beacon.
-    /*int best_beacon_idx = -1;
-    double best_distance = std::numeric_limits<double>::infinity();
-    int const num_ref_beacons = static_cast<int>(reference_beacons_.size());
-    for(int ref_idx=0; ref_idx<num_ref_beacons; ref_idx+=1)
-    {
-        Beacon const& ref_beacon = reference_beacons_[ref_idx];
-        double const xr = ref_beacon.x;
-        double const yr = ref_beacon.y;
-        double const d = sqrt( pow(best_xc-xr,2.) + pow(best_yc-yr,2.) );
-        if(d<best_distance){
-            best_distance = d;
-            best_beacon_idx = ref_idx;
-        }
-    }
-    double const max_acceptable_distance = 200; // [mm]
-    if(best_distance > max_acceptable_distance) 
-        return false;*/
-
     // Add the beacon to the list
     double const r = sqrt( best_xc*best_xc + best_yc*best_yc );
     double const theta = atan2(best_yc,best_xc);
@@ -416,9 +396,132 @@ bool RPLidarHandler::detectBeaconInCurrentBlob()
     new_beacon.point.theta = theta;
     new_beacon.nPoints = best_num_inliers;
     new_beacon.addedTime = timeHandler_.getElapsedTime();
-    /*new_beacon.ref_idx = best_beacon_idx;*/
     printf( ANSI_GREEN "Added the new beacon r=%.0f, theta=%.0f (%d/%d)\n" ANSI_RESET, 
         r, theta*180./M_PI, best_num_inliers, num_points);
     detectedBeacons_.emplace_back(new_beacon);
     return true;
 }
+
+//-------------------------------------------------------------------------------------------------
+
+void estimate_robot_position_from_beacons(
+    double& x,      double const sigma_x, 
+    double& y,      double const sigma_y, 
+    double& theta,  double const sigma_theta,
+    std::vector<DetectedBeacon> const& detected_beacons,
+    std::vector<ReferenceBeacon> const& reference_beacons)
+{       
+    // Perform data association
+    int const num_ref_beacons = static_cast<int>(reference_beacons.size());
+    std::vector<int> detected_to_reference(detected_beacons.size(),-1);
+    for(int idx=0; idx<static_cast<int>(detected_beacons.size()); idx++)
+    {
+        // Get the detected beacon infos
+        DetectedBeacon const& beacon = detected_beacons[idx];
+        double const xd = x + beacon.point.r * cos(beacon.point.theta);
+        double const yd = y + beacon.point.r * sin(beacon.point.theta);
+
+        // Find the best reference beacon
+        int best_beacon_idx = -1;
+        double best_distance = std::numeric_limits<double>::infinity();
+        for(int ref_idx=0; ref_idx<num_ref_beacons; ref_idx+=1)
+        {
+            ReferenceBeacon const& ref_beacon = reference_beacons[ref_idx];
+            double const xr = ref_beacon.x;
+            double const yr = ref_beacon.y;
+            double const d = sqrt( pow(xd-xr,2.) + pow(yd-yr,2.) );
+            if(d<best_distance)
+            {
+                best_distance = d;
+                best_beacon_idx = ref_idx;
+            }
+        }
+
+        // If the best distance is acceptable, save it
+        double const max_acceptable_distance = 50; // [mm]
+        if(best_distance < max_acceptable_distance)
+            detected_to_reference[idx] = best_beacon_idx;
+        continue;
+    }
+
+    // Build and solve the MAP estimation problem
+    int iter_idx = 0;
+    int const max_iters = 10;
+    while(true)
+    {
+        // Build the MAP estimation problem
+        int const num_detected_beacons = static_cast<int>(detected_beacons.size());
+        int const num_constraints = 3 + 2*num_detected_beacons;
+        Eigen::MatrixXd A = Eigen::MatrixXd::Zero(num_constraints,3);
+        Eigen::VectorXd b = Eigen::VectorXd::Zero(num_constraints,3);
+        // >> Add the prior term
+        A(0,0) = 1/sigma_x;     b(0) = x/sigma_x;
+        A(1,1) = 1/sigma_y;     b(1) = y/sigma_y;
+        A(2,2) = 1/sigma_theta; b(2) = theta/sigma_theta;
+        // >> Add the beacon residuals
+        for(int idx=0; idx<num_detected_beacons; idx+=1)
+        {
+            int const row0_idx = 3 + 2*idx;
+
+            // Get the detected beacon and associated measurements
+            DetectedBeacon const& beacon = detected_beacons[idx];
+            double const r_mes = beacon.point.r;
+            double const theta_mes = beacon.point.theta;
+
+            // Get the reference beacon and predicted measurements
+            int const ref_idx = detected_to_reference[idx];
+            if(idx<0) continue;
+            ReferenceBeacon const& ref_beacon = reference_beacons[ref_idx];
+            double const dx = ref_beacon.x - x;
+            double const dy = ref_beacon.y - y;
+            double const r_pred = sqrt(dx*dx + dy*dy);
+            double const theta_pred = atan2(dy,dx) - theta;
+
+            // Get the measurement standard deviations
+            double const sigma_r = (0.1*r_pred)/3.;         // 10% @ 3sigma
+            double const sigma_theta = (2*M_PI/180.)/3.;    // 2°  @ 3sigmas
+
+            // Add the matrix terms
+            /**
+             * r = ||xb-x,yb-y||        => dr/dX        = ( -(xb-x)/r, -(yb-y)/r)
+             * theta = atan2(yb-y,xb-x) => dtheta/dX    = (+(yb-y)/r2, -(xb-x)/r2)
+             */
+
+            // Add the range residual
+            double const er = r_pred - r_mes;
+            double const der_dx = dx/r_pred; 
+            double const der_dy = dy/r_pred;
+            A(row0_idx+0,0) = der_dx/sigma_r;
+            A(row0_idx+0,1) = der_dy/sigma_r;
+            b(row0_idx+0)   = (der_dx*x + der_dy*y - er)/sigma_r;
+
+            // Add the angular residual
+            double const et = theta_pred - theta_mes;
+            double const det_dx     = -dy/pow(r_pred,2.);
+            double const det_dy     =  dx/pow(r_pred,2.);
+            double const det_dtheta = -1.0;
+            A(row0_idx+1,0) = det_dx/sigma_theta;
+            A(row0_idx+1,1) = det_dy/sigma_theta;
+            A(row0_idx+1,2) = det_dtheta/sigma_theta;
+            b(row0_idx+1)   = (der_dx*x + der_dy*y + det_dtheta*theta - et)/sigma_theta;
+            
+            continue;
+        }
+
+        // Solve the current iteration
+        Eigen::Vector3d const s = (A.transpose()*A).ldlt().solve(A.transpose()*b);
+        bool ok1 = (std::fabs(s(0) - x)     < 50); // [mm]
+        bool ok2 = (std::fabs(s(1) - y)     < 50); // [mm]
+        bool ok3 = (std::fabs(s(2) - theta) < 0.5*M_PI/180.);
+        x = s(0);
+        y = s(1);
+        theta = s(2);
+        if(ok1 && ok2 && ok3) break;
+        if(iter_idx>=max_iters) break;
+        iter_idx += 1;
+        continue;
+    }
+    return;
+}
+
+//-------------------------------------------------------------------------------------------------
