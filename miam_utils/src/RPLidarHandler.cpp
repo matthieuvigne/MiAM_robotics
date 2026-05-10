@@ -116,6 +116,9 @@ int RPLidarHandler::update()
             }
         }
     }
+    #if USE_BEACON_DETECTOR
+    beacon_detector_.remove_outdated_beacons(robotTimeout_);
+    #endif
 
     for(uint i = 0; i < nPoint; i++)
     {
@@ -159,6 +162,12 @@ int RPLidarHandler::update()
                         detectedRobots_.push_back(DetectedRobot(robot, timeHandler_.getElapsedTime(), nPoints));
                     }
                 }
+
+                // Process the blob to detect a beacon
+                #if USE_BEACON_DETECTOR
+                beacon_detector_.detect(pointsInBlob_);
+                #endif
+
                 // Clear blob.
                 pointsInBlob_.clear();
 
@@ -174,6 +183,7 @@ int RPLidarHandler::update()
         debuggingBuffer_[debuggingBufferPosition_] = newPoint;
         debuggingBufferPosition_ = (debuggingBufferPosition_ + 1) % DEBUGGING_BUFFER_LENGTH;
     }
+
     return nPoint;
 }
 
