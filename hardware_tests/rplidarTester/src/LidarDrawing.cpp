@@ -71,22 +71,19 @@ bool LidarDrawing::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->stroke();
     }
 
-    #if 0
     // Draw beacons
     cr->set_source_rgb(0, 1, 0);
-    lidar.beacon_detector_.for_each_detected_beacon(
-        [&](DetectedBeacon const& beacon){
-            double const r = beacon.point.r;
-            double const theta = beacon.point.theta;
-            cr->arc(r * std::cos(theta), -r * std::sin(theta), 80, 0, 2*G_PI);
-            cr->stroke();
-            cr->move_to(0, 0);
-            cr->line_to(r * std::cos(theta), -r * std::sin(theta));
-            cr->stroke();
-            return;
-        }
-    );
-    #endif
+    for(DetectedBeacon beacon : lidar.detectedBeacons_)
+    {
+        LidarPoint point = beacon.point;
+        cr->begin_new_sub_path();
+        // Minus sign as y axis is pointing downward.
+        cr->arc(point.r * std::cos(point.theta), -point.r * std::sin(point.theta), BEACON_RADIUS, 0, 2 * G_PI);
+        cr->stroke();
+        cr->move_to(0, 0);
+        cr->line_to(point.r * std::cos(point.theta), -point.r * std::sin(point.theta));
+        cr->stroke();
+    }
 
     // Draw points.
     cr->set_source_rgb(1, 0, 0);
