@@ -12,7 +12,6 @@
 /// \copyright GNU GPLv3
 #ifndef RPLIDAR_HANDLER
 #define RPLIDAR_HANDLER
-#define USE_BEACON_DETECTOR 1
 
     #include <cstddef>
     #include <rplidar.h>
@@ -21,14 +20,12 @@
     #include <deque>
     #include "miam_utils/lidar_point.hpp"
     #include "miam_utils/Metronome.h"
-    
-    #if USE_BEACON_DETECTOR
-    #include "miam_utils/beacon_detector.hpp"
-    #endif
+    // #include "miam_utils/beacon_detector.hpp"
 
     // Constant parameters.
     #define DEBUGGING_BUFFER_LENGTH 2000
 
+    const double BEACON_RADIUS = 58.0; ///< Radius of the beacons to detect, in mm.
 
     const double MAX_DISTANCE = 2000.0; ///< Maximum distance for processing, in mm: points above that distance are discarded.
     const double MIN_DISTANCE = 50.0; ///< Minimum distance for processing, in mm: points below that distance are discarded.
@@ -63,7 +60,14 @@
         double addedTime = 0.0; ///< Absolute time at which the robot was detected.
         int nPoints = 0;    ///< Number of points in the blob.
     };
+    typedef std::vector<LidarPoint> Blob;
 
+    struct DetectedBeacon {
+        LidarPoint point;
+        double addedTime = 0.0;
+        int nPoints = 0;
+        int ref_idx = -1;
+    };
 
     class RPLidarHandler
     {
@@ -104,9 +108,7 @@
             int debuggingBufferPosition_; ///< Position in the debugging buffer.
 
             std::deque<DetectedRobot> detectedRobots_;    ///< Vector holding the detected robots, as fifo of robot angle.
-            #if USE_BEACON_DETECTOR
-            BeaconDetector beacon_detector_;
-            #endif
+            std::deque<DetectedBeacon> detectedBeacons_;  ///< Vector holding the detected beacons
 
         private:
             bool isInit_;
@@ -114,6 +116,7 @@
             double robotTimeout_;
             /// \brief Add a point to the current blob.
             void addPointToBlob(LidarPoint *point);
+            bool detectBeaconInCurrentBlob();
 
             rp::standalone::rplidar::RPlidarDriver *lidar; ///< The lidar instance.
             int lidarMode_; ///< Scan mode for the lidar.
