@@ -115,7 +115,7 @@
             bool inBorderDetection_ = false;
 
             WheelSpeed encoderSpeedLP_;
-            miam::LowPass encoderLowPassR_{20.0};
-            miam::LowPass encoderLowPassL_{20.0};
+            miam::LowPass encoderLowPassR_{10.0};
+            miam::LowPass encoderLowPassL_{10.0};
     };
  #endif

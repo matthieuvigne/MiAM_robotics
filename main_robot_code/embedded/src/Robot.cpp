@@ -352,32 +352,25 @@ void Robot::shutdown()
 
 bool Robot::touchBorder()
 {
-    WheelSpeed touchSpeed(-1.0, -1.0);
-
-    motionController_.setOpenLoopVelocity(touchSpeed);
+    motionController_.goStraight(-400, 0.1, tf::NO_WAIT_FOR_END);
     wait(0.5);
 
     bool still = false;
     double delay = 0.020;
     double timeout = 5.0;
-    for (int i = 0; i < static_cast<int>(timeout / delay); i++)
+    int rightStopId = 1e5;
+    int leftStopId = 1e5;
+    while (!motionController_.isTrajectoryFinished())
     {
-        bool rStop = std::abs(encoderSpeedLP_.right) < 0.05;
-        bool lStop = std::abs(encoderSpeedLP_.left) < 0.05;
-        if (rStop)
-            touchSpeed.right = 0.0;
-        if (lStop)
-            touchSpeed.left = 0.0;
+        bool rStop = std::abs(encoderSpeedLP_.right) < 0.25;
+        bool lStop = std::abs(encoderSpeedLP_.left) < 0.25;
         if (rStop && lStop)
         {
-            motionController_.stopOpenLoop();
+            motionController_.stopCurrentTrajectoryTracking();
             still = true;
-            break;
         }
-        motionController_.setOpenLoopVelocity(touchSpeed);
-        wait(delay);
+        wait(0.020);
     }
-    motionController_.stopOpenLoop();
     return still;
 }
 

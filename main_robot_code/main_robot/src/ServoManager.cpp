@@ -204,7 +204,10 @@ void ServoManager::moveRails(RailPosition const& position)
             break;
         case RailPosition::DROP:
             railX_->move(0.0);
-            railY_->move(1.0);
+            if (robot_->isPlayingRightSide())
+                railY_->move(0.0);
+            else
+                railY_->move(1.0);
             break;
         default: break;
     }
