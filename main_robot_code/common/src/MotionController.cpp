@@ -143,22 +143,27 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderPositionIncrement);
+    currentEncoderSpeed_ = measurements.encoderPositionIncrement;
+    currentEncoderSpeed_.left /= dt;
+    currentEncoderSpeed_.right /= dt;
+    currentSpeed_ = kinematics_.forwardKinematics(currentEncoderSpeed_, true);
+
     kinematics_.integratePosition(measurements.encoderPositionIncrement, odometryBasedPosition_);
     kinematics_.integrateGyroKinematics(measurements.encoderPositionIncrement, gyroBasedPosition_, gyro * dt);
     gyroscopeAngle_ += gyro * dt;
-    log("MotionController.gyroscopeX", gyroBasedPosition_.x);
-    log("MotionController.gyroscopeY", gyroBasedPosition_.y);
-    log("MotionController.gyroscopeAngle", gyroBasedPosition_.theta);
-    log("MotionController.odometryX", odometryBasedPosition_.x);
-    log("MotionController.odometryY", odometryBasedPosition_.y);
-    log("MotionController.odometryAngle", odometryBasedPosition_.theta);
-    log("MotionController.gyroOdoDiffX", odometryBasedPosition_.x - gyroBasedPosition_.x);
-    log("MotionController.gyroOdoDiffY", odometryBasedPosition_.y - gyroBasedPosition_.y);
-    log("MotionController.gyroOdoDiffAngle", odometryBasedPosition_.theta - gyroBasedPosition_.theta);
 
-    // Only log after match start
     if (measurements.matchTime > 0.0)
     {
+        log("MotionController.gyroscopeX", gyroBasedPosition_.x);
+        log("MotionController.gyroscopeY", gyroBasedPosition_.y);
+        log("MotionController.gyroscopeAngle", gyroBasedPosition_.theta);
+        log("MotionController.odometryX", odometryBasedPosition_.x);
+        log("MotionController.odometryY", odometryBasedPosition_.y);
+        log("MotionController.odometryAngle", odometryBasedPosition_.theta);
+        log("MotionController.gyroOdoDiffX", odometryBasedPosition_.x - gyroBasedPosition_.x);
+        log("MotionController.gyroOdoDiffY", odometryBasedPosition_.y - gyroBasedPosition_.y);
+        log("MotionController.gyroOdoDiffAngle", odometryBasedPosition_.theta - gyroBasedPosition_.theta);
+
         log("MotionController.encoderRight",measurements.encoderPosition.right);
         log("MotionController.encoderLeft",measurements.encoderPosition.left);
         log("MotionController.motorVelocityRight", measurements.motorSpeed.right);
@@ -166,6 +171,10 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         log("MotionController.currentPositionX",currentPosition.x);
         log("MotionController.currentPositionY",currentPosition.y);
         log("MotionController.currentPositionTheta",currentPosition.theta);
+        log("MotionController.currentVelocityLinear", currentSpeed_.linear);
+        log("MotionController.currentVelocityAngular", currentSpeed_.angular);
+        log("MotionController.encoderVelocityRight", currentEncoderSpeed_.right);
+        log("MotionController.encoderVelocityLeft", currentEncoderSpeed_.left);
     }
 
     DrivetrainTarget target;
@@ -232,7 +241,6 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     changeMotionControllerState();
 
     target = resolveMotionControllerState(measurements, dt, measurements.matchTime > 0);
-
 
     if (measurements.matchTime > 0.0)
     {
@@ -511,6 +519,10 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
         //     currentTrajectories_.erase(currentTrajectories_.begin());
         // }
     }
+    else if (motionControllerState_ == MotionControllerState::CONTROLLER_OPEN_LOOP)
+    {
+        target.motorSpeed = openLoopSpeed_;
+    }
 
     if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY || motionControllerState_ == CONTROLLER_WAIT_FOR_AVOIDANCE)
         lockTimeSinceFirstStop_ = false;
@@ -613,4 +625,15 @@ TrajectoryConfig MotionController::getCurrentTrajectoryParameters()
     //     conf.maxWheelAcceleration *= 0.7;
     // }
     return conf;
+}
+
+void MotionController::setOpenLoopVelocity(WheelSpeed const& motorSpeed)
+{
+    motionControllerState_ = MotionControllerState::CONTROLLER_OPEN_LOOP;
+    openLoopSpeed_ = motorSpeed;
+}
+
+void MotionController::stopOpenLoop()
+{
+    motionControllerState_ = MotionControllerState::CONTROLLER_WAIT_FOR_TRAJECTORY;
 }

@@ -264,6 +264,9 @@ void Robot::updateSensorData()
 
 void Robot::applyMotorTarget(DrivetrainTarget const& target)
 {
+    encoderSpeedLP_.right = encoderLowPassR_.filter(motionController_.currentEncoderSpeed_.right, dt_);
+    encoderSpeedLP_.left = encoderLowPassL_.filter(motionController_.currentEncoderSpeed_.left, dt_);
+
     static bool wasRunning = true;
     if (areMotorsLocked_)
     {
@@ -349,20 +352,32 @@ void Robot::shutdown()
 
 bool Robot::touchBorder()
 {
-    motionController_.goStraight(-500, 0.1, tf::NO_WAIT_FOR_END);
+    WheelSpeed touchSpeed(-1.0, -1.0);
+
+    motionController_.setOpenLoopVelocity(touchSpeed);
     wait(0.5);
+
     bool still = false;
-    while (!motionController_.isTrajectoryFinished())
+    double delay = 0.020;
+    double timeout = 5.0;
+    for (int i = 0; i < static_cast<int>(timeout / delay); i++)
     {
-        if (std::abs(measurements_.drivetrainMeasurements.motorSpeed.right) > 0.2 && std::abs(measurements_.drivetrainMeasurements.motorSpeed.left) > 0.2)
-            if (std::abs(measurements_.drivetrainMeasurements.encoderPositionIncrement.right / (1e-9 * ROBOT_UPDATE_PERIOD)) < 0.05 &&
-                std::abs(measurements_.drivetrainMeasurements.encoderPositionIncrement.left / (1e-9 * ROBOT_UPDATE_PERIOD)) < 0.05)
-            {
-                motionController_.stopCurrentTrajectoryTracking();
-                still = true;
-            }
-        wait(0.010);
+        bool rStop = std::abs(encoderSpeedLP_.right) < 0.05;
+        bool lStop = std::abs(encoderSpeedLP_.left) < 0.05;
+        if (rStop)
+            touchSpeed.right = 0.0;
+        if (lStop)
+            touchSpeed.left = 0.0;
+        if (rStop && lStop)
+        {
+            motionController_.stopOpenLoop();
+            still = true;
+            break;
+        }
+        motionController_.setOpenLoopVelocity(touchSpeed);
+        wait(delay);
     }
+    motionController_.stopOpenLoop();
     return still;
 }
 

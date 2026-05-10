@@ -35,19 +35,6 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     RobotPosition currentPosition = currentPosition_.get();
     RobotPosition error = currentPosition - targetPoint.position;
 
-    WheelSpeed speed = measurements.encoderPositionIncrement;
-    speed.left /= dt;
-    speed.right /= dt;
-    BaseSpeed currentSpeed = kinematics_.forwardKinematics(speed, true);
-
-    if (measurements.matchTime > 0.0)
-    {
-        log("MotionController.currentVelocityLinear", currentSpeed.linear);
-        log("MotionController.currentVelocityAngular", currentSpeed.angular);
-        log("MotionController.encoderVelocityRight", speed.right);
-        log("MotionController.encoderVelocityLeft", speed.left);
-    }
-
     // Rotate by -theta to express the error in the tangent frame.
     RobotPosition rotatedError = error.rotate(-targetPoint.position.theta);
 
@@ -64,7 +51,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // If we are beyond the end of the trajectory vector, look to see if we are close enough to the target point to stop.
     if (traj->getDuration() <= curvilinearAbscissa_ && currentTrajectories_.size() == 1)
     {
-        if (trackingLongitudinalError < 2 && trackingAngleError < 0.01 && speed.right < 0.5 && speed.left < 0.5)
+        if (trackingLongitudinalError < 2 && trackingAngleError < 0.01 && currentEncoderSpeed_.right < 0.5 && currentEncoderSpeed_.left < 0.5)
         {
             // Just stop the robot.
             target.motorSpeed.right = 0.0;
@@ -80,7 +67,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     double pidLinearCorrection = 0.0;
     if (!(std::abs(targetPoint.angularVelocity) > 0.1 && std::abs(targetPoint.linearVelocity) < 0.1))
     {
-        double const velocityError = currentSpeed.linear * std::cos(currentPosition.theta - targetPoint.position.theta) - targetSpeed.linear;
+        double const velocityError = currentSpeed_.linear * std::cos(currentPosition.theta - targetPoint.position.theta) - targetSpeed.linear;
         pidLinearCorrection = PIDLinear_.computeValue(trackingLongitudinalError, velocityError, dt);
     }
 
@@ -95,7 +82,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
         transverseCorrection = -transverseCorrection;
     angularPIDError += transverseCorrection;
 
-    targetSpeed.angular += PIDAngular_.computeValue(angularPIDError, currentSpeed.angular - targetSpeed.angular, dt);
+    targetSpeed.angular += PIDAngular_.computeValue(angularPIDError, currentSpeed_.angular - targetSpeed.angular, dt);
 
     // Invert velocity if playing on right side.
     if (isPlayingRightSide_)
@@ -104,7 +91,7 @@ bool MotionController::computeMotorTarget(Trajectory *traj,
     // Convert from base velocity to motor wheel velocity.
     target.motorSpeed = kinematics_.inverseKinematics(targetSpeed);
 
-    // Clamp to maximum speed
+    // Clamp to maximum currentEncoderSpeed_
     double const maxAngularVelocity = 1.5 * robotParams_.maxWheelSpeedTrajectory / robotParams_.rightWheelRadius;
     if (target.motorSpeed.right > maxAngularVelocity)
         target.motorSpeed.right = maxAngularVelocity;
