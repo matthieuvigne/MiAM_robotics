@@ -14,7 +14,9 @@ link_directories(
 file(GLOB_RECURSE COMMON_SOURCES "../common/src/*.cpp"
                                  "src/Robot.cpp")
 
-file(GLOB_RECURSE MAIN_SOURCES "../main_robot/src/*.cpp" "src/MainRobotMain.cpp")
+file(GLOB_RECURSE MAIN_SOURCES "../main_robot/src/*.cpp"
+                               "src/MainRobotMain.cpp"
+                               "src/ESP32Listener.cpp")
 
 set_source_files_properties(${${PROJECT_NAME}_SOURCES} PROPERTIES LANGUAGE CXX )
 
@@ -32,3 +34,7 @@ target_link_libraries(mainRobotCode
   miam_utils
   acado_solver
   ${GTK_LIBRARIES})
+
+
+add_executable(esp32listenerTest "src/ESP32Listener.cpp" "src/ESP32Listener-t.cpp")
+target_link_libraries(esp32listenerTest miam_utils)

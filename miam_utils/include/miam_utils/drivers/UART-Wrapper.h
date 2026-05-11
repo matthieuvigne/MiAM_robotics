@@ -15,8 +15,9 @@
     ///
     /// \param portName Serial port file name ("/dev/ttyOx")
     /// \param speed Communication speed (i.e. B115200, or one of the constants defined in termios.h
+    /// \param nonblocking If set, open in non-blocking mode (does not support read_timeout)
     /// \return The open port file descriptor (positive int), or -1 on failure.
-    int uart_open(std::string const& portName, int speed);
+    int uart_open(std::string const& portName, int speed, bool nonblocking = false);
 
     /// \brief Wrapper around read function with a timeout.
     ///

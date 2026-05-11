@@ -31,6 +31,9 @@ target_link_libraries(test_ServoPerformance PRIVATE miam_utils)
 add_executable(test_ServoManager TestServoManager.cpp)
 target_link_libraries(test_ServoManager PRIVATE miam_utils)
 
+add_executable(test_cobs TestCOBS.cpp)
+target_link_libraries(test_cobs PRIVATE miam_utils)
+
 # # Vision test requires opencv
 # set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
 # pkg_search_module(OpenCV REQUIRED opencv4 >= 4.5)
