@@ -17,6 +17,7 @@
 #define ID_FINGER_R 19
 #define ID_FINGER_L 20
 #define ID_CURSOR 21
+#define ID_CURSOR_RIGHT 22
 
 ////////////////////////////////////////////////////////////////////////////
 // Arm-related functions
@@ -61,7 +62,7 @@ void precomputeArmIK()
 
     Eigen::Vector3d const xFold{l1 - 0.08, -(l2 + l3 - 0.045),-M_PI_2};
     Eigen::Vector3d xFoldMid = (xFold + xRaised) / 2.0;
-    xFoldMid[1] += 0.01;
+    // xFoldMid[1] += 0.01;
     qFoldMid = solveArmPosition(xFoldMid, qRaised);
     qFold = solveArmPosition(xFold, qFoldMid);
 
@@ -110,13 +111,13 @@ void ServoManager::init(RobotInterface *robot)
     servos_->setMode(ID_ARM_1,      STS::Mode::POSITION);
     servos_->setMode(ID_ARM_2,      STS::Mode::POSITION);
     servos_->setMode(ID_ARM_3,      STS::Mode::POSITION);
-    // servos_->setMode(ID_HAND_ROT,   STS::Mode::POSITION);
-    servos_->setMode(ID_HAND_TRIGHT,STS::Mode::POSITION);
-    servos_->setMode(ID_HAND_TLEFT, STS::Mode::POSITION);
-    servos_->setMode(ID_BED,        STS::Mode::POSITION);
-    servos_->setMode(ID_FINGER_R,   STS::Mode::POSITION);
-    servos_->setMode(ID_FINGER_L,   STS::Mode::POSITION);
-    servos_->setMode(ID_CURSOR,     STS::Mode::POSITION);
+    servos_->setMode(ID_HAND_TRIGHT, STS::Mode::POSITION);
+    servos_->setMode(ID_HAND_TLEFT,  STS::Mode::POSITION);
+    servos_->setMode(ID_BED,         STS::Mode::POSITION);
+    servos_->setMode(ID_FINGER_R,    STS::Mode::POSITION);
+    servos_->setMode(ID_FINGER_L,    STS::Mode::POSITION);
+    servos_->setMode(ID_CURSOR,      STS::Mode::POSITION);
+    servos_->setMode(ID_CURSOR_RIGHT,STS::Mode::POSITION);
 
 
     // Setup rails
@@ -187,11 +188,16 @@ bool ServoManager::areRailsMoving()
 
 void ServoManager::cursorFold()
 {
-    servos_->setTargetPosition(ID_CURSOR, 2048);
+    servos_->setTargetPosition(ID_CURSOR, 100);
+    servos_->setTargetPosition(ID_CURSOR_RIGHT, 900);
 }
+
 void ServoManager::cursorUnfold()
 {
-    servos_->setTargetPosition(ID_CURSOR, 3350);
+    if (robot_->isPlayingRightSide())
+        servos_->setTargetPosition(ID_CURSOR_RIGHT, 525);
+    else
+        servos_->setTargetPosition(ID_CURSOR, 475);
 }
 
 void ServoManager::bedFold()
