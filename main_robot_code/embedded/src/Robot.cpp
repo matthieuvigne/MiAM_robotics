@@ -269,6 +269,10 @@ void Robot::updateSensorData()
         std::thread thread = std::thread(&AbstractStrategy::homologationPose, strategy_);
         thread.detach();
     }
+    if (!hasMatchStarted_)
+    {
+        guiState_.infoString = strategy_->updateInfoString();
+    }
 }
 
 void Robot::applyMotorTarget(DrivetrainTarget const& target)

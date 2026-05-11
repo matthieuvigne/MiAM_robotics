@@ -35,6 +35,7 @@ class Strategy : public AbstractStrategy
         void match() override;
 
         void homologationPose() override;
+        std::string updateInfoString() override;
 
     private:
         void match_impl(); /// Actual implementation of the match code.

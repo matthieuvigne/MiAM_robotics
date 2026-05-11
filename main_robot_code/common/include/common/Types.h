@@ -28,6 +28,7 @@
     struct RobotGUIData {
         robotstate state = robotstate::INIT;
         std::string debugStatus = "";
+        std::string infoString = "";
         double batteryVoltage = 0;
         int score = 0;
         double currentMatchTime = 0;

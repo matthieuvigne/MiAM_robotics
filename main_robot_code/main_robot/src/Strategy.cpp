@@ -350,4 +350,27 @@ void Strategy::homologationPose()
     robot->wait(0.2);
     servoManager_.moveArm(ArmPosition::BED_UNFOLD);
 }
+
+
+std::string Strategy::updateInfoString()
+{
+    std::vector<Tag> tags = servoManager_.visionHandler_.getTags();
+    std::string result;
+    if (tags.size() == 0)
+        result = "No tags seen!";
+    else
+    {
+        result = "Tags: ";
+        for (auto const& t : tags)
+        {
+            if (t.markerId == BLUE)
+                result += "blue ";
+            if (t.markerId == YELLOW)
+                result += "yellow ";
+        }
+
+    }
+    return result;
+}
+
 }

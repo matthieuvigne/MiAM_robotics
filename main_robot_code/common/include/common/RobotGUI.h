@@ -63,6 +63,7 @@
                 Gtk::Label labelState_;
 
                 Gtk::Label debugLabel_;
+                Gtk::Label infoLabel_;
                 Gtk::Label scoreLabel_;
                 Gtk::Label actionNameLabel_;
 

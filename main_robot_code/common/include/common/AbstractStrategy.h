@@ -22,6 +22,8 @@ class AbstractStrategy
 
         virtual void homologationPose() = 0;
 
+        virtual std::string updateInfoString() = 0;
+
         // network::CameraClient camera_;
         std::vector<pthread_t> createdThreads_;
 
