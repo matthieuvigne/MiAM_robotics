@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     RobotGUI gui;
     bool testMode = true;
     bool noLidar = true;
-    bool disableServos = true;
+    bool disableServos = false;
     main_robot::Strategy strategy;
     Robot robot(main_robot::generateParams(), &strategy, &gui, testMode, noLidar, false, disableServos);
 
@@ -45,15 +45,15 @@ int main(int argc, char* argv[])
         robot_->wait(0.1);
     servo_manager.moveRails(RailPosition::FORWARD);
 
-
     std::string input;
-    while (true)
-    {
-        std::getline(std::cin, input);
-        std::cout << "grabbing" << std::endl;
-        CameraResult res = servoManager_->cameraDetectCrates();
-        std::cout << res.cratesPresent << " " << res.lateralOffset << std::endl;
-    }
+
+    // while (true)
+    // {
+    //     std::getline(std::cin, input);
+    //     std::cout << "grabbing" << std::endl;
+    //     CameraResult res = servoManager_->cameraDetectCrates();
+    //     std::cout << res.cratesPresent << " " << res.lateralOffset << std::endl;
+    // }
     // servoManager_->testArm();
 
 
@@ -88,11 +88,12 @@ int main(int argc, char* argv[])
         std::cout << "grabbing crates" << std::endl;
         servoManager_->grabCrates(servoManager_->cameraDetectCrates());
         std::cout << "grab crates done" << std::endl;
-        std::getline(std::cin, input);
-        servoManager_->emptyBed();
-        std::cout << "emptyBed done" << std::endl;
-        servoManager_->dropCrates();
-        std::cout << "dropCrates done" << std::endl;
+        servoManager_->fingerOpen();
+        // std::getline(std::cin, input);
+        // servoManager_->emptyBed();
+        // std::cout << "emptyBed done" << std::endl;
+        // servoManager_->dropCrates();
+        // std::cout << "dropCrates done" << std::endl;
     }
     ////////////////////////////////
 

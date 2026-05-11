@@ -90,7 +90,7 @@ public:
     CameraResult cameraDetectCrates();
 
 private:
-    void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab);
+    void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab, bool secondGrab = false);
 
 
     RobotInterface *robot_;

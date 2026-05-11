@@ -1,6 +1,6 @@
 #include "main_robot/CursorAction.h"
 
-#define LATERAL_DISTANCE 195
+#define LATERAL_DISTANCE 205
 
 #define ARM_OFFSET 103
 

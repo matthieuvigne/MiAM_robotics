@@ -251,14 +251,14 @@ void ServoManager::doGrab()
     servos_->disable(ID_ARM_1);
     servos_->disable(ID_ARM_2);
     servos_->disable(ID_ARM_3);
-    robot_->wait(0.7);
+    robot_->wait(0.5);
     servos_->enable(ID_ARM_1);
     servos_->enable(ID_ARM_2);
     servos_->enable(ID_ARM_3);
     moveArmServos(servos_, qGrab);
     robot_->wait(0.2);
     moveArmServos(servos_, qGrabMid);
-    robot_->wait(0.5);
+    robot_->wait(0.2);
 }
 
 void ServoManager::hideArm()
@@ -403,7 +403,7 @@ void ServoManager::grabCrates(CameraResult const& cameraResult)
     }
     if (myTags.size() > 0)
     {
-        grabTags(cameraResult.tags, myTags);
+        grabTags(cameraResult.tags, myTags, true);
         robot_->getGameState()->isClawFull = true;
     }
     if (robot_->getGameState()->isBedFull)
@@ -414,7 +414,7 @@ void ServoManager::grabCrates(CameraResult const& cameraResult)
     }
 }
 
-void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab)
+void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab, bool secondGrab)
 {
     if (tagsToGrab.size() == 0)
         return;
@@ -429,13 +429,16 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     robot_->logger_ << "[ServoManager::grabTags] Grabbing tags indexed " << leftTagIdx << " " << rightTagIdx << std::endl;
 
     double suctionRight = 0.0, suctionLeft = 0.0, rail = 0.0;
-    double suctionOffset = 0.0;
+    bool asymRight = false;
+    bool asymLeft = false;
+    double lateralAmount = secondGrab ? 0.6: 0.3;
+
     // Do all 5 cases
     if (leftTagIdx == 0 && rightTagIdx == 1)
     {
-        suctionLeft = 0.2;
+        suctionLeft = lateralAmount;
         suctionRight = 0.0;
-        suctionOffset = 0.1;
+        asymLeft = true;
         rail = 1.0;
     }
     else if (leftTagIdx == 0 && rightTagIdx == 2)
@@ -465,8 +468,8 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     else if (leftTagIdx == 2 && rightTagIdx == 3)
     {
         suctionLeft = 0.0;
-        suctionRight = 0.2;
-        suctionOffset = 0.1;
+        suctionRight = lateralAmount;
+        asymRight = true;
         rail = 0.0;
     }
 
@@ -479,99 +482,31 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
         robot_->wait(0.050);
     }
 
-    pumpOn(Side::RIGHT);
-    pumpOn(Side::LEFT);
+    if (!asymLeft)
+        pumpOn(Side::RIGHT);
+    if (!asymRight)
+        pumpOn(Side::LEFT);
     doGrab();
+    if (asymLeft || asymRight)
+    {
+        Side asymSide = (asymLeft ? Side::LEFT : Side::RIGHT);
+        while (lateralAmount >= 0)
+        {
+            translateSuction(asymSide, lateralAmount);
+            lateralAmount -= 0.05;
+            robot_->wait(0.050);
+        }
+        pumpOn(Side::RIGHT);
+        pumpOn(Side::LEFT);
+        doGrab();
+    }
     moveArm(ArmPosition::RAISE);
-    robot_->wait(0.7);
-    translateSuction(Side::LEFT, suctionOffset);
-    translateSuction(Side::RIGHT, suctionOffset);
+    robot_->wait(0.6);
+    translateSuction(Side::LEFT, 0.0);
+    translateSuction(Side::RIGHT, 0.0);
     railY_->move(0.5);
     while (areRailsMoving())
         robot_->wait(0.050);
-
-    // //
-    // // Fow now, we don't care about angles, but want to get spacing right.
-
-    // // Enforce a 2-elemnt grab.
-    // bool rightActive = true, leftActive = true;
-    // // Drop elements if we have too many
-    // int leftTag = 0, rightTag = 0;
-
-    // if (tagsToGrab.size() > 2)
-    // {
-    //     robot_->logger_ << "[ServoManager::grabTags] Too many tags, keeping only 2" << std::endl;
-    //     if (tagsToGrab.at(0) == 0)
-    //         tagsToGrab.erase(tagsToGrab.begin());
-    // }
-    // if (tagsToGrab.size() == 2)
-    // {
-    //     leftTag = tagsToGrab.at(0);
-    //     rightTag = tagsToGrab.at(1);
-    // }
-    // else
-    // {
-    //     int singleTag = tagsToGrab.at(0);
-    //     if (singleTag < 2)
-    //     {
-    //         leftTag = singleTag;
-    //         rightActive = false;
-    //     }
-    //     else
-    //     {
-    //         rightTag = singleTag;
-    //         leftActive = false;
-    //     }
-    // }
-    // robot_->logger_ << "[ServoManager::grabTags] Grabbing tags indexed " << (leftActive ? std::to_string(leftTag) + " " : "[no left] ");
-    // robot_->logger_ << (rightActive ? std::to_string(rightTag) + " " : "[no right] ") << std::endl;
-
-    // // Position suction according to grabbing pattern.
-    // double leftPos = (leftTag == 0 ? 1.0: 0.0);
-    // double rightPos = (rightTag == 3 ? 1.0: 0.0);
-    // if (!leftActive)
-    //     leftPos = 0.0;
-    // if (!rightActive)
-    //     rightPos = 0.0;
-
-    // translateSuction(Side::LEFT, leftPos);
-    // translateSuction(Side::RIGHT, rightPos);
-    // double const BLOCK_WIDTH = 0.050;
-
-    // double leftY = tags[leftTag].position.y();
-    // double rightY = tags[rightTag].position.y();
-    // if (!leftActive)
-    //     leftY = rightY + BLOCK_WIDTH * (1 + rightPos);
-    // if (!rightActive)
-    //     rightY = leftY - BLOCK_WIDTH * (1 + leftPos);
-
-
-    // robot_->logger_ << "[ServoManager::grabTags] Suction position: " << leftPos << " " << rightPos << std::endl;
-    // robot_->logger_ << "[ServoManager::grabTags] Marker positions: " << leftY << " " << rightY << std::endl;
-
-    // double yOffset = (rightY + leftY) / 2.0;
-    // robot_->logger_ << "[ServoManager::grabTags] Y offset" << yOffset << std::endl;
-    // // Offset this based on how wide the claw is.
-    // yOffset += BLOCK_WIDTH / 2 * (-leftPos + rightPos);
-    // robot_->logger_ << "[ServoManager::grabTags] Y offset with claw comp" << yOffset << std::endl;
-
-    // double const yRailScaling = (0.5 / 0.04);
-    // // Rail is backward: 0 = going to left
-    // double const yRailPosition = 0.5 - std::clamp(yRailScaling * yOffset, -0.5, 0.5);
-    // robot_->logger_ << "[ServoManager::grabTags] Y rail position" << yRailPosition << std::endl;
-
-    // // Move rail accordingly.
-    // // if (yRailPosition)
-
-    // // Grab
-    // if (rightActive)
-    //     pumpOn(Side::RIGHT);
-    // if (leftActive)
-    //     pumpOn(Side::LEFT);
-    // doGrab();
-
-    // // Lift and fold suctions
-    // moveArm(ArmPosition::RAISE);
 }
 
 void ServoManager::moveCratesInBed()
