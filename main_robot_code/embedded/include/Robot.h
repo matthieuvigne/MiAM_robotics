@@ -39,6 +39,7 @@
     #include <mutex>
 
     #include "common/RobotInterface.h"
+    #include "ESP32Listener.h"
 
     // Right and left macros, for array addressing.
     using miam::RobotPosition;
@@ -79,6 +80,10 @@
             // Robot hardware
             RPLidarHandler lidar_; ///< Lidar
             bool disableLidar_; // Disable lidar (works only in test mode)
+
+            ESP32Listener esp32_;
+            bool isESP32Init_ = false;
+            double esp32MeasurementTime_ = -100;
 
             NautilusWrapper rightMotor_;
             NautilusWrapper leftMotor_;

@@ -12,7 +12,8 @@ link_directories(
 
 # Include source files from src directory.
 file(GLOB_RECURSE COMMON_SOURCES "../common/src/*.cpp"
-                                 "../embedded/src/Robot.cpp")
+                                 "../embedded/src/Robot.cpp"
+                                 "../embedded/src/ESP32Listener.cpp")
 
 file(GLOB_RECURSE MAIN_SOURCES "../main_robot/src/*.cpp" "src/sts_servo_test.cpp")
 

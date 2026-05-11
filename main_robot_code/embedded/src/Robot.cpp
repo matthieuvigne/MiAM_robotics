@@ -69,6 +69,11 @@ bool Robot::initSystem()
             guiState_.debugStatus += "Battery monitoring init failed\n";
     }
 
+    if (!isESP32Init_)
+    {
+        isESP32Init_ = esp32_.init("/dev/ttyACM0", 1000000);
+    }
+
     if (isMotorsInit_ && !isServoInit_)
     {
         isServoInit_ = servos_.init("/dev/ttyAMA0", -1);
@@ -208,9 +213,33 @@ void Robot::updateSensorData()
         lidar_.update();
         measurements_.drivetrainMeasurements.lidarDetection = lidar_.detectedRobots_;
     }
+    else
+    {
+        measurements_.drivetrainMeasurements.lidarDetection.clear();
+    }
+
+    if (esp32_.update())
+    {
+        esp32MeasurementTime_ = currentTime_;
+    }
+
+    int esp32_obstacle = 0;
+    if (currentTime_ - esp32MeasurementTime_ < 2.0)
+    {
+        ESP32Data d = esp32_.getLastData();
+        int const MAX_DISTANCE = 600;
+        int const ROBOT_SIZE = 250;
+        if (d.obstacleDistance < MAX_DISTANCE)
+        {
+            esp32_obstacle = d.obstacleDistance + ROBOT_SIZE;
+            measurements_.drivetrainMeasurements.lidarDetection.push_back(
+                DetectedRobot(LidarPoint(esp32_obstacle, 0.0), 0.0));
+        }
+    }
 
     Eigen::Vector3f gyro = imu_.getGyroscopeReadings();
     measurements_.drivetrainMeasurements.gyroscope = gyro(2) - gyroBias_;
+
 
     // Log
     // if (currentTime_ > 0.0)
@@ -238,7 +267,6 @@ void Robot::updateSensorData()
         logger_.log("Robot.battery.power", currentTime_, inaReading.power);
         logger_.log("Servos.nReadFailed", currentTime_, servos_.getNReadFailed());
 
-
         INA226Reading inaReading = ina226_7V_.read();
         logger_.log("Robot.7V.voltage", currentTime_, inaReading.voltage);
         logger_.log("Robot.7V.current", currentTime_, inaReading.current);
@@ -252,6 +280,7 @@ void Robot::updateSensorData()
         logger_.log("IMU.gyroY", currentTime_, gyro(1));
         logger_.log("IMU.gyroZ", currentTime_, gyro(2));
         logger_.log("Robot.vlxDistance", currentTime_, measurements_.vlxDistance);
+        logger_.log("ESP32.obstacleDistance", currentTime_, esp32_obstacle);
     }
 
     if (!hasMatchStarted_ && !inBorderDetection_ && gui_->getAskedDetectBorders())
