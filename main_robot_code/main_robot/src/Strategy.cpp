@@ -344,4 +344,10 @@ bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & acti
 }
 
 
+void Strategy::homologationPose()
+{
+    servoManager_.unhideArm();
+    robot->wait(0.2);
+    servoManager_.moveArm(ArmPosition::BED_UNFOLD);
+}
 }

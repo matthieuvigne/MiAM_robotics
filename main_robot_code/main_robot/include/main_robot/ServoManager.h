@@ -10,7 +10,8 @@ enum ArmPosition {
     RAISE,
     FOLD_MID,
     FOLD,
-    CAMERA_POSE
+    CAMERA_POSE,
+    BED_UNFOLD
 };
 
 enum RailPosition {

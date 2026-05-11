@@ -20,6 +20,8 @@ class AbstractStrategy
         // The actual match code, which runs in its own thread.
         virtual void match() = 0;
 
+        virtual void homologationPose() = 0;
+
         // network::CameraClient camera_;
         std::vector<pthread_t> createdThreads_;
 

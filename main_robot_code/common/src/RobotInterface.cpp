@@ -267,7 +267,13 @@ bool RobotInterface::setupBeforeMatchStart()
                 guiState_.state = robotstate::UNDERVOLTAGE;
                 return false;
             }
-            guiState_.state = robotstate::STRATEGY_SETUP;
+            if (checkCanStart())
+                guiState_.state = robotstate::STRATEGY_SETUP;
+            else
+            {
+                guiState_.state = robotstate::SETUP_FAILED;
+                guiState_.debugStatus = "Startup failed, check servo position.";
+            }
             gui_->update(guiState_);
         }
     }

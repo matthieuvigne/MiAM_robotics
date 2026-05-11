@@ -235,6 +235,9 @@ void ServoManager::moveArm(ArmPosition const& position)
             servos_->setTargetPosition(ID_ARM_2, 2600, true);
             servos_->setTargetPosition(ID_ARM_3, 1450, true);
             break;
+        case ArmPosition::BED_UNFOLD:
+            moveArmServos(servos_, qBedUnfold);
+            break;
         default: break;
     }
 }
@@ -606,7 +609,7 @@ void ServoManager::dropCrates()
 
 void ServoManager::emptyBed()
 {
-    moveArmServos(servos_, qBedUnfold);
+    moveArm(ArmPosition::BED_UNFOLD);
     bedUnfold();
     robot_->wait(0.80);
     fingerOpen();

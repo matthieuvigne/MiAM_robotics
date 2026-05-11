@@ -260,6 +260,15 @@ void Robot::updateSensorData()
         std::thread measureThread = std::thread(&Robot::detectBorders, this);
         measureThread.detach();
     }
+
+    if (!hasMatchStarted_ && gui_->getAskedHomologation())
+    {
+        guiState_.state = robotstate::HOMOLOGATION;
+        guiState_.debugStatus = "Max perimeter pose";
+        gui_->update(guiState_);
+        std::thread thread = std::thread(&AbstractStrategy::homologationPose, strategy_);
+        thread.detach();
+    }
 }
 
 void Robot::applyMotorTarget(DrivetrainTarget const& target)
@@ -334,6 +343,11 @@ void Robot::matchEnd()
 bool Robot::isStartingSwitchPluggedIn() const
 {
     return RPi_readGPIO(START_SWITCH) == 0;
+}
+
+bool Robot::checkCanStart()
+{
+    return servos_.getCurrentPosition(13) < 1900;
 }
 
 void Robot::shutdown()

@@ -38,11 +38,15 @@
                 /// @brief Detect borders to setup initial position
                 bool getAskedDetectBorders();
 
+                /// @brief Homologation pose asked.
+                bool getAskedHomologation();
+
             protected:
                 void sideButtonClicked();
                 void startPositionButtonClicked();
                 void blockMotorsButtonClicked();
                 void detectBordersClicked();
+                void homologationClicked();
 
             private:
                 bool doUpdate();
@@ -52,6 +56,7 @@
 
                 Gtk::Box box_;
                 Gtk::Box topBox_;
+                Gtk::Box buttonBox_;
 
                 Gtk::Label labelBattery_;
                 Gtk::Label matchTime_;
@@ -65,10 +70,12 @@
                 Gtk::Button startPositionButton_;
                 Gtk::Button blockMotorsButton_;
                 Gtk::Button detectBordersButton_;
+                Gtk::Button homologationButton_;
                 Gtk::Button quitButton_;
 
                 bool areMotorsBlocked_ = false;
                 bool askedDetectBorders_ = false;
+                bool askedHomologation_ = false;
 
                 TableDrawing drawingArea_;
 

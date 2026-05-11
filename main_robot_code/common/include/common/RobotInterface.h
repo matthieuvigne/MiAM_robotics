@@ -90,6 +90,10 @@
             /// @brief Shutdown the robot when things go wrong (Ctrl + C, panic...)
             virtual void shutdown() = 0;
 
+            /// @brief  Check if the robot is in a valid configuration to start.
+            /// @return True if robot can start.
+            virtual bool checkCanStart() {return true;};
+
             /////////////////////////////////////
             /// Getter/ Setter functions
             /////////////////////////////////////

@@ -70,6 +70,8 @@
             void matchEnd() override;
             bool isStartingSwitchPluggedIn() const override;
 
+            bool checkCanStart() override;
+
             /// \brief Shut down the robot when Ctrl+C is pressed.
             void shutdown() override;
 

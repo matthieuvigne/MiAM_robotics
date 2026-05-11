@@ -55,6 +55,7 @@ bool CursorAction::performAction()
         robot_->getMotionController()->goToStraightLine(targetPosition, 1, flags);
     }
     servoManager_->cursorFold();
+    robot_->getMotionController()->goStraight(robot_->isPlayingRightSide() ? - 100 : 100);
 
     // Action should not be done again
     return true;

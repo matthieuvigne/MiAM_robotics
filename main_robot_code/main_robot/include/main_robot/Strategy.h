@@ -34,6 +34,8 @@ class Strategy : public AbstractStrategy
         // The actual match code, which runs in its own thread.
         void match() override;
 
+        void homologationPose() override;
+
     private:
         void match_impl(); /// Actual implementation of the match code.
 

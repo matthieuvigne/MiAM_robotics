@@ -63,6 +63,9 @@ RobotGUI::RobotGUI()
     detectBordersButton_ = Gtk::Button("Detect borders");
     detectBordersButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::detectBordersClicked));
 
+    homologationButton_ = Gtk::Button("Homologation pose");
+    homologationButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::homologationClicked));
+
     quitButton_ = Gtk::Button("Quit");
     quitButton_.set_name("red");
     quitButton_.get_child()->set_name("button_text");
@@ -75,6 +78,13 @@ RobotGUI::RobotGUI()
     drawingArea_.set_hexpand(true);
     drawingArea_.set_vexpand(true);
 
+    buttonBox_ = Gtk::Box(Gtk::Orientation::ORIENTATION_HORIZONTAL);
+    buttonBox_.set_spacing(5);
+
+    buttonBox_.pack_start(sideButton_);
+    buttonBox_.pack_start(blockMotorsButton_);
+    buttonBox_.pack_start(detectBordersButton_);
+    buttonBox_.pack_start(homologationButton_);
 
     // Refresh at 20Hz.
     Glib::signal_timeout().connect(sigc::mem_fun(*this, &RobotGUI::doUpdate), 50);
@@ -138,11 +148,7 @@ bool RobotGUI::doUpdate()
         }
         if (robotData.state == robotstate::WAITING_FOR_START || robotData.state == robotstate::WAITING_FOR_CABLE)
         {
-            box_.pack_start(sideButton_);
-            // Remove, we never change zone.
-            // box_.pack_start(startPositionButton_);
-            box_.pack_start(blockMotorsButton_);
-            box_.pack_start(detectBordersButton_);
+            box_.pack_start(buttonBox_);
             box_.pack_start(drawingArea_);
         }
         if (robotData.state == robotstate::MATCH)
@@ -158,6 +164,11 @@ bool RobotGUI::doUpdate()
         if (robotData.state == robotstate::MATCH_QUIT)
         {
             box_.pack_start(scoreLabel_);
+            box_.pack_start(quitButton_);
+        }
+        if (robotData.state == robotstate::SETUP_FAILED || robotData.state == robotstate::HOMOLOGATION)
+        {
+            box_.pack_start(debugLabel_);
             box_.pack_start(quitButton_);
         }
         show_all();
@@ -205,6 +216,13 @@ void RobotGUI::detectBordersClicked()
 }
 
 
+
+void RobotGUI::homologationClicked()
+{
+    askedHomologation_ = true;
+}
+
+
 miam::RobotPosition RobotGUI::getStartPosition()
 {
     miam::RobotPosition startPos = START_POSITIONS[startPositionIdx_];
@@ -220,6 +238,13 @@ bool RobotGUI::getAskedDetectBorders()
 {
     bool res = askedDetectBorders_;
     askedDetectBorders_ = false;
+    return res;
+}
+
+bool RobotGUI::getAskedHomologation()
+{
+    bool res = askedHomologation_;
+    askedHomologation_ = false;
     return res;
 }
 
