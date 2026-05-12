@@ -437,6 +437,7 @@ void Robot::detectBorders()
 {
     pthread_setname_np(pthread_self(), "robot_detectBorders");
     inBorderDetection_ = true;
+    guiState_.debugStatus = "Running border detection";
 
     #ifdef HAS_GYROSCOPE
         // Compute gyro bias.
@@ -500,9 +501,14 @@ void Robot::detectBorders()
 
         motionController_.goToStraightLine(gui_->getStartPosition(), 0.5);
         logger_ << "[Robot] Border setup successful!" << std::endl;
+        isReadyToStartMatch_ = true;
+        guiState_.debugStatus = "";
     }
     else
+    {
         logger_ << "[Robot] Border position mismatch!" << std::endl;
+        guiState_.debugStatus = "Border detection failed!";
+    }
     inBorderDetection_ = false;
 }
 

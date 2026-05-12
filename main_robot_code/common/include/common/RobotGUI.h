@@ -50,6 +50,7 @@
 
             private:
                 bool doUpdate();
+                void refreshSide();
                 void quit();
 
                 void drawTable(Cairo::RefPtr<Cairo::Context> const& cr, int width, int height);
@@ -66,6 +67,8 @@
                 Gtk::Label infoLabel_;
                 Gtk::Label scoreLabel_;
                 Gtk::Label actionNameLabel_;
+                Gtk::Label readyLabel_;
+                Gtk::Label sideLabel_;
 
                 Gtk::Button sideButton_;
                 Gtk::Button startPositionButton_;

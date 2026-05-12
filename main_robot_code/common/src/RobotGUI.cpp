@@ -23,6 +23,7 @@ RobotGUI::RobotGUI()
             "#blue {background:#5485a4;}"
             "#yellow {background:#e0bc48;}"
             "#red {background:#ff0000;}"
+            "#green {background:#00B000;}"
             "#button_text {color:#FFFFFF;}"
             "#score {font-size:40; color:#0000FF;}");
     Gtk::StyleContext::add_provider_for_screen(get_screen(), provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
@@ -86,6 +87,9 @@ RobotGUI::RobotGUI()
     buttonBox_.pack_start(detectBordersButton_);
     buttonBox_.pack_start(homologationButton_);
 
+    readyLabel_.set_text("Ready to start!");
+    readyLabel_.set_name("green");
+    refreshSide();
     // Refresh at 20Hz.
     Glib::signal_timeout().connect(sigc::mem_fun(*this, &RobotGUI::doUpdate), 50);
 }
@@ -126,18 +130,6 @@ bool RobotGUI::doUpdate()
         infoLabel_.set_text(robotData.infoString);
     }
     scoreLabel_.set_text("Score: " + std::to_string(robotData.score));
-    if (isPlayingRightSide_)
-    {
-        sideButton_.set_label("Blue");
-        sideButton_.set_name("blue");
-        sideButton_.get_child()->set_name("button_text");
-    }
-    else
-    {
-        sideButton_.set_label("Yellow");
-        sideButton_.set_name("yellow");
-        sideButton_.get_child()->set_name("button_text");
-    }
 
     drawingArea_.queue_draw();
     if (robotData.state != lastState_)
@@ -146,13 +138,21 @@ bool RobotGUI::doUpdate()
         auto childs = box_.get_children();
         for (unsigned int i = 1; i < childs.size(); i++)
             box_.remove(*childs.at(i));
-        if (robotData.state == robotstate::INIT || robotData.state == robotstate::UNDERVOLTAGE)
+        if (robotData.state == robotstate::INIT || robotData.state == robotstate::UNDERVOLTAGE || robotData.state == WAITING_REMOVE_CABLE)
         {
             box_.pack_start(debugLabel_);
         }
-        if (robotData.state == robotstate::WAITING_FOR_START || robotData.state == robotstate::WAITING_FOR_CABLE)
+        if (robotData.state == robotstate::WAITING_FOR_CABLE)
         {
             box_.pack_start(buttonBox_);
+            box_.pack_start(drawingArea_);
+            box_.pack_start(infoLabel_);
+            box_.pack_start(debugLabel_);
+        }
+        if (robotData.state == robotstate::WAITING_FOR_START)
+        {
+            box_.pack_start(sideLabel_);
+            box_.pack_start(readyLabel_);
             box_.pack_start(drawingArea_);
             box_.pack_start(infoLabel_);
         }
@@ -190,9 +190,29 @@ void RobotGUI::update(RobotGUIData const& robotData)
     mutex_.unlock();
 }
 
+void RobotGUI::refreshSide()
+{
+    if (isPlayingRightSide_)
+    {
+        sideButton_.set_label("Blue");
+        sideButton_.set_name("blue");
+        sideLabel_.set_label("Blue");
+        sideLabel_.set_name("blue");
+        sideButton_.get_child()->set_name("button_text");
+    }
+    else
+    {
+        sideButton_.set_label("Yellow");
+        sideButton_.set_name("yellow");
+        sideLabel_.set_label("Yellow");
+        sideLabel_.set_name("yellow");
+        sideButton_.get_child()->set_name("button_text");
+    }
+}
 void RobotGUI::sideButtonClicked()
 {
     isPlayingRightSide_ = !isPlayingRightSide_;
+    refreshSide();
     doUpdate();
 }
 

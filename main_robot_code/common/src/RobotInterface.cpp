@@ -283,29 +283,49 @@ bool RobotInterface::setupBeforeMatchStart()
         if (isSetup)
         {
             if (testMode_)
-                matchStartTime_ = -1;
-            guiState_.state = robotstate::WAITING_FOR_CABLE;
+                matchStartTime_ = currentTime_;
+            guiState_.state = robotstate::WAITING_REMOVE_CABLE;
+            guiState_.debugStatus = "Remove cable to continue";
         }
     }
-    else if (guiState_.state == robotstate::WAITING_FOR_CABLE)
+    if (guiState_.state == robotstate::WAITING_REMOVE_CABLE)
     {
-        if (matchStartTime_ < 0)
-            matchStartTime_ = currentTime_;
         if (testMode_)
         {
             // Wait for motor to boot
             if (currentTime_ - matchStartTime_ > 1.5)
                 return true;
         }
-        else
+        else if (!isStartingSwitchPluggedIn())
         {
-            // Wait for cable to be plugged in.
-            if (isStartingSwitchPluggedIn())
+            guiState_.state = robotstate::WAITING_FOR_CABLE;
+            guiState_.debugStatus = "";
+            unplugTime_ = currentTime_;
+        }
+    }
+    else if (guiState_.state == robotstate::WAITING_FOR_CABLE)
+    {
+        if (matchStartTime_ < 0)
+            matchStartTime_ = currentTime_;
+
+        // Wait for cable to be plugged in.
+        if (currentTime_ - unplugTime_ > 0.5 && isStartingSwitchPluggedIn())
+        {
+            #ifdef SIMULATION
+            isReadyToStartMatch_ = true;
+            #endif
+            if (isReadyToStartMatch_)
             {
                 // Store plug time in matchStartTime_ to prevent false start due to switch bounce.
                 matchStartTime_ = currentTime_;
                 motionController_.isPlayingRightSide_ = false;
                 guiState_.state = robotstate::WAITING_FOR_START;
+            }
+            else
+            {
+                // Fallback
+                guiState_.debugStatus = "Robot not ready, remove cable & reconfigure";
+                guiState_.state = robotstate::WAITING_REMOVE_CABLE;
             }
         }
     }

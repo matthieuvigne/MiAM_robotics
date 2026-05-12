@@ -163,9 +163,13 @@
             double currentTime_{0.0};
             double dt_{0.0};
 
+            double unplugTime_{0.0};
+
             std::string teleplotPrefix_;
             RobotMeasurements measurements_;
             bool silent_;
+
+            bool isReadyToStartMatch_ = false;
         private:
             /// \brief Perform robot setup, returns true the match has started or not.
             ///
