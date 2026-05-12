@@ -350,7 +350,7 @@ bool MotionControllerTestingViewer::mouseClicked(GdkEventButton* buttonEvent)
         bool hasErased= false;
         for (auto iter = obstacles_.begin(); iter != obstacles_.end(); )
         {
-            if ((currentEditPosition_ -std::get<0>(*iter)).norm() < OBSTACLE_SIZE)
+            if ((currentEditPosition_ -iter->position).norm() < OBSTACLE_SIZE)
             {
                 iter = obstacles_.erase(iter);
                 hasErased = true;

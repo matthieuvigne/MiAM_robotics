@@ -90,6 +90,11 @@ public:
     CameraResult cameraDetectCrates();
 
     std::string updateInfoString();
+
+    VisionHandler *getVisionHandler()
+    {
+        return visionHandler_;
+    }
 private:
     void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab, bool secondGrab = false);
 

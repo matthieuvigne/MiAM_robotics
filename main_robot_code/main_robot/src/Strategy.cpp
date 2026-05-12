@@ -136,7 +136,7 @@ void Strategy::goBackToBase()
     // Release everything
 
     // Target depends on start position
-    RobotPosition targetPosition(300, 1500, M_PI_2);
+    RobotPosition targetPosition(300, 1450, M_PI_2);
 
     bool targetReached = false;
     while (!targetReached)
@@ -159,7 +159,7 @@ void Strategy::goBackToBase()
     }
     if (targetReached)
     {
-        robot->getMotionController()->goToStraightLine(targetPosition.forward(400), 0.5);
+        robot->getMotionController()->goToStraightLine(targetPosition.forward(350), 0.75);
         robot->updateScore(10, "back to base");
     }
 }
@@ -275,7 +275,13 @@ void Strategy::match_impl()
             actions_.erase(actions_.begin() + selectedAction);
         }
 
-        if (robot->getMatchTime() > 84.0)
+        if (robot->getMatchTime() > 85.0 && (!robot->getGameState()->isBedFull && !robot->getGameState()->isClawFull))
+        {
+            robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
+            break;
+        }
+
+        if (robot->getMatchTime() > 90.0)
         {
             robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
             break;

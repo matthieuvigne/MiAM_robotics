@@ -79,7 +79,7 @@ int main (int argc, char *argv[])
                 {
                     Obstacle o(generateRandomValidPosition(map), random(200, 400));
                     obstacles.push_back(o);
-                    map.addCollisionCircle(std::get<0>(o), std::get<1>(o));
+                    map.addCollisionCircle(o.position, o.radius);
                 }
 
                 startPosition = generateRandomValidPosition(map);

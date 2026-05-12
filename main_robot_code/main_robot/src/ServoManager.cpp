@@ -64,8 +64,9 @@ void precomputeArmIK()
 
     Eigen::Vector3d const xFold{l1 - 0.08, -(l2 + l3 - 0.045),-M_PI_2};
     Eigen::Vector3d xFoldMid = (xFold + xRaised) / 2.0;
-    // xFoldMid[1] += 0.01;
+    // xFoldMid[1] += 0.005;
     qFoldMid = solveArmPosition(xFoldMid, qRaised);
+    qFoldMid[2] -= 0.25;
     qFold = solveArmPosition(xFold, qFoldMid);
 
     Eigen::Vector3d const xBed{l1 + 0.13, -(l2 + l3 - 0.13),-0.1};
@@ -154,17 +155,26 @@ void ServoManager::init(RobotInterface *robot)
 void ServoManager::testArm()
 {
     std::string input;
+    pumpOn(Side::RIGHT);
+    pumpOn(Side::LEFT);
     while (true)
     {
         std::getline(std::cin, input);
         std::cout << "raise" << std::endl;
         moveArm(ArmPosition::RAISE);
         std::getline(std::cin, input);
+
+        servos_->setMaxVelocity(ID_ARM_1, 1000);
+        servos_->setMaxVelocity(ID_ARM_2, 1600);
+        servos_->setMaxVelocity(ID_ARM_3, 1800);
         moveArm(ArmPosition::FOLD_MID);
-        std::cout << "FOLD_MID" << std::endl;
-        std::getline(std::cin, input);
+        robot_->wait(0.5);
         moveArm(ArmPosition::FOLD);
-        std::cout << "FOLD" << std::endl;
+        robot_->wait(0.4);
+        servos_->setMaxVelocity(ID_ARM_1, 2000);
+        servos_->setMaxVelocity(ID_ARM_2, 2500);
+        servos_->setMaxVelocity(ID_ARM_3, 2500);
+        std::cout << "FOLD DONE" << std::endl;
     }
 }
 
@@ -454,7 +464,7 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     double suctionRight = 0.0, suctionLeft = 0.0, rail = 0.0;
     bool asymRight = false;
     bool asymLeft = false;
-    double lateralAmount = secondGrab ? 0.6: 0.3;
+    double lateralAmount = secondGrab ? 0.6: 0.4;
 
     // Do all 5 cases
     if (leftTagIdx == 0 && rightTagIdx == 1)
@@ -537,6 +547,7 @@ void ServoManager::moveCratesInBed()
 
     servos_->setMaxVelocity(ID_ARM_1, 1000);
     servos_->setMaxVelocity(ID_ARM_2, 1600);
+    servos_->setMaxVelocity(ID_ARM_3, 1800);
     moveArm(ArmPosition::FOLD_MID);
     robot_->wait(0.4);
     moveArm(ArmPosition::FOLD);
@@ -547,6 +558,7 @@ void ServoManager::moveCratesInBed()
     releaseSuction();
     servos_->setMaxVelocity(ID_ARM_1, 2000);
     servos_->setMaxVelocity(ID_ARM_2, 2500);
+    servos_->setMaxVelocity(ID_ARM_3, 2500);
     moveRails(RailPosition::FORWARD);
     while (areRailsMoving())
     {
@@ -560,7 +572,7 @@ void ServoManager::moveCratesInBed()
 void ServoManager::dropCrates()
 {
     moveArm(ArmPosition::GRAB);
-    robot_->wait(0.25);
+    robot_->wait(0.35);
     releaseSuction();
     moveArm(ArmPosition::RAISE);
     robot_->getGameState()->isClawFull = false;

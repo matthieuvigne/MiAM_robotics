@@ -162,7 +162,7 @@ Map GameState::generateMap()
     // excludeRectangle(map, 0, 1800, 3000, 2000);
 
     // Attic
-    excludeRectangle(map, 600, 1580, 3000, 2000);
+    excludeRectangle(map, 580, 1500, 3000, 2000);
 
 
     // // Other robot start / drop zones
@@ -241,6 +241,9 @@ void GameState::detectOtherRobotAction(std::vector<Obstacle> const& obstacles, d
         {
             for (auto const& o : obstacles)
             {
+                // VLX not relyable enough for now.
+                if (o.isVLX)
+                    continue;
                 if((o.position - COLLECT_ZONE_COORDS[i]).norm() < 300)
                 {
                     if (timeOtherRobotEnteredZone_[i] < 0)

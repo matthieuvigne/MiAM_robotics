@@ -217,7 +217,7 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         }
 
         displayDetectedObstacles_.push_back(obstacle);
-        if (!this->isLidarPointWithinTable(point))
+        if (!obstacle.isInTable)
             continue;
 
         // Ignore obstacles for the first second of the match

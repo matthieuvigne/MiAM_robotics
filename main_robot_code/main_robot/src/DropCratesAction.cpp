@@ -2,7 +2,7 @@
 
 #define MARGIN 80
 
-#define LATERAL_OFFSET 45.0
+#define LATERAL_OFFSET 50.0
 
 void DropCratesAction::updateStartCondition()
 {

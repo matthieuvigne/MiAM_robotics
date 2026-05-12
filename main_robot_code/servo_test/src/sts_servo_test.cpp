@@ -41,9 +41,12 @@ int main(int argc, char* argv[])
     ServoManager *servoManager_ = &servo_manager;
     Robot *robot_ = &robot;
     servo_manager.init(&robot);
+    servo_manager.getVisionHandler()->init();
     while (!robot.getServos()->areAllRailsCalibrated())
         robot_->wait(0.1);
     servo_manager.moveRails(RailPosition::FORWARD);
+
+    // servo_manager.testArm();
 
     std::string input;
 
@@ -110,6 +113,7 @@ int main(int argc, char* argv[])
             servoManager_->grabCrates(res);
             auto et = std::chrono::steady_clock::now();
             std::cout << "grab crates done" << (et - st).count() << std::endl;
+            servoManager_->fingerOpen();
         }
 
         // servoManager_->fingerOpen();
