@@ -94,14 +94,6 @@ void Strategy::match()
 
     // motionController->goStraight(950);
     // while (true) ;;
-    // std::string input;
-    // while (true)
-    // {
-    //     testSquare(false, 500);
-    //     std::getline(std::cin, input);
-    //     testSquare(true, 500);
-    //     std::getline(std::cin, input);
-    // }
     match_impl();
 
 
@@ -144,7 +136,7 @@ void Strategy::goBackToBase()
     // Release everything
 
     // Target depends on start position
-    RobotPosition targetPosition(300, 1500, M_PI_2 + 0.4);
+    RobotPosition targetPosition(300, 1500, M_PI_2);
 
     bool targetReached = false;
     while (!targetReached)
@@ -167,6 +159,7 @@ void Strategy::goBackToBase()
     }
     if (targetReached)
     {
+        robot->getMotionController()->goToStraightLine(targetPosition.forward(400), 0.5);
         robot->updateScore(10, "back to base");
     }
 }

@@ -540,7 +540,7 @@ void ServoManager::moveCratesInBed()
     moveArm(ArmPosition::FOLD_MID);
     robot_->wait(0.4);
     moveArm(ArmPosition::FOLD);
-    robot_->wait(0.2);
+    robot_->wait(0.3);
     moveRails(RailPosition::INTERNAL);
     while (areRailsMoving())
         robot_->wait(0.050);
@@ -570,7 +570,7 @@ void ServoManager::emptyBed()
 {
     moveArm(ArmPosition::BED_UNFOLD);
     bedUnfold();
-    robot_->wait(1.20);
+    robot_->wait(1.10);
     fingerOpen();
     bedFold();
     robot_->wait(0.5);

@@ -57,10 +57,11 @@ bool GrabCratesAction::performAction()
     robot_->getMotionController()->pointTurn(startPosition_.theta - currentPosition.theta);
     currentPosition = robot_->getMotionController()->getCurrentPosition();
 
-    // Take picture
-    robot_->wait(0.15);
+    // Take picture, waiting for stabilisation.
+    robot_->wait(0.25);
     CameraResult res = servoManager_->cameraDetectCrates();
     RobotPosition targetPosition = currentPosition;
+    targetPosition.theta = startPosition_.theta;
     if (!res.cratesPresent)
         return true;
 
