@@ -93,13 +93,16 @@
             PCA9546A i2cExpander_;
             INA226 ina226_7V_;
             INA226 ina226_12V_;
-            BMI088 imu_;
-            double gyroBias_ = 0.0;
             bool isI2CExpanderInit_ = false;
             bool isINA7Init_ = false;
             bool isINA12Init_ = false;
-            bool isIMUInit_ = false;
             bool isVlxInit_ = false;
+
+#ifdef HAS_GYROSCOPE
+            BMI088 imu_;
+            bool isIMUInit_ = false;
+            double gyroBias_ = 0.0;
+#endif
 
 
             void updateRangeMeasurement(); // Thread handling VLX acquisition

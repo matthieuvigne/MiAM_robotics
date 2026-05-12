@@ -40,6 +40,9 @@
         WheelSpeed motorSpeed; ///<< Target motor speed, in rad/s
     }DrivetrainTarget;
 
+    // Set to activate gyroscpe computation and logging
+    // #define HAS_GYROSCOPE
+
     struct DrivetrainMeasurements{
         WheelSpeed encoderPosition; ///< Encoder position, rad.
         WheelSpeed encoderPositionIncrement; ///< Speed, measured by the encoders

@@ -103,12 +103,14 @@ bool Robot::initSystem()
             if (!isINA12Init_)
                 guiState_.debugStatus += "12V monitoring init failed\n";
         }
-        if (!isIMUInit_)
-        {
-            isIMUInit_ = imu_.init(&RPI_I2C);
+        #ifdef HAS_GYROSCOPE
             if (!isIMUInit_)
-                guiState_.debugStatus += "IMU init failed\n";
-        }
+            {
+                isIMUInit_ = imu_.init(&RPI_I2C);
+                if (!isIMUInit_)
+                    guiState_.debugStatus += "IMU init failed\n";
+            }
+        #endif
         if (!isVlxInit_)
         {
             isVlxInit_ = vlxSensor_.init(&RPI_I2C);
@@ -129,7 +131,11 @@ bool Robot::initSystem()
         else
             i2cExpander_.setPorts(0xFF);
     }
-    return isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_) & isINAInit_ & isIMUInit_ & isINA12Init_ & isINA7Init_;
+    bool allInit = isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_) & isINAInit_ & isINA12Init_ & isINA7Init_;
+    #ifdef HAS_GYROSCOPOE
+        allInit &= isIMUInit_;
+    #endif
+    return allInit;
 }
 
 
@@ -224,7 +230,7 @@ void Robot::updateSensorData()
     }
 
     int esp32_obstacle = 0;
-    if (currentTime_ - esp32MeasurementTime_ < 2.0)
+    if (currentTime_ - esp32MeasurementTime_ < 1.0)
     {
         ESP32Data d = esp32_.getLastData();
         int const MAX_DISTANCE = 600;
@@ -236,14 +242,14 @@ void Robot::updateSensorData()
                 DetectedRobot(LidarPoint(esp32_obstacle, 0.0), 0.0));
         }
     }
-
-    Eigen::Vector3f gyro = imu_.getGyroscopeReadings();
-    measurements_.drivetrainMeasurements.gyroscope = gyro(2) - gyroBias_;
-
+    #ifdef HAS_GYROSCOPE
+        Eigen::Vector3f gyro = imu_.getGyroscopeReadings();
+        measurements_.drivetrainMeasurements.gyroscope = gyro(2) - gyroBias_;
+    #endif
 
     // Log
     bool log = true;
-    if (silent_ && getMatchTime() < 0)
+    if (silent_ && getMatchTime() < 1e-6)
         log = false;
 
     if (log)
@@ -279,9 +285,11 @@ void Robot::updateSensorData()
         logger_.log("Robot.12V.current", currentTime_, inaReading.current);
         logger_.log("Robot.12V.power", currentTime_, inaReading.power);
 
-        logger_.log("IMU.gyroX", currentTime_, gyro(0));
-        logger_.log("IMU.gyroY", currentTime_, gyro(1));
-        logger_.log("IMU.gyroZ", currentTime_, gyro(2));
+        #ifdef HAS_GYROSCOPE
+            logger_.log("IMU.gyroX", currentTime_, gyro(0));
+            logger_.log("IMU.gyroY", currentTime_, gyro(1));
+            logger_.log("IMU.gyroZ", currentTime_, gyro(2));
+        #endif
         logger_.log("Robot.vlxDistance", currentTime_, measurements_.vlxDistance);
         logger_.log("ESP32.obstacleDistance", currentTime_, esp32_obstacle);
     }
@@ -430,16 +438,17 @@ void Robot::detectBorders()
     pthread_setname_np(pthread_self(), "robot_detectBorders");
     inBorderDetection_ = true;
 
-    // Compute gyro bias.
-    double gyroSum = 0.0;
-    for (int i = 0; i < 500; i++)
-    {
-        gyroSum += imu_.getGyroscopeReadings()[2];
-        wait(0.001);
-    }
-    gyroBias_ = gyroSum / 1000.0;
-    logger_ << "[Robot] Computed gyro bias: " << gyroBias_ << std::endl;
-
+    #ifdef HAS_GYROSCOPE
+        // Compute gyro bias.
+        double gyroSum = 0.0;
+        for (int i = 0; i < 500; i++)
+        {
+            gyroSum += imu_.getGyroscopeReadings()[2];
+            wait(0.001);
+        }
+        gyroBias_ = gyroSum / 1000.0;
+        logger_ << "[Robot] Computed gyro bias: " << gyroBias_ << std::endl;
+    #endif
 
     if (!touchBorder())
     {

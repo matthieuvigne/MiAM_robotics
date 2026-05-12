@@ -244,8 +244,11 @@
             MotionPlanner motionPlanner_;
             Logger *logger_; ///< Logger object.
             ProtectedPosition currentPosition_; ///< Current robot position, thread-safe.
-            RobotPosition gyroBasedPosition_;
-            RobotPosition odometryBasedPosition_;
+
+#ifdef HAS_GYROSCOPE
+                RobotPosition gyroBasedPosition_;
+                RobotPosition odometryBasedPosition_;
+#endif
             double currentTime_{0.0};
 
             // Trajectory definition.
@@ -342,7 +345,6 @@
             GameState gameState_;
             DrivetrainTarget lastTarget_;
             bool isDetectionEnabled_ = true;
-            double gyroscopeAngle_ = 0.0;
 
             WheelSpeed openLoopSpeed_;
     };

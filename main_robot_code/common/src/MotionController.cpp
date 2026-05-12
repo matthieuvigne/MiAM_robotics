@@ -69,20 +69,26 @@ void MotionController::resetPosition(miam::RobotPosition const &resetPosition, b
     if (resetX)
     {
         position.x = resetPosition.x;
-        odometryBasedPosition_.x = position.x;
-        gyroBasedPosition_.x = position.x;
+        #ifdef HAS_GYROSCOPE
+            odometryBasedPosition_.x = position.x;
+            gyroBasedPosition_.x = position.x;
+        #endif
     }
     if (resetY)
     {
         position.y = resetPosition.y;
-        odometryBasedPosition_.y = position.y;
-        gyroBasedPosition_.y = position.y;
+        #ifdef HAS_GYROSCOPE
+            odometryBasedPosition_.y = position.y;
+            gyroBasedPosition_.y = position.y;
+        #endif
     }
     if (resetTheta)
     {
         position.theta = resetPosition.theta;
-        odometryBasedPosition_.theta = position.theta;
-        gyroBasedPosition_.theta = position.theta;
+        #ifdef HAS_GYROSCOPE
+            odometryBasedPosition_.theta = position.theta;
+            gyroBasedPosition_.theta = position.theta;
+        #endif
     }
     *logger_ << "[MotionController] Reset position to:" << position << std::endl;
     currentPosition_.set(position);
@@ -138,9 +144,6 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     currentTime_ += dt;
     log("timeIncrement",dt);
 
-    double gyro = measurements.gyroscope;
-    if (isPlayingRightSide_)
-        gyro *= -1;
 
     // Odometry
     RobotPosition currentPosition = currentPosition_.update(kinematics_, measurements.encoderPositionIncrement);
@@ -149,21 +152,27 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     currentEncoderSpeed_.right /= dt;
     currentSpeed_ = kinematics_.forwardKinematics(currentEncoderSpeed_, true);
 
-    kinematics_.integratePosition(measurements.encoderPositionIncrement, odometryBasedPosition_);
-    kinematics_.integrateGyroKinematics(measurements.encoderPositionIncrement, gyroBasedPosition_, gyro * dt);
-    gyroscopeAngle_ += gyro * dt;
+    #ifdef HAS_GYROSCOPE
+        double gyro = measurements.gyroscope;
+        if (isPlayingRightSide_)
+            gyro *= -1;
+        kinematics_.integratePosition(measurements.encoderPositionIncrement, odometryBasedPosition_);
+        kinematics_.integrateGyroKinematics(measurements.encoderPositionIncrement, gyroBasedPosition_, gyro * dt);
+    #endif
 
     if (measurements.matchTime > 0.0)
     {
-        log("MotionController.gyroscopeX", gyroBasedPosition_.x);
-        log("MotionController.gyroscopeY", gyroBasedPosition_.y);
-        log("MotionController.gyroscopeAngle", gyroBasedPosition_.theta);
-        log("MotionController.odometryX", odometryBasedPosition_.x);
-        log("MotionController.odometryY", odometryBasedPosition_.y);
-        log("MotionController.odometryAngle", odometryBasedPosition_.theta);
-        log("MotionController.gyroOdoDiffX", odometryBasedPosition_.x - gyroBasedPosition_.x);
-        log("MotionController.gyroOdoDiffY", odometryBasedPosition_.y - gyroBasedPosition_.y);
-        log("MotionController.gyroOdoDiffAngle", odometryBasedPosition_.theta - gyroBasedPosition_.theta);
+        #ifdef HAS_GYROSCOPE
+            log("MotionController.gyroscopeX", gyroBasedPosition_.x);
+            log("MotionController.gyroscopeY", gyroBasedPosition_.y);
+            log("MotionController.gyroscopeAngle", gyroBasedPosition_.theta);
+            log("MotionController.odometryX", odometryBasedPosition_.x);
+            log("MotionController.odometryY", odometryBasedPosition_.y);
+            log("MotionController.odometryAngle", odometryBasedPosition_.theta);
+            log("MotionController.gyroOdoDiffX", odometryBasedPosition_.x - gyroBasedPosition_.x);
+            log("MotionController.gyroOdoDiffY", odometryBasedPosition_.y - gyroBasedPosition_.y);
+            log("MotionController.gyroOdoDiffAngle", odometryBasedPosition_.theta - gyroBasedPosition_.theta);
+        #endif
 
         log("MotionController.encoderRight",measurements.encoderPosition.right);
         log("MotionController.encoderLeft",measurements.encoderPosition.left);
