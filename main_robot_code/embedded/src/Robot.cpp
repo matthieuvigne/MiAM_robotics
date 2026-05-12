@@ -131,7 +131,16 @@ bool Robot::initSystem()
         else
             i2cExpander_.setPorts(0xFF);
     }
-    bool allInit = isMotorsInit_ & isEncodersInit_ & isServoInit_ & (isLidarInit_ || disableLidar_) & isINAInit_ & isINA12Init_ & isINA7Init_;
+
+    if (!isCameraInit_)
+    {
+        isCameraInit_ = visionHandler_.init();
+        if (!isCameraInit_)
+            guiState_.debugStatus += "Camera init failed\n";
+    }
+    bool allInit = isMotorsInit_ & isEncodersInit_ & isServoInit_ &
+                  (isLidarInit_ || disableLidar_) & isINAInit_ & isINA12Init_ & isINA7Init_ &
+                  isCameraInit_;
     #ifdef HAS_GYROSCOPOE
         allInit &= isIMUInit_;
     #endif

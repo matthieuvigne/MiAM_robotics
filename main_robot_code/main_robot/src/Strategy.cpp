@@ -361,23 +361,7 @@ void Strategy::homologationPose()
 
 std::string Strategy::updateInfoString()
 {
-    std::vector<Tag> tags = servoManager_.visionHandler_.getTags();
-    std::string result;
-    if (tags.size() == 0)
-        result = "No tags seen!";
-    else
-    {
-        result = "Tags: ";
-        for (auto const& t : tags)
-        {
-            if (t.markerId == BLUE)
-                result += "blue ";
-            if (t.markerId == YELLOW)
-                result += "yellow ";
-        }
-
-    }
-    return result;
+    return servoManager_.updateInfoString();
 }
 
 }

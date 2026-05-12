@@ -97,6 +97,7 @@
             bool isINA7Init_ = false;
             bool isINA12Init_ = false;
             bool isVlxInit_ = false;
+            bool isCameraInit_ = false;
 
 #ifdef HAS_GYROSCOPE
             BMI088 imu_;

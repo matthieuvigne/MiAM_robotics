@@ -20,10 +20,14 @@ class VisionHandler
     public:
         VisionHandler();
 
+        /// Instanciate connection to SHM.
+        bool init();
+
         // Return the tags found, sorted along the y axis.
         std::vector<Tag> getTags();
 
     private:
+        bool isInit_ = false;
         SHMReader reader_;
 
 };

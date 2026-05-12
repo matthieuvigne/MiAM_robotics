@@ -17,6 +17,7 @@
     #include "common/Types.h"
     #include "common/GameState.h"
     #include "common/RobotGUI.h"
+    #include "common/VisionHandler.h"
 #ifdef SIMULATION
     #include <miam_utils/FakeMetronome.h>
 #endif
@@ -141,6 +142,11 @@
                 return &measurements_;
             }
 
+            VisionHandler *getVisionHandler()
+            {
+                return &visionHandler_;
+            }
+
         protected:
 #ifdef SIMULATION
             FakeMetronome metronome_;
@@ -149,6 +155,8 @@
 #endif
             MotionController motionController_;
             STSScheduler servos_;
+
+            VisionHandler visionHandler_;
 
             RobotGUI *gui_;
             AbstractStrategy *strategy_;

@@ -103,6 +103,7 @@ void ServoManager::init(RobotInterface *robot)
 {
     robot_ = robot;
     servos_ = robot->getServos();
+    visionHandler_ = robot->getVisionHandler();
     precomputeArmIK();
 
     // Configure servos
@@ -341,12 +342,15 @@ CameraResult ServoManager::cameraDetectCrates()
     // Look for tags in the image
     CameraResult result;
     result.cratesPresent = false;
-    for (int i = 0; i < 5; i++)
+    if (visionHandler_ != nullptr)
     {
-        result.tags = visionHandler_.getTags();
-        if (result.tags.size() == 4)
-            break;
-        robot_->wait(0.120); // Wait, with enough time for the camera to get a new frame.
+        for (int i = 0; i < 3; i++)
+        {
+            result.tags = visionHandler_->getTags();
+            if (result.tags.size() == 4)
+                break;
+            robot_->wait(0.120); // Wait, with enough time for the camera to get a new frame.
+        }
     }
     // Analyze: what did we see
     if (result.tags.size() == 0)
@@ -599,4 +603,28 @@ void ServoManager::fingerClose()
     int closeAmount = 250;
     servos_->setTargetPosition(ID_FINGER_R, FINGER_RIGHT_OPEN + closeAmount);
     servos_->setTargetPosition(ID_FINGER_L, FINGER_LEFT_OPEN - closeAmount);
+}
+
+
+std::string ServoManager::updateInfoString()
+{
+    if (visionHandler_ == nullptr)
+        return "No tags seen!";
+    std::vector<Tag> tags = visionHandler_->getTags();
+    std::string result;
+    if (tags.size() == 0)
+        result = "No tags seen!";
+    else
+    {
+        result = "Tags: ";
+        for (auto const& t : tags)
+        {
+            if (t.markerId == BLUE)
+                result += "blue ";
+            if (t.markerId == YELLOW)
+                result += "yellow ";
+        }
+
+    }
+    return result;
 }

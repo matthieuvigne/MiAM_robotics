@@ -2,7 +2,6 @@
 #define MAIN_ROBOT_SERVO_MANAGER_H
 
 #include "common/RobotInterface.h"
-#include "main_robot/VisionHandler.h"
 
 enum ArmPosition {
     CALIBRATE,
@@ -80,7 +79,6 @@ public:
     // Hide arm inside robot to take picture
     void hideArm();
     void unhideArm();
-    VisionHandler visionHandler_;
 
     void testArm();
 
@@ -91,6 +89,7 @@ public:
 
     CameraResult cameraDetectCrates();
 
+    std::string updateInfoString();
 private:
     void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab, bool secondGrab = false);
 
@@ -106,6 +105,8 @@ private:
     int lastCloseTarget_front_L;
 
     ArmPosition currentArmPosition;
+
+    VisionHandler *visionHandler_ = nullptr;
 };
 
 #endif
