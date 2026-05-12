@@ -122,7 +122,7 @@ bool DropCratesAction::performAction()
         servoManager_->dropCrates();
         servoManager_->moveRails(RailPosition::FORWARD);
         robot_->getMotionController()->goStraight(-MARGIN);
-        servoManager_->bedMidUnfold();
+        // servoManager_->bedMidUnfold();
 
         RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
         std::vector<RobotPosition> positions;
@@ -145,8 +145,8 @@ bool DropCratesAction::performAction()
     {
         if (robot_->getGameState()->isBedFull)
         {
-            servoManager_->bedMidUnfold();
-            robot_->wait(0.4);
+            // servoManager_->bedMidUnfold();
+            // robot_->wait(0.4);
             servoManager_->emptyBed();
         }
         else

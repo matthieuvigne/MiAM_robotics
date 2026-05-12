@@ -215,7 +215,7 @@ void ServoManager::bedFold()
 }
 void ServoManager::bedUnfold()
 {
-    servos_->setTargetPosition(ID_BED, 3800);
+    servos_->setTargetPosition(ID_BED, 3600);
 }
 void ServoManager::bedMidUnfold()
 {
@@ -566,13 +566,11 @@ void ServoManager::emptyBed()
 {
     moveArm(ArmPosition::BED_UNFOLD);
     bedUnfold();
-    robot_->wait(0.80);
+    robot_->wait(1.20);
     fingerOpen();
-    robot_->wait(0.2);
     bedFold();
     robot_->wait(0.5);
     moveArm(ArmPosition::RAISE);
-    robot_->wait(0.5);
     robot_->getGameState()->isBedFull = false;
 }
 
