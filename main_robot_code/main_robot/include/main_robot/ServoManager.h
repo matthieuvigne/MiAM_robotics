@@ -11,7 +11,8 @@ enum ArmPosition {
     FOLD_MID,
     FOLD,
     CAMERA_POSE,
-    BED_UNFOLD
+    BED_UNFOLD,
+    DO_CURSOR
 };
 
 enum RailPosition {
@@ -45,6 +46,7 @@ public:
 
     void bedFold();
     void bedUnfold();
+    void bedMidUnfold();
 
     void moveRails(RailPosition const& position);
     bool areRailsMoving();
@@ -91,7 +93,6 @@ public:
 
 private:
     void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab, bool secondGrab = false);
-
 
     RobotInterface *robot_;
     STSScheduler *servos_;

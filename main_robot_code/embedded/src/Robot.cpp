@@ -242,8 +242,11 @@ void Robot::updateSensorData()
 
 
     // Log
-    // if (currentTime_ > 0.0)
-    if (true)
+    bool log = true;
+    if (silent_ && getMatchTime() < 0)
+        log = false;
+
+    if (log)
     {
         logger_.log("Robot.rightMotor.rawEncoder", currentTime_, rightMeasurements.encoderPosition);
         logger_.log("Robot.rightMotor.motorPosition", currentTime_, rightMeasurements.motorPosition);

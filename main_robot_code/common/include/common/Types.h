@@ -7,8 +7,6 @@
     #include "miam_utils/Types.h"
     #include "miam_utils/RPLidarHandler.h"
 
-
-
     ///< The various states the robot can be in
     enum robotstate{
         INIT                 = 0,
@@ -48,7 +46,7 @@
         WheelSpeed motorSpeed; ///<< Measured motor speed, in rad/s
         std::deque<DetectedRobot> lidarDetection; ///< Robots detected by the lidar.
         double matchTime; ///< Time in the match.
-        double gyroscope;
+        double gyroscope = 0.0;
     };
 
     struct RobotMeasurements{

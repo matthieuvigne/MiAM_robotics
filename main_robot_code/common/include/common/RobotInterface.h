@@ -165,6 +165,7 @@
 
             std::string teleplotPrefix_;
             RobotMeasurements measurements_;
+            bool silent_;
         private:
             /// \brief Perform robot setup, returns true the match has started or not.
             ///
@@ -176,7 +177,6 @@
             /// @brief Init logger object.
             void initLogger();
 
-            bool silent_;
             RobotPosition motorEstimatedPosition_; ///< Position, estimated by the motors, to act as sanity check on encoder status.
 
     };

@@ -137,7 +137,7 @@ void Strategy::goBackToBase()
     // Release everything
 
     // Target depends on start position
-    RobotPosition targetPosition(300, 1400, M_PI);
+    RobotPosition targetPosition(300, 1500, M_PI_2 + 0.4);
 
     bool targetReached = false;
     while (!targetReached)
@@ -275,7 +275,7 @@ void Strategy::match_impl()
             actions_.erase(actions_.begin() + selectedAction);
         }
 
-        if (robot->getMatchTime() > 82.0)
+        if (robot->getMatchTime() > 84.0)
         {
             robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
             break;

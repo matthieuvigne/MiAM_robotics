@@ -2,7 +2,7 @@
 
 #define LATERAL_DISTANCE 205
 
-#define ARM_OFFSET 103
+#define ARM_OFFSET 100
 
 
 void CursorAction::updateStartCondition()
@@ -15,19 +15,23 @@ void CursorAction::updateStartCondition()
     }
     else
     {
-        // More priority than grab, less than drop.
-        priority_ = 8;
+        // Action with most priority when possible.
+        priority_ = 100;
     }
 
-    startPosition_.x = 500 + ARM_OFFSET;
+    startPosition_.x = (robot_->isPlayingRightSide() ? 210: 450) + ARM_OFFSET;
     startPosition_.y = LATERAL_DISTANCE;
     startPosition_.theta = (robot_->isPlayingRightSide() ? 0 : M_PI);
+    isStartMotionBackward_ = true;
 }
 
 
 void CursorAction::actionStartTrigger()
 {
-    servoManager_->hideArm();
+    if (robot_->isPlayingRightSide())
+        servoManager_->moveArm(ArmPosition::RAISE);
+    else
+        servoManager_->moveArm(ArmPosition::DO_CURSOR);
 }
 
 bool CursorAction::performAction()
@@ -35,26 +39,37 @@ bool CursorAction::performAction()
     robot_->logger_ << "[CursorAction] Starting action " << std::endl;
 
     // Leave time for VLX to settle
-    robot_->wait(0.2);
+    robot_->wait(0.1);
     vlx_reset();
     double const angle = (robot_->isPlayingRightSide() ? 0: M_PI);
 
     // Go in front of cursor
+    if (!robot_->isPlayingRightSide())
     {
-        tf const flags = (robot_->isPlayingRightSide() ? tf::BACKWARD : tf::DEFAULT);
         RobotPosition const targetPosition(210 + ARM_OFFSET, LATERAL_DISTANCE, angle);
-        robot_->getMotionController()->goToStraightLine(targetPosition, 1, flags);
+        robot_->getMotionController()->goToStraightLine(targetPosition);
+        vlx_reset();
     }
 
     servoManager_->cursorUnfold();
-    robot_->wait(0.25);
-    vlx_reset();
+    robot_->wait(0.1);
+    tf const flags = static_cast<tf>((robot_->isPlayingRightSide() ? tf::DEFAULT : tf::BACKWARD) | tf::NO_WAIT_FOR_END);
+    // // Go in front of cursor
+    // {
+    //     RobotPosition const targetPosition(410 + ARM_OFFSET, LATERAL_DISTANCE, angle);
+    //     robot_->getMotionController()->goToStraightLine(targetPosition, 1, flags);
+    // }
+
+    // vlx_reset();
     {
-        tf const flags = (robot_->isPlayingRightSide() ? tf::DEFAULT : tf::BACKWARD);
-        RobotPosition const targetPosition(740 + ARM_OFFSET, LATERAL_DISTANCE, angle);
+        RobotPosition const targetPosition(745 + ARM_OFFSET, LATERAL_DISTANCE, angle);
         robot_->getMotionController()->goToStraightLine(targetPosition, 1, flags);
+        robot_->wait(0.75);
+        vlx_reset();
+        robot_->getMotionController()->waitForTrajectoryFinished();
     }
     servoManager_->cursorFold();
+    servoManager_->moveArm(ArmPosition::RAISE);
     robot_->getMotionController()->goStraight(robot_->isPlayingRightSide() ? - 100 : 100);
 
     // Action should not be done again

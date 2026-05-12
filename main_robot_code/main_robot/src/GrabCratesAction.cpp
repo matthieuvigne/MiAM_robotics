@@ -64,6 +64,10 @@ bool GrabCratesAction::performAction()
     if (!res.cratesPresent)
         return true;
 
+        // Unhide arm
+    std::thread thread(&ServoManager::unhideArm, servoManager_);
+    thread.detach();
+
     // Adjust position
     double const yTranslate = (robot_->isPlayingRightSide() ? -1.0 : 1.0) * std::clamp(res.lateralOffset, -100.0, 100.0);
     double const expectedYDiff = (startPosition_ - currentPosition).rotate(-startPosition_.theta).y;
@@ -79,7 +83,6 @@ bool GrabCratesAction::performAction()
 
     servoManager_->grabCrates(res);
     robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
-
     // Go back from the collect zone.
     robot_->getMotionController()->goStraight(-MARGIN);
     // Action should not be done again

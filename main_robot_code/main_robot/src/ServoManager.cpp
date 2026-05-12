@@ -42,6 +42,7 @@ Eigen::Vector3d qCalib;
 Eigen::Vector3d qFold, qFoldMid;
 
 Eigen::Vector3d qBedUnfold;
+Eigen::Vector3d qCursor;
 
 void precomputeArmIK()
 {
@@ -70,6 +71,10 @@ void precomputeArmIK()
 
     Eigen::Vector3d const qInt = solveArmPosition((xBed + xRaised) / 2.0, qRaised);
     qBedUnfold = solveArmPosition(xBed, qInt);
+
+    qCursor = qRaised;
+    qCursor[1] -= 0.5;
+    qCursor[2] += 1.5;
 }
 ////////////////////////////////////////////////////////////////////////////
 // End arm-related functions
@@ -208,6 +213,10 @@ void ServoManager::bedUnfold()
 {
     servos_->setTargetPosition(ID_BED, 3800);
 }
+void ServoManager::bedMidUnfold()
+{
+    servos_->setTargetPosition(ID_BED, 2600);
+}
 
 void ServoManager::moveArm(ArmPosition const& position)
 {
@@ -238,6 +247,9 @@ void ServoManager::moveArm(ArmPosition const& position)
         case ArmPosition::BED_UNFOLD:
             moveArmServos(servos_, qBedUnfold);
             break;
+        case ArmPosition::DO_CURSOR:
+            moveArmServos(servos_, qCursor);
+            break;
         default: break;
     }
 }
@@ -247,18 +259,18 @@ void ServoManager::doGrab()
     // moveArmServos(servos_, qGrabMid);
     // robot_->wait(0.5);
     moveArmServos(servos_, qGrab);
-    robot_->wait(0.5);
+    robot_->wait(0.3);
     servos_->disable(ID_ARM_1);
     servos_->disable(ID_ARM_2);
     servos_->disable(ID_ARM_3);
-    robot_->wait(0.5);
+    robot_->wait(0.4);
     servos_->enable(ID_ARM_1);
     servos_->enable(ID_ARM_2);
     servos_->enable(ID_ARM_3);
     moveArmServos(servos_, qGrab);
     robot_->wait(0.2);
     moveArmServos(servos_, qGrabMid);
-    robot_->wait(0.2);
+    robot_->wait(0.1);
 }
 
 void ServoManager::hideArm()
@@ -379,7 +391,8 @@ void ServoManager::grabCrates(CameraResult const& cameraResult)
     if (!cameraResult.cratesPresent)
         return;
 
-    unhideArm();
+    // unhideArm();
+    // robot_->wait(0.2);
 
     int const myColor = (robot_->isPlayingRightSide() ? BLUE : YELLOW);
     int const opponentColor = (robot_->isPlayingRightSide() ? YELLOW : BLUE);
@@ -395,22 +408,24 @@ void ServoManager::grabCrates(CameraResult const& cameraResult)
     }
 
     // Do we need to put something in the bed?
-    if (opponentTags.size() > 0)
+    if (opponentTags.size() > 0 && robot_->getMatchTime() < 75)
     {
-        grabTags(cameraResult.tags, opponentTags);
-        moveCratesInBed();
-        robot_->getGameState()->isBedFull = true;
+        if (robot_->getMatchTime() > 65)
+        {
+            robot_->logger_ << "[ServoManager::grabTags] Abort oponent grab, not enough time left" << std::endl;
+        }
+        else
+        {
+            grabTags(cameraResult.tags, opponentTags);
+            moveCratesInBed();
+            fingerClose();
+            robot_->getGameState()->isBedFull = true;
+        }
     }
     if (myTags.size() > 0)
     {
         grabTags(cameraResult.tags, myTags, true);
         robot_->getGameState()->isClawFull = true;
-    }
-    if (robot_->getGameState()->isBedFull)
-    {
-        servos_->setTargetPosition(ID_BED, 2500);
-        robot_->wait(0.6);
-        fingerClose();
     }
 }
 
@@ -493,7 +508,7 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
         while (lateralAmount >= 0)
         {
             translateSuction(asymSide, lateralAmount);
-            lateralAmount -= 0.05;
+            lateralAmount -= 0.10;
             robot_->wait(0.050);
         }
         pumpOn(Side::RIGHT);
@@ -501,7 +516,7 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
         doGrab();
     }
     moveArm(ArmPosition::RAISE);
-    robot_->wait(0.6);
+    robot_->wait(0.4);
     translateSuction(Side::LEFT, 0.0);
     translateSuction(Side::RIGHT, 0.0);
     railY_->move(0.5);
@@ -562,7 +577,7 @@ void ServoManager::releaseSuction()
     pumpOff(Side::LEFT);
     valveOn(Side::RIGHT);
     valveOn(Side::LEFT);
-    robot_->wait(0.3);
+    robot_->wait(0.2);
     valveOff(Side::RIGHT);
     valveOff(Side::LEFT);
 }

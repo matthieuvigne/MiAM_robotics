@@ -9,7 +9,7 @@
 #include <signal.h>
 
 std::vector<miam::RobotPosition> START_POSITIONS({
-    miam::RobotPosition(390, 1740, -M_PI_2)
+    miam::RobotPosition(393, 1740, -M_PI_2)
 });
 
 RobotGUI::RobotGUI()
@@ -218,8 +218,9 @@ void RobotGUI::blockMotorsButtonClicked()
 void RobotGUI::detectBordersClicked()
 {
     askedDetectBorders_ = true;
+    if (!areMotorsBlocked_)
+        blockMotorsButtonClicked();
 }
-
 
 
 void RobotGUI::homologationClicked()

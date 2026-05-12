@@ -76,6 +76,21 @@ int main(int argc, char* argv[])
     //     std::cout << "release" << std::endl;
     // }
 
+
+
+    // while (true)
+    // {
+    //     servoManager_->moveArm(ArmPosition::RAISE);
+    //     servoManager_->pumpOn(Side::RIGHT);
+    //     servoManager_->pumpOn(Side::LEFT);
+    //     std::getline(std::cin, input);
+    //     servoManager_->moveArm(ArmPosition::DO_CURSOR);
+    //     std::getline(std::cin, input);
+    //     servoManager_->pumpOff(Side::RIGHT);
+    //     servoManager_->pumpOff(Side::LEFT);
+    //     std::getline(std::cin, input);
+    // }
+
     ////////////////////////////////
     // Camera-based test
     while (true)
@@ -86,9 +101,18 @@ int main(int argc, char* argv[])
         robot_->wait(1.0);
         std::getline(std::cin, input);
         std::cout << "grabbing crates" << std::endl;
-        servoManager_->grabCrates(servoManager_->cameraDetectCrates());
-        std::cout << "grab crates done" << std::endl;
-        servoManager_->fingerOpen();
+        auto res = servoManager_->cameraDetectCrates();
+        if (res.cratesPresent)
+        {
+            servoManager_->unhideArm();
+            robot_->wait(0.2);
+            auto st = std::chrono::steady_clock::now();
+            servoManager_->grabCrates(res);
+            auto et = std::chrono::steady_clock::now();
+            std::cout << "grab crates done" << (et - st).count() << std::endl;
+        }
+
+        // servoManager_->fingerOpen();
         // std::getline(std::cin, input);
         // servoManager_->emptyBed();
         // std::cout << "emptyBed done" << std::endl;

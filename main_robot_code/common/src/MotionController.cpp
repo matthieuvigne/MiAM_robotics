@@ -65,6 +65,7 @@ double MotionController::getCurvilinearAbscissa()
 void MotionController::resetPosition(miam::RobotPosition const &resetPosition, bool const &resetX, bool const &resetY, bool const &resetTheta)
 {
     miam::RobotPosition position = currentPosition_.get();
+    *logger_ << "[MotionController] Reset position from:" << position << std::endl;
     if (resetX)
     {
         position.x = resetPosition.x;
@@ -83,6 +84,7 @@ void MotionController::resetPosition(miam::RobotPosition const &resetPosition, b
         odometryBasedPosition_.theta = position.theta;
         gyroBasedPosition_.theta = position.theta;
     }
+    *logger_ << "[MotionController] Reset position to:" << position << std::endl;
     currentPosition_.set(position);
 }
 
@@ -136,7 +138,6 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
     currentTime_ += dt;
     log("timeIncrement",dt);
 
-    log("MotionController.rawGyroscope", measurements.gyroscope);
     double gyro = measurements.gyroscope;
     if (isPlayingRightSide_)
         gyro *= -1;
@@ -218,7 +219,8 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         }
     }
     // Log obstacles
-    log("lidarNumberOfObstacles", nObstaclesOnTable);
+    if (measurements.matchTime > 0.0)
+        log("lidarNumberOfObstacles", nObstaclesOnTable);
 
     // Update game state based on other robot
     if (measurements.matchTime > 1.0)

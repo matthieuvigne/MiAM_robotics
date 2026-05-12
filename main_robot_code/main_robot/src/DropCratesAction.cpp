@@ -89,19 +89,19 @@ void DropCratesAction::updateStartCondition()
 
     if (std::abs(startPosition_.theta - 0) < 1e-6)
     {
-        startPosition_.y += LATERAL_OFFSET;
+        startPosition_.y += LATERAL_OFFSET - 20.0;
     }
     else if (std::abs(startPosition_.theta - M_PI) < 1e-6)
     {
-        startPosition_.y -= LATERAL_OFFSET;
+        startPosition_.y -= LATERAL_OFFSET - 20.0;
     }
     else if (std::abs(startPosition_.theta - M_PI_2) < 1e-6)
     {
-        startPosition_.x -= LATERAL_OFFSET;
+        startPosition_.x -= LATERAL_OFFSET - 20.0;
     }
     else if (std::abs(startPosition_.theta + M_PI_2) < 1e-6)
     {
-        startPosition_.x += LATERAL_OFFSET;
+        startPosition_.x += LATERAL_OFFSET - 20.0;
     }
 
 }
@@ -122,6 +122,7 @@ bool DropCratesAction::performAction()
         servoManager_->dropCrates();
         servoManager_->moveRails(RailPosition::FORWARD);
         robot_->getMotionController()->goStraight(-MARGIN);
+        servoManager_->bedMidUnfold();
 
         RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
         std::vector<RobotPosition> positions;
@@ -143,7 +144,11 @@ bool DropCratesAction::performAction()
     else
     {
         if (robot_->getGameState()->isBedFull)
+        {
+            servoManager_->bedMidUnfold();
+            robot_->wait(0.4);
             servoManager_->emptyBed();
+        }
         else
             servoManager_->dropCrates();
         robot_->getMotionController()->goStraight(-MARGIN);
