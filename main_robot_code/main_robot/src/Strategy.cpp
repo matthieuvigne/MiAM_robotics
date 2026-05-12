@@ -93,8 +93,15 @@ void Strategy::match()
     robot->logger_ << "Strategy thread started." << std::endl;
 
     // motionController->goStraight(950);
-    // testSquare(true, 500);
     // while (true) ;;
+    // std::string input;
+    // while (true)
+    // {
+    //     testSquare(false, 500);
+    //     std::getline(std::cin, input);
+    //     testSquare(true, 500);
+    //     std::getline(std::cin, input);
+    // }
     match_impl();
 
 

@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
         if (res.cratesPresent)
         {
             servoManager_->unhideArm();
-            robot_->wait(0.2);
+            robot_->wait(0.4);
             auto st = std::chrono::steady_clock::now();
             servoManager_->grabCrates(res);
             auto et = std::chrono::steady_clock::now();

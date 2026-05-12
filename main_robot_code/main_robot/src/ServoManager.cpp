@@ -44,6 +44,7 @@ Eigen::Vector3d qFold, qFoldMid;
 Eigen::Vector3d qBedUnfold;
 Eigen::Vector3d qCursor;
 
+
 void precomputeArmIK()
 {
     Eigen::Vector3d const xRaised{l1 + 0.040, -(l2 + l3 - 0.04),-M_PI_2};
@@ -158,8 +159,11 @@ void ServoManager::testArm()
         std::cout << "raise" << std::endl;
         moveArm(ArmPosition::RAISE);
         std::getline(std::cin, input);
-        emptyBed();
-
+        moveArm(ArmPosition::FOLD_MID);
+        std::cout << "FOLD_MID" << std::endl;
+        std::getline(std::cin, input);
+        moveArm(ArmPosition::FOLD);
+        std::cout << "FOLD" << std::endl;
     }
 }
 
@@ -520,8 +524,6 @@ void ServoManager::grabTags(std::vector<Tag> const& tags, std::vector<int> tagsT
     translateSuction(Side::LEFT, 0.0);
     translateSuction(Side::RIGHT, 0.0);
     railY_->move(0.5);
-    while (areRailsMoving())
-        robot_->wait(0.050);
 }
 
 void ServoManager::moveCratesInBed()
@@ -529,15 +531,18 @@ void ServoManager::moveCratesInBed()
     translateSuction(Side::LEFT, 0.0);
     translateSuction(Side::RIGHT, 0.0);
 
+    servos_->setMaxVelocity(ID_ARM_1, 1000);
+    servos_->setMaxVelocity(ID_ARM_2, 1600);
     moveArm(ArmPosition::FOLD_MID);
     robot_->wait(0.4);
     moveArm(ArmPosition::FOLD);
     robot_->wait(0.2);
     moveRails(RailPosition::INTERNAL);
-    robot_->wait(0.100);
     while (areRailsMoving())
         robot_->wait(0.050);
     releaseSuction();
+    servos_->setMaxVelocity(ID_ARM_1, 2000);
+    servos_->setMaxVelocity(ID_ARM_2, 2500);
     moveRails(RailPosition::FORWARD);
     while (areRailsMoving())
     {
