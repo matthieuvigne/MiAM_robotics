@@ -189,18 +189,18 @@ TrajectoryVector MotionController::computeMPCTrajectory(
         // For the first avoidance attempt, the obstacle is assumed round
         if (assumeRoundObstacle)
         {
-            map_.addCollisionCircle(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
+            map_.addCollisionCircle(obstacle.position, obstacle.radius + obstacleRadiusMargin);
         }
         // For the following attempts, it is assumed square within the same radius
         else
         {
-            map_.addCollisionSquare(std::get<0>(obstacle), std::get<1>(obstacle) + obstacleRadiusMargin);
+            map_.addCollisionSquare(obstacle.position, obstacle.radius + obstacleRadiusMargin);
         }
-        double const distance = (std::get<0>(obstacle) - currentPosition).norm();
+        double const distance = (obstacle.position - currentPosition).norm();
         if (distance < minDistanceToObstacle)
         {
             minDistanceToObstacle = distance;
-            minObstacleRadius = std::get<1>(obstacle);
+            minObstacleRadius = obstacle.radius;
         }
     }
     if (map_.detectCollision(targetPosition))
@@ -247,8 +247,8 @@ TrajectoryVector MotionController::computeMPCTrajectory(
         double backwardDistance = 1.0e5;
         for (auto const& obstacle : detectedObstacles)
         {
-            forwardDistance = std::min(forwardDistance, (std::get<0>(obstacle) - forwardPosition).norm());
-            backwardDistance = std::min(backwardDistance, (std::get<0>(obstacle) - backwardPosition).norm());
+            forwardDistance = std::min(forwardDistance, (obstacle.position - forwardPosition).norm());
+            backwardDistance = std::min(backwardDistance, (obstacle.position - backwardPosition).norm());
         }
 
         double sign = (backwardDistance > forwardDistance ? -1 : 1);

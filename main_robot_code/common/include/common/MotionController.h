@@ -210,7 +210,7 @@
                 std::vector<Obstacle> detectedObstacles,
                 tf const& flags);
 
-            std::vector<miam::RobotPosition> displayDetectedObstacles_; ///< Obstacles to display
+            std::vector<Obstacle> displayDetectedObstacles_; ///< Obstacles to display
 
             // bool avoidPersistentObstacles_;
             // void setAvoidPersistentObstacles(bool flag);

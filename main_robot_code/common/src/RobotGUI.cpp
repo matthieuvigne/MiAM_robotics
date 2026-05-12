@@ -320,15 +320,25 @@ bool TableDrawing::on_draw(Cairo::RefPtr<Cairo::Context> const& cr)
     cr->restore();
 
     // Draw obstacles
-    for (auto p : robotData_.detectedObstacles)
+    for (auto r : robotData_.detectedObstacles)
     {
         cr->save();
-        cr->translate(scaling * p.x, - scaling * p.y);
+        cr->translate(scaling * r.position.x, - scaling * r.position.y);
         cr->arc(0, 0, 80 * scaling, 0, 2 * M_PI);
-        if (p.theta > M_PI_2)
-            cr->set_source_rgb(1, 0.5, 0);
+        if (r.isVLX)
+        {
+            if (r.isInTable)
+                cr->set_source_rgb(0, 0, 1);
+            else
+                cr->set_source_rgb(1, 0, 1);
+        }
         else
-            cr->set_source_rgb(1, 0, 0);
+        {
+            if (r.isInTable)
+                cr->set_source_rgb(1, 0, 0);
+            else
+                cr->set_source_rgb(1, 0.5, 0);
+        }
         cr->fill();
         cr->restore();
     }

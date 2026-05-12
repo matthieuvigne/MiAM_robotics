@@ -243,12 +243,13 @@ void Robot::updateSensorData()
     {
         ESP32Data d = esp32_.getLastData();
         int const MAX_DISTANCE = 600;
-        int const ROBOT_SIZE = 250;
+        int const ROBOT_SIZE = 200;
         if (d.obstacleDistance < MAX_DISTANCE)
         {
             esp32_obstacle = d.obstacleDistance + ROBOT_SIZE;
-            measurements_.drivetrainMeasurements.lidarDetection.push_back(
-                DetectedRobot(LidarPoint(esp32_obstacle, 0.0), 0.0));
+            DetectedRobot detectedRobot(LidarPoint(esp32_obstacle, 0.0), 0.0);
+            detectedRobot.isVLX = true;
+            measurements_.drivetrainMeasurements.lidarDetection.push_back(detectedRobot);
         }
     }
     #ifdef HAS_GYROSCOPE
@@ -280,11 +281,6 @@ void Robot::updateSensorData()
         logger_.log("Robot.leftMotor.nEncoderInvalid", currentTime_, leftMotor_.nEncoderInvalid_);
         logger_.log("Robot.isEncoderInvalid", currentTime_, isEncoderInvalid_);
 
-        logger_.log("Robot.battery.voltage", currentTime_, inaReading.voltage);
-        logger_.log("Robot.battery.current", currentTime_, inaReading.current);
-        logger_.log("Robot.battery.power", currentTime_, inaReading.power);
-        logger_.log("Servos.nReadFailed", currentTime_, servos_.getNReadFailed());
-
         INA226Reading inaReading = ina226_7V_.read();
         logger_.log("Robot.7V.voltage", currentTime_, inaReading.voltage);
         logger_.log("Robot.7V.current", currentTime_, inaReading.current);
@@ -301,7 +297,14 @@ void Robot::updateSensorData()
         #endif
         logger_.log("Robot.vlxDistance", currentTime_, measurements_.vlxDistance);
         logger_.log("ESP32.obstacleDistance", currentTime_, esp32_obstacle);
+
+        logger_.log("Robot.battery.power", currentTime_, inaReading.power);
+        logger_.log("Servos.nReadFailed", currentTime_, servos_.getNReadFailed());
     }
+
+    // Always log this
+    logger_.log("Robot.battery.voltage", currentTime_, inaReading.voltage);
+    logger_.log("Robot.battery.current", currentTime_, inaReading.current);
 
     if (!hasMatchStarted_ && !inBorderDetection_ && gui_->getAskedDetectBorders())
     {

@@ -215,7 +215,7 @@ bool MotionControllerTestingViewer::redraw(const Cairo::RefPtr<Cairo::Context>& 
     for (auto obstacle: obstacles_)
     {
         cr->set_source_rgb(1.0, 0.0, 0.0);
-        cr->arc(std::get<0>(obstacle).x, TABLE_HEIGHT_MM - std::get<0>(obstacle).y, OBSTACLE_SIZE, 0, 2 * M_PI - 0.01);
+        cr->arc(obstacle.position.x, TABLE_HEIGHT_MM - obstacle.position.y, OBSTACLE_SIZE, 0, 2 * M_PI - 0.01);
         cr->fill();
     }
 

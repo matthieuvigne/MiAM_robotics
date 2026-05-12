@@ -96,6 +96,7 @@
         LidarPoint point; ///< Robot position.
         double addedTime = 0.0; ///< Absolute time at which the robot was detected.
         int nPoints = 0;    ///< Number of points in the blob.
+        bool isVLX = false;
     };
 
 

@@ -241,7 +241,7 @@ void GameState::detectOtherRobotAction(std::vector<Obstacle> const& obstacles, d
         {
             for (auto const& o : obstacles)
             {
-                if((std::get<0>(o) - COLLECT_ZONE_COORDS[i]).norm() < 300)
+                if((o.position - COLLECT_ZONE_COORDS[i]).norm() < 300)
                 {
                     if (timeOtherRobotEnteredZone_[i] < 0)
                         timeOtherRobotEnteredZone_[i] = time;

@@ -21,8 +21,30 @@
         SETUP_FAILED         = 9,
         WAITING_REMOVE_CABLE = 10
     };
-    std::string const robotStateNames[] = {"Initializing", "Strategy setup", "Waiting for cable", "Waiting for start", "Match", "Match done", "Undervoltage", "Match quit", "Homologation", "Setup failed", "Waiting for removal"};
+    std::string const robotStateNames[] = {
+        "Initializing",
+        "Strategy setup",
+        "Waiting for cable",
+        "Waiting for start",
+        "Match",
+        "Match done",
+        "Undervoltage",
+        "Match quit",
+        "Homologation",
+        "Setup failed",
+        "Waiting for removal"};
 
+    struct Obstacle{
+        miam::RobotPosition position;
+        double radius = 0.0;
+        bool isInTable = true;
+        bool isVLX = false;
+
+        Obstacle(miam::RobotPosition const& pos, double const& radius) :
+            position(pos),
+            radius(radius)
+        {}
+    };
 
     struct RobotGUIData {
         robotstate state = robotstate::INIT;
@@ -32,10 +54,9 @@
         int score = 0;
         double currentMatchTime = 0;
         miam::RobotPosition currentPosition;
-        std::vector<miam::RobotPosition> detectedObstacles;
+        std::vector<Obstacle> detectedObstacles;
         std::string currentActionName = "";
     }; ///< Data forwarded by the robot to the GUI
-
 
     typedef struct {
         WheelSpeed motorSpeed; ///<< Target motor speed, in rad/s
@@ -58,7 +79,4 @@
         double batteryVoltage = 0.0;
         double vlxDistance = 0.0;
     };
-
-    typedef std::tuple<miam::RobotPosition, double> Obstacle;
-
  #endif

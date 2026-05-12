@@ -132,18 +132,18 @@ double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory()
             bool obstacleSquareTriggered = false;
 
             RobotPosition const obstacleInRobotReferential =
-                    (std::get<0>(obstacle) - futureTrajectoryPoint.position).rotate(-futureTrajectoryPoint.position.theta);
+                    (obstacle.position - futureTrajectoryPoint.position).rotate(-futureTrajectoryPoint.position.theta);
 
 
             // Assume obstacle is round: take the norm of the difference of positions
-            obstacleIsInCollisionCourse = (futureTrajectoryPoint.position - std::get<0>(obstacle)).norm() < std::get<1>(obstacle);
+            obstacleIsInCollisionCourse = (futureTrajectoryPoint.position - obstacle.position).norm() < obstacle.radius;
 
             if (obstacleIsInCollisionCourse)
             {
                 obstacleSquareTriggered = true;
                 // Check whether the corners of the robot are within the rectangle
-                float robotWidth = std::get<1>(obstacle);
-                float robotHeight = std::get<1>(obstacle);
+                float robotWidth = obstacle.radius;
+                float robotHeight = obstacle.radius;
                 obstacleIsInCollisionCourse = (std::abs(obstacleInRobotReferential.x) < (robotHeight / 2.0)) && (std::abs(obstacleInRobotReferential.y) < (robotWidth / 2.0));
             }
 

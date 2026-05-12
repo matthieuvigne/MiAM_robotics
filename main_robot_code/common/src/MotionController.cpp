@@ -205,18 +205,25 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
         RobotPosition obspos = lidarPointToRobotPosition(point);
 
-        if (!this->isLidarPointWithinTable(point))
+        Obstacle obstacle(obspos, detection::mpc_obstacle_size);
+        obstacle.isInTable = this->isLidarPointWithinTable(point);
+        obstacle.isVLX = robot.isVLX;
+
+        if (obstacle.isVLX)
         {
-            obspos.theta = M_PI;
-            displayDetectedObstacles_.push_back(obspos);
-            continue;
+            // VLX: ignore PAMI on stand
+            if (obstacle.position.y > 1500)
+                obstacle.isInTable = false;
         }
-        displayDetectedObstacles_.push_back(obspos);
+
+        displayDetectedObstacles_.push_back(obstacle);
+        if (!this->isLidarPointWithinTable(point))
+            continue;
 
         // Ignore obstacles for the first second of the match
         if (measurements.matchTime > 1.0 && isDetectionEnabled_)
         {
-            detectedObstacles_.push_back(std::make_tuple(obspos, detection::mpc_obstacle_size));
+            detectedObstacles_.push_back(obstacle);
             // Log
             if (nObstaclesOnTable < 5)
             {
