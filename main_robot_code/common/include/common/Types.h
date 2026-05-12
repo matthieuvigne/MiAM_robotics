@@ -18,14 +18,17 @@
         MATCH                = 4,
         MATCH_DONE           = 5,
         UNDERVOLTAGE         = 6,
-        MATCH_QUIT           = 7
+        MATCH_QUIT           = 7,
+        HOMOLOGATION         = 8,
+        SETUP_FAILED         = 9
     };
-    std::string const robotStateNames[] = {"Initializing", "Strategy setup", "Waiting for cable", "Waiting for start", "Match", "Match done", "Undervoltage", "Match quit"};
+    std::string const robotStateNames[] = {"Initializing", "Strategy setup", "Waiting for cable", "Waiting for start", "Match", "Match done", "Undervoltage", "Match quit", "Homologation", "Setup failed"};
 
 
     struct RobotGUIData {
         robotstate state = robotstate::INIT;
         std::string debugStatus = "";
+        std::string infoString = "";
         double batteryVoltage = 0;
         int score = 0;
         double currentMatchTime = 0;

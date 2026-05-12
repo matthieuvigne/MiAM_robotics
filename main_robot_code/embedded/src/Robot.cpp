@@ -69,6 +69,11 @@ bool Robot::initSystem()
             guiState_.debugStatus += "Battery monitoring init failed\n";
     }
 
+    if (!isESP32Init_)
+    {
+        isESP32Init_ = esp32_.init("/dev/ttyACM0", 1000000);
+    }
+
     if (isMotorsInit_ && !isServoInit_)
     {
         isServoInit_ = servos_.init("/dev/ttyAMA0", -1);
@@ -208,9 +213,33 @@ void Robot::updateSensorData()
         lidar_.update();
         measurements_.drivetrainMeasurements.lidarDetection = lidar_.detectedRobots_;
     }
+    else
+    {
+        measurements_.drivetrainMeasurements.lidarDetection.clear();
+    }
+
+    if (esp32_.update())
+    {
+        esp32MeasurementTime_ = currentTime_;
+    }
+
+    int esp32_obstacle = 0;
+    if (currentTime_ - esp32MeasurementTime_ < 2.0)
+    {
+        ESP32Data d = esp32_.getLastData();
+        int const MAX_DISTANCE = 600;
+        int const ROBOT_SIZE = 250;
+        if (d.obstacleDistance < MAX_DISTANCE)
+        {
+            esp32_obstacle = d.obstacleDistance + ROBOT_SIZE;
+            measurements_.drivetrainMeasurements.lidarDetection.push_back(
+                DetectedRobot(LidarPoint(esp32_obstacle, 0.0), 0.0));
+        }
+    }
 
     Eigen::Vector3f gyro = imu_.getGyroscopeReadings();
     measurements_.drivetrainMeasurements.gyroscope = gyro(2) - gyroBias_;
+
 
     // Log
     // if (currentTime_ > 0.0)
@@ -238,7 +267,6 @@ void Robot::updateSensorData()
         logger_.log("Robot.battery.power", currentTime_, inaReading.power);
         logger_.log("Servos.nReadFailed", currentTime_, servos_.getNReadFailed());
 
-
         INA226Reading inaReading = ina226_7V_.read();
         logger_.log("Robot.7V.voltage", currentTime_, inaReading.voltage);
         logger_.log("Robot.7V.current", currentTime_, inaReading.current);
@@ -252,6 +280,7 @@ void Robot::updateSensorData()
         logger_.log("IMU.gyroY", currentTime_, gyro(1));
         logger_.log("IMU.gyroZ", currentTime_, gyro(2));
         logger_.log("Robot.vlxDistance", currentTime_, measurements_.vlxDistance);
+        logger_.log("ESP32.obstacleDistance", currentTime_, esp32_obstacle);
     }
 
     if (!hasMatchStarted_ && !inBorderDetection_ && gui_->getAskedDetectBorders())
@@ -260,10 +289,26 @@ void Robot::updateSensorData()
         std::thread measureThread = std::thread(&Robot::detectBorders, this);
         measureThread.detach();
     }
+
+    if (!hasMatchStarted_ && gui_->getAskedHomologation())
+    {
+        guiState_.state = robotstate::HOMOLOGATION;
+        guiState_.debugStatus = "Max perimeter pose";
+        gui_->update(guiState_);
+        std::thread thread = std::thread(&AbstractStrategy::homologationPose, strategy_);
+        thread.detach();
+    }
+    if (!hasMatchStarted_)
+    {
+        guiState_.infoString = strategy_->updateInfoString();
+    }
 }
 
 void Robot::applyMotorTarget(DrivetrainTarget const& target)
 {
+    encoderSpeedLP_.right = encoderLowPassR_.filter(motionController_.currentEncoderSpeed_.right, dt_);
+    encoderSpeedLP_.left = encoderLowPassL_.filter(motionController_.currentEncoderSpeed_.left, dt_);
+
     static bool wasRunning = true;
     if (areMotorsLocked_)
     {
@@ -333,6 +378,11 @@ bool Robot::isStartingSwitchPluggedIn() const
     return RPi_readGPIO(START_SWITCH) == 0;
 }
 
+bool Robot::checkCanStart()
+{
+    return servos_.getCurrentPosition(13) < 1900;
+}
+
 void Robot::shutdown()
 {
     // No need to stop motors, they will stop by themselves.
@@ -349,19 +399,24 @@ void Robot::shutdown()
 
 bool Robot::touchBorder()
 {
-    motionController_.goStraight(-500, 0.1, tf::NO_WAIT_FOR_END);
+    motionController_.goStraight(-400, 0.1, tf::NO_WAIT_FOR_END);
     wait(0.5);
+
     bool still = false;
+    double delay = 0.020;
+    double timeout = 5.0;
+    int rightStopId = 1e5;
+    int leftStopId = 1e5;
     while (!motionController_.isTrajectoryFinished())
     {
-        if (std::abs(measurements_.drivetrainMeasurements.motorSpeed.right) > 0.2 && std::abs(measurements_.drivetrainMeasurements.motorSpeed.left) > 0.2)
-            if (std::abs(measurements_.drivetrainMeasurements.encoderPositionIncrement.right / (1e-9 * ROBOT_UPDATE_PERIOD)) < 0.05 &&
-                std::abs(measurements_.drivetrainMeasurements.encoderPositionIncrement.left / (1e-9 * ROBOT_UPDATE_PERIOD)) < 0.05)
-            {
-                motionController_.stopCurrentTrajectoryTracking();
-                still = true;
-            }
-        wait(0.010);
+        bool rStop = std::abs(encoderSpeedLP_.right) < 0.25;
+        bool lStop = std::abs(encoderSpeedLP_.left) < 0.25;
+        if (rStop && lStop)
+        {
+            motionController_.stopCurrentTrajectoryTracking();
+            still = true;
+        }
+        wait(0.020);
     }
     return still;
 }

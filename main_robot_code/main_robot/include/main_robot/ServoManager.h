@@ -10,17 +10,26 @@ enum ArmPosition {
     RAISE,
     FOLD_MID,
     FOLD,
-    CAMERA_POSE
+    CAMERA_POSE,
+    BED_UNFOLD
 };
 
 enum RailPosition {
     FORWARD,
-    INTERNAL
+    INTERNAL,
+    DROP
 };
 
 enum class Side : int {
     RIGHT = 0,
     LEFT = 1
+};
+
+struct CameraResult
+{
+    bool cratesPresent = false;
+    std::vector<Tag> tags;
+    double lateralOffset = 0.0;
 };
 
 class ServoManager
@@ -59,7 +68,7 @@ public:
 
     // Complexe actions
     // Gab all crates visible by the robot, handle color logic etc...
-    void grabCrates();
+    void grabCrates(CameraResult const& cameraResult);
     void dropCrates();
 
     void emptyBed();
@@ -74,8 +83,14 @@ public:
     void testArm();
 
     void moveCratesInBed();
+
+    void fingerOpen();
+    void fingerClose();
+
+    CameraResult cameraDetectCrates();
+
 private:
-    void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab);
+    void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab, bool secondGrab = false);
 
 
     RobotInterface *robot_;

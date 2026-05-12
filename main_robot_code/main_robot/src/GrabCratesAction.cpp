@@ -44,33 +44,40 @@ void GrabCratesAction::updateStartCondition()
 
 void GrabCratesAction::actionStartTrigger()
 {
-    servoManager_->hideArm();
+    std::thread hide(&ServoManager::hideArm, servoManager_);
+    hide.detach();
 }
 
 bool GrabCratesAction::performAction()
 {
     robot_->logger_ << "[GrabCratesAction] Starting action " << zoneId_ << std::endl;
 
-
-    // Reach the grab position
+    // Orient robot to face the crates
     RobotPosition currentPosition = robot_->getMotionController()->getCurrentPosition();
-    RobotPosition targetPosition = startPosition_.forward(MARGIN);
+    robot_->getMotionController()->pointTurn(startPosition_.theta - currentPosition.theta);
+    currentPosition = robot_->getMotionController()->getCurrentPosition();
 
-    std::vector<RobotPosition> positions;
-    positions.push_back(currentPosition);
-    positions.push_back(targetPosition.forward(-MARGIN/2.));
-    positions.push_back(targetPosition);
+    // Take picture
+    robot_->wait(0.15);
+    CameraResult res = servoManager_->cameraDetectCrates();
+    RobotPosition targetPosition = currentPosition;
+    if (!res.cratesPresent)
+        return true;
 
-    TrajectoryVector traj = miam::trajectory::computeTrajectoryRoundedCorner(
-        robot_->getMotionController()->getCurrentTrajectoryParameters(),
-        positions,
-        MARGIN / 4.0,
-        0.3
-    );
-    robot_->getMotionController()->setTrajectoryToFollow(traj);
-    robot_->getMotionController()->waitForTrajectoryFinished();
+    // Adjust position
+    double const yTranslate = (robot_->isPlayingRightSide() ? -1.0 : 1.0) * std::clamp(res.lateralOffset, -100.0, 100.0);
+    double const expectedYDiff = (startPosition_ - currentPosition).rotate(-startPosition_.theta).y;
+    robot_->logger_ << "[GrabCratesAction] Camera: shifting pose laterally by " << yTranslate << ", difference:" << yTranslate - expectedYDiff << std::endl;
 
-    servoManager_->grabCrates();
+    targetPosition = targetPosition.relativeTranslate(MARGIN + 5, yTranslate);
+
+    robot_->logger_ << "targetPosition" << targetPosition << std::endl;
+    robot_->logger_ << "start induced target" << startPosition_.forward(MARGIN + 5) << std::endl;
+
+    robot_->getMotionController()->goToStraightLine(targetPosition.forward(-MARGIN * 0.4));
+    robot_->getMotionController()->goToStraightLine(targetPosition);
+
+    servoManager_->grabCrates(res);
     robot_->getGameState()->isCollectZoneFull[zoneId_] = false;
 
     // Go back from the collect zone.

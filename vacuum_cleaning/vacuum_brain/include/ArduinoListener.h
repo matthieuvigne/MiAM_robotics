@@ -25,7 +25,7 @@
             /// \param[in] portName Name of the port where the arduino is connect.
             ///
             /// \return True if connection with Arduino was successful, false otherwise.
-            bool initialize( std::string const& portName);
+            bool initialize(std::string const& portName);
 
             /// \brief Set target speed of motors.
             ///

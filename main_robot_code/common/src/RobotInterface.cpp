@@ -36,7 +36,6 @@ void RobotInterface::initLogger()
         count++;
     std::string filename = "logs/log" + std::to_string(count) + "_" + std::string(timestamp) + "_" + motionController_.robotParams_.name + ".miam";
     logger_.start(filename, teleplotPrefix_, silent_);
-    servos_.setLogger(&logger_);
 }
 
 std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
@@ -71,11 +70,13 @@ void RobotInterface::lowLevelLoop()
 
 #ifdef SIMULATION
     metronome_.hasReset_ = false;
+    logger_.setTimeOrigin(metronome_.getStartTime());
 #else
     metronome_ = Metronome(ROBOT_UPDATE_PERIOD);
     logger_.setTimeOrigin(metronome_.getStartTime());
 #endif
     currentTime_ = 0.0;
+    servos_.setLogger(&logger_);
 
     logger_ << "Low-level loop started." << std::endl;
 
@@ -266,7 +267,13 @@ bool RobotInterface::setupBeforeMatchStart()
                 guiState_.state = robotstate::UNDERVOLTAGE;
                 return false;
             }
-            guiState_.state = robotstate::STRATEGY_SETUP;
+            if (checkCanStart())
+                guiState_.state = robotstate::STRATEGY_SETUP;
+            else
+            {
+                guiState_.state = robotstate::SETUP_FAILED;
+                guiState_.debugStatus = "Startup failed, check servo position.";
+            }
             gui_->update(guiState_);
         }
     }

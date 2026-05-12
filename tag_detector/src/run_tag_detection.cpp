@@ -32,8 +32,8 @@ int main(int argc, char **argv)
 
     int const width = 640;
     int const height = 480;
-    int const fx = (31.2000/22.9894)*330.;
-    int const fy = (31.2000/22.9894)*330.;
+    int const fy = (31.2000/22.9894)*330. * 0.62;
+    int const fx = fy * 1.60;
     int const cx = width/2.;
     int const cy = height/2.;
 

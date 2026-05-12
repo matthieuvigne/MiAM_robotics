@@ -6,10 +6,10 @@
 #include <unistd.h>
 #include <time.h>
 // Open a uart port.
-int uart_open(std::string const& portName, int speed)
+int uart_open(std::string const& portName, int speed, bool nonblocking)
 {
     // Open in read-write mode.
-    int port = open(portName.c_str(), O_RDWR);
+    int port = open(portName.c_str(), (nonblocking ? O_RDWR | O_NONBLOCK : O_RDWR));
     if(port == -1)
         return port;
 

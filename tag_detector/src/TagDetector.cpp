@@ -73,10 +73,6 @@ int TagDetector::detect_markers(
   cv::Mat dist_coeffs = cv::Mat(4,1,CV_64FC1, cv::Scalar::all(0));
   cv::aruco::estimatePoseSingleMarkers(marker_corners, marker_length, K, dist_coeffs, rvecs, tvecs);
   assert( (rvecs.size()==num_markers) && (tvecs.size()==num_markers) );
-  Eigen::Affine3d TMM =
-        Eigen::Translation3d(0.5*marker_length*Eigen::Vector3d::UnitX())
-      * Eigen::Translation3d(0.5*marker_length*Eigen::Vector3d::UnitY())
-      * Eigen::AngleAxisd::Identity();
 
   // Return the pose of each marker in the robot's reference frame
   assert( TRM_ptr != NULL );
@@ -90,9 +86,7 @@ int TagDetector::detect_markers(
     Eigen::Vector3d const axis = Eigen::Vector3d(rvec[0],rvec[1],rvec[2]).normalized();
     Eigen::AngleAxisd const rCM(angle_rad,axis);
     Eigen::Map<Eigen::Vector3d const> tCM(tvecs[marker_idx].val);
-    Eigen::Affine3d TCM = Eigen::Affine3d(Eigen::Translation3d(tCM)*rCM)*TMM;
-    // std::cout << "Marker with id " << marker_ids[marker_idx] << " ";
-    // std::cout << "at distance: " << TCM.translation().norm()*1e2 << "cm" << std::endl;
+    Eigen::Affine3d TCM = Eigen::Affine3d(Eigen::Translation3d(tCM)*rCM);
     TRM[marker_idx] = Tag(marker_ids[marker_idx], TRC_ * TCM);
   }
   return num_markers;

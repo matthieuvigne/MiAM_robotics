@@ -36,8 +36,7 @@ class SHMWriter
     public:
         bool init()
         {
-			addr_ = MAP_FAILED;
-			shm_unlink(STORAGE_ID);
+            addr_ = MAP_FAILED;
             int fd = shm_open(STORAGE_ID, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
             if (fd == -1)
 				return false;

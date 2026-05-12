@@ -73,7 +73,8 @@ bool Strategy::setup(RobotInterface *robot)
     if (setupStep_ == 2 && !servoManager_.areRailsMoving())
     {
         robot->logger_ << "[Strategy] Setup done" << std::endl;
-        servoManager_.hideArm();
+        std::thread hide(&ServoManager::hideArm, &servoManager_);
+        hide.detach();
         return true;
     }
     return false;
@@ -124,6 +125,9 @@ void Strategy::match()
 void Strategy::goBackToBase()
 {
     MATCH_COMPLETED = true;
+    std::thread hide(&ServoManager::hideArm, servoManager_);
+    hide.detach();
+
     robot->getMotionController()->enableDetection(true);
     robot->getGameState()->arePAMIMoving_ = true;
     robot->setGUIActionName("[Match End] Back to base");
@@ -339,5 +343,34 @@ bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & acti
     return actionShouldBeRemoved;
 }
 
+
+void Strategy::homologationPose()
+{
+    servoManager_.unhideArm();
+    robot->wait(0.2);
+    servoManager_.moveArm(ArmPosition::BED_UNFOLD);
+}
+
+
+std::string Strategy::updateInfoString()
+{
+    std::vector<Tag> tags = servoManager_.visionHandler_.getTags();
+    std::string result;
+    if (tags.size() == 0)
+        result = "No tags seen!";
+    else
+    {
+        result = "Tags: ";
+        for (auto const& t : tags)
+        {
+            if (t.markerId == BLUE)
+                result += "blue ";
+            if (t.markerId == YELLOW)
+                result += "yellow ";
+        }
+
+    }
+    return result;
+}
 
 }

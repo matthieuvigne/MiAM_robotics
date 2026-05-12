@@ -2,6 +2,9 @@
 
 #define LATERAL_DISTANCE 205
 
+#define ARM_OFFSET 103
+
+
 void CursorAction::updateStartCondition()
 {
     // Don't do this action until collect zone 1 is empty
@@ -16,7 +19,7 @@ void CursorAction::updateStartCondition()
         priority_ = 8;
     }
 
-    startPosition_.x = 500;
+    startPosition_.x = 500 + ARM_OFFSET;
     startPosition_.y = LATERAL_DISTANCE;
     startPosition_.theta = (robot_->isPlayingRightSide() ? 0 : M_PI);
 }
@@ -39,19 +42,20 @@ bool CursorAction::performAction()
     // Go in front of cursor
     {
         tf const flags = (robot_->isPlayingRightSide() ? tf::BACKWARD : tf::DEFAULT);
-        RobotPosition const targetPosition(220, LATERAL_DISTANCE, angle);
+        RobotPosition const targetPosition(210 + ARM_OFFSET, LATERAL_DISTANCE, angle);
         robot_->getMotionController()->goToStraightLine(targetPosition, 1, flags);
     }
 
     servoManager_->cursorUnfold();
-    robot_->wait(0.8);
+    robot_->wait(0.25);
     vlx_reset();
     {
         tf const flags = (robot_->isPlayingRightSide() ? tf::DEFAULT : tf::BACKWARD);
-        RobotPosition const targetPosition(740, LATERAL_DISTANCE, angle);
+        RobotPosition const targetPosition(740 + ARM_OFFSET, LATERAL_DISTANCE, angle);
         robot_->getMotionController()->goToStraightLine(targetPosition, 1, flags);
     }
     servoManager_->cursorFold();
+    robot_->getMotionController()->goStraight(robot_->isPlayingRightSide() ? - 100 : 100);
 
     // Action should not be done again
     return true;

@@ -45,7 +45,8 @@
         CONTROLLER_STOP                 = 0,
         CONTROLLER_TRAJECTORY_TRACKING  = 1,
         CONTROLLER_WAIT_FOR_AVOIDANCE   = 2,
-        CONTROLLER_WAIT_FOR_TRAJECTORY  = 3
+        CONTROLLER_WAIT_FOR_TRAJECTORY  = 3,
+        CONTROLLER_OPEN_LOOP            = 4
     };
 
     using tf = miam::trajectory::flags;
@@ -229,6 +230,16 @@
             {
                 isDetectionEnabled_ = enable;
             }
+
+            /// @brief Set system in open loop, tracking motorSpeed
+            /// @details This is meant to be used for border detection.
+            ///          Robot remains in ths mode until stopOpenLoop is called.
+            /// @param motorSpeed Motor speed, rad/s.
+            void setOpenLoopVelocity(WheelSpeed const& motorSpeed);
+            void stopOpenLoop();
+
+            BaseSpeed currentSpeed_;
+            WheelSpeed currentEncoderSpeed_;
         private:
             MotionPlanner motionPlanner_;
             Logger *logger_; ///< Logger object.
@@ -332,5 +343,7 @@
             DrivetrainTarget lastTarget_;
             bool isDetectionEnabled_ = true;
             double gyroscopeAngle_ = 0.0;
+
+            WheelSpeed openLoopSpeed_;
     };
  #endif
