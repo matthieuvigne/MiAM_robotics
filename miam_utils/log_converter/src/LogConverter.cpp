@@ -106,13 +106,14 @@ int main (int argc, char *argv[])
         H5::DataSpace mspace(2, dims);
         H5::DataSet dataset = file.createDataSet(v.name, H5::PredType::NATIVE_DOUBLE, mspace);
 
-        double dataBuffer[2][v.time.size()];
+        // double dataBuffer[2][v.time.size()];
+        std::vector<double> dataBuffer(2 * v.time.size());
         for (unsigned int i = 0; i < v.time.size(); i++)
         {
-            dataBuffer[0][i] = v.time.at(i);
-            dataBuffer[1][i] = v.value.at(i);
+            dataBuffer[i] = v.time.at(i);
+            dataBuffer[v.time.size() + i] = v.value.at(i);
         }
-        dataset.write(dataBuffer, H5::PredType::NATIVE_DOUBLE, mspace);
+        dataset.write(dataBuffer.data(), H5::PredType::NATIVE_DOUBLE, mspace);
     }
 
     // Write strings
