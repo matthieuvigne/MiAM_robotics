@@ -442,7 +442,12 @@ bool Robot::touchBorder()
         wait(0.020);
     }
     if (still)
-        motionController_.goStraight(-20, 0.1);
+    {
+        motionController_.goStraight(10, 0.1);
+        motionController_.goStraight(-15, 0.1);
+        motionController_.goStraight(10, 0.1);
+        motionController_.goStraight(-15, 0.1);
+    }
     return still;
 }
 
