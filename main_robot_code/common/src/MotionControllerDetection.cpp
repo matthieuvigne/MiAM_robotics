@@ -19,9 +19,10 @@ RobotPosition MotionController::lidarPointToRobotPosition(LidarPoint const &poin
     return robotPosition;
 }
 
-bool MotionController::isLidarPointWithinTable(LidarPoint const &point)
+bool MotionController::isLidarPointWithinTable(LidarPoint const &point, bool const isVLX)
 {
-    return isPositionInTable(lidarPointToRobotPosition(point));
+    double xmargin = isVLX ? 450: table_dimensions::table_margin;
+    return isPositionInTable(lidarPointToRobotPosition(point), xmargin, table_dimensions::table_margin);
 }
 
 

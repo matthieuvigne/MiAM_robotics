@@ -239,17 +239,20 @@ void Robot::updateSensorData()
     }
 
     int esp32_obstacle = 0;
-    if (currentTime_ - esp32MeasurementTime_ < 1.0)
+    if (!gui_->getDisabledVLX())
     {
-        ESP32Data d = esp32_.getLastData();
-        int const MAX_DISTANCE = 600;
-        int const ROBOT_SIZE = 200;
-        if (d.obstacleDistance < MAX_DISTANCE)
+        if (currentTime_ - esp32MeasurementTime_ < 1.0)
         {
-            esp32_obstacle = d.obstacleDistance + ROBOT_SIZE;
-            DetectedRobot detectedRobot(LidarPoint(esp32_obstacle, 0.0), 0.0);
-            detectedRobot.isVLX = true;
-            measurements_.drivetrainMeasurements.lidarDetection.push_back(detectedRobot);
+            ESP32Data d = esp32_.getLastData();
+            int const MAX_DISTANCE = 600;
+            int const ROBOT_SIZE = 200;
+            if (d.obstacleDistance < MAX_DISTANCE)
+            {
+                esp32_obstacle = d.obstacleDistance + ROBOT_SIZE;
+                DetectedRobot detectedRobot(LidarPoint(esp32_obstacle, 0.0), 0.0);
+                detectedRobot.isVLX = true;
+                measurements_.drivetrainMeasurements.lidarDetection.push_back(detectedRobot);
+            }
         }
     }
     #ifdef HAS_GYROSCOPE

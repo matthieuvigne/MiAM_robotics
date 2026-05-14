@@ -206,13 +206,13 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         RobotPosition obspos = lidarPointToRobotPosition(point);
 
         Obstacle obstacle(obspos, detection::mpc_obstacle_size);
-        obstacle.isInTable = this->isLidarPointWithinTable(point);
         obstacle.isVLX = robot.isVLX;
+        obstacle.isInTable = this->isLidarPointWithinTable(point, obstacle.isVLX);
 
         if (obstacle.isVLX)
         {
             // VLX: ignore PAMI on stand
-            if (obstacle.position.y > 1500)
+            if (obstacle.position.y > 1450)
                 obstacle.isInTable = false;
         }
 
@@ -223,6 +223,9 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         // Ignore obstacles for the first second of the match
         if (measurements.matchTime > 1.0 && isDetectionEnabled_)
         {
+            // Ignore VLX during start phase due to potential beacon from other team.
+            if (measurements.matchTime < 10.0 && obstacle.isVLX)
+                continue;
             detectedObstacles_.push_back(obstacle);
             // Log
             if (nObstaclesOnTable < 5)

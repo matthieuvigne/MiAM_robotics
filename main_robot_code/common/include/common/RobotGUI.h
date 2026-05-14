@@ -41,12 +41,16 @@
                 /// @brief Homologation pose asked.
                 bool getAskedHomologation();
 
+                /// @brief Disable VLX sensor
+                bool getDisabledVLX();
+
             protected:
                 void sideButtonClicked();
                 void startPositionButtonClicked();
                 void blockMotorsButtonClicked();
                 void detectBordersClicked();
                 void homologationClicked();
+                void disableVLXClicked();
 
             private:
                 bool doUpdate();
@@ -75,11 +79,13 @@
                 Gtk::Button blockMotorsButton_;
                 Gtk::Button detectBordersButton_;
                 Gtk::Button homologationButton_;
+                Gtk::Button disableVLXButton_;
                 Gtk::Button quitButton_;
 
                 bool areMotorsBlocked_ = false;
                 bool askedDetectBorders_ = false;
                 bool askedHomologation_ = false;
+                bool disableVLX_ = false;
 
                 TableDrawing drawingArea_;
 

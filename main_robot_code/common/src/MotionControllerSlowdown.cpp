@@ -27,7 +27,7 @@ double MotionController::computeObstacleAvoidanceSlowdown(std::deque<DetectedRob
                                     ? LidarPoint(robot.point.r, -robot.point.theta)
                                     : LidarPoint(robot.point.r, robot.point.theta);
 
-        if (!this->isLidarPointWithinTable(point))
+        if (!this->isLidarPointWithinTable(point, robot.isVLX))
             continue;
         nPointsInTable += 1;
 
@@ -113,7 +113,7 @@ double MotionController::computeObstacleAvoidanceSlowdownAnticipateTrajectory()
     //                                 ? LidarPoint(robot.point.r, -robot.point.theta)
     //                                 : LidarPoint(robot.point.r, robot.point.theta);
 
-    //     if (this->isLidarPointWithinTable(point))
+    //     if (this->isLidarPointWithinTable(point), robot.isVLX)
     //     {
     //         detectedRobotsTableCoordinates.push_back(lidarPointToRobotPosition(point));
     //     }

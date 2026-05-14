@@ -67,6 +67,9 @@ RobotGUI::RobotGUI()
     // homologationButton_ = Gtk::Button("Homologation pose");
     // homologationButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::homologationClicked));
 
+    disableVLXButton_ = Gtk::Button("Disable VLX");
+    disableVLXButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::disableVLXClicked));
+
     quitButton_ = Gtk::Button("Quit");
     quitButton_.set_name("red");
     quitButton_.get_child()->set_name("button_text");
@@ -85,7 +88,7 @@ RobotGUI::RobotGUI()
     buttonBox_.pack_start(sideButton_);
     buttonBox_.pack_start(blockMotorsButton_);
     buttonBox_.pack_start(detectBordersButton_);
-    buttonBox_.pack_start(homologationButton_);
+    buttonBox_.pack_start(disableVLXButton_);
 
     readyLabel_.set_text("Ready to start!");
     readyLabel_.set_name("green");
@@ -248,6 +251,20 @@ void RobotGUI::homologationClicked()
     askedHomologation_ = true;
 }
 
+void RobotGUI::disableVLXClicked()
+{
+    disableVLX_= !disableVLX_;
+    if (disableVLX_)
+        disableVLXButton_.set_label("Enable VLX");
+    else
+        disableVLXButton_.set_label("Disable VLX");
+}
+
+
+bool RobotGUI::getDisabledVLX()
+{
+    return disableVLX_;
+}
 
 miam::RobotPosition RobotGUI::getStartPosition()
 {

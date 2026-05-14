@@ -292,7 +292,7 @@
             TrajectoryVector performAvoidance();
 
             RobotPosition lidarPointToRobotPosition(LidarPoint const &point);
-            bool isLidarPointWithinTable(LidarPoint const& point);
+            bool isLidarPointWithinTable(LidarPoint const& point, bool const isVLX);
 
             // Avoidance functions
             AvoidanceMode avoidanceMode_;

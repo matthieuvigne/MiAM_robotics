@@ -47,10 +47,10 @@
     } // namespace table dimensions
 
 
-    inline bool isPositionInTable(RobotPosition const& pos)
+    inline bool isPositionInTable(RobotPosition const& pos, double const xmargin = table_dimensions::table_margin, double const ymargin = table_dimensions::table_margin)
     {
-        return (pos.x < table_dimensions::table_max_x && pos.x > table_dimensions::table_min_x
-            && pos.y < table_dimensions::table_max_y && pos.y > table_dimensions::table_min_y);
+        return (pos.x > xmargin && pos.x < (table_dimensions::table_size_x - xmargin)
+            && pos.y > ymargin && pos.y < (table_dimensions::table_size_y - ymargin));
     }
 
 #endif
