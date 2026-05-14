@@ -26,6 +26,7 @@
 
             bool isBedFull = false;
             bool isClawFull = false;
+            bool isClawHalfFull = false;
 
             bool arePAMIMoving_ = false;
 

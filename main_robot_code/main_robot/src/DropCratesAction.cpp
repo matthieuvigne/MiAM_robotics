@@ -43,6 +43,7 @@ void DropCratesAction::updateStartCondition()
             break;
         case 3:
             startPosition_.y -= OFFSET;
+            startPosition_.y -= 80; // Space for PAMI
             startPosition_.theta = M_PI_2;
             break;
         case 5:
@@ -150,7 +151,13 @@ bool DropCratesAction::performAction()
             servoManager_->emptyBed();
         }
         else
-            servoManager_->dropCrates();
+        {
+            if (!robot_->getGameState()->isClawHalfFull &&
+                robot_->getMatchTime() > 82 && robot_->getMatchTime() < 89)
+                servoManager_->halfDropCrates();
+            else
+                servoManager_->dropCrates();
+        }
         robot_->getMotionController()->goStraight(-MARGIN);
     }
 

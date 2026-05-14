@@ -587,6 +587,19 @@ void ServoManager::dropCrates()
     releaseSuction();
     moveArm(ArmPosition::RAISE);
     robot_->getGameState()->isClawFull = false;
+    robot_->getGameState()->isClawHalfFull = false;
+}
+
+void ServoManager::halfDropCrates()
+{
+    moveArm(ArmPosition::GRAB);
+    robot_->wait(0.35);
+    pumpOff(Side::RIGHT);
+    valveOn(Side::RIGHT);
+    robot_->wait(0.2);
+    valveOff(Side::RIGHT);
+    moveArm(ArmPosition::RAISE);
+    robot_->getGameState()->isClawHalfFull = true;
 }
 
 void ServoManager::emptyBed()

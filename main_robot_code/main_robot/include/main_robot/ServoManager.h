@@ -72,6 +72,7 @@ public:
     // Gab all crates visible by the robot, handle color logic etc...
     void grabCrates(CameraResult const& cameraResult);
     void dropCrates();
+    void halfDropCrates();
 
     void emptyBed();
 
