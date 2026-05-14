@@ -239,17 +239,19 @@ void Robot::updateSensorData()
     }
 
     int esp32_obstacle = 0;
-    if (!gui_->getDisabledVLX())
+    float esp32_angle = 0.0;
+    if (currentTime_ - esp32MeasurementTime_ < 1.0)
     {
-        if (currentTime_ - esp32MeasurementTime_ < 1.0)
+        ESP32Data d = esp32_.getLastData();
+        int const MAX_DISTANCE = 600;
+        int const ROBOT_SIZE = 100;
+        if (d.obstacleDistance < MAX_DISTANCE)
         {
-            ESP32Data d = esp32_.getLastData();
-            int const MAX_DISTANCE = 600;
-            int const ROBOT_SIZE = 200;
-            if (d.obstacleDistance < MAX_DISTANCE)
+            esp32_obstacle = d.obstacleDistance + ROBOT_SIZE;
+            esp32_angle = d.angle;
+            if (!gui_->getDisabledVLX())
             {
-                esp32_obstacle = d.obstacleDistance + ROBOT_SIZE;
-                DetectedRobot detectedRobot(LidarPoint(esp32_obstacle, 0.0), 0.0);
+                DetectedRobot detectedRobot(LidarPoint(esp32_obstacle, esp32_angle), 0.0);
                 detectedRobot.isVLX = true;
                 measurements_.drivetrainMeasurements.lidarDetection.push_back(detectedRobot);
             }
@@ -300,6 +302,7 @@ void Robot::updateSensorData()
         #endif
         logger_.log("Robot.vlxDistance", currentTime_, measurements_.vlxDistance);
         logger_.log("ESP32.obstacleDistance", currentTime_, esp32_obstacle);
+        logger_.log("ESP32.obstacleAngle", currentTime_, esp32_angle);
 
         logger_.log("Robot.battery.power", currentTime_, inaReading.power);
         logger_.log("Servos.nReadFailed", currentTime_, servos_.getNReadFailed());

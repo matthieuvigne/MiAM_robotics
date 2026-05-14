@@ -6,6 +6,7 @@
 
     struct ESP32Data {
         int32_t obstacleDistance = 0;
+        float angle = 0.0;
     };
     std::ostream& operator<<(std::ostream& os, ESP32Data const& d);
 

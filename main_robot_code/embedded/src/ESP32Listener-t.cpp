@@ -18,6 +18,6 @@ int main (int argc, char *argv[])
         {
             std::cout << listener.getLastData() << std::endl;
         }
-        usleep(100000);
+        usleep(10000);
     }
 }

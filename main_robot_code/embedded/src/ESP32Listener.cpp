@@ -1,4 +1,5 @@
 #include "ESP32Listener.h"
+#include <string.h>
 
 ESP32Listener::ESP32Listener()
 {
@@ -16,7 +17,7 @@ bool ESP32Listener::update()
     if (result)
     {
         std::vector<uint8_t> data = listener_.getLastFrame();
-        result = data.size() == 4;
+        result = data.size() == 8;
         if (result)
         {
             lastData_.obstacleDistance = static_cast<int32_t>(
@@ -24,6 +25,7 @@ bool ESP32Listener::update()
                     (static_cast<uint32_t>(data[2]) << 16) |
                     (static_cast<uint32_t>(data[1]) << 8)  |
                     static_cast<uint32_t>(data[0]));
+            memcpy(&lastData_.angle, &data[4], sizeof(float));
         }
     }
     return result;
@@ -37,6 +39,6 @@ ESP32Data ESP32Listener::getLastData()
 
 std::ostream& operator<<(std::ostream& os, ESP32Data const& d)
 {
-    os << "distance: " << d.obstacleDistance;
+    os << "distance: " << d.obstacleDistance << " angle: " << d.angle;
     return os;
 }
