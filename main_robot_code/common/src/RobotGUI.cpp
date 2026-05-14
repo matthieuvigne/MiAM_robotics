@@ -64,8 +64,8 @@ RobotGUI::RobotGUI()
     detectBordersButton_ = Gtk::Button("Detect borders");
     detectBordersButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::detectBordersClicked));
 
-    homologationButton_ = Gtk::Button("Homologation pose");
-    homologationButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::homologationClicked));
+    // homologationButton_ = Gtk::Button("Homologation pose");
+    // homologationButton_.signal_clicked().connect(sigc::mem_fun(*this, &RobotGUI::homologationClicked));
 
     quitButton_ = Gtk::Button("Quit");
     quitButton_.set_name("red");

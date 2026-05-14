@@ -28,7 +28,7 @@
 
       // Radius used to represent a detected robot in PathPlaner grid.
       // This is also the value used by computeObstacleAvoidanceSlowdownAnticipateTrajectory.
-      double const mpc_obstacle_size = 475;
+      double const mpc_obstacle_size = 450;
       // add this amount to obstacle radius in PathPlanner to get some slack
       double const mpc_obstacle_margin = 75;
     }
