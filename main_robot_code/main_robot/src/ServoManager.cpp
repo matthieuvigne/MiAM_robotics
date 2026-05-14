@@ -328,6 +328,7 @@ void ServoManager::pumpOn(Side const side)
     int const idx = static_cast<int>(side);
     RPi_writeGPIO(12 + idx, HIGH);
     valveOff(side);
+    hasElementInSuction_ = true;
 }
 
 void ServoManager::pumpOff(Side const side)
@@ -594,11 +595,15 @@ void ServoManager::releaseSuction()
 {
     pumpOff(Side::RIGHT);
     pumpOff(Side::LEFT);
-    valveOn(Side::RIGHT);
-    valveOn(Side::LEFT);
-    robot_->wait(0.2);
-    valveOff(Side::RIGHT);
-    valveOff(Side::LEFT);
+    if (hasElementInSuction_)
+    {
+        valveOn(Side::RIGHT);
+        valveOn(Side::LEFT);
+        robot_->wait(0.2);
+        valveOff(Side::RIGHT);
+        valveOff(Side::LEFT);
+        hasElementInSuction_ = false;
+    }
 }
 
 #define FINGER_RIGHT_OPEN 480

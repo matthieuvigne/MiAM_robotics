@@ -104,12 +104,9 @@ private:
     std::shared_ptr<RailServo> railX_;
     std::shared_ptr<RailServo> railY_;
 
-    int lastCloseTarget_back_R;
-    int lastCloseTarget_back_L;
-    int lastCloseTarget_front_R;
-    int lastCloseTarget_front_L;
-
     ArmPosition currentArmPosition;
+
+    bool hasElementInSuction_ = true;
 
     VisionHandler *visionHandler_ = nullptr;
 };
