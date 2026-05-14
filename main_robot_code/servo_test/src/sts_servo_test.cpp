@@ -94,6 +94,15 @@ int main(int argc, char* argv[])
     //     std::getline(std::cin, input);
     // }
 
+    std::getline(std::cin, input);
+    servoManager_->hideArm();
+    while (true)
+    {
+        std::getline(std::cin, input);
+        servoManager_->hideArm();
+        auto res = servoManager_->cameraDetectCrates();
+    }
+
     ////////////////////////////////
     // Camera-based test
     while (true)

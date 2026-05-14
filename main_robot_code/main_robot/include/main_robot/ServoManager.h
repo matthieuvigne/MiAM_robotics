@@ -30,6 +30,7 @@ struct CameraResult
     bool cratesPresent = false;
     std::vector<Tag> tags;
     double lateralOffset = 0.0;
+    double depthOffset = 0.0;
 };
 
 class ServoManager

@@ -388,13 +388,23 @@ CameraResult ServoManager::cameraDetectCrates()
     }
     robot_->logger_ << std::endl;
     robot_->logger_ << "[ServoManager] Tags X pos:";
+    result.depthOffset = 0.0;
     for (auto const& t : result.tags)
     {
         robot_->logger_ << t.position.x() << " ";
+        result.depthOffset+= t.position.x();
     }
     robot_->logger_ << std::endl;
     result.lateralOffset /= result.tags.size();
     result.lateralOffset *= 1000.0; // Motion planning is done in mm.
+    result.depthOffset /= result.tags.size();
+    result.depthOffset *= 1000.0; // Motion planning is done in mm.
+    double const EXPECTED_OFFSET = -10;
+    result.depthOffset -= EXPECTED_OFFSET;
+    // Magic camera scaling
+    result.depthOffset *= (1 / 1.35);
+
+    robot_->logger_ << "[ServoManager] Camera detected lateral offset " << result.lateralOffset << "depth offset" << result.depthOffset << std::endl;
 
     if (result.tags.size() != 4)
     {
