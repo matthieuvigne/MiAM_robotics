@@ -23,7 +23,7 @@
         class RobotGUI : public Gtk::Window
         {
             public:
-                RobotGUI();
+                RobotGUI(bool fake = false);
                 virtual ~RobotGUI();
 
                 void update(RobotGUIData const& robotData);

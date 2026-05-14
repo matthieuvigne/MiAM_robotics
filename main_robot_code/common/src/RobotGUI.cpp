@@ -12,8 +12,10 @@ std::vector<miam::RobotPosition> START_POSITIONS({
     miam::RobotPosition(394, 1745, -M_PI_2)
 });
 
-RobotGUI::RobotGUI()
+RobotGUI::RobotGUI(bool fake)
 {
+    if (fake)
+        return;
     set_size_request(300, 300);
     fullscreen();
 

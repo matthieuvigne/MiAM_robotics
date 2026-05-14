@@ -18,6 +18,7 @@ target_include_directories(acado_solver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gener
 if (CROSS_COMPILE)
     add_subdirectory(embedded)
     add_subdirectory(servo_test)
+    add_subdirectory(demo)
 else()
     add_subdirectory(simulation)
     add_subdirectory(motioncontroller_testing)
