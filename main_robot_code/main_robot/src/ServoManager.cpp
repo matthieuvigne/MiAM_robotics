@@ -437,9 +437,9 @@ void ServoManager::grabCrates(CameraResult const& cameraResult)
     }
 
     // Do we need to put something in the bed?
-    if (opponentTags.size() > 0 && robot_->getMatchTime() < 75)
+    if (opponentTags.size() > 0)
     {
-        if (robot_->getMatchTime() > 75)
+        if (robot_->getMatchTime() > 76.5)
         {
             robot_->logger_ << "[ServoManager::grabTags] Abort oponent grab, not enough time left" << std::endl;
         }

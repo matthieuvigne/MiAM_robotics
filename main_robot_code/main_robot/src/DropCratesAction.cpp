@@ -153,7 +153,7 @@ bool DropCratesAction::performAction()
         else
         {
             if (!robot_->getGameState()->isClawHalfFull &&
-                robot_->getMatchTime() > 82 && robot_->getMatchTime() < 89)
+                robot_->getMatchTime() > 81 && robot_->getMatchTime() < 89)
                 servoManager_->halfDropCrates();
             else
                 servoManager_->dropCrates();
