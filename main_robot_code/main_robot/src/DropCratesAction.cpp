@@ -118,6 +118,12 @@ bool DropCratesAction::performAction()
 {
     robot_->logger_ << "[DropCratesAction] Starting action " << zoneId_ << std::endl;
 
+    if (zoneId_ == 1 || zoneId_ == 4)
+    {
+        // Clear before drop
+        robot_->getMotionController()->goStraight(300);
+        robot_->getMotionController()->goStraight(-300);
+    }
     if (robot_->getGameState()->isBedFull && robot_->getGameState()->isClawFull)
     {
         servoManager_->dropCrates();

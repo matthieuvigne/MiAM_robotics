@@ -209,14 +209,22 @@ bool Viewer::redraw(const Cairo::RefPtr<Cairo::Context>& cr)
             cr->stroke();
         }
 
-        cr->set_source_rgba(1.0, 0.0, 0.0, 0.5);
         for (int i = 0; i < motionController->map_.rows(); i++)
             for (int j = 0; j < motionController->map_.cols(); j++)
-                if (motionController->map_.coeff(i, j))
+            {
+                if (motionController->map_.coeff(i, j) == 1)
                 {
+                    cr->set_source_rgba(1.0, 0.0, 0.0, 0.5);
                     cr->rectangle(resolution * i, resolution * (motionController->map_.cols() - j - 1), resolution, resolution);
                     cr->fill();
                 }
+                else if (motionController->map_.coeff(i, j) == 2)
+                {
+                    cr->set_source_rgba(1.0, 1.0, 0.0, 0.5);
+                    cr->rectangle(resolution * i, resolution * (motionController->map_.cols() - j - 1), resolution, resolution);
+                    cr->fill();
+                }
+            }
     }
     return true;
 }

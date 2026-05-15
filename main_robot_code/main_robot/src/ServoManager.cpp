@@ -348,7 +348,7 @@ void ServoManager::valveOff(Side const side)
     RPi_writeGPIO(23 + idx, LOW);
 }
 
-CameraResult ServoManager::cameraDetectCrates()
+CameraResult ServoManager::cameraDetectCrates(bool collectZone)
 {
     // Look for tags in the image
     CameraResult result;
@@ -406,10 +406,29 @@ CameraResult ServoManager::cameraDetectCrates()
 
     robot_->logger_ << "[ServoManager] Camera detected lateral offset " << result.lateralOffset << "depth offset" << result.depthOffset << std::endl;
 
-    if (result.tags.size() != 4)
+    if (collectZone)
     {
-        robot_->logger_ << "[ServoManager::grabCrates] Incorrect number of crates, exiting." << std::endl;
-        return result;
+        if (result.tags.size() != 4)
+        {
+            robot_->logger_ << "[ServoManager::grabCrates] Incorrect number of crates, exiting." << std::endl;
+            return result;
+        }
+    }
+    else
+    {
+        int const opponentColor = (robot_->isPlayingRightSide() ? YELLOW : BLUE);
+
+        std::vector<int> opponentTags;
+        for (unsigned int i = 0; i < result.tags.size(); i++)
+        {
+            if (result.tags.at(i).markerId == opponentColor)
+                opponentTags.push_back(i);
+        }
+        if (opponentTags.size() < 2)
+        {
+            robot_->logger_ << "[ServoManager::grabCrates] No opponent crates seen, exiting." << std::endl;
+            return result;
+        }
     }
     result.cratesPresent = true;
     return result;

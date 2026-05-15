@@ -89,7 +89,7 @@ public:
     void fingerOpen();
     void fingerClose();
 
-    CameraResult cameraDetectCrates();
+    CameraResult cameraDetectCrates(bool collectZone = true);
 
     std::string updateInfoString();
 
@@ -97,8 +97,9 @@ public:
     {
         return visionHandler_;
     }
-private:
     void grabTags(std::vector<Tag> const& tags, std::vector<int> tagsToGrab, bool secondGrab = false);
+
+private:
 
     RobotInterface *robot_;
     STSScheduler *servos_;

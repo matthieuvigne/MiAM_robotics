@@ -5,6 +5,8 @@
 #include "main_robot/CursorAction.h"
 #include "main_robot/GrabCratesAction.h"
 #include "main_robot/DropCratesAction.h"
+#include "main_robot/CentralMultiDrop.h"
+#include "main_robot/StealCratesAction.h"
 
 #include "common/GameState.h"
 
@@ -45,7 +47,7 @@ bool Strategy::setup(RobotInterface *robot)
         // Load actions into action vector.
         actions_.clear();
 
-        for (int i=0; i<NUMBER_OF_COLLECT_ZONES; i++)
+        for (int i=0; i<NUMBER_OF_COLLECT_ZONES - 2; i++)
         {
             actions_.push_back(std::make_shared<GrabCratesAction>(robot, &servoManager_, i));
         }
@@ -55,6 +57,10 @@ bool Strategy::setup(RobotInterface *robot)
             actions_.push_back(std::make_shared<DropCratesAction>(robot, &servoManager_, i));
         }
         actions_.push_back(std::make_shared<CursorAction>(robot, &servoManager_));
+        actions_.push_back(std::make_shared<CentralMultiDrop>(robot, &servoManager_));
+        actions_.push_back(std::make_shared<StealCratesAction>(robot, &servoManager_, 5));
+        actions_.push_back(std::make_shared<StealCratesAction>(robot, &servoManager_, 8));
+        actions_.push_back(std::make_shared<StealCratesAction>(robot, &servoManager_, 9));
 
         #ifdef SIMULATION
         return true;
