@@ -12,10 +12,10 @@
     #define MPC_PONDERATION_FINAL_STATE 10 // scaling factor to account more for the final state
 
     #define REFERENCE_WHEEL_SPACING 114.7 // reference wheel spacing in mm, from wheel to center of robot
-    #define MAX_WHEEL_SPEED 500.0 // max wheel velocity in mm/s
-    #define MAX_WHEEL_ACCELERATION 650.0 // max wheel acceleration in mm/s
-    // #define MAX_WHEEL_SPEED 600.0 // max wheel velocity in mm/s
-    // #define MAX_WHEEL_ACCELERATION 700.0 // max wheel acceleration in mm/s
+    // #define MAX_WHEEL_SPEED 500.0 // max wheel velocity in mm/s
+    // #define MAX_WHEEL_ACCELERATION 650.0 // max wheel acceleration in mm/s
+    #define MAX_WHEEL_SPEED 600.0 // max wheel velocity in mm/s
+    #define MAX_WHEEL_ACCELERATION 700.0 // max wheel acceleration in mm/s
 
 
 #endif

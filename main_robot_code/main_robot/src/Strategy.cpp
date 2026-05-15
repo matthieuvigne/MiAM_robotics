@@ -159,7 +159,7 @@ void Strategy::goBackToBase()
     }
     if (targetReached)
     {
-        robot->getMotionController()->goToStraightLine(targetPosition.forward(350), 0.75);
+        robot->getMotionController()->goToStraightLine(targetPosition.forward(350));
         robot->updateScore(10, "back to base");
     }
 }
