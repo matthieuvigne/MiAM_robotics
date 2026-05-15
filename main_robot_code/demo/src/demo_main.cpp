@@ -75,14 +75,17 @@ void run_demo(DemoGUI *gui)
                 servoManager_->unhideArm();
                 robot_->wait(0.4);
                 servoManager_->grabCrates(res);
-                servoManager_->fingerOpen();
                 wasGrabbed = true;
                 gui->set_label("Grab done", "Drop");
                 wait_gui(gui);
                 servoManager_->pumpOff(Side::RIGHT);
                 servoManager_->pumpOff(Side::LEFT);
                 servoManager_->releaseSuction();
+                gui->set_label("Grab done", "Empty robot");
+                wait_gui(gui);
+                servoManager_->emptyBed();
                 gui->set_label("Grab done", "Hide arm");
+                wait_gui(gui);
             }
             else
             {
