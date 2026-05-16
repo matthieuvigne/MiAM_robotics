@@ -272,14 +272,17 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
         log("MotionController.rawCommandVelocityLeft",target.motorSpeed.left);
     }
 
-    // Clamp target acceleration
-    double const maxAccel = 2.0 * robotParams_.maxWheelAccelerationTrajectory / robotParams_.rightWheelRadius;
-    target.motorSpeed.right = std::clamp(target.motorSpeed.right,
-                                         lastTarget_.motorSpeed.right - dt * maxAccel,
-                                         lastTarget_.motorSpeed.right + dt * maxAccel);
-    target.motorSpeed.left = std::clamp(target.motorSpeed.left,
-                                        lastTarget_.motorSpeed.left - dt * maxAccel,
-                                        lastTarget_.motorSpeed.left + dt * maxAccel);
+    if (motionControllerState_ != CONTROLLER_STOP && motionControllerState_ != CONTROLLER_WAIT_FOR_AVOIDANCE)
+    {
+        // Clamp target acceleration - except when asking for a hard stop.
+        double const maxAccel = 2.5 * robotParams_.maxWheelAccelerationTrajectory / robotParams_.rightWheelRadius;
+        target.motorSpeed.right = std::clamp(target.motorSpeed.right,
+                                            lastTarget_.motorSpeed.right - dt * maxAccel,
+                                            lastTarget_.motorSpeed.right + dt * maxAccel);
+        target.motorSpeed.left = std::clamp(target.motorSpeed.left,
+                                            lastTarget_.motorSpeed.left - dt * maxAccel,
+                                            lastTarget_.motorSpeed.left + dt * maxAccel);
+    }
     lastTarget_ = target;
 
 

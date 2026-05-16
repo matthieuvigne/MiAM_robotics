@@ -7,6 +7,7 @@ void CentralMultiDrop::updateStartCondition()
 
     if (robot_->getMatchTime() > 60 &&
         (robot_->getGameState()->isClawFull) &&
+        (!robot_->getGameState()->isCollectZoneFull[2]) &&
         (!robot_->getGameState()->isPantryZoneUsed[4] && !robot_->getGameState()->isPantryZoneUsed[7]))
     {
         priority_ = 20;
@@ -44,8 +45,9 @@ bool CentralMultiDrop::performAction()
             servoManager_->halfDropCrates();
         robot_->getGameState()->isPantryZoneUsed[7] = true;
     }
+    robot_->getMotionController()->goStraight(200);
 
-    success = robot_->getMotionController()->goStraight(-500);
+    success = robot_->getMotionController()->goStraight(-700);
     if (!success)
         return true;
     if (robot_->getGameState()->isBedFull)
@@ -53,6 +55,7 @@ bool CentralMultiDrop::performAction()
     else
         servoManager_->dropCrates();
     robot_->getGameState()->isPantryZoneUsed[4] = true;
+    robot_->getGameState()->isPantryZoneUsed[7] = true;
     robot_->getGameState()->isCollectZoneFull[4] = false;
 
     robot_->getMotionController()->goStraight(-150);
