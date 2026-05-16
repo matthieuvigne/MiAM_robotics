@@ -30,24 +30,29 @@ void StealCratesAction::updateStartCondition()
     switch (zoneId_)
     {
         case 0:
+            startPosition_.x += 40;
             startPosition_.theta = M_PI;
             break;
         case 2:
+            startPosition_.y += 40;
             startPosition_.theta = -M_PI_2;
             break;
         case 3:
             startPosition_.theta = M_PI_2;
             break;
         case 5:
+            startPosition_.y += 40;
             startPosition_.theta = -M_PI_2;
             break;
         case 6:
             startPosition_.theta = M_PI_2;
             break;
         case 8:
+            startPosition_.y += 40;
             startPosition_.theta = -M_PI_2;
             break;
         case 9:
+            startPosition_.x -= 40;
             startPosition_.theta = 0;
             break;
         default:
@@ -112,7 +117,7 @@ bool StealCratesAction::performAction()
     std::vector<int> tagsToGrab;
     if (opponentTags.size() > 2)
     {
-        if (opponentTags[0] == 0)
+        if (opponentTags[0] > 0)
         {
             tagsToGrab.push_back(opponentTags[0]);
             tagsToGrab.push_back(opponentTags[1]);
@@ -131,9 +136,9 @@ bool StealCratesAction::performAction()
     servoManager_->moveCratesInBed();
     servoManager_->fingerClose();
     servoManager_->bedMidUnfold();
-    robot_->getMotionController()->goStraight(-250);
+    robot_->getMotionController()->goStraight(-220);
     servoManager_->emptyBed();
-    robot_->getMotionController()->goStraight(50);
+    robot_->getMotionController()->goStraight(100);
 
     robot_->getGameState()->isPantryZoneUsed[zoneId_] = true;
     robot_->getMotionController()->goStraight(-MARGIN);

@@ -281,13 +281,13 @@ void Strategy::match_impl()
             actions_.erase(actions_.begin() + selectedAction);
         }
 
-        if (robot->getMatchTime() > 85.0 && (!robot->getGameState()->isBedFull && !robot->getGameState()->isClawFull))
+        if (robot->getMatchTime() > 86.0 && (!robot->getGameState()->isBedFull && !robot->getGameState()->isClawFull))
         {
             robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
             break;
         }
 
-        if (robot->getMatchTime() > 90.0)
+        if (robot->getMatchTime() > 91.0)
         {
             robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
             break;

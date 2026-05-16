@@ -19,9 +19,9 @@ void DropCratesAction::updateStartCondition()
     else
     {
         priority_ = 10;
-        if (zoneId_ == 1)
-            priority_ += 2;
         if (zoneId_ == 2)
+            priority_ += 2;
+        if (zoneId_ == 1)
             priority_ += 1;
         if (zoneId_ == 0)
             priority_ += 5;
@@ -38,7 +38,7 @@ void DropCratesAction::updateStartCondition()
             startPosition_.theta = M_PI;
             break;
         case 2:
-            startPosition_.y += OFFSET;
+            startPosition_.y += OFFSET + 40; // For cursor
             startPosition_.theta = -M_PI_2;
             break;
         case 3:
