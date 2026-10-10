@@ -8,6 +8,7 @@
     #include <mutex>
     #include <thread>
     #include <sstream>
+    #include <functional>
 
     #include "miam_utils/LogVariable.h"
 
@@ -39,9 +40,8 @@
             /// \param[in] silent If set, logger does not output to teleplot nor std::cout
             void start(std::string const& filename, std::string const& teleplotPrefix = "", bool const& silent = false);
 
-            /// @brief Set the origin of time, used on text log line.
-            /// @param origin Time origin.
-            void setTimeOrigin(timespec const& origin);
+            /// @brief Set the clock used by the logger - for text log, exposed through getElapsedTime.
+            void setClock(std::function<double()> clock);
             double getElapsedTime();
 
             /// @brief Register a variable, obtaining an id that can be used for futur logging.
@@ -106,7 +106,8 @@
 
             std::stringstream textData_;
 
-            timespec timeOrigin_;
+            std::chrono::steady_clock::time_point objectConstructionTime_;
+            std::function<double()> textClock_;
 
             bool silent_ = false;
             int nLines_ = 0;

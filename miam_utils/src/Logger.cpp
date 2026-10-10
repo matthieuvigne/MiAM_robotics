@@ -21,6 +21,8 @@
 #include <iomanip>
 #include <algorithm>
 #include <fstream>
+#include <chrono>
+#include <utility>
 
 double const FLUSH_INTERVAL = 1.0;
 
@@ -34,6 +36,7 @@ Logger::Logger():
     queuedDatapoints_(),
     mutex_()
 {
+    objectConstructionTime_ = std::chrono::steady_clock::now();
 }
 
 Logger::~Logger()
@@ -55,20 +58,17 @@ void Logger::start(std::string const& filename, std::string const& teleplotPrefi
         cliPrefix_ = "[" + teleplotPrefix_ + "] ";
     }
     close(); // Close possibly existing log.
-    clock_gettime(CLOCK_MONOTONIC, &timeOrigin_);
     thread_ = std::thread(&Logger::loggerThread, this, filename);
 }
 
-void Logger::setTimeOrigin(timespec const& origin)
+void Logger::setClock(std::function<double()> clock)
 {
-    timeOrigin_ = origin;
+    textClock_ = std::move(clock);
 }
 
 double Logger::getElapsedTime()
 {
-    struct timespec currentTime;
-    clock_gettime(CLOCK_MONOTONIC, &currentTime);
-    return currentTime.tv_sec - timeOrigin_.tv_sec + (currentTime.tv_nsec - timeOrigin_.tv_nsec) / 1e9;
+    return textClock_ ? textClock_() : std::chrono::duration<double>(std::chrono::steady_clock::now() - objectConstructionTime_).count();
 }
 
 void Logger::loggerThread(std::string const& filename)
@@ -84,7 +84,7 @@ void Logger::loggerThread(std::string const& filename)
         variables_[i].init(&file, i);
     nRegisteredVariables_ = 0;
 
-    double lastFlush = 0.0;
+    auto lastFlush = std::chrono::steady_clock::now();
 
     while (!askForTerminate_ || queuedDatapoints_.size() > 0 || queuedText_.size() > 0)
     {
@@ -139,12 +139,13 @@ void Logger::loggerThread(std::string const& filename)
         }
 
         // Flush everything at least at the specified time interval.
-        if (getElapsedTime() - lastFlush > FLUSH_INTERVAL)
+        auto const now = std::chrono::steady_clock::now();
+        if (std::chrono::duration<double>(now - lastFlush).count() > FLUSH_INTERVAL)
         {
             for (uint16_t i = 0; i < nRegisteredVariables_; i++)
                 variables_[i].maybe_flush();
             file.flush();
-            lastFlush = getElapsedTime();
+            lastFlush = now;
         }
         usleep(1000);
     }
