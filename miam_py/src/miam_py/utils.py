@@ -1,7 +1,9 @@
 import re
 import os
 import shlex
+from math import ceil
 from fnmatch import filter as matching
+from typing import Collection, Union
 
 def sorted_nicely(l):
     """ Sort the given iterable in the way that humans expect."""
@@ -15,7 +17,18 @@ def get_most_recent_log():
     return sorted_nicely(logfiles)[-1]
 
 
-def expand_plot_specs(commands, variables, strict=True):
+def plot_layout(n_plots: int) -> tuple[int, int]:
+    """Return (rows, columns), keeping columns at most two greater than rows."""
+    rows, columns = 1, n_plots
+    while columns > rows + 2:
+        rows += 1
+        columns = ceil(n_plots / rows)
+    return rows, columns
+
+
+def expand_plot_specs(
+    commands: Union[str, list[str]], variables: Collection[str], strict: bool = True,
+) -> list[list[str]]:
     """Expand the wildcard/colon syntax used by miam_plot."""
     if isinstance(commands, str):
         commands = shlex.split(commands)

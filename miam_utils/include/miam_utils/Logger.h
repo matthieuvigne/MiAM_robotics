@@ -1,7 +1,3 @@
-/// \file Logger.h
-/// \brief Implement the Logger class for logging robot telemetry data to a csv file.
-/// \author MiAM Robotique, Matthieu Vigne
-/// \copyright GNU GPLv3
 #ifndef LOGGER
 #define LOGGER
     #include <vector>
@@ -21,7 +17,7 @@
         int const MAX_VARIABLES = 200;
     }
 
-    /// \brief Telemetry class, for logging robot data to a csv file.
+    /// \brief Telemetry class, for logging robot data to a binary file (`.miam`).
     /// \details The user specifies a list of headers and, at run time, a value for each element to log.
     ///          If no value is given, the previous value is kept.
     class Logger{
