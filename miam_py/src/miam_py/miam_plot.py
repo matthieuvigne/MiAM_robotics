@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 from scipy.fftpack import fft
 
-from .utils import expand_plot_specs, get_most_recent_log
+from .utils import expand_plot_specs, get_most_recent_log, plot_layout
 
 
 def my_fft(data, dt):
@@ -35,7 +35,7 @@ def main():
                       "Extra values: timeDiffs plots dt between two log lines."
 
     parser = argparse.ArgumentParser(description = description_str, formatter_class = argparse.RawTextHelpFormatter)
-    parser.add_argument("input", help = "Input csv log file, or keyword 'latest'.")
+    parser.add_argument("input", help = "Input HDF5 or .miam log file, or keyword 'latest'.")
     parser.add_argument("-fft", required = False, default = False, action = "store_true",
                         help = "If set, plot Fourier transform instead.")
     main_arguments, plotting_commands = parser.parse_known_args()
@@ -63,14 +63,8 @@ def main():
     # Create figure.
     n_plot = len(plotted_elements)
 
-    # Arrange plot in rectangular fashion: don't allow for n_cols to be more than n_rows + 2
-    n_cols = n_plot
-    n_rows = 1
-    while n_cols > n_rows + 2:
-        n_rows = n_rows + 1
-        n_cols = np.ceil(n_plot / (1.0 * n_rows))
-
-    fig, axs = plt.subplots(nrows=int(n_rows), ncols=int(n_cols), sharex = True)
+    n_rows, n_cols = plot_layout(n_plot)
+    _, axs = plt.subplots(nrows=n_rows, ncols=n_cols, sharex = True)
 
     if n_plot == 1:
         axs = np.array([axs])

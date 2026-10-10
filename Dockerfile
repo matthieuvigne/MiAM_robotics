@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 RUN apt-get update &&\
     DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata &&\
     apt-get install -y build-essential pkg-config cmake cmake-curses-gui g++ g++-aarch64-linux-gnu \
-                       python3 python3-venv libgtkmm-3.0-dev python3-tk \
+                       python3 python3-venv libgtkmm-3.0-dev python3-tk adwaita-icon-theme-full \
                        libeigen3-dev libhdf5-dev \
                        gdb ssh sshfs nano wget unzip git \
                        gcc git gnuplot doxygen graphviz \

@@ -28,7 +28,7 @@ def main():
     description_str = "Extract and plot trajectory tracking information from a robot log file."
 
     parser = argparse.ArgumentParser(description = description_str, formatter_class = argparse.RawTextHelpFormatter)
-    parser.add_argument("input", help = "Input csv log file.")
+    parser.add_argument("input", help = "Input HDF5 or .miam log file.")
     args = parser.parse_args()
 
     # Load log file.
