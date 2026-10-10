@@ -20,6 +20,7 @@ RobotInterface::RobotInterface(RobotParameters const& robotParameters,
     teleplotPrefix_(teleplotPrefix),
     silent_(silent)
 {
+    logger_.setClock([this]() { return metronome_.getElapsedTime(); });
 }
 
 void RobotInterface::initLogger()
@@ -70,10 +71,8 @@ void RobotInterface::lowLevelLoop()
 
 #ifdef SIMULATION
     metronome_.hasReset_ = false;
-    logger_.setTimeOrigin(metronome_.getStartTime());
 #else
     metronome_ = Metronome(ROBOT_UPDATE_PERIOD);
-    logger_.setTimeOrigin(metronome_.getStartTime());
 #endif
     currentTime_ = 0.0;
     servos_.setLogger(&logger_);
