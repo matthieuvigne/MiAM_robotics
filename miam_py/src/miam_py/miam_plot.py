@@ -13,10 +13,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from fnmatch import filter
 from scipy.fftpack import fft
 
-from .utils import get_most_recent_log
+from .utils import expand_plot_specs, get_most_recent_log
 
 
 def my_fft(data, dt):
@@ -56,18 +55,9 @@ def main():
         exit(0)
 
     # Parse plotting arguments.
-    plotted_elements = []
-    for cmd in plotting_commands:
-        # Check that the command is valid, i.e. that all elements exits. If it is the case, add it to the list.
-        headers = cmd.split(":")
-        # Expand each element according to regular expression.
-        matching_headers = []
-        for h in headers:
-            matching_headers.append(sorted(filter(logfile.variables, h)))
-        # Get minimum size for number of subplots.
-        n_subplots = min([len(l) for l in matching_headers])
-        for i in range(n_subplots):
-            plotted_elements.append([l[i] for l in matching_headers])
+    plotted_elements = expand_plot_specs(plotting_commands, logfile.variables, strict=False)
+    if not plotted_elements:
+        parser.error("No channels match the plotting expressions.")
 
 
     # Create figure.
