@@ -41,7 +41,7 @@ def main():
 
     # Get robot parameters from file.
     time = logfile.data['MotionController.currentPositionX'][0]
-    time = time[np.searchsorted(time, logfile.start_time):]
+    time = time[np.searchsorted(time, logfile.match_start_time):]
 
     # Load robot x, y, theta position.
     trajectory_x = get_data_resampled(logfile, 'MotionController.currentPositionX', time)

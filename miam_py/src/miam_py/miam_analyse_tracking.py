@@ -7,17 +7,15 @@
 
 import argparse
 
-import os
 import miam_py
 
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 from matplotlib.backend_bases import NavigationToolbar2
 
 from .tabbed_figure import TabbedFigure
 from .utils import get_most_recent_log
+from .resources import load_table_image
 
 # Custom home button to fix home view.
 def new_home(self, *args, **kwargs):
@@ -100,8 +98,8 @@ def main():
         plt.ylim(ylim)
         plt.grid()
         # Show table image as background.
-        table = mpimg.imread(os.path.join(os.path.dirname(miam_py.__file__),'../images/table.png'))
-        image = plt.imshow(table, extent=[-500, 3500, -500, 2500], alpha=0.6, aspect=current_aspect_ratio)
+        table = load_table_image()
+        image = plt.imshow(table, extent=[-500, 3500, -500, 2500], aspect=current_aspect_ratio)
         plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 1)
         map_fig.canvas.draw()
         map_fig.canvas.flush_events()

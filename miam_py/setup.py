@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 setup(
     name='miam_py',
     version='1.0.0',
+    python_requires='>=3.9',
     description='MiAM robotics log processing',
     long_description=open('README.md').read(),
-    packages=['miam_py'],
+    packages=find_packages('src'),
     package_dir={'': 'src'},
     entry_points={
         'console_scripts': [
@@ -17,9 +18,10 @@ setup(
             'miam_extract_text = miam_py.miam_extract_text:main',
             'miam_get_latest_log = miam_py.miam_get_latest_log:main',
             'miam_analyse_tracking = miam_py.miam_analyse_tracking:main',
+            'miam_analyse_match = miam_py.miam_analyse_match:main',
             'miam_analyse_obstacles = miam_py.plot_obstacles:main',
         ],
     },
-    data_files=[('images', ['images/table.png'])],
+    package_data={'miam_py': ['images/table.png']},
     install_requires=["numpy", "matplotlib", "scipy", "tk", "h5py", "paramiko", "tqdm", "PyQt5"],
     zip_safe=False)
