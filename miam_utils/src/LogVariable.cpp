@@ -36,7 +36,7 @@ void LogVariable::addPoint(double const& time, double const& value)
 
 void LogVariable::maybe_flush()
 {
-    if (pos_ > BUFFER_SIZE / 2)
+    if (pos_ > START)
         flush();
 }
 
