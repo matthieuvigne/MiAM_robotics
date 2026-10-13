@@ -16,6 +16,14 @@
 #include <mutex>
 #include <array>
 
+enum class StrategyState {
+    STARTUP                 = 0,
+    CHOOSING_ACTION         = 1,
+    MOVING_TO_ACTION_START  = 2,
+    PERFORMING_ACTION       = 3,
+    END_OF_MATCH_ACTION     = 4,
+    MATCH_DONE              = 5
+};
 namespace main_robot
 {
 class Strategy : public AbstractStrategy
@@ -51,6 +59,9 @@ class Strategy : public AbstractStrategy
         int setupStep_ = 0;
 
         bool interactive_; ///< Actions are choosen by the user
+
+        void setState(StrategyState const& newState);
+        StrategyState currentState_{StrategyState::STARTUP};
   };
 }
 

@@ -67,6 +67,12 @@
             /// @param value Value
             void log(std::string const& name, double const& time, double const& value);
 
+            /// @brief Log a variable using the current logger time.
+            void log(std::string const& name, double const& value)
+            {
+                return log(name, getElapsedTime(), value);
+            }
+
             /// @brief Flush and close the file.
             ///
             /// @details This function is blocking and only returns once the write operation is complete.
