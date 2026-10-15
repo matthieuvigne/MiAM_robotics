@@ -36,9 +36,9 @@ bool Strategy::setup(RobotInterface *robot)
         this->motionController = robot->getMotionController();
         robot->logger_ << "[Strategy] Strategy setup is being performed" << std::endl;
 
-        setState(StrategyState::STARTUP);
         // Init servo manager, this starts turret calibration
         servoManager_.init(robot);
+        currentState_.init(&(robot->logger_), "Strategy.state", StrategyState::STARTUP);
 
         motionController->setAvoidanceMode(AvoidanceMode::AVOIDANCE_MPC);
 
@@ -89,7 +89,7 @@ void Strategy::shutdown()
 
 void Strategy::match()
 {
-    setState(StrategyState::CHOOSING_ACTION);
+    currentState_.set(StrategyState::CHOOSING_ACTION);
     pthread_setname_np(pthread_self(), "strat_match");
     robot->logger_ << "Strategy thread started." << std::endl;
 
@@ -125,7 +125,7 @@ void Strategy::match()
 
 void Strategy::goBackToBase()
 {
-    setState(StrategyState::END_OF_MATCH_ACTION);
+    currentState_.set(StrategyState::END_OF_MATCH_ACTION);
     MATCH_COMPLETED = true;
     std::thread hide(&ServoManager::hideArm, servoManager_);
     hide.detach();
@@ -164,7 +164,7 @@ void Strategy::goBackToBase()
     {
         robot->updateScore(10, "back to base");
     }
-    setState(StrategyState::MATCH_DONE);
+    currentState_.set(StrategyState::MATCH_DONE);
 }
 
 
@@ -283,7 +283,7 @@ void Strategy::match_impl()
             robot->logger_ << "[Strategy] Near match end, let's go back." << std::endl;
             break;
         }
-        setState(StrategyState::CHOOSING_ACTION);
+        currentState_.set(StrategyState::CHOOSING_ACTION);
     }
     robot->logger_ << "[Strategy] No more action to perform" << std::endl;
     goBackToBase();
@@ -291,7 +291,7 @@ void Strategy::match_impl()
 
 bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & actionShouldBeRemoved)
 {
-    setState(StrategyState::MOVING_TO_ACTION_START);
+    currentState_.set(StrategyState::MOVING_TO_ACTION_START);
     actionShouldBeRemoved = false;
     if (action->priority_ < 0)
     {
@@ -344,7 +344,7 @@ bool Strategy::performAction(std::shared_ptr<AbstractAction> action, bool & acti
             return false;
         }
     }
-    setState(StrategyState::PERFORMING_ACTION);
+    currentState_.set(StrategyState::PERFORMING_ACTION);
     actionShouldBeRemoved = action->performAction();
     return actionShouldBeRemoved;
 }
@@ -377,12 +377,6 @@ std::string Strategy::updateInfoString()
 
     }
     return result;
-}
-
-void Strategy::setState(StrategyState const& newState)
-{
-    currentState_ = newState;
-    robot->logger_.log("Strategy.state", static_cast<int>(currentState_));
 }
 
 }
