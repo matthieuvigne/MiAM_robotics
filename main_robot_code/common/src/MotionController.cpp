@@ -42,7 +42,7 @@ void MotionController::init(RobotPosition const& startPosition)
     ThreadHandler::addThread(stratSolver);
 
     // Init controller state
-    motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
+    currentState_.init(logger_, "MotionController.state", CONTROLLER_WAIT_FOR_TRAJECTORY);
     timeSinceFirstStopped_ = std::chrono::steady_clock::now();
     timeSinceLastAvoidance_ = std::chrono::steady_clock::now();
 }
@@ -265,7 +265,6 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
     if (measurements.matchTime > 0.0)
     {
-        log("motionControllerState", static_cast<int>(motionControllerState_));
         log("detectionCoeff",slowDownCoeff_);
         log("clampedDetectionCoeff", clampedSlowDownCoeff_);
         log("MotionController.rawCommandVelocityRight",target.motorSpeed.right);
@@ -296,26 +295,25 @@ DrivetrainTarget MotionController::computeDrivetrainMotion(DrivetrainMeasurement
 
 void MotionController::changeMotionControllerState()
 {
-
     // in all cases, if new trajectories, reset controller
     // Load new trajectory, if needed.
     newTrajectoryMutex_.lock();
     if (!newTrajectories_.empty())
     {
         // *logger_ << "[MotionController] New trajectories, reset controller state to WAIT_FOR_TRAJECTORY" << std::endl;
-        motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
+        currentState_.set(CONTROLLER_WAIT_FOR_TRAJECTORY);
     }
 
     if (askedForTrackingStop_)
     {
         askedForTrackingStop_ = false;
         currentTrajectories_.clear();
-        motionControllerState_ = CONTROLLER_WAIT_FOR_TRAJECTORY;
+        currentState_.set(CONTROLLER_WAIT_FOR_TRAJECTORY);
     }
 
-    MotionControllerState nextMotionControllerState = motionControllerState_;
+    MotionControllerState nextMotionControllerState = currentState_.get();
 
-    if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
+    if (currentState_.get() == CONTROLLER_WAIT_FOR_TRAJECTORY)
     {
         lockTimeSinceFirstStop_ = false;
         if (!newTrajectories_.empty())
@@ -334,7 +332,7 @@ void MotionController::changeMotionControllerState()
     }
     newTrajectoryMutex_.unlock();
 
-    if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
+    if (currentState_.get() == CONTROLLER_TRAJECTORY_TRACKING)
     {
         // Potentially unlock stop if we have moved lone enough.
         if (clampedSlowDownCoeff_ < 0.99)
@@ -393,7 +391,7 @@ void MotionController::changeMotionControllerState()
             nextMotionControllerState = CONTROLLER_WAIT_FOR_TRAJECTORY;
         }
     }
-    else if (motionControllerState_ == CONTROLLER_STOP)
+    else if (currentState_.get() == CONTROLLER_STOP)
     {
         // in seconds
         double durationSinceFirstStopped = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeSinceFirstStopped_).count() / 1000.0;
@@ -441,7 +439,7 @@ void MotionController::changeMotionControllerState()
             }
         }
     }
-    else if (motionControllerState_ == CONTROLLER_WAIT_FOR_AVOIDANCE)
+    else if (currentState_.get() == CONTROLLER_WAIT_FOR_AVOIDANCE)
     {
         if (!avoidanceComputationScheduled_)
         {
@@ -471,49 +469,7 @@ void MotionController::changeMotionControllerState()
         }
     }
 
-    // print and change
-    // if (motionControllerState_ != nextMotionControllerState)
-    // {
-    //     std::string current;
-    //     if (motionControllerState_ == CONTROLLER_STOP)
-    //     {
-    //         current = "STOP";
-    //     }
-    //     else if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
-    //     {
-    //         current = "TRAJECTORY_TRACKING";
-    //     }
-    //     else if (motionControllerState_ == CONTROLLER_WAIT_FOR_AVOIDANCE)
-    //     {
-    //         current = "WAIT_FOR_AVOIDANCE";
-    //     }
-    //     else if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY)
-    //     {
-    //         current = "WAIT_FOR_TRAJECTORY";
-    //     }
-
-    //     std::string next;
-    //     if (nextMotionControllerState == CONTROLLER_STOP)
-    //     {
-    //         next = "STOP";
-    //     }
-    //     else if (nextMotionControllerState == CONTROLLER_TRAJECTORY_TRACKING)
-    //     {
-    //         next = "TRAJECTORY_TRACKING";
-    //     }
-    //     else if (nextMotionControllerState == CONTROLLER_WAIT_FOR_AVOIDANCE)
-    //     {
-    //         next = "WAIT_FOR_AVOIDANCE";
-    //     }
-    //     else if (nextMotionControllerState == CONTROLLER_WAIT_FOR_TRAJECTORY)
-    //     {
-    //         next = "WAIT_FOR_TRAJECTORY";
-    //     }
-
-    //     *logger_ << "[MotionController] State changed: from " << current << " to " << next << std::endl;
-    // }
-
-    motionControllerState_ = nextMotionControllerState;
+    currentState_.set(nextMotionControllerState);
 }
 
 DrivetrainTarget MotionController::resolveMotionControllerState(
@@ -526,7 +482,7 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
     target.motorSpeed.right = 0.0;
     target.motorSpeed.left = 0.0;
 
-    if (motionControllerState_ == CONTROLLER_TRAJECTORY_TRACKING)
+    if (currentState_.get() == CONTROLLER_TRAJECTORY_TRACKING)
     {
         // Load first trajectory, look if we are done following it.
         Trajectory *traj = currentTrajectories_.at(0).get();
@@ -540,12 +496,8 @@ DrivetrainTarget MotionController::resolveMotionControllerState(
         //     currentTrajectories_.erase(currentTrajectories_.begin());
         // }
     }
-    else if (motionControllerState_ == MotionControllerState::CONTROLLER_OPEN_LOOP)
-    {
-        target.motorSpeed = openLoopSpeed_;
-    }
 
-    if (motionControllerState_ == CONTROLLER_WAIT_FOR_TRAJECTORY || motionControllerState_ == CONTROLLER_WAIT_FOR_AVOIDANCE)
+    if (currentState_.get() == CONTROLLER_WAIT_FOR_TRAJECTORY || currentState_.get() == CONTROLLER_WAIT_FOR_AVOIDANCE)
         lockTimeSinceFirstStop_ = false;
 
     return target;
@@ -646,15 +598,4 @@ TrajectoryConfig MotionController::getCurrentTrajectoryParameters()
     //     conf.maxWheelAcceleration *= 0.7;
     // }
     return conf;
-}
-
-void MotionController::setOpenLoopVelocity(WheelSpeed const& motorSpeed)
-{
-    motionControllerState_ = MotionControllerState::CONTROLLER_OPEN_LOOP;
-    openLoopSpeed_ = motorSpeed;
-}
-
-void MotionController::stopOpenLoop()
-{
-    motionControllerState_ = MotionControllerState::CONTROLLER_WAIT_FOR_TRAJECTORY;
 }

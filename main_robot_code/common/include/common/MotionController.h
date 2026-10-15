@@ -9,6 +9,7 @@
      #define MOTION_CONTROLLER_H
 
     #include <miam_utils/AbstractRobot.h>
+    #include <miam_utils/LoggedEnum.hpp>
     #include <unistd.h>
     #include "RobotParameters.h"
 
@@ -45,8 +46,7 @@
         CONTROLLER_STOP                 = 0,
         CONTROLLER_TRAJECTORY_TRACKING  = 1,
         CONTROLLER_WAIT_FOR_AVOIDANCE   = 2,
-        CONTROLLER_WAIT_FOR_TRAJECTORY  = 3,
-        CONTROLLER_OPEN_LOOP            = 4
+        CONTROLLER_WAIT_FOR_TRAJECTORY  = 3
     };
 
     using tf = miam::trajectory::flags;
@@ -231,13 +231,6 @@
                 isDetectionEnabled_ = enable;
             }
 
-            /// @brief Set system in open loop, tracking motorSpeed
-            /// @details This is meant to be used for border detection.
-            ///          Robot remains in ths mode until stopOpenLoop is called.
-            /// @param motorSpeed Motor speed, rad/s.
-            void setOpenLoopVelocity(WheelSpeed const& motorSpeed);
-            void stopOpenLoop();
-
             BaseSpeed currentSpeed_;
             WheelSpeed currentEncoderSpeed_;
         private:
@@ -331,7 +324,7 @@
             double trajectoryTimeout_ = 1.0; // Number of seconds after the end of trajectory after which timeout is raised
 
             // Motion controller state
-            MotionControllerState motionControllerState_;
+            LoggedEnum<MotionControllerState> currentState_;
             void changeMotionControllerState();
             DrivetrainTarget resolveMotionControllerState(DrivetrainMeasurements const &measurements,
                                                            double const &dt,

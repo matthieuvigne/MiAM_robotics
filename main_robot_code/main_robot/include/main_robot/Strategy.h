@@ -6,6 +6,8 @@
 #ifndef MAIN_ROBOT_STRATEGY_H
 #define MAIN_ROBOT_STRATEGY_H
 
+#include <miam_utils/LoggedEnum.hpp>
+
 #include "common/RobotInterface.h"
 #include "common/AbstractStrategy.h"
 #include "common/MotionPlanner.h"
@@ -60,8 +62,7 @@ class Strategy : public AbstractStrategy
 
         bool interactive_; ///< Actions are choosen by the user
 
-        void setState(StrategyState const& newState);
-        StrategyState currentState_{StrategyState::STARTUP};
+        LoggedEnum<StrategyState> currentState_;
   };
 }
 
