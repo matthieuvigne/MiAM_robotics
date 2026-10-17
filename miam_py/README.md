@@ -14,9 +14,6 @@ Aside from the package (miam_py) itself, the following script are provided:
    **Space** toggles replay regardless of which widget has focus.
    Clicking or editing the time selection controls, or seeking through plots or text, pauses playback.
    Playback targets 30 FPS by caching static drawings and redrawing only the moving markers and time cursors.
- - miam_analyse_tracking: performs specific plots aiming at helping understanding robot servoing on the table. This script
- plots the robot position and target position on the table (with table image as background), as well as position, angle,
- velocity and angular velocity values or errors.
 
 # Installing
 
