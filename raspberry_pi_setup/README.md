@@ -1,4 +1,7 @@
-# Image creation
+# Raspberry Pi image creation
+
+This document describes how to **manually** tweak the default Raspi OS to our working needs.
+It served as source to build an **automated procedure**, using [sdm](https://github.com/gitbls/sdm): see the README in the [sdm](./sdm) folder for this procedure.
 
 ## Initial setup
 
@@ -23,7 +26,7 @@ sudo systemctl unmask hostapd && sudo systemctl enable hostapd
 
 ### Configure WiFi network broadcast
 
- - Create WiFi hotspot: create a file called `/etc/hostadp/hostapd.conf`
+ - Create WiFi hotspot: create a file called `/etc/hostapd/hostapd.conf`
 
 ```
 country_code=FR
@@ -186,7 +189,7 @@ iptables -t nat -A POSTROUTING -o wlp0s20f3 -j MASQUERADE
 
 ## Launch match code
 
-Generate an executable file `~Desktop/match.desktop`
+Generate an executable file `~/Desktop/match.desktop`
 
 ```
 [Desktop Entry]
